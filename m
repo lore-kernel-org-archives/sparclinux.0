@@ -1,179 +1,153 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF3C334FF40;
-	Thu, 19 Feb 2026 17:37:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30B37301002;
+	Fri, 20 Feb 2026 04:10:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771522644; cv=none; b=EC6QnvsQVnxQl6DdonMTgemlvQIhXbs29vJolQRIpyAxtuUnwwnYfT5SFf143yU9gO7q2mgR0pDqMGvXRZ6dF5XErAsR4iteL3/3bEeUKg+3aHrD/UKUd7cGkCBOqoJC5Z/Cu8aXCFPnohUFCkUlAXOY2qRvojCMw/6hqx/uQCQ=
+	t=1771560634; cv=none; b=Yb+Zx5ZVSzcIqFe22v+A00Xb/+RqOJhVXdngDb508ICx//stbUJHo7AVayxKszk32v/MSYpmFxUOGFbWPTc6ytMGCCnJLs4o3rJHFPIOzOU5ednRb6utQHuB0+TlNEBdMnaxLhbO6MLQeOERMioROMrimU01taG9+uEYtKkY4jk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771522644; c=relaxed/simple;
-	bh=lX1hnLN1OOqhBIpO8jC29BzHDnuNF40ts7a/m18UObw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UaaJlkoRA8XZSO7FHZ6zTGQo4SbTdYkWRFoidu1F2M+q37zrXPmxfb8qre7Q+cV8rH2lnRyXTDLCEyEX21KJJo2SyQ+p6r3PeHoplAt1hL9OnuE/JHT0PzYv/qp3nG8Nr3xkhZ9mT47/4n/3skgUetcx5Q/wK3+qIAQiqO9n4Wo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=Cs7eIaIO; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1771560634; c=relaxed/simple;
+	bh=im5T2AhfGDyXaPXyhpLfgJGQ91DbQgM5VZmwKBunt1A=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=dEI4sm+VOycTpuitjCQ/wrmNPOcbOz2yr5KO/k2xCthHTHHiIMT1/qms04XsEHuG4qu+JnaHBCmZqGidapT4BEWh1gwMHAimws//u+C0OQg2vzBpRqoDB/aBqCk+oV24azh38cq+n4rPukrfIZnlVxQl6lbA6K80PlI6549GMno=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BY31bXLu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="Cs7eIaIO"
-Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 61J99tXr1600918;
-	Thu, 19 Feb 2026 17:37:06 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=KzUa/D
-	AODjPXOJZk+zAZxaDHAy0uF4q50JpQeGI7vUs=; b=Cs7eIaIOR6mpPx6OX2Wf4/
-	rStp2r3A/nRexuR9jl8YKNfmCFmoFTxMgDB2tsSSWu7Tk60Psz31F+HJsQoCncv2
-	2fcThhrONaaaTGgct0o/welIJO9zsrPxMFRzCzjysICLQf7v+8F7Xy4Tz4KUnyP/
-	nc2KePRIV6QwWqduyHY89PGjV0NBQhTsKqFdW935Du+oPva5obrcDKOPtt/TQG3s
-	0EGtrn9CjXS5rc+NdFMQhK79JSOXD0S2q1Vvp82KnI6GWUVbpwo7PYTqZMYWOOg5
-	OiZZXlU1XV45/jf2cOF4ELDJPVc5LVUOsCOQ9XsM9C8zZkcfr5E2ZjyRShcdVi3A
-	==
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4cajcr7bca-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 19 Feb 2026 17:37:05 +0000 (GMT)
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma12.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 61JHZRq1024327;
-	Thu, 19 Feb 2026 17:37:04 GMT
-Received: from smtprelay06.dal12v.mail.ibm.com ([172.16.1.8])
-	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4ccb45d699-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 19 Feb 2026 17:37:04 +0000
-Received: from smtpav04.dal12v.mail.ibm.com (smtpav04.dal12v.mail.ibm.com [10.241.53.103])
-	by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 61JHb3mN14680590
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 19 Feb 2026 17:37:03 GMT
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B94AF58062;
-	Thu, 19 Feb 2026 17:37:03 +0000 (GMT)
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id AE5F458052;
-	Thu, 19 Feb 2026 17:36:56 +0000 (GMT)
-Received: from [9.111.6.127] (unknown [9.111.6.127])
-	by smtpav04.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Thu, 19 Feb 2026 17:36:56 +0000 (GMT)
-Message-ID: <4eaa7872-6bae-4419-9281-203c04f1996d@linux.ibm.com>
-Date: Thu, 19 Feb 2026 23:06:54 +0530
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BY31bXLu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3828C19421;
+	Fri, 20 Feb 2026 04:10:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1771560633;
+	bh=im5T2AhfGDyXaPXyhpLfgJGQ91DbQgM5VZmwKBunt1A=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=BY31bXLuYwaDNUvbU0KhmqMJP3M/Awj2XilOUUrqfd5tse5Bs+Sof47ei7f2ySnfn
+	 tFNi7q7K9gluSvI0HlMVWVeaLxpkyoeKBDi/rrNOewr0OuAFpDC7j/iRqwMKPlJ5Wa
+	 P3ScJYlX18vFMmmARgpPLIChzrvUE2kp6Q3jnE9jYkAe7srv3PTOOcxMtCzqbU7qAw
+	 IToOjDmvHez/A8mTg3Q3sBsLUBSNAWxLa0iZsksGoJ/G/rax+WVfDfh7lH4OceXS15
+	 qVM1jLAxgENfoZP8fJU+Wp+4V3bOt53kAg6T75fF/G3mbGiObvL/fXyvhcTJ2XNYm0
+	 uwW0QrKe9zoGw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7CFE83809A88;
+	Fri, 20 Feb 2026 04:10:43 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] powerpc/pci: Initialize msi_addr_mask for OF-created PCI
- devices
-To: Bjorn Helgaas <helgaas@kernel.org>, Thomas Gleixner <tglx@kernel.org>
-Cc: linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
-        wangruikang@iscas.ac.cn, maddy@linux.ibm.com, mpe@ellerman.id.au,
-        npiggin@gmail.com, chleroy@kernel.org, gjoyce@ibm.com,
-        "David S. Miller" <davem@davemloft.net>,
-        Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org
-References: <20260219173149.GA3486808@bhelgaas>
-Content-Language: en-US
-From: Nilay Shroff <nilay@linux.ibm.com>
-In-Reply-To: <20260219173149.GA3486808@bhelgaas>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-GUID: i2oEi-oEaCIUdP7mOfcn8jNXprvsrnrx
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjE5MDE1NSBTYWx0ZWRfX6fztuDLfQP78
- bs3iMVzUMjYjN4HReCzlptyDs1e/aVd5gc28eUa3+0C2e1fLhqAb6j5XVUcJ1S1avz9ojUvbIBj
- tjkOk+P7R3piB88A/3A1AIPjRdb92BdQQ34C4asuNzbUhmqB7K8O1AbimaSnriwRjj5kanTjBtj
- jP3rZTrbdtCl1Tg1dRoocVhJ7uRQGzWvEPkfmAUIgG042ydXE2JYTGKXMp35dpN/USEqr5n4uui
- ZdnSXYcZkDqbRlXNtr809t0+tSMD9Z/Aa/daO6pvSuFfONTLf3pyAMqKmQNFvqNhwFCtQDWR1/X
- LIQiEL2f7q1uhFWG5ReA/9GqUazbW0/gBrevjUxe8k2pYbjY3JE8XaknSh5cVkqjYVf+YOmqypM
- RGH8ABSvkly4bWHGRuLRS5fG/izUxaNvGDAIAVbppjSynUyMjREnZ7G8bkKFqsPDST1Fdnz7W0n
- G52t2XnceWl9Dhwe/2A==
-X-Authority-Analysis: v=2.4 cv=UPXQ3Sfy c=1 sm=1 tr=0 ts=69974a42 cx=c_pps
- a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
- a=IkcTkHD0fZMA:10 a=HzLeVaNsDn8A:10 a=VkNPw1HP01LnGYTKEx00:22
- a=Mpw57Om8IfrbqaoTuvik:22 a=GgsMoib0sEa3-_RKJdDe:22 a=VwQbUJbxAAAA:8
- a=VnNF1IyMAAAA:8 a=3Jw2BVf9RI64lIZzIOoA:9 a=QEXdDO2ut3YA:10
-X-Proofpoint-ORIG-GUID: xgNA2-reBvL-KTMEoudIcSE0TvYu7ral
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-02-19_04,2026-02-19_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 suspectscore=0 phishscore=0 impostorscore=0 adultscore=0
- bulkscore=0 clxscore=1011 lowpriorityscore=0 priorityscore=1501 spamscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2601150000 definitions=main-2602190155
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v3 00/29] arch, mm: consolidate hugetlb early reservation
+From: patchwork-bot+linux-riscv@kernel.org
+Message-Id: 
+ <177156064229.189817.6698956997773300471.git-patchwork-notify@kernel.org>
+Date: Fri, 20 Feb 2026 04:10:42 +0000
+References: <20260111082105.290734-1-rppt@kernel.org>
+In-Reply-To: <20260111082105.290734-1-rppt@kernel.org>
+To: Mike Rapoport <rppt@kernel.org>
+Cc: linux-riscv@lists.infradead.org, akpm@linux-foundation.org,
+ alexs@kernel.org, agordeev@linux.ibm.com, andreas@gaisler.com, bp@alien8.de,
+ bcain@kernel.org, chleroy@kernel.org, catalin.marinas@arm.com,
+ davem@davemloft.net, dave.hansen@linux.intel.com, david@kernel.org,
+ dinguyen@kernel.org, geert@linux-m68k.org, guoren@kernel.org,
+ hca@linux.ibm.com, deller@gmx.de, chenhuacai@kernel.org, mingo@redhat.com,
+ johannes@sipsolutions.net, glaubitz@physik.fu-berlin.de, corbet@lwn.net,
+ klarasmodin@gmail.com, Liam.Howlett@oracle.com, lorenzo.stoakes@oracle.com,
+ linmag7@gmail.com, mattst88@gmail.com, jcmvbkbc@gmail.com,
+ mpe@ellerman.id.au, mhocko@suse.com, monstr@monstr.eu, muchun.song@linux.dev,
+ osalvador@suse.de, palmer@dabbelt.com, pratyush@kernel.org, richard@nod.at,
+ ritesh.list@gmail.com, linux@armlinux.org.uk, shorne@gmail.com,
+ surenb@google.com, tsbogend@alpha.franken.de, tglx@linutronix.de,
+ gor@linux.ibm.com, vgupta@kernel.org, vbabka@suse.cz, will@kernel.org,
+ x86@kernel.org, linux-alpha@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+ linux-mm@kvack.org, linux-openrisc@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+ linux-um@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+ loongarch@lists.linux.dev, sparclinux@vger.kernel.org
 
+Hello:
 
+This series was applied to riscv/linux.git (fixes)
+by Andrew Morton <akpm@linux-foundation.org>:
 
-On 2/19/26 11:01 PM, Bjorn Helgaas wrote:
-> [+cc sparc folks, PCI enumeration via OF likely broken]
+On Sun, 11 Jan 2026 10:20:34 +0200 you wrote:
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> On Tue, Feb 17, 2026 at 11:15:26PM +0530, Nilay Shroff wrote:
->> Recent changes [1] replaced the use of no_64bit_msi with msi_addr_mask.
->> As a result, msi_addr_mask is now expected to be initialized to
->> DMA_BIT_MASK(64) when a pci_dev is set up. However, this initialization
->> was missed on powerpc due to differences in the device initialization
->> path compared to other architectures. Due to this, now pci device probe
->> method fails on powerpc system.
+> Hi,
 > 
-> s/pci/PCI/ to match below.
-Ack
+> Order in which early memory reservation for hugetlb happens depends on
+> architecture, on configuration options and on command line parameters.
 > 
->> On powerpc systems, struct pci_dev instances are created from device
->> tree nodes via of_create_pci_dev(). Because msi_addr_mask was not
->> initialized there, it remained zero. Later, during MSI setup,
->> msi_verify_entries() validates the programmed MSI address against
->> pdev->msi_addr_mask. Since the mask was not set correctly, the
->> validation fails, causing PCI driver probe failures for devices on
->> powerpc systems.
->>
->> Initialize pdev->msi_addr_mask to DMA_BIT_MASK(64) in
->> of_create_pci_dev() so that MSI address validation succeeds and device
->> probe works as expected.
->>
->> [1] https://lore.kernel.org/all/20260129-pci-msi-addr-mask-v4-0-70da998f2750@iscas.ac.cn/
->>
->> Fixes: 386ced19e9a3 ("PCI/MSI: Convert the boolean no_64bit_msi flag to a DMA address mask")
->> Signed-off-by: Nilay Shroff <nilay@linux.ibm.com>
-> 
-> Looks like this and a similar sparc fix need to be in v7.0.  Would be
-> great if they could make v7.0-rc1 (Sunday), but that's pretty close.
-> 
-> Thomas, you merged 386ced19e9a3.  I'm happy to merge the powerpc and
-> sparc fixes, given acks from you and the powerpc & sparc folks, or
-> feel free to take them yourself.
-> 
->> ---
->>  arch/powerpc/kernel/pci_of_scan.c | 6 ++++++
->>  1 file changed, 6 insertions(+)
->>
->> diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
->> index 756043dd06e9..26ec97ce6b40 100644
->> --- a/arch/powerpc/kernel/pci_of_scan.c
->> +++ b/arch/powerpc/kernel/pci_of_scan.c
->> @@ -211,6 +211,12 @@ struct pci_dev *of_create_pci_dev(struct device_node *node,
->>  	dev->current_state = PCI_UNKNOWN;	/* unknown power state */
->>  	dev->error_state = pci_channel_io_normal;
->>  	dev->dma_mask = 0xffffffff;
-> 
-> It's typical to add a blank line between the code above and the
-> comment below, as was done in 386ced19e9a3.
+> [...]
 
-Okay will fix this in v2.
-> 
->> +	/*
->> +	 * Assume 64-bit addresses for MSI initially. Will be changed to 32-bit
->> +	 * if MSI (rather than MSI-X) capability does not have
->> +	 * PCI_MSI_FLAGS_64BIT. Can also be overridden by driver.
->> +	 */
->> +	dev->msi_addr_mask = DMA_BIT_MASK(64);
->>  
->>  	/* Early fixups, before probing the BARs */
->>  	pci_fixup_device(pci_fixup_early, dev);
->> -- 
->> 2.52.0
->>
+Here is the summary with links:
+  - [v3,01/29] alpha: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/ba1c86874e25
+  - [v3,02/29] arc: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/7988e8518904
+  - [v3,03/29] arm: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/30a66f8a8cd3
+  - [v3,04/29] arm: make initialization of zero page independent of the memory map
+    https://git.kernel.org/riscv/c/18b7cc70dea8
+  - [v3,05/29] arm64: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/60b35af0a6aa
+  - [v3,06/29] csky: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/37318eb97f23
+  - [v3,07/29] hexagon: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/934afdf7f4cc
+  - [v3,08/29] loongarch: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/63cadcb731c9
+  - [v3,09/29] m68k: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/41b08a7abf89
+  - [v3,10/29] microblaze: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/2ce38c9ae840
+  - [v3,11/29] mips: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/f61385e29444
+  - [v3,12/29] nios2: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/3b1b0e5797bd
+  - [v3,13/29] openrisc: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/1d28b1142383
+  - [v3,14/29] parisc: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/950696afe400
+  - [v3,15/29] powerpc: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/27bebe446f8d
+  - [v3,16/29] riscv: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/db8cdb0ad603
+  - [v3,17/29] s390: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/76c4c463bbc0
+  - [v3,18/29] sh: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/8bfa6c2259f4
+  - [v3,19/29] sparc: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/6ad7ea22cf6f
+  - [v3,20/29] um: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/531de7f02d51
+  - [v3,21/29] x86: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/34f6b9c6e417
+  - [v3,22/29] xtensa: introduce arch_zone_limits_init()
+    https://git.kernel.org/riscv/c/2d3c8c5f33e0
+  - [v3,23/29] arch, mm: consolidate initialization of nodes, zones and memory map
+    https://git.kernel.org/riscv/c/d49004c5f0c1
+  - [v3,24/29] arch, mm: consolidate initialization of SPARSE memory model
+    https://git.kernel.org/riscv/c/4267739cabb8
+  - [v3,25/29] mips: drop paging_init()
+    https://git.kernel.org/riscv/c/5dea39496c68
+  - [v3,26/29] x86: don't reserve hugetlb memory in setup_arch()
+    https://git.kernel.org/riscv/c/6632314fddc4
+  - [v3,27/29] mm, arch: consolidate hugetlb CMA reservation
+    https://git.kernel.org/riscv/c/9fac145b6d3f
+  - [v3,28/29] mm/hugetlb: drop hugetlb_cma_check()
+    https://git.kernel.org/riscv/c/7a9c0bf0aec6
+  - [v3,29/29] Revert "mm/hugetlb: deal with multiple calls to hugetlb_bootmem_alloc"
+    https://git.kernel.org/riscv/c/743758ccf8be
 
-Thanks,
---Nilay
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
 
