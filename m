@@ -1,151 +1,200 @@
-Received: from arcturus.nroach44.id.au (arcturus.nroach44.id.au [45.32.188.33])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f66.google.com (mail-wr1-f66.google.com [209.85.221.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A2F933D6FE;
-	Fri, 20 Feb 2026 10:32:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.32.188.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3531634029E
+	for <sparclinux@vger.kernel.org>; Fri, 20 Feb 2026 11:43:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771583539; cv=none; b=suj2sgdrW5MFalPeOwxdkKxO6FkWXtvYP6yOSF/G1cvgXRQJFFrHi1bbI3d2XpyFd9OUl8CP2tiSUR0oos5jk5cRDigsO6mE0uidLhF4Gjv96gD10DmNlKiHzELZUERGQZdzXT3oGyLri5yse//xhoZ4I4YUe61BvjcnqbqQRKk=
+	t=1771587838; cv=none; b=dRwsLGOypIXS7eoPemKnhmJh7Miw3C26JdN3WjIS+rJtp+l8UwqWDo/AjoAtxUO4XpzdX3UB5/4Zcfsn8j6YljLG+8TbZKp5hXtjhxHTl134VJYOGUdMGXMG26MoJOSCIW8I9RqWVjFa3B94TVmFSxR7QuIYw1C0Ke1hi0vMu9A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771583539; c=relaxed/simple;
-	bh=Df57nKCcMiwTtM2SwdQRAqyIqLeHlEsALPol4bSpMnE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=dPLh6XZH8/xZZHAYi9KQHYEy+mBoVY2a098rzCwz2eoHJ0t0piTXbaHrCkOZTOZoo6m8iJlvoGxND74jaP5fJMvkICdKd//sk5dJofEXdajA/YJvsfgICSlyKvsIyNLu8iQFl/qKtxLfzyJqjt9BOCzaBJL22dxchyFRzKunI4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nroach44.id.au; spf=pass smtp.mailfrom=nroach44.id.au; dkim=pass (2048-bit key) header.d=nroach44.id.au header.i=@nroach44.id.au header.b=jnlp4lpN; dkim=pass (2048-bit key) header.d=nroach44.id.au header.i=@nroach44.id.au header.b=jnlp4lpN; dkim=pass (2048-bit key) header.d=nroach44.id.au header.i=@nroach44.id.au header.b=HFVuento; arc=none smtp.client-ip=45.32.188.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nroach44.id.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nroach44.id.au
+	s=arc-20240116; t=1771587838; c=relaxed/simple;
+	bh=wBX6cnPwCpCSH4iNWjZA4c3kEfk5E/AuDIwwlVfhzyo=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=J9c8ABqunuCTGqaq/bjhFCsARt+E1NWtq6dAKxmOFaEHxYc6P63XDPFyJjktT140QZMgpFbTZ6I26K6HYLkjleMe6w+R6uJmGPlHJ5d7gp2w5HomOuXQK8B3pnHttH6a9suiw06ugWdLIma/OEZFU5OXcNAy5h6BRe8JiUU1OpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Yal/v/0j; arc=none smtp.client-ip=209.85.221.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nroach44.id.au header.i=@nroach44.id.au header.b="jnlp4lpN";
-	dkim=pass (2048-bit key) header.d=nroach44.id.au header.i=@nroach44.id.au header.b="jnlp4lpN";
-	dkim=pass (2048-bit key) header.d=nroach44.id.au header.i=@nroach44.id.au header.b="HFVuento"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=nroach44.id.au;
-	s=dYX2HNEqNNRL; t=1771583528;
-	bh=Df57nKCcMiwTtM2SwdQRAqyIqLeHlEsALPol4bSpMnE=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=jnlp4lpNCkshx8i3/YlvGpVN8QRDFqP4yJPP8P2/11ZvJXtHb+fZpa4cJAdkBdibJ
-	 sU6eYdalU/NAPI/ja8YSdhwOJVNq7ZHtEwHtwyL0f9LzisudS5ratsjy3+kBcOWhxw
-	 wPwXtSCz5mDtyLFIFiQgebY7Q5+un7XaCkRCcdmgOGVx1ugglCAz4E99CUOm5KrrqN
-	 cDMMPY+xx1aaUfT1WQtUrwx77njzvlZVF+BjkOfkvrEMFjn6lc5dJ/YIN3V1Jiywgz
-	 i6QEBAEAXc4RGUqrLvBI05Rs7qCXd/acT01Tc2ijYbX1c3dLCJrXhZXDqY+v5s3o85
-	 WHsqL6x+Dy9fQ==
-Received: from arcturus.nroach44.id.au (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by arcturus.nroach44.id.au (Postfix) with ESMTPS id 862C630CB5;
-	Fri, 20 Feb 2026 18:32:08 +0800 (AWST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=nroach44.id.au;
-	s=dYX2HNEqNNRL; t=1771583528;
-	bh=Df57nKCcMiwTtM2SwdQRAqyIqLeHlEsALPol4bSpMnE=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=jnlp4lpNCkshx8i3/YlvGpVN8QRDFqP4yJPP8P2/11ZvJXtHb+fZpa4cJAdkBdibJ
-	 sU6eYdalU/NAPI/ja8YSdhwOJVNq7ZHtEwHtwyL0f9LzisudS5ratsjy3+kBcOWhxw
-	 wPwXtSCz5mDtyLFIFiQgebY7Q5+un7XaCkRCcdmgOGVx1ugglCAz4E99CUOm5KrrqN
-	 cDMMPY+xx1aaUfT1WQtUrwx77njzvlZVF+BjkOfkvrEMFjn6lc5dJ/YIN3V1Jiywgz
-	 i6QEBAEAXc4RGUqrLvBI05Rs7qCXd/acT01Tc2ijYbX1c3dLCJrXhZXDqY+v5s3o85
-	 WHsqL6x+Dy9fQ==
-Received: by arcturus.nroach44.id.au (Postfix, from userid 5555)
-	id 68C8930CBD; Fri, 20 Feb 2026 18:32:08 +0800 (AWST)
-X-Spam-Level: 
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=nroach44.id.au;
-	s=dYX2HNEqNNRL; t=1771583519;
-	bh=Df57nKCcMiwTtM2SwdQRAqyIqLeHlEsALPol4bSpMnE=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=HFVuentowrMqhEEn/Jbvba7jBNMDq+iEtVRErmqcq7adzES2Uph+hOnW/CXN4c8aQ
-	 Z+3AiT4rX6FjQXi8YHEKMemGLSeQWOvaxDLQIGUpVNa7tTYCCcwNVYPW/j59OzETU6
-	 WDhQhsETb1ommfaCvfPghIv01AzRltejjILRZNBCK3ZpKQsI/yiEScDVo+YlFkFwxC
-	 mBIMzoxq6c7QEFDGALdrt0HxDlMlciiHAdGbwYnk4hr+zuTBqSlofu4dNQQhA+017I
-	 pKwIqpJm7ZOa6dzSOCpxdwLAKNJGSPCjEPIwJ33SrdmGJDLcUZ6SdDWS/0e0jx84gf
-	 jRkdohOdx3Mxg==
-Received: from [IPV6:2403:5814:4228:10:a559:f4f7:79c8:12ed] (unknown [IPv6:2403:5814:4228:10:a559:f4f7:79c8:12ed])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by arcturus.nroach44.id.au (Postfix) with ESMTPSA id 5280730AB4;
-	Fri, 20 Feb 2026 18:31:59 +0800 (AWST)
-Message-ID: <8fd4ecc9-93e6-4ea8-b6da-371a8f4e5cd9@nroach44.id.au>
-Date: Fri, 20 Feb 2026 18:31:58 +0800
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Yal/v/0j"
+Received: by mail-wr1-f66.google.com with SMTP id ffacd0b85a97d-436356740e6so2129778f8f.2
+        for <sparclinux@vger.kernel.org>; Fri, 20 Feb 2026 03:43:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1771587835; x=1772192635; darn=vger.kernel.org;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=wBX6cnPwCpCSH4iNWjZA4c3kEfk5E/AuDIwwlVfhzyo=;
+        b=Yal/v/0jQhM5+l2jIqgauYveEuUrKLvkqMrKR8HlT7yS06pxHGNDp5XYOxQQ4dIfBb
+         NUcU4UJ2rELzwf3YZkdz3okIJT+nK8y+kxAAYXeu2UtbMXNLy6TP053mOWFH566ovnko
+         2ODtiaTNkbycAn23FF6xVoeLfB1va4T5E6nuJbXNJRn0jSinWcrfFHdDjQRvbjOsYEeO
+         DVZtk3NWFEi5tHoK28wCF5mnDgvgjzZ5Hiv1ObhXnJbDd8By0HGiPW5AXPIZrh2YXE1P
+         BEC4MYUkz/TG30BobMPa/fDTpjzCsDLxXeydP3bLc8x5+VEigtPrXUo+4Oe/OUYhcgXZ
+         bMrQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1771587835; x=1772192635;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=wBX6cnPwCpCSH4iNWjZA4c3kEfk5E/AuDIwwlVfhzyo=;
+        b=vOPorHoz3898TUwlFzgMGuQzACJReSg7J4j9ROiPxOI+t7w9AN0DFJUyVBq5lIJq3L
+         sW44id4cT3Y6lIIqjyjWT8d7C0+DKjS9WmVY8bk3emUi0yHW6HIx0O+Dmmcu4xcLyOnA
+         MzfrcKKy8u3GXXUm81Ix5BNOkTkcXTnhugrBgTjAJs2CbQKkk686ZIIQ4Bos4qjRtNZU
+         PhvgmNePFOM42rtXr4zcaEzJCtY3OIc+jxGJfMAYi0B1zcdlzyQ/8RLYvqC5r6vhNJ09
+         Jzg06Y3gf/ZS2q4mRngBRkdSMuZjnDutS5eQTe3tRBzW0F0KmvLJnbmtD2y8vmT6zCQx
+         5+1Q==
+X-Forwarded-Encrypted: i=1; AJvYcCULCwfzWazdIZU6C1Pwc3BWyt0ygMlre1IPuVDxZSgSXpVueEWWIwHONDRh6JZiPi1IiLJAFbxSIA5X@vger.kernel.org
+X-Gm-Message-State: AOJu0YyDDsOY9TtbvDYNv+/QxLxwqJRPPV8Uw9IYir0mFda6qs5lKtAG
+	2WWPga2Pp81W3nceHpNV6EsLlC1aVu3gGkPvuru+UAgLa0zcP4Os2txZY8QMTPn6Tu4=
+X-Gm-Gg: AZuq6aJV5Rr/rI1rOmrxWR+BAxY7xFPK7Ef451bBMXt77q88t5glVwVvC5ZL0sBxoe2
+	uL83G7s63UnxATq8Lyo79yaZYmxQRQPI5lhEjI2qMjHoW+aNDhrR/SMZ5+r0w0g+3cC09FejUmC
+	gqEhsDCC+Ei+4j10KzMNA1iz8sfrpQQ6NCJbDBsC3DeZyQVcZvQnZbvZl9/VVgfG7PrMSTCMNqB
+	p+vRTRgEIt/CUhzK4FbcmX7rGCM93/LZeerzTgaxbDRjRTlmZ8S7TgmD/mPiG0y6GfyBE5UImcU
+	kfnMrzTotikuMQoVmbMxxDAO8hp01t888Ld7fXox1epRfX14HjYQ2HAskhEbaSnCSNt+WhchpaY
+	clze7USDWN90zPJHwpOqFLkNcN8au33uxOKkp123TBi5MjwIbr98qgHUpBsWz7QpA/ln98mntkc
+	RPqHvTK9CWuMQlOJ6vVC+k1InRW6x2XVpgEWw9TWNGU7iPq49w4itacphzfZ3AUg==
+X-Received: by 2002:a5d:5f93:0:b0:435:e060:8071 with SMTP id ffacd0b85a97d-4379db61767mr35206496f8f.16.1771587835206;
+        Fri, 20 Feb 2026 03:43:55 -0800 (PST)
+Received: from ?IPv6:2804:5078:822:3100:58f2:fc97:371f:2? ([2804:5078:822:3100:58f2:fc97:371f:2])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43796a5d156sm60289350f8f.5.2026.02.20.03.43.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Feb 2026 03:43:54 -0800 (PST)
+Message-ID: <f074138f16e49e9966512cce2c07724ae9a77975.camel@suse.com>
+Subject: Re: [PATCH 00/19] printk cleanup - part 3
+From: Marcos Paulo de Souza <mpdesouza@suse.com>
+To: Richard Weinberger <richard@nod.at>, Anton Ivanov	
+ <anton.ivanov@cambridgegreys.com>, Johannes Berg
+ <johannes@sipsolutions.net>,  Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, Jason Wessel <jason.wessel@windriver.com>,
+ Daniel Thompson	 <danielt@kernel.org>, Douglas Anderson
+ <dianders@chromium.org>, Petr Mladek	 <pmladek@suse.com>, Steven Rostedt
+ <rostedt@goodmis.org>, John Ogness	 <john.ogness@linutronix.de>, Sergey
+ Senozhatsky <senozhatsky@chromium.org>,  Jiri Slaby <jirislaby@kernel.org>,
+ Breno Leitao <leitao@debian.org>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kees Cook	
+ <kees@kernel.org>, Tony Luck <tony.luck@intel.com>, "Guilherme G. Piccoli"	
+ <gpiccoli@igalia.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, Michael
+ Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy	 <christophe.leroy@csgroup.eu>, Andreas Larsson
+ <andreas@gaisler.com>,  Alexander Shishkin
+ <alexander.shishkin@linux.intel.com>, Maxime Coquelin
+ <mcoquelin.stm32@gmail.com>, Alexandre Torgue	
+ <alexandre.torgue@foss.st.com>, Jacky Huang <ychuang3@nuvoton.com>, 
+ Shan-Chun Hung <schung@nuvoton.com>, Laurentiu Tudor
+ <laurentiu.tudor@nxp.com>
+Cc: linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	kgdb-bugreport@lists.sourceforge.net, linux-serial@vger.kernel.org, 
+	netdev@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-hardening@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	sparclinux@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, 
+	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
+Date: Fri, 20 Feb 2026 08:43:42 -0300
+In-Reply-To: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
+References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
+Autocrypt: addr=mpdesouza@suse.com; prefer-encrypt=mutual;
+ keydata=mDMEZ/0YqhYJKwYBBAHaRw8BAQdA4JZz0FED+JD5eKlhkNyjDrp6lAGmgR3LPTduPYGPT
+ Km0Kk1hcmNvcyBQYXVsbyBkZSBTb3V6YSA8bXBkZXNvdXphQHN1c2UuY29tPoiTBBMWCgA7FiEE2g
+ gC66iLbhUsCBoBemssEuRpLLUFAmf9GKoCGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgk
+ QemssEuRpLLWGxwD/S1I0bjp462FlKb81DikrOfWbeJ0FOJP44eRzmn20HmEBALBZIMrfIH2dJ5eM
+ GO8seNG8sYiP6JfRjl7Hyqca6YsE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+User-Agent: Evolution 3.58.3 (by Flathub.org) 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] sparc: Fix page alignment in dma mapping
-To: stian@itx.no, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
- "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, Leon Romanovsky <leon@kernel.org>
-References: <20260218120056.3366-2-stian@itx.no>
-Content-Language: en-US
-From: Nathaniel Roach <nroach44@nroach44.id.au>
-In-Reply-To: <20260218120056.3366-2-stian@itx.no>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-On 18/2/26 20:00, stian@itx.no wrote:
-> From: Stian Halseth <stian@itx.no>
->
-> 'phys' may include an offset within the page, while 'base_paddr' is already
-> page-aligned. This caused incorrect DMA mapping in dma_4u_map_phys and
-> dma_4v_map_phys.
->
-> Fix both functions by masking phys with IO_PAGE_MASK or subtracting the
-> page offset, covering both generic SPARC code and sun4v.
->
-> Fixes: 38c0d0ebf520 ("sparc: Use physical address DMA mapping")
-> Reported-by: Stian Halseth <stian@itx.no>
-> Closes: https://github.com/sparclinux/issues/issues/75
-> Suggested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Stian Halseth <stian@itx.no>
-> ---
-> Changelog:
-> v3:
-> - Use IO_PAGE_MASK for alignment in both dma_4u_map_phys and dma_4v_map_phys
-> - Align phys before the loop in pci_sun4v.c
-> - Drop masking inside iommu_batch_add()
->
-> v2: https://lore.kernel.org/all/20260217171104.5643-3-stian@itx.no/
-> - Add Fixes tag
-> - Add Closes tag
-> - Trim commit message to 80-column lines
-> - Remove newlines
-> - Subject: Remove the "iommu/pci_sun4v:" (generic sparc patch, not specific to sun4v)
->
-> v1: https://lore.kernel.org/all/20260217150350.3541-2-stian@itx.no/
-> ---
->   arch/sparc/kernel/iommu.c     | 2 ++
->   arch/sparc/kernel/pci_sun4v.c | 2 ++
->   2 files changed, 4 insertions(+)
->
-> diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-> index 46ef88bc9c26..7613ab0ffb89 100644
-> --- a/arch/sparc/kernel/iommu.c
-> +++ b/arch/sparc/kernel/iommu.c
-> @@ -312,6 +312,8 @@ static dma_addr_t dma_4u_map_phys(struct device *dev, phys_addr_t phys,
->   	if (direction != DMA_TO_DEVICE)
->   		iopte_protection |= IOPTE_WRITE;
->   
-> +	phys &= IO_PAGE_MASK;
-> +
->   	for (i = 0; i < npages; i++, base++, phys += IO_PAGE_SIZE)
->   		iopte_val(*base) = iopte_protection | phys;
->   
-> diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-> index 791f0a76665f..58ca4148f86b 100644
-> --- a/arch/sparc/kernel/pci_sun4v.c
-> +++ b/arch/sparc/kernel/pci_sun4v.c
-> @@ -410,6 +410,8 @@ static dma_addr_t dma_4v_map_phys(struct device *dev, phys_addr_t phys,
->   
->   	iommu_batch_start(dev, prot, entry);
->   
-> +	phys &= IO_PAGE_MASK;
-> +
->   	for (i = 0; i < npages; i++, phys += IO_PAGE_SIZE) {
->   		long err = iommu_batch_add(phys, mask);
->   		if (unlikely(err < 0L))
-
-Tested-by: Nathaniel Roach <nroach44@nroach44.id.au>
-
+T24gU2F0LCAyMDI1LTEyLTI3IGF0IDA5OjE2IC0wMzAwLCBNYXJjb3MgUGF1bG8gZGUgU291emEg
+d3JvdGU6Cj4gVGhlIHBhcnRzIDEgYW5kIDIgY2FuIGJlIGZvdW5kIGhlcmUgWzFdIGFuZCBoZXJl
+WzJdLgo+IAo+IFRoZSBjaGFuZ2VzIHByb3Bvc2VkIGluIHRoaXMgcGFydCAzIGFyZSBtb3N0bHkg
+dG8gY2xhcmlmeSB0aGUgdXNhZ2UKPiBvZgo+IHRoZSBpbnRlcmZhY2VzIGZvciBOQkNPTiwgYW5k
+IHVzZSB0aGUgcHJpbnRrIGhlbHBlcnMgbW9yZSBicm9hZGx5Lgo+IEJlc2lkZXMgaXQsIGl0IGFs
+c28gaW50cm9kdWNlcyBhIG5ldyB3YXkgdG8gcmVnaXN0ZXIgY29uc29sZXMKPiBhbmQgZHJvcCB0
+aGVzIHRoZSBDT05fRU5BQkxFRCBmbGFnLiBJdCBzZWVtcyB0b28gbXVjaCwgYnV0IGluIHJlYWxp
+dHkKPiB0aGUgY2hhbmdlcyBhcmUgbm90IGNvbXBsZXgsIGFuZCBhcyB0aGUgdGl0bGUgc2F5cywg
+aXQncyBiYXNpY2FsbHkgYQo+IGNsZWFudXAgd2l0aG91dCBjaGFuZ2luZyB0aGUgZnVuY3Rpb25h
+bCBjaGFuZ2VzLgo+IAo+IFRoaXMgcGF0Y2hzZXQgaW5jbHVkZXMgYSBwYXRjaCBmcm9tIHBhcnQg
+MiB0aGF0IG5lZWRlZCBtb3JlIHdvcmsgWzNdLAo+IGFzCj4gc3VnZ2VzdGVkIGJ5IFBldHIgTWxh
+ZGVrLgo+IAo+IFRoZXNlIGNoYW5nZXMgd2VyZSB0ZXN0ZWQgYnkgcmV2ZXJ0aW5nIGY3OWIxNjNj
+NDIzMQo+ICgiUmV2ZXJ0ICJzZXJpYWw6IDgyNTA6IFN3aXRjaCB0byBuYmNvbiBjb25zb2xlIiIp
+LCBhbmQgdXNlZCBxZW11IHRvCj4gdGVzdAo+IHN1c3BlbmQvcmVzdW1lIGN5Y2xlcywgYW5kIGV2
+ZXJ5dGhpbmcgd29ya2VkIGFzIGV4cGVjdGVkLgo+IAo+IFBTOiBiNCAtLWF1dG8tdG8tY2MgYWRk
+ZWQgYSBidW5jaCBvZiBwZW9wbGUgYXMgQ0MsIHNvIEknbSBub3Qgc3VyZSBpZgo+IEkgc2hvdWxk
+IHJlbW92ZSBzb21lIG9yIG5vdCwgc28gSSdtIGxlYXZpbmcgdGhlIGxpc3QgYXMgaXQgaXMuIElm
+IHRoZQo+IHBhdGNoc2V0IG5lZWRzIGEgdjIsIGFuZCB5b3UgZmVlbCB0aGF0IHlvdSBkb24ndCBu
+ZWVkIHRvIGNvcGllZCwganVzdAo+IGxldCBtZSBrbm93Lgo+IAo+IFRoYW5rcyBmb3IgY2hlY2tp
+bmcgdGhlIHBhdGNoZXMsIGFuZCBoYXBweSBob2xpZGF5cyEKPiAKPiBbMV06Cj4gaHR0cHM6Ly9s
+b3JlLmtlcm5lbC5vcmcvbGttbC8yMDI1MDIyNi1wcmludGstcmVuYW1pbmctdjEtMC0wYjg3ODU3
+N2YyZTZAc3VzZS5jb20vI3QKPiBbMl06Cj4gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvbGludXgt
+c2VyaWFsLzIwMjUxMTIxLXByaW50ay1jbGVhbnVwLXBhcnQyLXYyLTAtNTdiOGI3ODY0N2Y0QHN1
+c2UuY29tLwo+IFszXToKPiBodHRwczovL2xvcmUua2VybmVsLm9yZy9saW51eC1zZXJpYWwvYVNn
+ZXFNM0RXdlI4LWNNWUBwYXRod2F5LnN1c2UuY3ovCj4gCj4gU2lnbmVkLW9mZi1ieTogTWFyY29z
+IFBhdWxvIGRlIFNvdXphIDxtcGRlc291emFAc3VzZS5jb20+Cj4gLS0tCj4gTWFyY29zIFBhdWxv
+IGRlIFNvdXphICgxOSk6Cj4gwqDCoMKgwqDCoCBwcmludGsvbmJjb246IFVzZSBhbiBlbnVtIHRv
+IHNwZWNpZnkgdGhlIHJlcXVpcmVkIGNhbGxiYWNrIGluCj4gY29uc29sZV9pc191c2FibGUoKQo+
+IMKgwqDCoMKgwqAgcHJpbnRrOiBJbnRyb2R1Y2UgY29uc29sZV9pc19uYmNvbgo+IMKgwqDCoMKg
+wqAgcHJpbnRrOiBEcm9wIGZsYWdzIGFyZ3VtZW50IGZyb20gY29uc29sZV9pc191c2FibGUKPiDC
+oMKgwqDCoMKgIHByaW50azogUmVpbnRyb2R1Y2UgY29uc29sZXNfc3VzcGVuZGVkIGdsb2JhbCBz
+dGF0ZQo+IMKgwqDCoMKgwqAgcHJpbnRrOiBBZGQgbW9yZSBjb250ZXh0IHRvIHN1c3BlbmQvcmVz
+dW1lIGZ1bmN0aW9ucwo+IMKgwqDCoMKgwqAgcHJpbnRrOiBJbnRyb2R1Y2UgcmVnaXN0ZXJfY29u
+c29sZV9mb3JjZQo+IMKgwqDCoMKgwqAgZHJpdmVyczogbmV0Y29uc29sZTogTWlncmF0ZSB0byBy
+ZWdpc3Rlcl9jb25zb2xlX2ZvcmNlIGhlbHBlcgo+IMKgwqDCoMKgwqAgZGVidWc6IGRlYnVnX2Nv
+cmU6IE1pZ3JhdGUgdG8gcmVnaXN0ZXJfY29uc29sZV9mb3JjZSBoZWxwZXIKPiDCoMKgwqDCoMKg
+IG02OGs6IGVtdTogbmZjb24uYzogTWlncmF0ZSB0byByZWdpc3Rlcl9jb25zb2xlX2ZvcmNlIGhl
+bHBlcgo+IMKgwqDCoMKgwqAgZnM6IHBzdG9yZTogcGxhdGZvcm06IE1pZ3JhdGUgdG8gcmVnaXN0
+ZXJfY29uc29sZV9mb3JjZSBoZWxwZXIKPiDCoMKgwqDCoMKgIHBvd2VycGM6IGtlcm5lbDogdWRi
+ZzogTWlncmF0ZSB0byByZWdpc3Rlcl9jb25zb2xlX2ZvcmNlIGhlbHBlcgo+IMKgwqDCoMKgwqAg
+c3BhcmM6IGtlcm5lbDogYnRleHQ6IE1pZ3JhdGUgdG8gcmVnaXN0ZXJfY29uc29sZV9mb3JjZSBo
+ZWxwZXIKPiDCoMKgwqDCoMKgIHVtOiBkcml2ZXJzOiBtY29uc29sZV9rZXJuLmM6IE1pZ3JhdGUg
+dG8gcmVnaXN0ZXJfY29uc29sZV9mb3JjZQo+IGhlbHBlcgo+IMKgwqDCoMKgwqAgZHJpdmVyczog
+aHd0cmFjaW5nOiBzdG06IGNvbnNvbGUuYzogTWlncmF0ZSB0bwo+IHJlZ2lzdGVyX2NvbnNvbGVf
+Zm9yY2UgaGVscGVyCj4gwqDCoMKgwqDCoCBkcml2ZXJzOiB0dHk6IHNlcmlhbDogbXV4LmM6IE1p
+Z3JhdGUgdG8gcmVnaXN0ZXJfY29uc29sZV9mb3JjZQo+IGhlbHBlcgo+IMKgwqDCoMKgwqAgZHJp
+dmVyczogdHR5OiBzZXJpYWw6IG1hMzVkMV9zZXJpYWw6IE1pZ3JhdGUgdG8KPiByZWdpc3Rlcl9j
+b25zb2xlX2ZvcmNlIGhlbHBlcgo+IMKgwqDCoMKgwqAgZHJpdmVyczogdHR5OiBlaHZfYnl0ZWNo
+YW46IE1pZ3JhdGUgdG8gcmVnaXN0ZXJfY29uc29sZV9mb3JjZQo+IGhlbHBlcgo+IMKgwqDCoMKg
+wqAgZHJpdmVyczogYnJhaWxsZTogY29uc29sZTogRHJvcCBDT05fRU5BQkxFRCBjb25zb2xlIGZs
+YWcKPiDCoMKgwqDCoMKgIHByaW50azogUmVtb3ZlIENPTl9FTkFCTEVEIGZsYWcKPiAKPiDCoGFy
+Y2gvbTY4ay9lbXUvbmZjb24uY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqAgfMKgwqAgNSArLQo+IMKgYXJjaC9wb3dlcnBjL2tlcm5lbC91ZGJnLmPC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfMKgwqAgNCArLQo+IMKg
+YXJjaC9zcGFyYy9rZXJuZWwvYnRleHQuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgIHzCoMKgIDQgKy0KPiDCoGFyY2gvdW0vZHJpdmVycy9tY29uc29sZV9rZXJu
+LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoCAzICstCj4gwqBhcmNoL3Vt
+L2tlcm5lbC9rbXNnX2R1bXAuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoCB8wqDCoCAyICstCj4gwqBkcml2ZXJzL2FjY2Vzc2liaWxpdHkvYnJhaWxsZS9icmFpbGxl
+X2NvbnNvbGUuYyB8wqDCoCAxIC0KPiDCoGRyaXZlcnMvaHd0cmFjaW5nL3N0bS9jb25zb2xlLmPC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoCA0ICstCj4gwqBkcml2ZXJzL25l
+dC9uZXRjb25zb2xlLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgIHzCoCAxMyArLS0KPiDCoGRyaXZlcnMvdHR5L2Vodl9ieXRlY2hhbi5jwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHzCoMKgIDQgKy0KPiDCoGRyaXZlcnMvdHR5
+L3NlcmlhbC9tYTM1ZDFfc2VyaWFsLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoCA0
+ICstCj4gwqBkcml2ZXJzL3R0eS9zZXJpYWwvbXV4LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgIHzCoMKgIDQgKy0KPiDCoGRyaXZlcnMvdHR5L3R0eV9pby5j
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHzC
+oMKgIDYgKy0KPiDCoGZzL3Byb2MvY29uc29sZXMuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfMKgwqAgMSAtCj4gwqBmcy9wc3RvcmUv
+cGxhdGZvcm0uY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoCB8wqDCoCA2ICstCj4gwqBpbmNsdWRlL2xpbnV4L2NvbnNvbGUuaMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8IDE0Mwo+ICsrKysrKysrKysr
+KysrKysrKystLS0tLQo+IMKga2VybmVsL2RlYnVnL2RlYnVnX2NvcmUuY8KgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHzCoMKgIDYgKy0KPiDCoGtlcm5lbC9kZWJ1
+Zy9rZGIva2RiX2lvLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCB8wqDCoCA2ICstCj4gwqBrZXJuZWwvcHJpbnRrL25iY29uLmPCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHzCoCAxNyArLS0KPiDCoGtlcm5lbC9w
+cmludGsvcHJpbnRrLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoCB8IDE0MCArKysrKysrKysrKystLQo+IC0tLS0tLS0tLQo+IMKgMTkgZmlsZXMgY2hh
+bmdlZCwgMjMwIGluc2VydGlvbnMoKyksIDE0MyBkZWxldGlvbnMoLSkKClRoaXMgcGF0Y2hzZXQs
+IHdpdGhvdXQgdGhlIHJlY2VudCBjbGVhbnVwIGZyb20gUGV0ciBNbGFkZWsgWzFdLCBoYXMgYQpy
+ZWdyZXNzaW9uLiBJJ2xsIHdhaXQgZm9yIGl0IHRvIGJlIG1lcmdlZCBmaXJzdCBiZWZvcmUgc2Vu
+ZGluZyBhIG5ldwp2ZXJzaW9uIG9mIHRoaXMgcGF0Y2hzZXQuIFRoYW5rcyBmb3IgYWxsIHRoZSBy
+ZXZpZXdzIQoKWzFdOgpodHRwczovL2xvcmUua2VybmVsLm9yZy9sa21sLzIwMjYwMjA2MTY1MDAy
+LjQ5NjcyNC0xLXBtbGFkZWtAc3VzZS5jb20vCgo+IC0tLQo+IGJhc2UtY29tbWl0OiA5M2Q2NTU4
+NzQ3OWNmYzk3YzBkN2U0MWI1ZThjNjM3OGNhNjgxNjMyCj4gY2hhbmdlLWlkOiAyMDI1MTIwMi1w
+cmludGstY2xlYW51cC1wYXJ0My1lYTExNmIxMWIzYTYKPiAKPiBCZXN0IHJlZ2FyZHMsCj4gLS3C
+oCAKPiBNYXJjb3MgUGF1bG8gZGUgU291emEgPG1wZGVzb3V6YUBzdXNlLmNvbT4K
 
