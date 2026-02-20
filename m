@@ -1,138 +1,104 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7F3D1DED49;
-	Fri, 20 Feb 2026 07:04:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67FAF33AD92;
+	Fri, 20 Feb 2026 10:15:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771571043; cv=none; b=SkqOx6kEkeZUgcooNiaFdKSYDTcJ6Hr+cu+w6WA4ajQcg9jMfJvzVpH8G3UUl1o7CYWdFJvISV/d3gAzK2bjpaII9fR1JVpHt7drf0npYorFxef6FwUME7hmuQ0BpkMSp0JItEJ+liXlLPd/mfXDLE1ZASdNXE5M5j4GD8s2hfU=
+	t=1771582525; cv=none; b=Im7C67VN4sOJ8qhSjVRbxj8BN1yjtTRO37G1UukVQYkQ2U47IHVmtveuAHwqbdwU0b6S6JLd1L2jBBPCimOM0VnSUSvjZ752WB2grSupKs8lligm8qp6UHfq0ZiTq2QdYbhYNyQDiMSGsP+fK3/vemPmLyXjerJu4yYsssnsPIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771571043; c=relaxed/simple;
-	bh=Kv3XksPJ6NHHziHuDVuudX0bOypl6n/QVX60IQJHtUg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JfjqJ5pHwsZBEGX7vlKAIJRCi6+6meMNYMLXX/3fzLzjo5daLVKMU667cZ+JOyTTl/9zjj2ZnqoYhu6ONynlViQkDo3SupjmzXPDKEGfGFWuuLUveVIkZ4GKLTlcUBWsatZ2ZWekqTFeG/DmlmCEHwx+c5A4QiAceR7BffA3inA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=AuD196Ul; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="AuD196Ul"
-Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 61JMJGTq1600890;
-	Fri, 20 Feb 2026 07:03:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=pp1; bh=iKj+obBcj1FBHYnJN
-	AOO1iLn3NccnfZfOynfiA7dLH8=; b=AuD196UloAxY2BjN4fdy5+RqWd/MwpGmQ
-	tUiFdN7da1owxERDjhwDy1n0N1S1BWCtutco21a+BaIF0SCcozsURF/gbSOA19gx
-	gaHXUELVGavQZRIEa2p9CbduwIoEjNTgzQ7PfKMdo5liMFOH4LUog3PBRgxrTIe7
-	ahGRTlrkzOS45vFyr2ay4W/RJL1EdOsEK0mGzn3eZbitYUtDM2Go0yxywHp+CVJs
-	VcRyGDT+Ml7bfj8FhhV9VW2p1LYCWkhEvKq/oeiNPl04/PBHkkuXcbGUCX1ct8Ac
-	/PPRW1UTGV4w/pv4gW6Ske95hSXbS5x/DqU0biQyX9k7zogdnxX9w==
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4cajcr9v38-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 20 Feb 2026 07:03:45 +0000 (GMT)
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 61K3mCXr017834;
-	Fri, 20 Feb 2026 07:03:44 GMT
-Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4ccb28qe2y-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 20 Feb 2026 07:03:43 +0000
-Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
-	by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 61K73ddo15663446
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 20 Feb 2026 07:03:40 GMT
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id DDD872004F;
-	Fri, 20 Feb 2026 07:03:39 +0000 (GMT)
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id CD0B820040;
-	Fri, 20 Feb 2026 07:03:32 +0000 (GMT)
-Received: from li-c9696b4c-3419-11b2-a85c-f9edc3bf8a84.ibm.com.com (unknown [9.111.50.5])
-	by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 20 Feb 2026 07:03:32 +0000 (GMT)
-From: Nilay Shroff <nilay@linux.ibm.com>
-To: linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
-        sparclinux@vger.kernel.org
-Cc: wangruikang@iscas.ac.cn, tglx@kernel.org, maddy@linux.ibm.com,
-        mpe@ellerman.id.au, npiggin@gmail.com, chleroy@kernel.org,
-        gjoyce@ibm.com, helgaas@kernel.org, davem@davemloft.net,
-        andreas@gaisler.com, Nilay Shroff <nilay@linux.ibm.com>
-Subject: [PATCHv2 2/2] sparc/pci: Initialize msi_addr_mask for OF-created PCI devices
-Date: Fri, 20 Feb 2026 12:32:28 +0530
-Message-ID: <20260220070239.1693303-3-nilay@linux.ibm.com>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260220070239.1693303-1-nilay@linux.ibm.com>
-References: <20260220070239.1693303-1-nilay@linux.ibm.com>
+	s=arc-20240116; t=1771582525; c=relaxed/simple;
+	bh=2lgbyW9AslNmx1+E8wGxG6uK12LQcIBHxitrz5C72zM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=UOPudV5/idiRmBHjnDxvirlX28LlorqmKQ4tHTFspIoqhjjKCJ5AgkChXSvrHtij3pjuNst/rhOgfep2TGTkZJE+WjTfb7PGTmSQiFlOsizgRA3LYTnG60Vaa7g2BE7J4zqxE20nlm/kpTTLWZ76r/hIfNitIhE/sH1PJrUHGRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from [192.168.0.106] (unknown [123.118.222.47])
+	by APP-01 (Coremail) with SMTP id qwCowACH824iNJhpU7hRCA--.28513S2;
+	Fri, 20 Feb 2026 18:14:58 +0800 (CST)
+Message-ID: <782eaaf6-f7e2-4c15-b4a2-52e7697dbd95@iscas.ac.cn>
+Date: Fri, 20 Feb 2026 18:14:57 +0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-GUID: riq29OTHkboI9wIhbfwCmRziwb-TL0_A
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjIwMDA1NyBTYWx0ZWRfX1AZ9ODp2Xw1U
- ZGg20jL++1MGLUR5Y4+Bni9u5bJ02WJolfT0GuLHCH9nILqYsJTHIzhMbtIlaGPdD7uWnOlPDAc
- IR0xzamtWRm5RK9b5DrwSOvmUadcWZWyzzMfdftWuNA8bKZyMNbMKbPen1XQnr1L/6PEEiUfMDF
- UOeWVaAx5mdgJ9Lk9YLJQ06Anybq83sOXxBBOUfr7lgMjxiaZAMDjOjQ7Ga0wmULBVxW/2+LapC
- 1o5Xtl4w5fDmJR3R5zYj3qhvbHzVO3OHJPIajrorQtb7gxBxsD17HP/JjjGg+nkMQA4CoqfREEn
- vQlqtwL8Zno1wjTxx5quKLwjj/Uxmk4k+Yo/KlgXqC1ztwaLGo56zOLOCSou8uWDguoS9qgIgVE
- MPalmYGLg1e0mIPGg4g3UIPN/2cTjGCgIxSiQqJn0WIkMmx5C4aNp3JM8kVN51FwC3LXjp819Bi
- pwXksNoZTFQ26oQKJBA==
-X-Authority-Analysis: v=2.4 cv=UPXQ3Sfy c=1 sm=1 tr=0 ts=69980751 cx=c_pps
- a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
- a=HzLeVaNsDn8A:10 a=VkNPw1HP01LnGYTKEx00:22 a=Mpw57Om8IfrbqaoTuvik:22
- a=GgsMoib0sEa3-_RKJdDe:22 a=VnNF1IyMAAAA:8 a=RIGF2BdnXd3WRmS9KNkA:9
-X-Proofpoint-ORIG-GUID: BCJ3jkwagvaprXW1RTF_hHLgLQ7VF1yb
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-02-19_06,2026-02-20_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 suspectscore=0 phishscore=0 impostorscore=0 adultscore=0
- bulkscore=0 clxscore=1015 lowpriorityscore=0 priorityscore=1501 spamscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2601150000 definitions=main-2602200057
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCHv2 0/2] pci: fix msi_addr_mask on powerpc and sparc systems
+To: Nilay Shroff <nilay@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org,
+ linux-pci@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: tglx@kernel.org, maddy@linux.ibm.com, mpe@ellerman.id.au,
+ npiggin@gmail.com, chleroy@kernel.org, gjoyce@ibm.com, helgaas@kernel.org,
+ davem@davemloft.net, andreas@gaisler.com
+References: <20260220070239.1693303-1-nilay@linux.ibm.com>
+Content-Language: en-US
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+In-Reply-To: <20260220070239.1693303-1-nilay@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-CM-TRANSID:qwCowACH824iNJhpU7hRCA--.28513S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxJrW8KF13urykAr43uF17KFg_yoW8AF4fp3
+	9aqryfKrWUG34xAa12kw17uF1UArnYq34xXrWrt392y3Z0vr1qyr1IyF4UG3WUtrZ7Ka10
+	93W29w1vkFn8u3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUvmb7Iv0xC_KF4lb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I2
+	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
+	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xII
+	jxv20xvEc7CjxVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I
+	8E87Iv6xkF7I0E14v26F4UJVW0owAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC
+	0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr
+	1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcVAKI48JM4IIrI8v6xkF7I0E8cxan2IY04v7
+	MxkF7I0En4kS14v26r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r
+	4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF
+	67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2I
+	x0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2
+	z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnU
+	UI43ZEXa7IU8IJPtUUUUU==
+X-CM-SenderInfo: pzdqw2pxlnt03j6l2u1dvotugofq/
 
-Recent changes replaced the use of no_64bit_msi with msi_addr_mask,
-which is now expected to be initialized to DMA_BIT_MASK(64) during PCI
-device setup. On SPARC systems, this initialization was inadvertently
-missed for devices instantiated from device tree nodes, leaving
-msi_addr_mask unset for OF-created pci_dev instances. As a result,
-MSI address validation fails during probe, causing affected devices
-to fail initialization.
+Hi Nilay,
 
-Initialize pdev->msi_addr_mask to DMA_BIT_MASK(64) in
-of_create_pci_dev() so that MSI address validation succeeds and PCI
-device probing works as expected.
+On 2/20/26 15:02, Nilay Shroff wrote:
 
-Fixes: 386ced19e9a3 ("PCI/MSI: Convert the boolean no_64bit_msi flag to a DMA address mask")
-Signed-off-by: Nilay Shroff <nilay@linux.ibm.com>
----
- arch/sparc/kernel/pci.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+> Hi,
+>
+> Recent changes [1] which replaced pci_dev::no_64bit_msi with pci_dev::
+> msi_addr_mask inadvertently missed to initialize the pci_dev::msi_addr_mask
+> to the DMA_BIT_MASK(64) on powerpc platform. Due to this, later the 
+> validation the programmed MSI address against the msi_addr_mask fails.
+> This causes pci device probe method failures on powerpc platform. We also
+> realized that similar issue could potentially happen on sparc system as
+> well. So this series initializes pci_dev::msi_addr_mask to DMA_BIT_MASK(64)
+> when pci_dev is instantiated for both powerpc and sparc platforms.
+>
+> The first patch in the series fixes this on powerpc platform. The second
+> patch fixes this issue on sparc platform. Please note that as I don't have
+> access to the sparc platform, this patch was only compile tested on the
+> sparc system. Anyone from the community is welcome to test it who has
+> access to the sparc machine.
+>
+> [1] https://lore.kernel.org/all/20260129-pci-msi-addr-mask-v4-0-70da998f2750@iscas.ac.cn/
+>
+> Changes since v1:
+>   - Initialize the pci_dev:msi_addr_mask on sparc platform (Vivian Wang)
+>   - Some minor cosmetic fixes (Bjorn Helgaas)
+>
+> Nilay Shroff (2):
+>   powerpc/pci: Initialize msi_addr_mask for OF-created PCI devices
+>   sparc/pci: Initialize msi_addr_mask for OF-created PCI devices
+>
+>  arch/powerpc/kernel/pci_of_scan.c | 7 +++++++
+>  arch/sparc/kernel/pci.c           | 7 +++++++
+>  2 files changed, 14 insertions(+)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index b290107170e9..a4815d544781 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -355,6 +355,13 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
- 	dev->error_state = pci_channel_io_normal;
- 	dev->dma_mask = 0xffffffff;
- 
-+	/*
-+	 * Assume 64-bit addresses for MSI initially. Will be changed to 32-bit
-+	 * if MSI (rather than MSI-X) capability does not have
-+	 * PCI_MSI_FLAGS_64BIT. Can also be overridden by driver.
-+	 */
-+	dev->msi_addr_mask = DMA_BIT_MASK(64);
-+
- 	if (of_node_name_eq(node, "pci")) {
- 		/* a PCI-PCI bridge */
- 		dev->hdr_type = PCI_HEADER_TYPE_BRIDGE;
--- 
-2.52.0
+This series is:
+
+Reviewed-by: Vivian Wang <wangruikang@iscas.ac.cn>
+
+With the caveat that I have neither powerpc nor sparc machines to test,
+so it really is only reviewed.
+
+Thanks and with apologies,
+Vivian "dramforever" Wang
 
