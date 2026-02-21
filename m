@@ -1,130 +1,125 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A3E71CD1E4;
-	Fri, 20 Feb 2026 13:15:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F01732571B;
+	Sat, 21 Feb 2026 16:36:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.81
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771593358; cv=none; b=l2rZp9d7Ez1UQJQx9c4Fc8GT0vpEearShriyAdWiBEMVlasGaRs+EAvJH7Ps/9Bq+iBVr+fbYheCz+Wh+M1r1fvO62QJu14u8hkTPq7VixYIpaynK4KeF8GG9S+nsu1hoE+f694VbHmLGT0Oa46AHRz1XD4iVhGHblBmpCiVWZ8=
+	t=1771691822; cv=none; b=M8pEqGa8LapDotqz9izhRZi755Fnu69ytBNLvWxu5AtA5AHc9+koBUYGVm7C23p/cT7ropXUT2RyAmBFl+5A4GtIxzqegBIjzChQZuXjna9uGW1sDRDaPucAXElW7bYq4GdoxDnbl/9KwO7YzobtOpNQ1jrzJNIZHBtMthU/0r8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771593358; c=relaxed/simple;
-	bh=xhs0A+TPF4HjjwmUYRj1e5SPbOA4XjjbPk1x8mlako4=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=pBcMZXBvlE+Q10KLRz+arbeLlHgQBrDWEK7q3xqusrch6PgH3JlW7uVh35SISefDWFBvoCR3mJidX9b2O0Oqhe2cYvaj3EQBxoF+QbWFPZVutO8sucEC+nCX+lAqUHZfJdDUvva/dawelhGZyi3sZX3YrOF/S3i+z0s0zks6Prc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=L0WsDBrz; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="L0WsDBrz"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=mOkNCk6azFD4Se56SNgIay6/ojZdDJ39xzBXTJXthIE=; t=1771593356;
-	x=1772198156; b=L0WsDBrzl/TBCqv7bZ5Fm2FbF5X+D8MvOY8bss3BrDsxLZ1ED7W5Pw3KtXtLN
-	cmyOERRA+cKEKWvZJLgrs10FoPbmJlziEuQJLmVxKa7Z81vrDasImIhqXrGvmBOqLbNyyjuqKyblc
-	TklvN4HOVC4cqJvwA9ZgBaiP8z3o31tzE1thM7dFOu51aGa98fGePMWb9GB/IQB/5APifF91iAKiW
-	kLVZvg0pNzS5pf+EZr+Sy2oDxN/FcQYlWd/Opvpbyb57nMy6OT66jzQUDm+axg3sEdKqsqxVm2rSy
-	TmJDa+rwYJhHwgzq5FWHYikxazf8MJ+f9zxjA4+J60o55TUDxQ==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.99)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1vtQMI-00000000Zex-35F1; Fri, 20 Feb 2026 14:15:50 +0100
-Received: from p5dc55f29.dip0.t-ipconnect.de ([93.197.95.41] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.99)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1vtQMI-00000002ANB-1yr4; Fri, 20 Feb 2026 14:15:50 +0100
-Message-ID: <8aa6c538d4a49084f6464772f8dd1bd2b642c54b.camel@physik.fu-berlin.de>
-Subject: Re: [PATCHv2 0/2] pci: fix msi_addr_mask on powerpc and sparc
- systems
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Vivian Wang <wangruikang@iscas.ac.cn>, Nilay Shroff
- <nilay@linux.ibm.com>, 	linuxppc-dev@lists.ozlabs.org,
- linux-pci@vger.kernel.org, 	sparclinux@vger.kernel.org
-Cc: tglx@kernel.org, maddy@linux.ibm.com, mpe@ellerman.id.au,
- npiggin@gmail.com, 	chleroy@kernel.org, gjoyce@ibm.com, helgaas@kernel.org,
- davem@davemloft.net, 	andreas@gaisler.com
-Date: Fri, 20 Feb 2026 14:15:49 +0100
-In-Reply-To: <782eaaf6-f7e2-4c15-b4a2-52e7697dbd95@iscas.ac.cn>
-References: <20260220070239.1693303-1-nilay@linux.ibm.com>
-	 <782eaaf6-f7e2-4c15-b4a2-52e7697dbd95@iscas.ac.cn>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.3 
+	s=arc-20240116; t=1771691822; c=relaxed/simple;
+	bh=eE2b6J8MoKoJciV+vNZFu4wv1hIVgksS6b0uGzsvRYo=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=t6ELXLwM9drLGRggQMX35BCsjCQO7FCEwzGaRvKjw2oLcbKlYEam5XCnF/oCjWa58jekI9xg/tMZLm1CG+fk3WWQhtHd+ycHvvSSQh8aQ4PpbCiZs/zkyDZpbAvQf8H0kRGxA8sNTegNZc5OMOJwJfcUIHsXlbrJLgF8nmbn4Mc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.81
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from smtpclient.apple (unknown [58.38.117.196])
+	by APP-03 (Coremail) with SMTP id rQCowABnTOMQ35lplLf9CA--.17993S2;
+	Sun, 22 Feb 2026 00:36:33 +0800 (CST)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.400.21\))
+Subject: Re: [PATCHv2 2/2] sparc/pci: Initialize msi_addr_mask for OF-created
+ PCI devices
+From: Han Gao <gaohan@iscas.ac.cn>
+In-Reply-To: <20260220070239.1693303-3-nilay@linux.ibm.com>
+Date: Sun, 22 Feb 2026 00:36:22 +0800
+Cc: Han Gao <gaohan@iscas.ac.cn>,
+ linuxppc-dev@lists.ozlabs.org,
+ linux-pci@vger.kernel.org,
+ sparclinux@vger.kernel.org,
+ wangruikang@iscas.ac.cn,
+ tglx@kernel.org,
+ maddy@linux.ibm.com,
+ mpe@ellerman.id.au,
+ npiggin@gmail.com,
+ chleroy@kernel.org,
+ gjoyce@ibm.com,
+ helgaas@kernel.org,
+ davem@davemloft.net,
+ andreas@gaisler.com,
+ "Han Gao (Revy)" <rabenda.cn@gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <47EB6E53-3E20-4E95-A329-928E5BDDFB81@iscas.ac.cn>
+References: <20260220070239.1693303-1-nilay@linux.ibm.com>
+ <20260220070239.1693303-3-nilay@linux.ibm.com>
+To: Nilay Shroff <nilay@linux.ibm.com>
+X-Mailer: Apple Mail (2.3864.400.21)
+X-CM-TRANSID:rQCowABnTOMQ35lplLf9CA--.17993S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7Cr1fXr18CFWkJr1UWFWDtwb_yoW8CF4Upr
+	Z7CFn3trWUt347Ga9xAr1UZFyjgan8u3s3Wr98K34IqryI9r10vrnrWrWjkw4jqrsYka1F
+	va9YvrWjqw1DWaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9C14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r4j6r
+	4UJwAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
+	I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
+	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628v
+	n2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCY02Avz4vE14v_JwCF04k20xvY0x0EwIxGrw
+	CFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE
+	14v26r106r1rMI8E67AF67kF1VAFwI0_GFv_WrylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2
+	IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxK
+	x2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI
+	0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUeq2_UUUUU=
+X-CM-SenderInfo: xjdrxt3q6l2u1dvotugofq/1tbiBgwFDGmZySEWPgAAsz
 
-Hi,
+Tested and passed on SPARC Enterprise T5220.=20
 
-On Fri, 2026-02-20 at 18:14 +0800, Vivian Wang wrote:
-> Hi Nilay,
->=20
-> On 2/20/26 15:02, Nilay Shroff wrote:
->=20
-> > Hi,
-> >=20
-> > Recent changes [1] which replaced pci_dev::no_64bit_msi with pci_dev::
-> > msi_addr_mask inadvertently missed to initialize the pci_dev::msi_addr_=
-mask
-> > to the DMA_BIT_MASK(64) on powerpc platform. Due to this, later the=20
-> > validation the programmed MSI address against the msi_addr_mask fails.
-> > This causes pci device probe method failures on powerpc platform. We al=
-so
-> > realized that similar issue could potentially happen on sparc system as
-> > well. So this series initializes pci_dev::msi_addr_mask to DMA_BIT_MASK=
-(64)
-> > when pci_dev is instantiated for both powerpc and sparc platforms.
-> >=20
-> > The first patch in the series fixes this on powerpc platform. The secon=
-d
-> > patch fixes this issue on sparc platform. Please note that as I don't h=
-ave
-> > access to the sparc platform, this patch was only compile tested on the
-> > sparc system. Anyone from the community is welcome to test it who has
-> > access to the sparc machine.
-> >=20
-> > [1] https://lore.kernel.org/all/20260129-pci-msi-addr-mask-v4-0-70da998=
-f2750@iscas.ac.cn/
-> >=20
-> > Changes since v1:
-> >   - Initialize the pci_dev:msi_addr_mask on sparc platform (Vivian Wang=
-)
-> >   - Some minor cosmetic fixes (Bjorn Helgaas)
-> >=20
-> > Nilay Shroff (2):
-> >   powerpc/pci: Initialize msi_addr_mask for OF-created PCI devices
-> >   sparc/pci: Initialize msi_addr_mask for OF-created PCI devices
-> >=20
-> >  arch/powerpc/kernel/pci_of_scan.c | 7 +++++++
-> >  arch/sparc/kernel/pci.c           | 7 +++++++
-> >  2 files changed, 14 insertions(+)
->=20
-> This series is:
->=20
-> Reviewed-by: Vivian Wang <wangruikang@iscas.ac.cn>
->=20
-> With the caveat that I have neither powerpc nor sparc machines to test,
-> so it really is only reviewed.
+Without this patch, the e1000e would use intx.
 
-Then please make sure that the changes have been tested on actual hardware.
-We've seen some regressions with changes on SPARC that went in without test=
-ing.
+Tested-by: Han Gao <gaohan@iscas.ac.cn <mailto:gaohan@iscas.ac.cn>> # on =
+SPARC Enterprise T5220
 
-Adrian
+> On Feb 20, 2026, at 15:02, Nilay Shroff <nilay@linux.ibm.com> wrote:
+>=20
+> Recent changes replaced the use of no_64bit_msi with msi_addr_mask,
+> which is now expected to be initialized to DMA_BIT_MASK(64) during PCI
+> device setup. On SPARC systems, this initialization was inadvertently
+> missed for devices instantiated from device tree nodes, leaving
+> msi_addr_mask unset for OF-created pci_dev instances. As a result,
+> MSI address validation fails during probe, causing affected devices
+> to fail initialization.
+>=20
+> Initialize pdev->msi_addr_mask to DMA_BIT_MASK(64) in
+> of_create_pci_dev() so that MSI address validation succeeds and PCI
+> device probing works as expected.
+>=20
+> Fixes: 386ced19e9a3 ("PCI/MSI: Convert the boolean no_64bit_msi flag =
+to a DMA address mask")
+> Signed-off-by: Nilay Shroff <nilay@linux.ibm.com>
+> ---
+> arch/sparc/kernel/pci.c | 7 +++++++
+> 1 file changed, 7 insertions(+)
+>=20
+> diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+> index b290107170e9..a4815d544781 100644
+> --- a/arch/sparc/kernel/pci.c
+> +++ b/arch/sparc/kernel/pci.c
+> @@ -355,6 +355,13 @@ static struct pci_dev *of_create_pci_dev(struct =
+pci_pbm_info *pbm,
+> dev->error_state =3D pci_channel_io_normal;
+> dev->dma_mask =3D 0xffffffff;
+>=20
+> + /*
+> + * Assume 64-bit addresses for MSI initially. Will be changed to =
+32-bit
+> + * if MSI (rather than MSI-X) capability does not have
+> + * PCI_MSI_FLAGS_64BIT. Can also be overridden by driver.
+> + */
+> + dev->msi_addr_mask =3D DMA_BIT_MASK(64);
+> +
+> if (of_node_name_eq(node, "pci")) {
+> /* a PCI-PCI bridge */
+> dev->hdr_type =3D PCI_HEADER_TYPE_BRIDGE;
+> --=20
+> 2.52.0
+>=20
+>=20
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
