@@ -1,22 +1,22 @@
-Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
+Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F01732571B;
-	Sat, 21 Feb 2026 16:36:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.81
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E51F722425B;
+	Sat, 21 Feb 2026 17:22:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771691822; cv=none; b=M8pEqGa8LapDotqz9izhRZi755Fnu69ytBNLvWxu5AtA5AHc9+koBUYGVm7C23p/cT7ropXUT2RyAmBFl+5A4GtIxzqegBIjzChQZuXjna9uGW1sDRDaPucAXElW7bYq4GdoxDnbl/9KwO7YzobtOpNQ1jrzJNIZHBtMthU/0r8=
+	t=1771694580; cv=none; b=NIOz++8hDWVUwr7uYW7Ymn2N3Au3eZOEqa1VD0gBmtLUkHUUVtgPzZeSs1J2ahWzK28QNMigQqpeP04Dgo3LyU7DVlIZxOvpcu6lxu4dzN/p2G3ZA+xwdlX0Sqe6Xl18QGNZmgdtWGm1Ovd31lkMPXhx6O4CF5Z1v+pnzvbaqRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771691822; c=relaxed/simple;
-	bh=eE2b6J8MoKoJciV+vNZFu4wv1hIVgksS6b0uGzsvRYo=;
+	s=arc-20240116; t=1771694580; c=relaxed/simple;
+	bh=4kBh681Zl5dh4JAlW4ItAfNRFHVCMsu5JKZKbKpLEBw=;
 	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=t6ELXLwM9drLGRggQMX35BCsjCQO7FCEwzGaRvKjw2oLcbKlYEam5XCnF/oCjWa58jekI9xg/tMZLm1CG+fk3WWQhtHd+ycHvvSSQh8aQ4PpbCiZs/zkyDZpbAvQf8H0kRGxA8sNTegNZc5OMOJwJfcUIHsXlbrJLgF8nmbn4Mc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.81
+	 Message-Id:References:To; b=ITgsRB8QG7LCxU3Kqj6VeQJ4G5QykbZX+cpKcKP34EeE7y75xpEj9xjQMSBzoiwI13GMc38RT+2GztKBA9s9W55wjPL4v3mQy+HsUvI+9uc42//tprcwsRKl+jj8kjdMJKN7+ik6ObmQBkO6Fjlc7iFI69DxVVEXMqt8MCYmBk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from smtpclient.apple (unknown [58.38.117.196])
-	by APP-03 (Coremail) with SMTP id rQCowABnTOMQ35lplLf9CA--.17993S2;
-	Sun, 22 Feb 2026 00:36:33 +0800 (CST)
+	by APP-05 (Coremail) with SMTP id zQCowABn9gme6JlpUK_QCA--.9783S2;
+	Sun, 22 Feb 2026 01:17:19 +0800 (CST)
 Content-Type: text/plain;
 	charset=us-ascii
 Precedence: bulk
@@ -25,101 +25,118 @@ List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.400.21\))
-Subject: Re: [PATCHv2 2/2] sparc/pci: Initialize msi_addr_mask for OF-created
- PCI devices
+Subject: Re: [PATCH v3] sparc: Fix page alignment in dma mapping
 From: Han Gao <gaohan@iscas.ac.cn>
-In-Reply-To: <20260220070239.1693303-3-nilay@linux.ibm.com>
-Date: Sun, 22 Feb 2026 00:36:22 +0800
+In-Reply-To: <20260218120056.3366-2-stian@itx.no>
+Date: Sun, 22 Feb 2026 01:17:08 +0800
 Cc: Han Gao <gaohan@iscas.ac.cn>,
- linuxppc-dev@lists.ozlabs.org,
- linux-pci@vger.kernel.org,
  sparclinux@vger.kernel.org,
- wangruikang@iscas.ac.cn,
- tglx@kernel.org,
- maddy@linux.ibm.com,
- mpe@ellerman.id.au,
- npiggin@gmail.com,
- chleroy@kernel.org,
- gjoyce@ibm.com,
- helgaas@kernel.org,
- davem@davemloft.net,
- andreas@gaisler.com,
+ linux-kernel@vger.kernel.org,
+ Marek Szyprowski <m.szyprowski@samsung.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Leon Romanovsky <leon@kernel.org>,
  "Han Gao (Revy)" <rabenda.cn@gmail.com>
 Content-Transfer-Encoding: quoted-printable
-Message-Id: <47EB6E53-3E20-4E95-A329-928E5BDDFB81@iscas.ac.cn>
-References: <20260220070239.1693303-1-nilay@linux.ibm.com>
- <20260220070239.1693303-3-nilay@linux.ibm.com>
-To: Nilay Shroff <nilay@linux.ibm.com>
+Message-Id: <09CAA464-18E7-4206-A315-C25E7DF789E8@iscas.ac.cn>
+References: <20260218120056.3366-2-stian@itx.no>
+To: stian@itx.no
 X-Mailer: Apple Mail (2.3864.400.21)
-X-CM-TRANSID:rQCowABnTOMQ35lplLf9CA--.17993S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7Cr1fXr18CFWkJr1UWFWDtwb_yoW8CF4Upr
-	Z7CFn3trWUt347Ga9xAr1UZFyjgan8u3s3Wr98K34IqryI9r10vrnrWrWjkw4jqrsYka1F
-	va9YvrWjqw1DWaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9C14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+X-CM-TRANSID:zQCowABn9gme6JlpUK_QCA--.9783S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7Zw13XFW7XFWUCF18JF43Jrb_yoW5JrW3pr
+	97CrnxtF4UKa4rAas7Jw409F1DZw4DWry3W3Z0k347Zw17Xr15WF18ursIgrnFqrZ5CayS
+	kF4qvFySya1UC3JanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUvv14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
 	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r4j6r
-	4UJwAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
-	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628v
-	n2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCY02Avz4vE14v_JwCF04k20xvY0x0EwIxGrw
-	CFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE
-	14v26r106r1rMI8E67AF67kF1VAFwI0_GFv_WrylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2
-	IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxK
-	x2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI
-	0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUeq2_UUUUU=
-X-CM-SenderInfo: xjdrxt3q6l2u1dvotugofq/1tbiBgwFDGmZySEWPgAAsz
+	6F4UM28EF7xvwVC2z280aVAFwI0_Cr0_Gr1UM28EF7xvwVC2z280aVCY1x0267AKxVW8JV
+	W8Jr1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
+	2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJV
+	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AFwI0_
+	Jw0_GFylc2xSY4AK67AK6r4l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr
+	1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE
+	14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7
+	IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E
+	87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73Uj
+	IFyTuYvjfU8PEfUUUUU
+X-CM-SenderInfo: xjdrxt3q6l2u1dvotugofq/1tbiBwsFDGmZydUfvQAAsL
 
-Tested and passed on SPARC Enterprise T5220.=20
 
-Without this patch, the e1000e would use intx.
 
-Tested-by: Han Gao <gaohan@iscas.ac.cn <mailto:gaohan@iscas.ac.cn>> # on =
-SPARC Enterprise T5220
-
-> On Feb 20, 2026, at 15:02, Nilay Shroff <nilay@linux.ibm.com> wrote:
+> On Feb 18, 2026, at 20:00, stian@itx.no wrote:
 >=20
-> Recent changes replaced the use of no_64bit_msi with msi_addr_mask,
-> which is now expected to be initialized to DMA_BIT_MASK(64) during PCI
-> device setup. On SPARC systems, this initialization was inadvertently
-> missed for devices instantiated from device tree nodes, leaving
-> msi_addr_mask unset for OF-created pci_dev instances. As a result,
-> MSI address validation fails during probe, causing affected devices
-> to fail initialization.
+> From: Stian Halseth <stian@itx.no>
 >=20
-> Initialize pdev->msi_addr_mask to DMA_BIT_MASK(64) in
-> of_create_pci_dev() so that MSI address validation succeeds and PCI
-> device probing works as expected.
+> 'phys' may include an offset within the page, while 'base_paddr' is =
+already
+> page-aligned. This caused incorrect DMA mapping in dma_4u_map_phys and
+> dma_4v_map_phys.
 >=20
-> Fixes: 386ced19e9a3 ("PCI/MSI: Convert the boolean no_64bit_msi flag =
-to a DMA address mask")
-> Signed-off-by: Nilay Shroff <nilay@linux.ibm.com>
+> Fix both functions by masking phys with IO_PAGE_MASK or subtracting =
+the
+> page offset, covering both generic SPARC code and sun4v.
+>=20
+> Fixes: 38c0d0ebf520 ("sparc: Use physical address DMA mapping")
+> Reported-by: Stian Halseth <stian@itx.no>
+> Closes: https://github.com/sparclinux/issues/issues/75
+> Suggested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Stian Halseth <stian@itx.no>
 > ---
-> arch/sparc/kernel/pci.c | 7 +++++++
-> 1 file changed, 7 insertions(+)
+> Changelog:
+> v3:
+> - Use IO_PAGE_MASK for alignment in both dma_4u_map_phys and =
+dma_4v_map_phys
+> - Align phys before the loop in pci_sun4v.c
+> - Drop masking inside iommu_batch_add()
 >=20
-> diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-> index b290107170e9..a4815d544781 100644
-> --- a/arch/sparc/kernel/pci.c
-> +++ b/arch/sparc/kernel/pci.c
-> @@ -355,6 +355,13 @@ static struct pci_dev *of_create_pci_dev(struct =
-pci_pbm_info *pbm,
-> dev->error_state =3D pci_channel_io_normal;
-> dev->dma_mask =3D 0xffffffff;
+> v2: https://lore.kernel.org/all/20260217171104.5643-3-stian@itx.no/
+> - Add Fixes tag
+> - Add Closes tag
+> - Trim commit message to 80-column lines
+> - Remove newlines
+> - Subject: Remove the "iommu/pci_sun4v:" (generic sparc patch, not =
+specific to sun4v)
 >=20
-> + /*
-> + * Assume 64-bit addresses for MSI initially. Will be changed to =
-32-bit
-> + * if MSI (rather than MSI-X) capability does not have
-> + * PCI_MSI_FLAGS_64BIT. Can also be overridden by driver.
-> + */
-> + dev->msi_addr_mask =3D DMA_BIT_MASK(64);
+> v1: https://lore.kernel.org/all/20260217150350.3541-2-stian@itx.no/=20
+> ---
+> arch/sparc/kernel/iommu.c     | 2 ++
+> arch/sparc/kernel/pci_sun4v.c | 2 ++
+> 2 files changed, 4 insertions(+)
+>=20
+> diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+> index 46ef88bc9c26..7613ab0ffb89 100644
+> --- a/arch/sparc/kernel/iommu.c
+> +++ b/arch/sparc/kernel/iommu.c
+> @@ -312,6 +312,8 @@ static dma_addr_t dma_4u_map_phys(struct device =
+*dev, phys_addr_t phys,
+> if (direction !=3D DMA_TO_DEVICE)
+> iopte_protection |=3D IOPTE_WRITE;
+>=20
+> + phys &=3D IO_PAGE_MASK;
 > +
-> if (of_node_name_eq(node, "pci")) {
-> /* a PCI-PCI bridge */
-> dev->hdr_type =3D PCI_HEADER_TYPE_BRIDGE;
+> for (i =3D 0; i < npages; i++, base++, phys +=3D IO_PAGE_SIZE)
+> iopte_val(*base) =3D iopte_protection | phys;
+>=20
+> diff --git a/arch/sparc/kernel/pci_sun4v.c =
+b/arch/sparc/kernel/pci_sun4v.c
+> index 791f0a76665f..58ca4148f86b 100644
+> --- a/arch/sparc/kernel/pci_sun4v.c
+> +++ b/arch/sparc/kernel/pci_sun4v.c
+> @@ -410,6 +410,8 @@ static dma_addr_t dma_4v_map_phys(struct device =
+*dev, phys_addr_t phys,
+>=20
+> iommu_batch_start(dev, prot, entry);
+>=20
+> + phys &=3D IO_PAGE_MASK;
+> +
+> for (i =3D 0; i < npages; i++, phys +=3D IO_PAGE_SIZE) {
+> long err =3D iommu_batch_add(phys, mask);
+> if (unlikely(err < 0L))
 > --=20
-> 2.52.0
+> 2.53.0
 >=20
 >=20
+
+Tested-by: Han Gao <gaohan@iscas.ac.cn> # on SPARC Enterprise T5220
+
 
