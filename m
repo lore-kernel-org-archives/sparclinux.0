@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 479E030DEA0;
-	Mon, 23 Feb 2026 16:16:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83FC014A8E;
+	Mon, 23 Feb 2026 16:18:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771863379; cv=none; b=k5Kk4zx2ojuAFbvasvucYgVrtgy2ueG3gQaVIeBQsnqUPENalrzxN2ODnf/yHRWqCv2xyPm4o8CXg0F2VkAdVy3ncP9953nIdWlMpsDf1ckWP2WMp020+lVGr7l6DFas2Ch18u5u4D7k7nE7ZYlqqMnBM/4VtqGH7rIX+BtJxqw=
+	t=1771863518; cv=none; b=VPn85d3bSi62j/WEWTFVMGA0tTc9U6KqdgVWllw048ID6bEqugANPtifZVXU+RLiXniq7x0+CZEsReq1FBaFoqncADYzNYwO353Z5yTCgNmvdx7BuAGpAEsv9UZAp6Rt9RVSOWFo52qUMHHVFeRE2rfVzCRY9Sgtt83iLn7BHH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771863379; c=relaxed/simple;
-	bh=9JBeH7cRemY2uqM6ZDX/nXNUAvQrJ8Fr8vmuN0HFcI4=;
+	s=arc-20240116; t=1771863518; c=relaxed/simple;
+	bh=ENSbuCfjK9K9qz+F1QE9v10noBk4EeAtynmQ7eTgJA4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=r0S58KG6rb4SPcKMYn2Ql/U/YbIcUS1mdtYXDk68vPWsgWv0McHmxQr0Vg+HUnY9anjPK57FHs5MNxhztXp1EKLXCBuiTERQ5EDfaBY24LfuJoq/NXPccSnxNVkDNSfrkTbxfEVQnnxlY83V4gKmARnSDcShNdWvjZPXJteLGpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lm/Ir+vc; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=BsxWqJPPgNOu8QUpSOT6Sbmbci5APhRmmMbTlLwiAETC8M/urMGvquThmKaMj4n9dX+aFjs6oPoOnUKgowNFSkKITaiEnDhNu9H/LdGPY4DlbHjamVrrhR65pcR2a8QS4oIuYfE43NWscAZ5eZp27p/a97PG8QkeBEu0trbRZuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YEnC/BJ7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lm/Ir+vc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCE72C116C6;
-	Mon, 23 Feb 2026 16:16:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YEnC/BJ7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 217A4C116C6;
+	Mon, 23 Feb 2026 16:18:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771863378;
-	bh=9JBeH7cRemY2uqM6ZDX/nXNUAvQrJ8Fr8vmuN0HFcI4=;
+	s=k20201202; t=1771863518;
+	bh=ENSbuCfjK9K9qz+F1QE9v10noBk4EeAtynmQ7eTgJA4=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=lm/Ir+vche8iTl6XhPS0GouZun+tZOLYdBGzcyyG0ygbzNjx8afI9Nz4L4YtQqVAw
-	 L7ZQ7pDZ3gaWLb6Qul8yrWt6MyN/Ncsx/yenyXe0G7aXWCG54VFdu0mx+X6zje7COX
-	 XEJaY+ZnGfc75MWIz1/A5pttxWXYU6C5BONj+3xpZoofXWS0dkDk5KdXNJzysLD8C8
-	 mh9EFg+GhstVxQ0fwB0wDfvCmdp0slrt/Qrnlj74UtibyBW712ksIyGKFR4M6w0rZP
-	 jWGQFdCM/rMnpLawlWRdN5X44PPEzw4avAZq+hXefgZuWqzU2Ox2OnD0b/jKqgIeea
-	 EU+NgodHersKQ==
-Message-ID: <37e62ad6-8922-4022-8660-38b818ae9cca@kernel.org>
-Date: Mon, 23 Feb 2026 17:16:05 +0100
+	b=YEnC/BJ7YyhFoowsZI0FWuJYftp2IbxDrX+JOlaVZIHCtTRK5H9iLszRJLsbUYdWy
+	 lwnLrg/i2lYRCQUZXxXOfkqACPnRrHK04HIY78DlzO55W80Ad5w7OrCsTc9ZD6YVVA
+	 CmqcCx111G1GJBl5B5fHXG+JLWAawS3moQ4hJaMzSXr+wlqgwZyy2TLDr6pplVvi+f
+	 PIRQMwh1ICqFnlhi6xEgSOf6uQu+A9gGbvdqi2qzB6lpzlA1YqgtgdKtu/4bh4tl3V
+	 AA4v53sz8w4BAOuORtdceaoP/FiSfypya0e3/QxPQWcqKNMQ4w5Tb7f8UhrX3TaP13
+	 161hEcU36My6g==
+Message-ID: <c5db6944-37fc-401e-bd06-68140f59c6e7@kernel.org>
+Date: Mon, 23 Feb 2026 17:18:24 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,8 +35,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/4] mm: don't special case !MMU for is_zero_pfn() and
- my_zero_pfn()
+Subject: Re: [PATCH v2 3/4] arch, mm: consolidate empty_zero_page
 To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 Cc: Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>,
  Brian Cain <bcain@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>,
@@ -68,7 +67,7 @@ Cc: Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>,
  sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
  linux-mm@kvack.org, x86@kernel.org
 References: <20260209144058.2092871-1-rppt@kernel.org>
- <20260209144058.2092871-2-rppt@kernel.org>
+ <20260209144058.2092871-4-rppt@kernel.org>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -115,24 +114,55 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260209144058.2092871-2-rppt@kernel.org>
+In-Reply-To: <20260209144058.2092871-4-rppt@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 2/9/26 15:40, Mike Rapoport wrote:
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> nommu architectures have empty_zero_page and define ZERO_PAGE() and
-> although they don't really use it to populate page tables, there is no
-> reason to hardwire !MMU implementation of is_zero_pfn() and my_zero_pfn()
-> to 0.
+> Reduce 22 declarations of empty_zero_page to 3 and 23 declarations of
+> ZERO_PAGE() to 4.
 > 
-> Drop #ifdef CONFIG_MMU around implementations of is_zero_pfn() and
-> my_zero_pfn() and remove !MMU version.
+> Every architecture defines empty_zero_page that way or another, but for the
+> most of them it is always a page aligned page in BSS and most definitions
+> of ZERO_PAGE do virt_to_page(empty_zero_page).
 > 
-> While on it, make zero_pfn __ro_after_init.
+> Move Linus vetted x86 definition of empty_zero_page and ZERO_PAGE() to the
+> core MM and drop these definitions in architectures that do not implement
+> colored zero page (MIPS and s390).
 > 
+> ZERO_PAGE() remains a macro because turning it to a wrapper for a static
+> inline causes severe pain in header dependencies.
+> 
+> For the most part the change is mechanical, with these being noteworthy:
+> 
+> * alpha: aliased empty_zero_page with ZERO_PGE that was also used for boot
+>   parameters. Switching to a generic empty_zero_page removes the aliasing
+>   and keeps ZERO_PGE for boot parameters only
+> * arm64: uses __pa_symbol() in ZERO_PAGE() so that definition of
+>   ZERO_PAGE() is kept intact.
+> * m68k/parisc/um: allocated empty_zero_page from memblock,
+>   although they do not support zero page coloring and having it in BSS
+>   will work fine.
+> * sparc64 can have empty_zero_page in BSS rather allocate it, but it
+>   can't use virt_to_page() for BSS. Keep it's definition of ZERO_PAGE()
+>   but instead of allocating it, make mem_map_zero point to
+>   empty_zero_page.
+> * sh: used empty_zero_page for boot parameters at the very early boot.
+>   Rename the parameters page to boot_params_page and let sh use the generic
+>   empty_zero_page.
+> * hexagon: had an amusing comment about empty_zero_page
+> 
+> 	/* A handy thing to have if one has the RAM. Declared in head.S */
+> 
+>   that unfortunately had to go :)
+> 
+> Acked-by: Helge Deller <deller@gmx.de>   # parisc
+> Tested-by: Helge Deller <deller@gmx.de>  # parisc
+> Reviewed-by: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> ---
 
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 
