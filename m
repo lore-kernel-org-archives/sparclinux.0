@@ -1,148 +1,207 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF312EDD62;
-	Mon, 23 Feb 2026 16:20:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 594FE38BF7F
+	for <sparclinux@vger.kernel.org>; Wed, 25 Feb 2026 09:34:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771863626; cv=none; b=uMQ7SdPKPKum6shO57fWN5xauaI4RX/zfKzV1v78BE6D10IFfjixDlBFwXTATnGVgxNgkxazERECBq1FaG3mVhWY3h03Wj5vv7hpy57LCfTE0vMCg3aK6Zk7J/10Zf6mjsBX8Edw+DRgX+8cen5QsTxdUGG/cfW53W+dGUIy5PQ=
+	t=1772012057; cv=none; b=PkYruTrV5XgBAPfRjgt0F5okHBmL05xpk+PC6dhTnm6yYY6AvmgoknHu97JzUdmiJehQ15nSsfDY8Clbg+6ymNcAoRvWYuk7n89gJ5aXSrEZOpKKS+HN+nt8ltu5C6PWTXAsFvBqPWt3eNtLSASHZAz3Lx5uUlgeHuodqoj6x2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771863626; c=relaxed/simple;
-	bh=r8mDeUpeW8tBUm82rtc4kcjK4ONsKrxt6c1CNArIpvE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KSnkJqg5K59SBQ+/u//Zzfj38TEA4A5+MnoKKijqFds2v8spHDhrlOYa9wwXmGwmw8uX5U9KrdetoO4fTNA3KYqJICv2aRDgjQKQhLhg7bdGTqaxEpJs65W9VPYiv5PFfU07begBfI8qWb/pAHzOIZbGiT2qcGoX/NqAqfkX/ow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PvSQrdeo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772012057; c=relaxed/simple;
+	bh=EChnaz/wNdUCH/LaAhkqduGVIV85xoH+0j8ZN2XBYUg=;
+	h=From:To:Cc:Subject:In-Reply-To:Date:Message-ID:References:
+	 MIME-Version:Content-Type; b=a3U8IVpNYvLBCpuqtvmtzYLiY/Dl+NDcahmKjaiTSuehYlEy9phGDltEGhJusu3/p8SW3iObfIRwbpeSW0BiEXyldNB4mLplsvKfN0dnamy5BZomsHQMVDrfBR0+61TxwSm8dcSvbKvF2e6P6MyE3I8rueE7ahPYhupEfF4lQGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=E4h3WVnV; arc=none smtp.client-ip=209.85.215.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PvSQrdeo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 491D5C19421;
-	Mon, 23 Feb 2026 16:20:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771863626;
-	bh=r8mDeUpeW8tBUm82rtc4kcjK4ONsKrxt6c1CNArIpvE=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=PvSQrdeocpoNN0p9MaK3sggyEhP6bDqgKlYc4yggH5rAQfcrJSEuKTtELQhVIOkjx
-	 27RQ0W9Om2jLvItanmN74NXkqDRCxLkjXjaCXz5bEKdFVStFxL1rlOWFSZbj8akEiQ
-	 RTIy9lvApB5TO1WlSYuX4YYlQUEqNRrOHfiiFgYlCTl+BgTe7OSrlqkia9urvm4gfH
-	 wEnzHCtCVlI5CNU0NW15/hd1zgUBBwRbdtJjTdH3whUnlSskR3W3fdLulPBddBqTd9
-	 p/zoAG/hQZwKDfywAO//6WYOrm1PgrTL/1tu0We8q3IF+9vQhWyrE7DidGdwP4gezC
-	 Z3Nfs3HSc7qbw==
-Message-ID: <4bbe1b83-da01-4226-9a86-1bf6194c22e4@kernel.org>
-Date: Mon, 23 Feb 2026 17:20:13 +0100
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="E4h3WVnV"
+Received: by mail-pg1-f169.google.com with SMTP id 41be03b00d2f7-c6e266a3572so2257029a12.0
+        for <sparclinux@vger.kernel.org>; Wed, 25 Feb 2026 01:34:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1772012054; x=1772616854; darn=vger.kernel.org;
+        h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=JxnsaOQZey5wMq56BxN2EdEuMBW71mGq+RSuzcss/8M=;
+        b=E4h3WVnVoBDWixEI3M7sRAhWcGnqkgnMkrRN354zlXhRhc9W1sDSE7sIdADBxrhF3G
+         7H7pa8egtVR+7ar95UobKjIdgO/POBr9tKnMHQwwbD7sYP90AWCwFLOpdbZZgL/+mPI9
+         qYrUk9/IM8m/2FDAs9UrXJPIg11Efn89UxCEKT3dz0xeuI6nGuT26RYfvMwRf354syjk
+         lNaRZ7uFuCwu8dKuXpLeIb0i3Tr7E3VEaIP1P6+HoC3NZ/iSXQ/1yREjjUC88ttCJxqW
+         Th9RXRLgyHHDGWXN/hsVf7SKNGPmsfZr9BQjmNviNfxFrYlZyD1CiP5SuqV/fBP3Ml/y
+         6Qug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772012054; x=1772616854;
+        h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=JxnsaOQZey5wMq56BxN2EdEuMBW71mGq+RSuzcss/8M=;
+        b=dlf4om2HBxtnKEZ7r5LGfvcu82479ScZMK1MLLiuj/5AA5rsG+kiQ8sZVP1Nu8Q6qZ
+         lR9+VfyO854L/P3c5gxjHgLOkYI7zLZPI00y5KPWVKd3RzJAzW73j5AJsEeGm8az7afd
+         LeRVg5U+FfMwQJ6dmhmufLYxlVa2PXXkZnDJM2AW0UEIAXMEeDOAFxTdKK2hR8+VkBxD
+         siMky6BxJstk8KufB37VySHfzjKx2yGnYfo/rbQNByyDmlWeJI5+Qnrbbnbz8h1BCG7S
+         x4qLYeDGhtcYlqaqis9b+t9P5nABCcnfCjHIqFb9dQnxAb1VrHwHuZqh7+xsAYEThhb0
+         QHLw==
+X-Forwarded-Encrypted: i=1; AJvYcCW7XkmxDB1MDy4K8g4QwmEO7K2W2MYV8e58lR9514VpwnIEEswJ1ZAKH9C/hsTMlOuq3iBcpr6+SCvY@vger.kernel.org
+X-Gm-Message-State: AOJu0YymLTkHg1d3z4+hShW/x1JkxL5RJ6rHLl/YajyGNbCb1sXY9b/l
+	NdK1WkTXn+BYU6ObYbHZbUy8Lj9twWOoxjiPYLOGBXIe3NVkhDnmT79oCiW++g==
+X-Gm-Gg: ATEYQzwyzldpl+UtGQsjepGtBWcyP1thMWwTB+/gE5UFm672y0VQtix4hhT8699f8lO
+	X2uYafJkmMgjbP9qruKyPLSUGDIsRTUiPJb8G1E1xsiK8LBaOI9UJsFsHExdXrajovckGx+YrZS
+	SdQx03Eg2qJ5IkDV6EHsldndrtVJDRlFE5dFqmL2Iq07KbT3XCHnpEVFjOFJxdfFtE2LeroGlML
+	ajLGvBNCBCCPpHyM/nMP/+Xwfxxv32VS/S1OzR6f6mZ5pB2yYWQAx9nyGK0+sPWfkUcoEtAMOvm
+	l+39Md5Bg3lSGuV7VSbwplb2Ayr0aZw9tMx+ooSUEWFTE81N49sHwKuBPWosQRgJJI4zGdLrMna
+	RvlrOiXC31KUdr0k0vVvRl7n/2D4ebKtoAmV9WIEMYqkLWNvD8taxf42zU0J3c2Ge0oEn/7I0VS
+	cdZdmyqzm0PfVNLSTEwQ==
+X-Received: by 2002:a17:90b:3dcc:b0:340:c60b:f362 with SMTP id 98e67ed59e1d1-358ae7c6ca9mr13087754a91.6.1772012054135;
+        Wed, 25 Feb 2026 01:34:14 -0800 (PST)
+Received: from dw-tp ([203.81.242.210])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3590188126esm2256635a91.6.2026.02.25.01.33.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 25 Feb 2026 01:34:13 -0800 (PST)
+From: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Alex Shi <alexs@kernel.org>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>, 
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	"David S. Miller" <davem@davemloft.net>, Dave Hansen <dave.hansen@linux.intel.com>, 
+	David Hildenbrand <david@kernel.org>, Dinh Nguyen <dinguyen@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Guo Ren <guoren@kernel.org>, 
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Johannes Berg <johannes@sipsolutions.net>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Jonathan Corbet <corbet@lwn.net>, 
+	Klara Modin <klarasmodin@gmail.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, Magnus Lindholm <linmag7@gmail.com>, 
+	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>, Michal Simek <monstr@monstr.eu>, 
+	Mike Rapoport <rppt@kernel.org>, Muchun Song <muchun.song@linux.dev>, 
+	Oscar Salvador <osalvador@suse.de>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Pratyush Yadav <pratyush@kernel.org>, Richard Weinberger <richard@nod.at>, 
+	Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, 
+	Suren Baghdasaryan <surenb@google.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>, 
+	Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>, x86@kernel.org, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-mm@kvack.org, 
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+	linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org, 
+	linux-um@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, 
+	loongarch@lists.linux.dev, sparclinux@vger.kernel.org
+Subject: Re: [PATCH v3 24/29] arch, mm: consolidate initialization of SPARSE memory model
+In-Reply-To: <20260111082105.290734-25-rppt@kernel.org>
+Date: Wed, 25 Feb 2026 09:00:35 +0530
+Message-ID: <87tsv5h544.ritesh.list@gmail.com>
+References: <20260111082105.290734-1-rppt@kernel.org> <20260111082105.290734-25-rppt@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 4/4] mm: cache struct page for empty_zero_page and
- return it from ZERO_PAGE()
-To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>,
- Brian Cain <bcain@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>,
- "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
- "David S. Miller" <davem@davemloft.net>,
- Dave Hansen <dave.hansen@linux.intel.com>, Dinh Nguyen
- <dinguyen@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>,
- Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
- Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Johannes Berg <johannes@sipsolutions.net>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Magnus Lindholm <linmag7@gmail.com>, Matt Turner <mattst88@gmail.com>,
- Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>,
- Michal Hocko <mhocko@suse.com>, Michal Simek <monstr@monstr.eu>,
- Palmer Dabbelt <palmer@dabbelt.com>, Richard Weinberger <richard@nod.at>,
- Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner <tglx@kernel.org>,
- Vineet Gupta <vgupta@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, linux-alpha@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
- linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org,
- linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
- linux-mm@kvack.org, x86@kernel.org
-References: <20260209144058.2092871-1-rppt@kernel.org>
- <20260209144058.2092871-5-rppt@kernel.org>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
- qIws/H2t
-In-Reply-To: <20260209144058.2092871-5-rppt@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 
-On 2/9/26 15:40, Mike Rapoport wrote:
+Mike Rapoport <rppt@kernel.org> writes:
+
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> 
-> For most architectures every invocation of ZERO_PAGE() does
-> virt_to_page(empty_zero_page). But empty_zero_page is in BSS and it is
-> enough to get its struct page once at initialization time and then use
-> it whenever a zero page should be accessed.
-> 
-> Add yet another __zero_page variable that will be initialized as
-> virt_to_page(empty_zero_page) for most architectures in a weak
-> arch_setup_zero_pages() function.
-> 
-> For architectures that use colored zero pages (MIPS and s390) rename their
-> setup_zero_pages() to arch_setup_zero_pages() and make it global rather
-> than static.
-> 
-> For architectures that cannot use virt_to_page() for BSS (arm64 and
-> sparc64) add override of arch_setup_zero_pages().
-> 
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+>
+> Every architecture calls sparse_init() during setup_arch() although the
+> data structures created by sparse_init() are not used until the
+> initialization of the core MM.
+>
+> Beside the code duplication, calling sparse_init() from architecture
+> specific code causes ordering differences of vmemmap and HVO initialization
+> on different architectures.
+>
+> Move the call to sparse_init() from architecture specific code to
+> free_area_init() to ensure that vmemmap and HVO initialization order is
+> always the same.
+>
 
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Hello Mike,
 
--- 
-Cheers,
+[    0.000000][    T0] ------------[ cut here ]------------
+[    0.000000][    T0] WARNING: arch/powerpc/include/asm/io.h:879 at virt_to_phys+0x44/0x1b8, CPU#0: swapper/0
+[    0.000000][    T0] Modules linked in:
+[    0.000000][    T0] CPU: 0 UID: 0 PID: 0 Comm: swapper Not tainted 6.19.0-12139-gc57b1c00145a #31 PREEMPT
+[    0.000000][    T0] Hardware name: IBM pSeries (emulated by qemu) POWER10 (architected) 0x801200 0xf000006 of:SLOF,git-ee03ae pSeries
+[    0.000000][    T0] NIP:  c000000000601584 LR: c000000004075de4 CTR: c000000000601548
+[    0.000000][    T0] REGS: c000000004d1f870 TRAP: 0700   Not tainted  (6.19.0-12139-gc57b1c00145a)
+[    0.000000][    T0] MSR:  8000000000021033 <SF,ME,IR,DR,RI,LE>  CR: 48022448  XER: 20040000
+[    0.000000][    T0] CFAR: c0000000006016c4 IRQMASK: 1
+[    0.000000][    T0] GPR00: c000000004075dd4 c000000004d1fb10 c00000000304bb00 c000000180000000
+[    0.000000][    T0] GPR04: 0000000000000009 0000000000000009 c000000004ec94a0 0000000000000000
+[    0.000000][    T0] GPR08: 0000000000018000 0000000000000001 c000000004921280 0000000048022448
+[    0.000000][    T0] GPR12: c000000000601548 c000000004fe0000 0000000000000004 0000000000000004
+[    0.000000][    T0] GPR16: 000000000287fb08 0000000000000060 0000000000000002 0000000002831750
+[    0.000000][    T0] GPR20: 0000000002831778 fffffffffffffffd c000000004d78050 00000000051cbb00
+[    0.000000][    T0] GPR24: 0000000005a40008 c000000000000000 c000000000400000 0000000000000100
+[    0.000000][    T0] GPR28: c000000004d78050 0000000000000000 c000000004ecd4a8 0000000000000001
+[    0.000000][    T0] NIP [c000000000601584] virt_to_phys+0x44/0x1b8
+[    0.000000][    T0] LR [c000000004075de4] alloc_bootmem+0x144/0x1a8
+[    0.000000][    T0] Call Trace:
+[    0.000000][    T0] [c000000004d1fb50] [c000000004075dd4] alloc_bootmem+0x134/0x1a8
+[    0.000000][    T0] [c000000004d1fba0] [c000000004075fac] __alloc_bootmem_huge_page+0x164/0x230
+[    0.000000][    T0] [c000000004d1fbe0] [c000000004030bc4] alloc_bootmem_huge_page+0x44/0x138
+[    0.000000][    T0] [c000000004d1fc10] [c000000004076e48] hugetlb_hstate_alloc_pages+0x350/0x5ac
+[    0.000000][    T0] [c000000004d1fd30] [c0000000040782f0] hugetlb_bootmem_alloc+0x15c/0x19c
+[    0.000000][    T0] [c000000004d1fd70] [c00000000406d7b4] mm_core_init_early+0x7c/0xdf4
+[    0.000000][    T0] [c000000004d1ff30] [c000000004011d84] start_kernel+0xac/0xc58
+[    0.000000][    T0] [c000000004d1ffe0] [c00000000000e99c] start_here_common+0x1c/0x20
+[    0.000000][    T0] Code: 6129ffff 792907c6 6529ffff 6129ffff 7c234840 40810018 3d2201e8 3929a7a8 e9290000 7c291840 41810044 3be00001 <0b1f0000> 3d20bfff 6129ffff 792907c6
 
-David
+
+I think this is happening because, now in mm_core_early_init(), the
+order of initialization between hugetlb_bootmem_alloc() and
+free_area_init() is reversed. Since free_area_init() -> sparse_init()
+is responsible for setting SECTIONS and vmemmap area. 
+
+Then in alloc_bootmem() (from hugetlb_bootmem_alloc() path), it uses virt_to_phys(m)...
+
+			/*
+			 * For pre-HVO to work correctly, pages need to be on
+			 * the list for the node they were actually allocated
+			 * from. That node may be different in the case of
+			 * fallback by memblock_alloc_try_nid_raw. So,
+			 * extract the actual node first.
+			 */
+			if (m)
+				listnode = early_pfn_to_nid(PHYS_PFN(virt_to_phys(m)));
+
+
+... virt_to_phys on powerpc uses:
+
+static inline unsigned long virt_to_phys(const volatile void * address)
+{
+	WARN_ON(IS_ENABLED(CONFIG_DEBUG_VIRTUAL) && !virt_addr_valid(address));
+
+	return __pa((unsigned long)address);
+}
+
+#define virt_addr_valid(vaddr)	({					\
+	unsigned long _addr = (unsigned long)vaddr;			\
+	_addr >= PAGE_OFFSET && _addr < (unsigned long)high_memory &&	\
+	pfn_valid(virt_to_pfn((void *)_addr));				\
+})
+
+
+I think the above warning in dmesg gets printed from above WARN_ON, i.e.
+because pfn_valid() is false, since we haven't done sparse_init() yet.
+
+So, what I wanted to check was - do you think instead of virt_to_phys(), we
+could directly use __pa() here() in mm/hugetlb.c, since these are
+memblock alloc addresses? i.e.: 
+
+// alloc_bootmem():
+-   listnode = early_pfn_to_nid(PHYS_PFN(virt_to_phys(m)));
++   listnode = early_pfn_to_nid(PHYS_PFN(__pa(m)));
+
+// __alloc_bootmem_huge_page():
+-   memblock_reserved_mark_noinit(virt_to_phys((void *)m + PAGE_SIZE),
++   memblock_reserved_mark_noinit(__pa((void *)m + PAGE_SIZE),
+
+
+Thoughts?
+
+-ritesh
