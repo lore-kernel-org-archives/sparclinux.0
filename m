@@ -1,89 +1,108 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from sipsolutions.net (s3.sipsolutions.net [168.119.38.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DF68320A04;
-	Sun,  1 Mar 2026 07:00:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4382A248F57;
+	Mon,  2 Mar 2026 07:39:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=168.119.38.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772348408; cv=none; b=tELZR/ia6BsVEEFSVMNXV67a+WcEhXNGkL54IPiGQ8slpZq94piG/ksh0X1qDFu7Xi/7HfYYxMfEied6CafcY8w37QbozCt/zUspOIzX1ZSiE4gRjf9lskq4NDaYn82Csz1oGOlqy9QJuqYazNMgQ8jdcSsdXUK0M3R8Rs5XTHo=
+	t=1772437173; cv=none; b=oh07UElQ6ZzuesZFrjbMFJaCYPExQCZBpqk48FaYX6r/VwFjmxvU5lluUh2ExRYvMjsg315KHZrG5CKsdxsjSgHnthqEr+fkZD5BuU3PNJW7GbJpZfRO/Tym1ssUqhHUcLGgoM4BHogwJJqetT/iM6sb6TuVXoK6iuANjFbYkwg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772348408; c=relaxed/simple;
-	bh=I8EQo/NbWjLKrDlFxdsKTBfRrpz+7VWtsvEBPsnJquA=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=oXJpdQibQjRED/i5JwaakUxAeKo0yrBWsIh2LXYgEubxH6/O6xqhBT9YILn+F9fR+dDwnvtRi/ugTGr0+C/Zmd8n//k0aHdOUajRrgAhIBcELeqv0OXFlYAGwqdv2mi5C74qIkVwU+5pmc1VkEmUBiYuTxfUvXoJKS9Sftj5P4c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=UHCNbsgy; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=SYECe4KG; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1772437173; c=relaxed/simple;
+	bh=sRQsR35tocgGOPF+4BbdMojiyXXgifMPxfyFVJVZiCQ=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=JdUZaYf2+x57nP6B7XNbQ4MpqfLf0Kf7AHTOtABQZKmBfTq4MyOencfFX4CgvMdIFcDJKZQ0e6K3ZkqKwH5Q0d0LfvRH2FhyWB3XF8GqtaM2+f55sfycB5Ttzh8ssBcuBCJmxxsgoLb2WzOxjMMsDAMP3tqtYn3GspV59HD58x0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sipsolutions.net; spf=pass smtp.mailfrom=sipsolutions.net; dkim=pass (2048-bit key) header.d=sipsolutions.net header.i=@sipsolutions.net header.b=kua5aNVe; arc=none smtp.client-ip=168.119.38.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sipsolutions.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sipsolutions.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="UHCNbsgy";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="SYECe4KG"
-From: Nam Cao <namcao@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1772348402;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=I8EQo/NbWjLKrDlFxdsKTBfRrpz+7VWtsvEBPsnJquA=;
-	b=UHCNbsgyx/6ZWOygB5rCjnV9ylgVGph4Q5rD/PkSl7E0vMV/eNKHF9wjEkasjXBawmTFMH
-	1XAOi+vz7QdZMPANg1U1iAgm6GHCoF6780fRGrXjBloae1sbrc9We+lxIfPGHloYzit0mQ
-	F1NxWo14CeIBA5SCTjai1giJithnZ5+0uKQPm55mcRxZ4vJcCkjw17BStPo6Q9jVcBR7ZP
-	o1c+ZHWH4y6obBA/9uz1oXmvhOHPpFuF/XvI0wZF/qWlJLFZlfn4aOQ7voc9WR3ZCCwoUR
-	1YNNIU4gWryB+TMZruvP3n6EMBTmfJj/Qg/hgEf7yE1JiIcC2p/mjlxTh2Pqxw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1772348402;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=I8EQo/NbWjLKrDlFxdsKTBfRrpz+7VWtsvEBPsnJquA=;
-	b=SYECe4KGSP/zVd5WloNpXB8nNRX4FTDjfqx+O8v978PDMMwI/6lozc9SiZmc4D2Obd7nw6
-	6A+ARbmoW+JjGyDA==
-To: Nilay Shroff <nilay@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org,
- linux-pci@vger.kernel.org, sparclinux@vger.kernel.org
-Cc: wangruikang@iscas.ac.cn, tglx@kernel.org, maddy@linux.ibm.com,
- mpe@ellerman.id.au, npiggin@gmail.com, chleroy@kernel.org, gjoyce@ibm.com,
- helgaas@kernel.org, davem@davemloft.net, andreas@gaisler.com, Nilay Shroff
- <nilay@linux.ibm.com>
-Subject: Re: [PATCHv2 1/2] powerpc/pci: Initialize msi_addr_mask for
- OF-created PCI devices
-In-Reply-To: <20260220070239.1693303-2-nilay@linux.ibm.com>
-References: <20260220070239.1693303-1-nilay@linux.ibm.com>
- <20260220070239.1693303-2-nilay@linux.ibm.com>
-Date: Sun, 01 Mar 2026 13:59:46 +0700
-Message-ID: <87a4ws6nml.fsf@yellow.woof>
+	dkim=pass (2048-bit key) header.d=sipsolutions.net header.i=@sipsolutions.net header.b="kua5aNVe"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=sipsolutions.net; s=mail; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
+	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-To:
+	Resent-Cc:Resent-Message-ID; bh=s0B14b5FSBUEgAk+L55J5WroPPngMpauRKzhBytrof4=;
+	t=1772437172; x=1773646772; b=kua5aNVeUbfaBQdD2ly34qoR7qoIxaf+n8cAomfOPVOX7WT
+	8wvudIE1oLoXnebtkx4PUo7+vQKnIva+rUZwsHGVo9grqHvisKFaIWf0vpAXjH1N3bIjc7MkAzQup
+	pjWwtLtQGLKbw2EQB9ELxSiHccM0TYUN8C90vV0q9LjUbEyzqVaD7i/fhAcetfyuCtM1zvD+WrmVH
+	4HIUabu8/ELemD93y14rOhRYHoRXncLsiZzhAiGCh+TAQtZAjTL3+WOrhlfYrUGfBcPkJ7fvgfDnK
+	UgaToZNc0SOaM54itPN2ofW/axjbnxh6RwyLhG7Z8WOSB53E4FcZaKhf8bqAelYQ==;
+Received: by sipsolutions.net with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.98.2)
+	(envelope-from <johannes@sipsolutions.net>)
+	id 1vwxrd-00000005zul-3cbJ;
+	Mon, 02 Mar 2026 08:38:50 +0100
+Message-ID: <3e3f46aca653cf99799111279fc554b4ca31f6b7.camel@sipsolutions.net>
+Subject: Re: [PATCH 03/25] um/xor: don't override XOR_SELECT_TEMPLATE
+From: Johannes Berg <johannes@sipsolutions.net>
+To: Eric Biggers <ebiggers@kernel.org>, Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Richard Henderson	
+ <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>, Magnus
+ Lindholm <linmag7@gmail.com>, Russell King <linux@armlinux.org.uk>, Catalin
+ Marinas	 <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Huacai
+ Chen	 <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, Madhavan
+ Srinivasan	 <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>,
+ Nicholas Piggin	 <npiggin@gmail.com>, "Christophe Leroy (CS GROUP)"
+ <chleroy@kernel.org>,  Paul Walmsley	 <pjw@kernel.org>, Palmer Dabbelt
+ <palmer@dabbelt.com>, Albert Ou	 <aou@eecs.berkeley.edu>, Alexandre Ghiti
+ <alex@ghiti.fr>, Heiko Carstens	 <hca@linux.ibm.com>, Vasily Gorbik
+ <gor@linux.ibm.com>, Alexander Gordeev	 <agordeev@linux.ibm.com>, Christian
+ Borntraeger <borntraeger@linux.ibm.com>,  Sven Schnelle
+ <svens@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, Andreas
+ Larsson	 <andreas@gaisler.com>, Richard Weinberger <richard@nod.at>, Anton
+ Ivanov	 <anton.ivanov@cambridgegreys.com>, Thomas Gleixner
+ <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
+ <bp@alien8.de>, Dave Hansen	 <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>,  Herbert Xu
+ <herbert@gondor.apana.org.au>, Dan Williams <dan.j.williams@intel.com>,
+ Chris Mason	 <clm@fb.com>, David Sterba <dsterba@suse.com>, Arnd Bergmann
+ <arnd@arndb.de>,  Song Liu <song@kernel.org>, Yu Kuai <yukuai@fnnas.com>,
+ Li Nan <linan122@huawei.com>, 	linux-alpha@vger.kernel.org,
+ linux-kernel@vger.kernel.org, 	linux-arm-kernel@lists.infradead.org,
+ loongarch@lists.linux.dev, 	linuxppc-dev@lists.ozlabs.org,
+ linux-riscv@lists.infradead.org, 	linux-s390@vger.kernel.org,
+ sparclinux@vger.kernel.org, 	linux-um@lists.infradead.org,
+ linux-crypto@vger.kernel.org, 	linux-btrfs@vger.kernel.org,
+ linux-arch@vger.kernel.org, 	linux-raid@vger.kernel.org
+Date: Mon, 02 Mar 2026 08:38:47 +0100
+In-Reply-To: <20260228043006.GA65277@quark>
+References: <20260226151106.144735-1-hch@lst.de>
+	 <20260226151106.144735-4-hch@lst.de> <20260228043006.GA65277@quark>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.58.3 (3.58.3-1.fc43) 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+X-malware-bazaar: not-scanned
 
-Nilay Shroff <nilay@linux.ibm.com> writes:
-> Recent changes replaced the use of no_64bit_msi with msi_addr_mask.
-> As a result, msi_addr_mask is now expected to be initialized to
-> DMA_BIT_MASK(64) when a pci_dev is set up. However, this initialization
-> was missed on powerpc due to differences in the device initialization
-> path compared to other (x86) architecture. Due to this, now PCI device
-> probe method fails on powerpc system.
->
-> On powerpc systems, struct pci_dev instances are created from device
-> tree nodes via of_create_pci_dev(). Because msi_addr_mask was not
-> initialized there, it remained zero. Later, during MSI setup,
-> msi_verify_entries() validates the programmed MSI address against
-> pdev->msi_addr_mask. Since the mask was not set correctly, the
-> validation fails, causing PCI driver probe failures for devices on
-> powerpc systems.
->
-> Initialize pdev->msi_addr_mask to DMA_BIT_MASK(64) in
-> of_create_pci_dev() so that MSI address validation succeeds and device
-> probe works as expected.
->
-> Fixes: 386ced19e9a3 ("PCI/MSI: Convert the boolean no_64bit_msi flag to a DMA address mask")
-> Signed-off-by: Nilay Shroff <nilay@linux.ibm.com>
+On Fri, 2026-02-27 at 20:30 -0800, Eric Biggers wrote:
+> On Thu, Feb 26, 2026 at 07:10:15AM -0800, Christoph Hellwig wrote:
+> > XOR_SELECT_TEMPLATE is only ever called with a NULL argument, so all th=
+e
+> > ifdef'ery doesn't do anything.  With our without this, the time travel
+> > mode should work fine on CPUs that support AVX2, as the AVX2
+> > implementation is forced in this case, and won't work otherwise.
+>=20
+[snip]
 
-I ran into this problem today. Great that it's already been fixed.
+> I'm not following this change.  Previously, in TT_MODE_INFCPU mode,
+> XOR_SELECT_TEMPLATE(NULL) returned &xor_block_avx, &xor_block_sse_pf64,
+> or &xor_block_8regs, causing the benchmark to be skipped.  After this
+> change, the benchmark starts being done on CPUs that don't support AVX.
 
-Reviewed-by: Nam Cao <namcao@linutronix.de>
-Tested-by: Nam Cao <namcao@linutronix.de>
+Yeah the commit message is confusing - the change itself is really
+trading one (potential?) issue (CPUs w/o AVX) against another old issue
+(benchmark never terminates in TT_MODE_INFCPU).
 
-Nam
+However, since commit c055e3eae0f1 ("crypto: xor - use ktime for
+template benchmarking") the latter issue doesn't even exist any more, so
+it now works without it, though it doesn't really benchmark anything.
+But that's fine too, nobody is going to be overly concerned about the
+performance here, I think, and if so there's really no good way to fix
+that other than providing a config option for an individual
+implementation.
+
+johannes
