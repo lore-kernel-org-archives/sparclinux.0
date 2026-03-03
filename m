@@ -1,67 +1,45 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E82404BCAA9;
-	Tue,  3 Mar 2026 16:15:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA3437CD20;
+	Tue,  3 Mar 2026 16:30:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772554511; cv=none; b=CTsZtRmzqgAEzPUjljKemVO6JZHpTjBeMmXnNhI7fGFUUTxxVkzyF7//dPfaVhILSm9poqKhBZMiyEyJ1wjFyc9XTpje8ODsaOHWh8YDorfNBERuM16/KqHfz5ul0jGuN3LYGSY+a5eK+3iMZEhs0NDTwq6MSJKuJN7dVHHHZG4=
+	t=1772555454; cv=none; b=VoTzCyay+/8T7WjX7XNnOD+Zq/eqMncZnz7M22iR9chqex5bLgfSnfNaeLkOP3sYChA5XVVg24zvlzWO7URTyCYDeLFIz9/vCF0JkVLlgwWLguyoEp2jPvJnsvsNslsdrh7CKrwasQXEXJ5gv+rG8iAk73RagbVTQj3I+ZrQuxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772554511; c=relaxed/simple;
-	bh=pKylT2VdZF5opvqkK8HdDFCn1ZVdiR2rvHWlCHqkFLU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pTBu8F9rg9WfkO0y6ODjz0kuq7+N+HiGue3xVq5ACYLFaZpfhO/tcwh/N+xFf9DYtxMJY56XHcYeVVTz9HigintECtbFUNM0SvnxjvRvsDkXpIPtjBksoYZkltX0Ihg0kNmvF63IAVIvvavhwYmsvKmjhoKeU0+mPmgKGwY0aF8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 59EE368BEB; Tue,  3 Mar 2026 17:15:00 +0100 (CET)
-Date: Tue, 3 Mar 2026 17:15:00 +0100
-From: Christoph Hellwig <hch@lst.de>
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Matt Turner <mattst88@gmail.com>,
-	Magnus Lindholm <linmag7@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	s=arc-20240116; t=1772555454; c=relaxed/simple;
+	bh=D2pPg2evVcS3OwEffdyZzwyhu5mGQ3DavyPjm4j33e8=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=LPMeBRoYqCHvXd5OYrJZxPAc9kWAbJYK+uEifmo4ciaiXFZMmBvr7XlQOTCmVrxAA7mRWrPCIQbtlYVxlInQ/K/eIIR4rr0hMljNiAJab+UVkH86hrfDziskU/GM2ZdRgUZLipNurleqh+vMO5djIOz2uQNI4tJ2QN0dKudYMQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W5KbtB6A; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W5KbtB6A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 734E8C116C6;
+	Tue,  3 Mar 2026 16:30:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772555453;
+	bh=D2pPg2evVcS3OwEffdyZzwyhu5mGQ3DavyPjm4j33e8=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=W5KbtB6A0G2m/2ihT3XDZLZ1J31O6g7kq8xkLz7SMDzdBFPEaAXJKPILxy/5pZFxo
+	 VD3ug1zEfyyGRMgzj5yYbUGUZKzDhz1SKIs9+iJ2+oxjTxfCYw+mr5Ol63WP8jwjbY
+	 hOosGeo+emjWgCMGDrbFRWEmayrPXfx/NYajhHtgl1eSf02IYfo98sa5MP5S8vw3Q+
+	 xRud5IB6QOoqtIOWN2WIT7Bp8uGvpOkxMBuN5JiBEAPQLN/8XocgX22s/sGb2+grKN
+	 cHD08FRGQM0Vxkia4iLgppWy+vide3XkHT6UuM+9JIha9+PvKW9BgBN/7aNUr9wbPF
+	 bCbzflpQ0R+Bw==
+Date: Tue, 3 Mar 2026 10:30:51 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Nilay Shroff <nilay@linux.ibm.com>,
 	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
 	"David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Dan Williams <dan.j.williams@intel.com>, Chris Mason <clm@fb.com>,
-	David Sterba <dsterba@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-	Song Liu <song@kernel.org>, Yu Kuai <yukuai@fnnas.com>,
-	Li Nan <linan122@huawei.com>, linux-alpha@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	loongarch@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-	linux-crypto@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-raid@vger.kernel.org
-Subject: Re: [PATCH 07/25] xor: split xor.h
-Message-ID: <20260303161500.GA8975@lst.de>
-References: <20260226151106.144735-1-hch@lst.de> <20260226151106.144735-8-hch@lst.de> <20260228044355.GD65277@quark> <20260303160309.GD7021@lst.de>
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
+	sparclinux@vger.kernel.org, wangruikang@iscas.ac.cn,
+	tglx@kernel.org, npiggin@gmail.com, chleroy@kernel.org,
+	gjoyce@ibm.com
+Subject: Re: [PATCHv2 0/2] pci: fix msi_addr_mask on powerpc and sparc systems
+Message-ID: <20260303163051.GA4059101@bhelgaas>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -70,33 +48,52 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260303160309.GD7021@lst.de>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+In-Reply-To: <d8440351-7394-4444-9891-b9af1982bd06@linux.ibm.com>
 
-On Tue, Mar 03, 2026 at 05:03:09PM +0100, Christoph Hellwig wrote:
-> On Fri, Feb 27, 2026 at 08:43:55PM -0800, Eric Biggers wrote:
-> > On Thu, Feb 26, 2026 at 07:10:19AM -0800, Christoph Hellwig wrote:
-> > > Keep xor.h for the public API, and split the struct xor_block_template
-> > > definition that is only needed by the xor.ko core and
-> > > architecture-specific optimizations into a separate xor_impl.h header.
+On Tue, Mar 03, 2026 at 09:59:15AM +0530, Madhavan Srinivasan wrote:
+> On 2/27/26 10:14 PM, Bjorn Helgaas wrote:
+> > On Fri, Feb 20, 2026 at 12:32:26PM +0530, Nilay Shroff wrote:
+> > > Hi,
 > > > 
-> > > Signed-off-by: Christoph Hellwig <hch@lst.de>
-> > > ---
-> > >  arch/arm/lib/xor-neon.c       |  1 +
-> > >  arch/s390/lib/xor.c           |  2 +-
-> > >  include/linux/raid/xor.h      | 22 +---------------------
-> > >  include/linux/raid/xor_impl.h | 25 +++++++++++++++++++++++++
-> > >  lib/raid/xor/xor-core.c       |  1 +
-> > >  5 files changed, 29 insertions(+), 22 deletions(-)
-> > >  create mode 100644 include/linux/raid/xor_impl.h
+> > > Recent changes [1] which replaced pci_dev::no_64bit_msi with pci_dev::
+> > > msi_addr_mask inadvertently missed to initialize the pci_dev::msi_addr_mask
+> > > to the DMA_BIT_MASK(64) on powerpc platform. Due to this, later the
+> > > validation the programmed MSI address against the msi_addr_mask fails.
+> > > This causes pci device probe method failures on powerpc platform. We also
+> > > realized that similar issue could potentially happen on sparc system as
+> > > well. So this series initializes pci_dev::msi_addr_mask to DMA_BIT_MASK(64)
+> > > when pci_dev is instantiated for both powerpc and sparc platforms.
+> > > 
+> > > The first patch in the series fixes this on powerpc platform. The second
+> > > patch fixes this issue on sparc platform. Please note that as I don't have
+> > > access to the sparc platform, this patch was only compile tested on the
+> > > sparc system. Anyone from the community is welcome to test it who has
+> > > access to the sparc machine.
+> > > 
+> > > [1] https://lore.kernel.org/all/20260129-pci-msi-addr-mask-v4-0-70da998f2750@iscas.ac.cn/
+> > > 
+> > > Changes since v1:
+> > >    - Initialize the pci_dev:msi_addr_mask on sparc platform (Vivian Wang)
+> > >    - Some minor cosmetic fixes (Bjorn Helgaas)
+> > > 
+> > > Nilay Shroff (2):
+> > >    powerpc/pci: Initialize msi_addr_mask for OF-created PCI devices
+> > >    sparc/pci: Initialize msi_addr_mask for OF-created PCI devices
+> > > 
+> > >   arch/powerpc/kernel/pci_of_scan.c | 7 +++++++
+> > >   arch/sparc/kernel/pci.c           | 7 +++++++
+> > >   2 files changed, 14 insertions(+)
+> > These fix regressions on powerpc and sparc caused by 386ced19e9a3
+> > ("PCI/MSI: Convert the boolean no_64bit_msi flag to a DMA address
+> > mask").
 > > 
-> > arch/arm64/lib/xor-neon.c needs to be updated to include xor_impl.h.
-> 
-> As of this patch it is not using anything from that header (but
-> neither from the public xor.h).
+> > These fixes have been tested by Han Gao (SPARC Enterprise T5220),
+> > Nathaniel Roach (SPARC T5-2), and Venkat Rao Bagalkote (IBM Power
+> > System LPAR (pseries)).
+> > 
+> > It'd be great to have acks from the powerpc and sparc folks so they
+>
+> Sorry for the delayed response, yes we tested this from our end.
+> Acked-by: Madhavan Srinivasan <maddy@linux.ibm.com>
 
-Actually looks like we do need it because it pulls in
-arch/arm64/include/asm/xor.h.
-
-Anyway, I think I'll actually move this patch to the end so that the
-impl header does not need moving to it's final place.
+Added your ack to the powerpc patch, thank you very much!
