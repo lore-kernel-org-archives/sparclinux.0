@@ -1,105 +1,88 @@
-Received: from out-189.mta0.migadu.com (out-189.mta0.migadu.com [91.218.175.189])
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B88D8246766
-	for <sparclinux@vger.kernel.org>; Mon,  9 Mar 2026 22:45:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.189
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E46953D6689;
+	Tue, 10 Mar 2026 06:58:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773096332; cv=none; b=FoPty5LHBkFxjV1h3u/7nlRXLMvFsmljqEWkeqQk89EC8H6bAEzBQesBOiPB77gVQBN6KuIIVfcywF5Hdi3A4BSAoUm3zmWLYacDYKh8cXRz1nDGxMbPc7Z8t0fY+ZixZkp+dgdb32ET/II96btpdAIHuS23727EGTR/qd6eOJo=
+	t=1773125936; cv=none; b=W5D04D/I/17SOGRKMWDqqB+kse9d2gGSXABrspb5tNtau9Xdnu9wQxOVfIxfbDmnSVvwX+5+/7STnRRisjRV8bb/5RHOajylmpEf836BX5YZeNe+6uZShZtH273pp6qOPWIH6Jl6l8o8W7ahaOU0zXAdRjZ7K6k59YHGLPvkh2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773096332; c=relaxed/simple;
-	bh=tlFL8ChItjemz0vXXsv/W+8TvOqaR2U36ov7vwpCF1E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lzekyjUmGtWA99ngZDBp07dZSCE1z39Kb2WIy5XHWC7CETyST+bCIz+3idLH/A72+w83w7GOTlNE/jU7ER2pv0Rufv0Ft7UcCRCkSQjfp8K+TkDEBPhtXY6obhjes1q0qI2DW6kY0WUdDXIay+lmazDigFPj58EuDurb+WURjv8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=AnUlRFlI; arc=none smtp.client-ip=91.218.175.189
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="AnUlRFlI"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1773096328;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=Yo/vp8ckmH5+wr7xeteGlSDNMbPclc1e9B0ZY6/l4EE=;
-	b=AnUlRFlIUHKhXIdh3PpTQU+0VjJuInLFsAanJqife4rCOQiEYUjzXIu326+wFVoktTZTkz
-	1eSl2UTWwLAUIcwPTTUUHAnKmaa6tMJSVKjbL1fyspHSaxcMt44zKOlHADcHmQRdLBrfva
-	oxcfwvdiGjZn9B9NRND6LjD3+XiifDs=
-From: Thorsten Blum <thorsten.blum@linux.dev>
-To: "David S. Miller" <davem@davemloft.net>,
+	s=arc-20240116; t=1773125936; c=relaxed/simple;
+	bh=TWEzqV1T6nOJN1sLUnuVvgCbRiWOhKncO+7Ywdr8dcg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uFiCDo2FgRGG98yt4wiLph8pvzLSJk5gg4xRjhFoBC2itq+PaxDL4LblSrolnkUNr3MAcO+6HtpNhmObpvD9o6YH3GNS3T47tWNqPtKsVOQ6fBZ4lXotrDyWNpl9TvaTXBpj3+Jh8DUbjoKke8yGc7PMjWs7nqqhEC/5cuK5bfA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id 7056668AFE; Tue, 10 Mar 2026 07:58:40 +0100 (CET)
+Date: Tue, 10 Mar 2026 07:58:40 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	Matt Turner <mattst88@gmail.com>,
+	Magnus Lindholm <linmag7@gmail.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Huacai Chen <chenhuacai@kernel.org>,
+	WANG Xuerui <kernel@xen0n.name>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	"David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>,
-	Thorsten Blum <thorsten.blum@linux.dev>,
-	Kees Cook <kees@kernel.org>
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH RESEND] sparc: vio: Use sysfs_emit in sysfs show functions
-Date: Mon,  9 Mar 2026 23:44:45 +0100
-Message-ID: <20260309224444.84851-3-thorsten.blum@linux.dev>
+	Richard Weinberger <richard@nod.at>,
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Dan Williams <dan.j.williams@intel.com>, Chris Mason <clm@fb.com>,
+	David Sterba <dsterba@suse.com>, Arnd Bergmann <arnd@arndb.de>,
+	Song Liu <song@kernel.org>, Yu Kuai <yukuai@fnnas.com>,
+	Li Nan <linan122@huawei.com>, linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	loongarch@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+	linux-crypto@vger.kernel.org, linux-btrfs@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-raid@vger.kernel.org
+Subject: Re: [PATCH 21/25] xor: add a better public API
+Message-ID: <20260310065840.GA10296@lst.de>
+References: <20260226151106.144735-1-hch@lst.de> <20260226151106.144735-22-hch@lst.de> <20260228065038.GH65277@quark>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1872; i=thorsten.blum@linux.dev; h=from:subject; bh=tlFL8ChItjemz0vXXsv/W+8TvOqaR2U36ov7vwpCF1E=; b=owGbwMvMwCUWt7pQ4caZUj3G02pJDJnrfWPuiJw5uMPncETlldK9a469/bMgcErloWdLvk+wc lNw3Jp7oKOUhUGMi0FWTJHlwawfM3xLayo3mUTshJnDygQyhIGLUwAmojab4Z92WnBQ+aNzjZwZ qk3znl5vEJ1xpPneTevF/6Z3BwlOZJzPyLDcNrZjx5wdV3+/Tc954bHh0hOtD/JMtqdENBrjLmd WJfIBAA==
-X-Developer-Key: i=thorsten.blum@linux.dev; a=openpgp; fpr=1D60735E8AEF3BE473B69D84733678FD8DFEEAD4
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260228065038.GH65277@quark>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-Replace sprintf() and scnprintf() with sysfs_emit() in sysfs show
-functions. sysfs_emit() is preferred to format sysfs output as it
-provides better bounds checking.
+On Fri, Feb 27, 2026 at 10:50:38PM -0800, Eric Biggers wrote:
+> > +void xor_gen(void *dest, void **srcss, unsigned int src_cnt,
+> > +		unsigned int bytes);
+> 
+> srcss => srcs
+> 
+> Ideally the source vectors would be 'const' as well.
 
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
----
- arch/sparc/kernel/vio.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+I looked at the constification, and it's a bit painful because the
+same source arrays are also passed to the raid6 code by the callers.
+I'll clean up the raid6 API first, and then will give it another
+spin.
 
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index 8b4f55047716..b7b06752a038 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -13,6 +13,7 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/string.h>
-+#include <linux/sysfs.h>
- #include <linux/irq.h>
- #include <linux/export.h>
- #include <linux/init.h>
-@@ -121,7 +122,7 @@ static ssize_t devspec_show(struct device *dev,
- 	else if (!strcmp(vdev->type, "vdc-port"))
- 		str = "vdisk";
- 
--	return sprintf(buf, "%s\n", str);
-+	return sysfs_emit(buf, "%s\n", str);
- }
- static DEVICE_ATTR_RO(devspec);
- 
-@@ -129,7 +130,7 @@ static ssize_t type_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
- 	struct vio_dev *vdev = to_vio_dev(dev);
--	return sprintf(buf, "%s\n", vdev->type);
-+	return sysfs_emit(buf, "%s\n", vdev->type);
- }
- static DEVICE_ATTR_RO(type);
- 
-@@ -138,7 +139,7 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
- {
- 	const struct vio_dev *vdev = to_vio_dev(dev);
- 
--	return sprintf(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
-+	return sysfs_emit(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
- }
- static DEVICE_ATTR_RO(modalias);
- 
-@@ -192,7 +193,7 @@ show_pciobppath_attr(struct device *dev, struct device_attribute *attr,
- 	vdev = to_vio_dev(dev);
- 	dp = vdev->dp;
- 
--	return scnprintf(buf, PAGE_SIZE, "%pOF\n", dp);
-+	return sysfs_emit(buf, "%pOF\n", dp);
- }
- 
- static DEVICE_ATTR(obppath, S_IRUSR | S_IRGRP | S_IROTH,
