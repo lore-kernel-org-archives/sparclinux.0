@@ -1,100 +1,80 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030B634C155;
-	Thu, 12 Mar 2026 13:46:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C998342538;
+	Sat, 14 Mar 2026 12:17:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773323212; cv=none; b=vCKMQg4VWnTxAHMobonoj/BoKmtFjxn8f++VMKgtYlR6WBUNk6iLK2qB16Zxr8KudKh+Nzkdgdn+R/yhKIm/ZDawEepVNa9zj/j+X+dXSr+S63vgDPsXm56UA5Yt/UOoOGbv42WS6YZDABfSBVRX2cZV8PntGh/hPzRIS5yqEzk=
+	t=1773490678; cv=none; b=JnXzXnbhtLauNklCOLyopbd21p15HNHLEXdawc9AF3tBgWTPL6uZCFRaZJUrIDHmzMPr9OS9kHSA6GzH/rDJau818XL/awQAaMH03SMt8FhhhNntruOWO1SU5wE2EiuNSIU0fam5kd6jcv8j7ag3n1HeKbK2BPVI65y45Vq25UM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773323212; c=relaxed/simple;
-	bh=l8xdTzfmFI9blWnX69yppRL0CTG4tWAVHoV5RzxnJ4M=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=e3szPqUW2HQk/WsgBaaiKQi3OK9Lgms9FdbJf+fxLOdV18jAwKpwXTRiHOMJJniQGTkP4FBs2msWCh14hxgfLT41bpDjaQez2YKUVgWqEIiGxO4qBb78EZcZbYexzJE8owy5p2Az4uaptmnx9NweKk4mIw7ohl6a0vG2macg+gw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b=aNowo7eU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773490678; c=relaxed/simple;
+	bh=rHbvrpMB09EIKcrHOHB7l/K1N11JPzLnC5vzrgZPpHI=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=Bvv1ko5wqrgu5BB01HExfokwpEF4/RhujETF9vRz2nyhmW2odmu76xGQAiEYKD3Jr911j91CqmHnQSkwMmCxvPYHRWCt8nuivA9tuYKcmAMM2yB6fpeRlYj9RY8zhVwdpRiwywZdvVUzxaQTpMHcy/WaBsGO5cjThQkY2uJfhpQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=NDxQzYn6; arc=none smtp.client-ip=159.69.126.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="aNowo7eU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0435C4CEF7;
-	Thu, 12 Mar 2026 13:46:46 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-	dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="aNowo7eU"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-	t=1773323205;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=l8xdTzfmFI9blWnX69yppRL0CTG4tWAVHoV5RzxnJ4M=;
-	b=aNowo7eUwaDEsiVlTqmEAkItMBfiAqnQpwNdW5+Iir3vEvTnk82QibP2d05ImlF0a165mh
-	nmvWlvpeFzo1/3YJJgy9A68B3kA75iz0ORvDTg44s5evgsV+Q5arPoARsc9Mpj0kc03vTo
-	y0krEtMS6grTzTv7HePJJwYz8b+7S/w=
-Received: 
-	by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id d18605ad (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-	Thu, 12 Mar 2026 13:46:44 +0000 (UTC)
-Date: Thu, 12 Mar 2026 14:46:39 +0100
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Matt Turner <mattst88@gmail.com>,
-	Magnus Lindholm <linmag7@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Dan Williams <dan.j.williams@intel.com>, Chris Mason <clm@fb.com>,
-	David Sterba <dsterba@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-	Song Liu <song@kernel.org>, Yu Kuai <yukuai@fnnas.com>,
-	Li Nan <linan122@huawei.com>, Theodore Ts'o <tytso@mit.edu>,
-	linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
-	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-um@lists.infradead.org, linux-crypto@vger.kernel.org,
-	linux-btrfs@vger.kernel.org, linux-arch@vger.kernel.org,
-	linux-raid@vger.kernel.org
-Subject: Re: [PATCH 26/27] random: factor out a __limit_random_u32_below
- helper
-Message-ID: <abLDvwa7c3OXm_e2@zx2c4.com>
-References: <20260311070416.972667-1-hch@lst.de>
- <20260311070416.972667-27-hch@lst.de>
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="NDxQzYn6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
+	s=mail; t=1773490673;
+	bh=rHbvrpMB09EIKcrHOHB7l/K1N11JPzLnC5vzrgZPpHI=;
+	h=From:Date:Subject:To:Cc:From;
+	b=NDxQzYn61lb/ygLX8VDuM9mLFnZuEg6pQqRSF0aDeti6Gt/VQLLIrZxmz8CM1vYaH
+	 iyYEK7dR01w+BrIdgmRPewoFzd7SqZUw5FBuLZjo/LgGHsLdhZG88lHDVZRzctRWy4
+	 KLwp5oSrp4rlV52wPV4u5/ef6kn3MAZ+2GDbVAS4=
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
+Date: Sat, 14 Mar 2026 13:17:49 +0100
+Subject: [PATCH] sparc: uapi: Add ucontext.h
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260311070416.972667-27-hch@lst.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20260314-uapi-ucontext-sparc-v1-1-7dd5f8dd8845@weissschuh.net>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/x3MywqAIBBA0V+JWTegZQ/6lWghOtVsTHyEEP170
+ vIs7n0gUmCKsDQPBLo58uUqZNuAObU7CNlWQye6UfRSYdaeMZvLJSoJo9fBoBymWSorpllpqKU
+ PtHP5r+v2vh9Qi0nfZQAAAA==
+X-Change-ID: 20260314-uapi-ucontext-sparc-157814d0784a
+To: "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1773490673; l=753;
+ i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
+ bh=rHbvrpMB09EIKcrHOHB7l/K1N11JPzLnC5vzrgZPpHI=;
+ b=JkLx88auDozl2LbizZln+EUkuxEdro+bEuHa1IPrmRNBSv+afhicMRmOJkYGcqODYtN2LDpXx
+ zVIM8RyMW8KBxD9p15dDwd2nF9/Ug4G1Y92FaIChtfPlS0cFPUtTQm7
+X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
+ pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-On Wed, Mar 11, 2026 at 08:03:58AM +0100, Christoph Hellwig wrote:
-> Factor out the guts of __get_random_u32_below into a new helper,
-> so that callers with their own prng state can reuse this code.
+On SPARC the standard ucontext.h UAPI header is named 'uctx.h'.
 
-What Eric said. random.c is not "some library code" meant to be pulled
-apart like this. If you think there are some good general purpose
-arithmetic functions, by all means develop shared infrastructure in the
-right place. But I think for this super simple/trivial _below function,
-you can probably just place it additionally where you're using it,
-without needing to touch random.c.
+Add an alias for the standard name.
+
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+---
+ arch/sparc/include/uapi/asm/ucontext.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/sparc/include/uapi/asm/ucontext.h b/arch/sparc/include/uapi/asm/ucontext.h
+new file mode 100644
+index 000000000000..e9b5dbbedefb
+--- /dev/null
++++ b/arch/sparc/include/uapi/asm/ucontext.h
+@@ -0,0 +1,3 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++
++#include <asm/uctx.h>
+
+---
+base-commit: 6de23f81a5e08be8fbf5e8d7e9febc72a5b5f27f
+change-id: 20260314-uapi-ucontext-sparc-157814d0784a
+
+Best regards,
+-- 
+Thomas Weißschuh <linux@weissschuh.net>
+
