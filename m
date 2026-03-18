@@ -1,205 +1,200 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0F9B3C345D;
-	Wed, 18 Mar 2026 11:00:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 143ED3DCD9B;
+	Wed, 18 Mar 2026 14:17:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773831610; cv=none; b=rzBuw6TpHc8SsLYIPPR37ybWFSEajPTG4fkgmisCKu9YBAaC4+h59gsbYwap8SvhV+beCIccCPY4PU2rDvkaWgX11o2P+gx4ngInGhxb5IJU39onnmBtBTzmvn36gkI5jbIpAauvVdMMe90yNMwgPu7F0aEzWKZlapzg5r1dWKo=
+	t=1773843424; cv=none; b=aHXaoAosOgTWfeHuTeQZPqrsD8FlEC6tpBfiLUGVGcajB0et9c656qbDovkAAFrOM0ljMcqUVcODsTuo3tRT5jgbockj4Woo30czX17l5OjJpmsRv+KVcEhOLrNtSu4zbVC23OEzmx+Zo3MSLClAbgMcvhg8BEjxxcOjp1Pf5S4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773831610; c=relaxed/simple;
-	bh=uXF/4wNn5jtAs8jN3yAYT5aUpVgj2iPt6T43Ush51L8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MDGLHKuXRGuTKbtdOCquq8qhfQhkpTmgIQ6HilOYNJ8A3wtq/b1hvxZMSu3j4M4PpYkM1kUvXXHAHi9q/ovhcFCwxTIwZt9hUTA/2rG2zPfJkoLq2318ETbl443HsiAxlAwX5lAi9UQJgohKQohXfuJBVG72Thl+tFga7uG49kw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qrp1DZft; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773843424; c=relaxed/simple;
+	bh=Nka2tAu2xfrAzh/LVz+kPzjJGV26abtbTSAN+jQ1zCs=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=HazUw2u3FVdjMMxhzhgw+rx2TUXsyEa4z2lFarn7QQUHQHcsKLkb3XOBURWg0pImJzGFC3Wll48aCvthROLT/cia+bW7IBSJJaEc9dmaFAMSMC8NwkCFnV3V9rC3WV0MpIghX6i2IqkG0AMFRl7cqKBxhSkxmUhGE+uCN2SpMVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l2n98eIW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qrp1DZft"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E442EC2BCB3;
-	Wed, 18 Mar 2026 10:59:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l2n98eIW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B834CC19421;
+	Wed, 18 Mar 2026 14:16:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773831609;
-	bh=uXF/4wNn5jtAs8jN3yAYT5aUpVgj2iPt6T43Ush51L8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Qrp1DZftNL2mANGaUskZ2ndurPvv1Q5xEZdHwqNMTXTU49FdJOksisWCNrwlXC6Ur
-	 af1XIUzkZN16ANirbz+13SpX4Ycz2NHapzQwFaoBxPeYsZxWBk7kNquGT+gKC0UPal
-	 1odcL5f7nAH1h90rlpECzOJP2yoKQZ8CZiZWUIZGJZhr5om6GULjPnRiyF5QjirbGG
-	 nNG6QPMx1+15rdYzlM0CO+nI6MMsPVBSOXQB4ZINbwOikGfe9GWbWqT3NJ+AtTnIMu
-	 Wq+pDjER0gzCMZLFc44nIa/fO0bSvNdhsToGSVGPjBOVfA+qN49Eqsy8N1SkE37UMo
-	 GOPaLPgqmqj5Q==
-From: Mike Rapoport <rppt@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexander Potapenko <glider@google.com>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Borislav Petkov <bp@alien8.de>,
-	Brendan Jackman <jackmanb@google.com>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christian Brauner <brauner@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@kernel.org>,
-	Dmitry Vyukov <dvyukov@google.com>,
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jan Kara <jack@suse.cz>,
-	Johannes Weiner <hannes@cmpxchg.org>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Marco Elver <elver@google.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Hocko <mhocko@suse.com>,
-	Mike Rapoport <rppt@kernel.org>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Rob Herring <robh@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Will Deacon <will@kernel.org>,
-	Zi Yan <ziy@nvidia.com>,
-	devicetree@vger.kernel.org,
-	iommu@lists.linux.dev,
-	kasan-dev@googlegroups.com,
-	linux-arm-kernel@lists.infradead.org,
-	linux-efi@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-trace-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
-	x86@kernel.org
-Subject: [PATCH 8/8] memblock: warn when freeing reserved memory before memory map is initialized
-Date: Wed, 18 Mar 2026 12:58:27 +0200
-Message-ID: <20260318105827.1358927-9-rppt@kernel.org>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260318105827.1358927-1-rppt@kernel.org>
-References: <20260318105827.1358927-1-rppt@kernel.org>
+	s=k20201202; t=1773843423;
+	bh=Nka2tAu2xfrAzh/LVz+kPzjJGV26abtbTSAN+jQ1zCs=;
+	h=Date:From:Subject:To:Cc:References:In-Reply-To:From;
+	b=l2n98eIWgaO3CjkFjgd0Sou85/DdxxIF5f5x0NNXjCnRCCUzjcWJiinkayJ878aww
+	 BMJ0pXZVJUefOLLhpj2fMemzle19sO2O1t5wBOu4oWg54p9ZGJdEhdeS/Czy9hnQXA
+	 eulz6Qr5rpmd86XRFktfVxpPiPuG0bWwvXiusqCzjYmb/h8nhtFZfXIiV7SJql6pbr
+	 L4xv+2VnZl426NR2cd+2lb906X8FppURSFBE0mng0zk5Fvon36cCbedPT6Sf5MOPBk
+	 nKWZjGbed3op7zsa/QhDxrRfMTA0/5KlsKm4GWT7flFR84ReuRSkL4lH9ODOoxK1Dd
+	 vepd5z1nkYYfQ==
+Message-ID: <11428d25-7bea-4be6-a6ee-bfeac1d50807@kernel.org>
+Date: Wed, 18 Mar 2026 15:16:52 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+From: Vlastimil Babka <vbabka@kernel.org>
+Subject: Re: [PATCH 3/8] mm: move free_reserved_area() to mm/memblock.c
+Content-Language: en-US
+To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Potapenko <glider@google.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Andreas Larsson <andreas@gaisler.com>, Ard Biesheuvel <ardb@kernel.org>,
+ Borislav Petkov <bp@alien8.de>, Brendan Jackman <jackmanb@google.com>,
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>,
+ Christian Brauner <brauner@kernel.org>, "David S. Miller"
+ <davem@davemloft.net>, Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@kernel.org>, Dmitry Vyukov <dvyukov@google.com>,
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Ingo Molnar <mingo@redhat.com>, Jan Kara <jack@suse.cz>,
+ Johannes Weiner <hannes@cmpxchg.org>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>, Marco Elver <elver@google.com>,
+ Marek Szyprowski <m.szyprowski@samsung.com>,
+ Masami Hiramatsu <mhiramat@kernel.org>, Michael Ellerman
+ <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Nicholas Piggin <npiggin@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>,
+ Rob Herring <robh@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+ Saravana Kannan <saravanak@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner <tglx@kernel.org>,
+ Will Deacon <will@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ devicetree@vger.kernel.org, iommu@lists.linux.dev,
+ kasan-dev@googlegroups.com, linux-arm-kernel@lists.infradead.org,
+ linux-efi@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+ linux-trace-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ sparclinux@vger.kernel.org, x86@kernel.org
+References: <20260318105827.1358927-1-rppt@kernel.org>
+ <20260318105827.1358927-4-rppt@kernel.org>
+In-Reply-To: <20260318105827.1358927-4-rppt@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+On 3/18/26 11:58, Mike Rapoport wrote:
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> 
+> free_reserved_area() is related to memblock as it frees reserved memory
+> back to the buddy allocator, similar to what memblock_free_late() does.
+> 
+> Move free_reserved_area() to mm/memblock.c to prepare for further
+> consolidation of the functions that free reserved memory.
+> 
+> No functional changes.
+> 
+> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 
-When CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled, freeing of reserved
-memory before the memory map is fully initialized in deferred_init_memmap()
-would cause access to uninitialized struct pages and may crash when
-accessing spurious list pointers, like was recently discovered during
-discussion about memory leaks in x86 EFI code [1].
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
-The trace below is from an attempt to call free_reserved_page() before
-page_alloc_init_late():
 
-[    0.076840] BUG: unable to handle page fault for address: ffffce1a005a0788
-[    0.078226] #PF: supervisor read access in kernel mode
-[    0.078226] #PF: error_code(0x0000) - not-present page
-[    0.078226] PGD 0 P4D 0
-[    0.078226] Oops: Oops: 0000 [#1] PREEMPT SMP NOPTI
-[    0.078226] CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Not tainted 6.12.68-92.123.amzn2023.x86_64 #1
-[    0.078226] Hardware name: Amazon EC2 t3a.nano/, BIOS 1.0 10/16/2017
-[    0.078226] RIP: 0010:__list_del_entry_valid_or_report+0x32/0xb0
-...
-[    0.078226]  __free_one_page+0x170/0x520
-[    0.078226]  free_pcppages_bulk+0x151/0x1e0
-[    0.078226]  free_unref_page_commit+0x263/0x320
-[    0.078226]  free_unref_page+0x2c8/0x5b0
-[    0.078226]  ? srso_return_thunk+0x5/0x5f
-[    0.078226]  free_reserved_page+0x1c/0x30
-[    0.078226]  memblock_free_late+0x6c/0xc0
-
-Currently there are not many callers of free_reserved_area() and they all
-appear to be at the right timings.
-
-Still, in order to protect against problematic code moves or additions of
-new callers add a warning that will inform that reserved pages cannot be
-freed until the memory map is fully initialized.
-
-[1] https://lore.kernel.org/all/e5d5a1105d90ee1e7fe7eafaed2ed03bbad0c46b.camel@kernel.crashing.org/
-
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
----
- mm/internal.h   | 10 ++++++++++
- mm/memblock.c   |  5 +++++
- mm/page_alloc.c | 10 ----------
- 3 files changed, 15 insertions(+), 10 deletions(-)
-
-diff --git a/mm/internal.h b/mm/internal.h
-index cb0af847d7d9..f60c1edb2e02 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -1233,7 +1233,17 @@ static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- DECLARE_STATIC_KEY_TRUE(deferred_pages);
- 
-+static inline bool deferred_pages_enabled(void)
-+{
-+	return static_branch_unlikely(&deferred_pages);
-+}
-+
- bool __init deferred_grow_zone(struct zone *zone, unsigned int order);
-+#else
-+static inline bool deferred_pages_enabled(void)
-+{
-+	return false;
-+}
- #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
- 
- void init_deferred_page(unsigned long pfn, int nid);
-diff --git a/mm/memblock.c b/mm/memblock.c
-index bd5758ff07f2..780e70d4971a 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -896,6 +896,11 @@ static unsigned long __free_reserved_area(phys_addr_t start, phys_addr_t end,
- {
- 	unsigned long pages = 0, pfn;
- 
-+	if (deferred_pages_enabled()) {
-+		WARN(1, "Cannot free reserved memory because of deferred initialization of the memory map");
-+		return 0;
-+	}
-+
- 	for_each_valid_pfn(pfn, PFN_UP(start), PFN_DOWN(end)) {
- 		struct page *page = pfn_to_page(pfn);
- 		void *direct_map_addr;
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index df3d61253001..9ac47bab2ea7 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -331,11 +331,6 @@ int page_group_by_mobility_disabled __read_mostly;
-  */
- DEFINE_STATIC_KEY_TRUE(deferred_pages);
- 
--static inline bool deferred_pages_enabled(void)
--{
--	return static_branch_unlikely(&deferred_pages);
--}
--
- /*
-  * deferred_grow_zone() is __init, but it is called from
-  * get_page_from_freelist() during early boot until deferred_pages permanently
-@@ -348,11 +343,6 @@ _deferred_grow_zone(struct zone *zone, unsigned int order)
- 	return deferred_grow_zone(zone, order);
- }
- #else
--static inline bool deferred_pages_enabled(void)
--{
--	return false;
--}
--
- static inline bool _deferred_grow_zone(struct zone *zone, unsigned int order)
- {
- 	return false;
--- 
-2.51.0
+> ---
+>  mm/memblock.c   | 37 ++++++++++++++++++++++++++++++++++++-
+>  mm/page_alloc.c | 36 ------------------------------------
+>  2 files changed, 36 insertions(+), 37 deletions(-)
+> 
+> diff --git a/mm/memblock.c b/mm/memblock.c
+> index b3ddfdec7a80..8f3010dddc58 100644
+> --- a/mm/memblock.c
+> +++ b/mm/memblock.c
+> @@ -893,6 +893,42 @@ int __init_memblock memblock_remove(phys_addr_t base, phys_addr_t size)
+>  	return memblock_remove_range(&memblock.memory, base, size);
+>  }
+>  
+> +unsigned long free_reserved_area(void *start, void *end, int poison, const char *s)
+> +{
+> +	void *pos;
+> +	unsigned long pages = 0;
+> +
+> +	start = (void *)PAGE_ALIGN((unsigned long)start);
+> +	end = (void *)((unsigned long)end & PAGE_MASK);
+> +	for (pos = start; pos < end; pos += PAGE_SIZE, pages++) {
+> +		struct page *page = virt_to_page(pos);
+> +		void *direct_map_addr;
+> +
+> +		/*
+> +		 * 'direct_map_addr' might be different from 'pos'
+> +		 * because some architectures' virt_to_page()
+> +		 * work with aliases.  Getting the direct map
+> +		 * address ensures that we get a _writeable_
+> +		 * alias for the memset().
+> +		 */
+> +		direct_map_addr = page_address(page);
+> +		/*
+> +		 * Perform a kasan-unchecked memset() since this memory
+> +		 * has not been initialized.
+> +		 */
+> +		direct_map_addr = kasan_reset_tag(direct_map_addr);
+> +		if ((unsigned int)poison <= 0xFF)
+> +			memset(direct_map_addr, poison, PAGE_SIZE);
+> +
+> +		free_reserved_page(page);
+> +	}
+> +
+> +	if (pages && s)
+> +		pr_info("Freeing %s memory: %ldK\n", s, K(pages));
+> +
+> +	return pages;
+> +}
+> +
+>  /**
+>   * memblock_free - free boot memory allocation
+>   * @ptr: starting address of the  boot memory allocation
+> @@ -1776,7 +1812,6 @@ void __init memblock_free_late(phys_addr_t base, phys_addr_t size)
+>  		totalram_pages_inc();
+>  	}
+>  }
+> -
+>  /*
+>   * Remaining API functions
+>   */
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index 2d4b6f1a554e..df3d61253001 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -6234,42 +6234,6 @@ void adjust_managed_page_count(struct page *page, long count)
+>  }
+>  EXPORT_SYMBOL(adjust_managed_page_count);
+>  
+> -unsigned long free_reserved_area(void *start, void *end, int poison, const char *s)
+> -{
+> -	void *pos;
+> -	unsigned long pages = 0;
+> -
+> -	start = (void *)PAGE_ALIGN((unsigned long)start);
+> -	end = (void *)((unsigned long)end & PAGE_MASK);
+> -	for (pos = start; pos < end; pos += PAGE_SIZE, pages++) {
+> -		struct page *page = virt_to_page(pos);
+> -		void *direct_map_addr;
+> -
+> -		/*
+> -		 * 'direct_map_addr' might be different from 'pos'
+> -		 * because some architectures' virt_to_page()
+> -		 * work with aliases.  Getting the direct map
+> -		 * address ensures that we get a _writeable_
+> -		 * alias for the memset().
+> -		 */
+> -		direct_map_addr = page_address(page);
+> -		/*
+> -		 * Perform a kasan-unchecked memset() since this memory
+> -		 * has not been initialized.
+> -		 */
+> -		direct_map_addr = kasan_reset_tag(direct_map_addr);
+> -		if ((unsigned int)poison <= 0xFF)
+> -			memset(direct_map_addr, poison, PAGE_SIZE);
+> -
+> -		free_reserved_page(page);
+> -	}
+> -
+> -	if (pages && s)
+> -		pr_info("Freeing %s memory: %ldK\n", s, K(pages));
+> -
+> -	return pages;
+> -}
+> -
+>  void free_reserved_page(struct page *page)
+>  {
+>  	clear_page_tag_ref(page);
 
