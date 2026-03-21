@@ -1,162 +1,137 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtpbgeu2.qq.com (smtpbgeu2.qq.com [18.194.254.142])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9FE93783A2
-	for <sparclinux@vger.kernel.org>; Thu, 19 Mar 2026 14:28:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.47
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773930484; cv=pass; b=lhGhsh0hUair6pq6MYZtD+f8jQO7MyzRcH78cCUaxpRqH/I1nkc0EThjdRtpVn2GtFq5Xe+J6YygJerjTDRYruhy/Ix33lYTI6CWZ6xnQiN8kg/ZsiMXflhTvGLJgCxADNZ6H3V13yE/ZkFKi2da7kydQpzf3NsZxPU01MChyIU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773930484; c=relaxed/simple;
-	bh=x6wZk7AvpBRTPYt5th9R3ycT2p5XdAgtnR98fAb1EOE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EXna/wBdy4eBxFf1JLy4UFyJtgEtLV6abAxXicPEixGUZBavhqcd6R9jMhNXFvoB5uW9sxYrdAQGpcI2avEbuQyPooz/cWHZtu9MRz69+ICzSzGUCCPWCO2dirVkTof2I0JKhg1u1ZdeyvGaUABCdvkZTuFSDc1wEITD8RgB4sc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kcCKrhoY; arc=pass smtp.client-ip=209.85.208.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9041236AB61;
+	Sat, 21 Mar 2026 10:59:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=18.194.254.142
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774090785; cv=none; b=DV4SFLU6ZnM7pzjSqdLN+RGgQP7D4ROMQpujqwa+ZWWCYEwQ+4RakGyOjTwACjNZOf9F9OyY0kRRLgSxOsQGDr9sAiiXa0U7CFCd/oNDR+YH2Cra7DDDxzVv+IxhzsgxgZcGIp1L/4gpWm3cEQ3ut7xCKQvYVvwmlN6M/6POE3I=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774090785; c=relaxed/simple;
+	bh=KuJ0qSKVDTO5kYDsu9BNj5ITynbKA5w2OweBy2N+yDI=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=pXhQTyhoXZzeWDh6F5nFoqycGx9z6QuU/0bNKpQBXgZ0FaIfRrFh2CkwZpSK3bLjvim2qHJeZ6Cap1pdUpBC6eeMIH7vzi3Aq27HfsHOjwP9kSeVer/uBvdWRZ2fG+cIXj/nEdSfL8EycqtXy3b3lWQpFJcJTd/Zk7KJ7igufTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn; spf=pass smtp.mailfrom=smail.nju.edu.cn; dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b=OALECA7o; arc=none smtp.client-ip=18.194.254.142
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smail.nju.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kcCKrhoY"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-66132b22182so1466271a12.2
-        for <sparclinux@vger.kernel.org>; Thu, 19 Mar 2026 07:28:00 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1773930479; cv=none;
-        d=google.com; s=arc-20240605;
-        b=ifsae+EvShEV0NgKv5xN0ud1fhpBHmb0WJ0xID4JxI96IA0EfX+4RaM3bqtreFU65n
-         HU/H/7MW/ee34PZe7ifTeuPlOQDJwpABacoPamYIci+wQUyFWzwmIw+mjJ1uETgLsZ6I
-         GeJmw0wEFhk+UxZFhbz/1muMucDvozjJFxj1caCc0eSXqRSPmA8s3xiZCkMZym786y3e
-         Q4kFjkO7bKX116skD07UfgU8AxIcMW8M3Eu+4rEm/jnEZPBUzldEjNzGBubvdu0adGNq
-         6TDtsWyo7pdZp2gEagpdAOQ1tEj/6fTagNwLI/HwhS4rk9eM0IK0xg2WCcutIt3j/195
-         mNJQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=wEYdsi/UQnV1ulkUEVFM3uerucLpRLXH0M0xgNStZdI=;
-        fh=X0lL/ZyK9BrQNGI0dHBsm96r44+9EXc7aWJ0Sg3+iwQ=;
-        b=lSUAlKKaSKHuegIqry9HN5+kZybe05dq3lp/bk2VmuCwMm3scnpC1BLmg0J4JaL9Mg
-         6agWbR4BF7e29iG7U6/P5nE517dljBKP4MgUnM76l0qP03E5U00a1YVac8uDaNUKTHb0
-         exXbUlNHRwtbBEIjg3ZnGmcDOKzmyl6RQjE1k2Db0KdpeQfSKxEGnQdzZzkKPtTZlSrN
-         4JusKah3ZtceGyS5uK7Y6RsNzGQTif7LIY2Jir+4kDnQGS3EGX3qjRcv4qA6Z53QErRo
-         sF+LSgQAkAFz4BeU6BjLo8S/q5n2NvkOLTzoUxcMtGBBCf5p8OWWbvBWs/lJr56B+8y4
-         AZxQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773930479; x=1774535279; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wEYdsi/UQnV1ulkUEVFM3uerucLpRLXH0M0xgNStZdI=;
-        b=kcCKrhoYX+8CZszcDQbuZD6T4DnxTVx1KFlZ0Jph2pEsT7DV9Mnj1YT1bYrXCuAa+S
-         hpDAfQ1xXxUjFpI++GUXCzaWS1y6BSStTwjGD+OnOBciNoZ7Xp1VqamSGoaSAqSZ1u5R
-         945g+zKdeorBhg1AKG/Bb90H6R2LtDirpwrPvj5Oh9WzuAiCQSN2EnknkZHTKsbab/zB
-         fnD79VSfUGwENxCYTTrjL7dnOT3K9jltAF8JDxfu2vpVHutMN4ta0fP0qdP80PoqOA/o
-         HPeL/1Ukubwi4cdQoCwu31uFJ5Bte1R3lZPg/JzllRmeny1zCPKEmeQumCaUrIAZcRJw
-         +4tw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773930479; x=1774535279;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=wEYdsi/UQnV1ulkUEVFM3uerucLpRLXH0M0xgNStZdI=;
-        b=Di6wf3ykhez04denfyMG48KhMz+ifiArxw2XinxTjp3bsqVrFxNTzeyUEpOkbqGjTA
-         jqBE0qOeK+PrrYxKvFuQSwuJeDocubUB5bhccYcaBV3g7sr0pT0Q+KqciK/CltWYKCzL
-         R+V77TMwxHaJ0AN8SIJjuYmNDeBwxD489YHPr2zBis+Xm0/Zq3JvXwO76WJW3xuN0yQD
-         Y667ixBmD+Uio56A0FbkNi+cLbte+RZHWPC7ZocXNNCz/eLqLeMlOxc1H9aK6hucQN/4
-         e9eDFFfSL1m22W66gj9l4iEeEdIdCzFKBRndQM2NMPPW++LgAH5VAVXVGi79dvrUn0Ly
-         eptw==
-X-Forwarded-Encrypted: i=1; AJvYcCXvalS4x1E30QoMDGkpSqmJgHpHHLBZt9WlPT03/kY1W7VjFPPjFg2BvXbN387RaUAiHWcF6Ma4i8pP@vger.kernel.org
-X-Gm-Message-State: AOJu0YyVxEciJm5z9lfu4OhxCfz4waPxGrTsUjEZ0IOgXNqnpqynmDgA
-	+FQj0bw0OzP/iIhRoOc7S7Tpt3Bj7z+hrgVsOdw1rQYB2q+27aqZXurYXwIITYf0f+NJ3V+N9rL
-	ZOAvPVK4MhzBltmxvmvbrMGymRrqEXXQ=
-X-Gm-Gg: ATEYQzxhy2kBPno2HaHeHjqQDzpoO+zxNuFCH55ro2+VW5a9i0aJS/+2hZx/YJ/eC5r
-	KaSpc82e0Pgn2saWEnoOkQ9OPlA5VH7qTU3ZUqse6aOsODOjsXXt0he012W9JT3s/evzmbxJUW1
-	6VNblrA+MljMUQ4gGCdcUUqtP2VEyF+EdTQe3E6jlmSKSodSHk+Hkrc5uJUeF5TRXilT+xH7QRQ
-	hQ03k+m3dVvrHUIBHYrU8BCbtkCycS9lrCyWufw6S8OwrBGIW9gb/Uzml3AnZDqUhSa8Luz50bX
-	frRakBBfgA==
-X-Received: by 2002:a17:906:ee83:b0:b96:db93:5d0e with SMTP id
- a640c23a62f3a-b97f4ab7799mr545864466b.41.1773930478856; Thu, 19 Mar 2026
- 07:27:58 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b="OALECA7o"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=smail.nju.edu.cn;
+	s=iohv2404; t=1774090779;
+	bh=TGfbWQuBf+vWZHfxVms8yIOv1i8spMOYrGQg7u8kioA=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version;
+	b=OALECA7ofe2Kbj/0nOSLmlPIYsS2fyLrj7n7dhGeYDVGfVi4HiEXuaJiXAb78rs14
+	 99PUsoownmZAqBOT3tl1uwEO3gC4w8kRqaU2nNglrFcx7Hdw2rDVhgqdKfLwbDs4sk
+	 MlqkDnBytlBFhKfEFxXz2l4wdHLXRn9yf0wUTYBA=
+X-QQ-mid: esmtpsz19t1774090778t9d25d4be
+X-QQ-Originating-IP: FexrMMAhYqSmz/B2XHuN1JNlgu7NYzLuN8chFMQUiFU=
+Received: from localhost.localdomain ( [116.172.93.199])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Sat, 21 Mar 2026 18:59:35 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 0
+X-BIZMAIL-ID: 2378410286923065694
+EX-QQ-RecipientCnt: 13
+From: Kexin Sun <kexinsun@smail.nju.edu.cn>
+To: davem@davemloft.net,
+	andreas@gaisler.com,
+	akpm@linux-foundation.org,
+	rppt@kernel.org,
+	kevin.brodsky@arm.com,
+	agordeev@linux.ibm.com,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: julia.lawall@inria.fr,
+	xutong.ma@inria.fr,
+	kexinsun@smail.nju.edu.cn,
+	yunbolyu@smu.edu.sg,
+	ratnadiraw@smu.edu.sg
+Subject: [PATCH] sparc32: remove deadwood swift_flush_tlb_page() debug code
+Date: Sat, 21 Mar 2026 18:59:35 +0800
+Message-Id: <20260321105935.8068-1-kexinsun@smail.nju.edu.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260302-at-vector-size-arch-v1-0-a11f03ba2ca8@linutronix.de> <20260302-at-vector-size-arch-v1-7-a11f03ba2ca8@linutronix.de>
-In-Reply-To: <20260302-at-vector-size-arch-v1-7-a11f03ba2ca8@linutronix.de>
-From: Andy Chiu <andybnac@gmail.com>
-Date: Thu, 19 Mar 2026 09:27:47 -0500
-X-Gm-Features: AaiRm52wQD6uRKulnt1Y_ioaRFL-b1bqEKDLHZMA0LYwV13CAWHAV79Bf5laR-o
-Message-ID: <CAFTtA3O74BTJz8d87CJFQpa8Sub_ouKyyAB8cTXUxd=BnUzS7Q@mail.gmail.com>
-Subject: Re: [PATCH 07/15] RISC-V: Remove AT_VECTOR_SIZE_ARCH from UAPI
-To: =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-Cc: Kees Cook <kees@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	loongarch@lists.linux.dev, linux-s390@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-sh@vger.kernel.org, 
-	linux-alpha@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: esmtpsz:smail.nju.edu.cn:qybglogicsvrgz:qybglogicsvrgz5b-0
+X-QQ-XMAILINFO: MWgnKUIRcMzUi2wsckyWJzHW9p2iPyAXKe8nebHiWpvtoigjq5Bzt7TP
+	toVkcktkWxgV0J7HoQTo0PyF4ulAfzx6H7X6jUx1iyHTpETH34AuhfNHzdbZpBSUVYp114E
+	hIe4dEisXFv7LKyhnmekLTfb7ODBWNLnGf442if24Yt/kRJI9YkxGx6KaZmHjzyhGHiFIg9
+	ibiCztmj/NgtYx4PXSeFX6US1pVHpkzyNTo54UL3pxDCpCquGUOklE7P/hRJkncc2shrJUe
+	vq2s/O1Cn22FB7uZ2DUvZKtYvXoFqJpRHm9sQlXOQD/OBZp0DJd/EhDEiAG/JtBNXYIRZa3
+	iBSkJxYfzeYPmW9qyKdHBLoanz1//liojfQiwi4QmvFXj/3Aidqd1i/MbmG3LnGDAL83L12
+	zQkQwcoPXORPaxcX1ze0JbRWKgpkV9O63f7V7MIRKpI2lMtbio1tqRoq076V5zCs7sagx4K
+	WFLr0ezQQvdNBrGIu/GCMDcgL2aHwXHbCycehx8x2Iw/2JFDS0peFB3PFFkWHdvV3/Xmjfq
+	okLZEdgXqqWWwvNy3jfhn2VEuArEBHCCPAr6fwqFv6jPmsCftxB0/95QJ00e6lrtcZemf1C
+	nv1CEILJbUSn9uhjjT17YL37JTpwp13yuNmU3kluQupgltx0jUgjOUoNom/fEro1w86D2Cy
+	IHpqlu303m57/s+m83Hd1qhd7owsu8PPDZCYudMQLjq0Pc0hLWnBfRf8x+hA0fJdECBnmtL
+	0QIVxmG8R+TFSnbM2Dw4Sw9wSXIsFChB+2e84rasTgUmrld7mwDXgjFpIu4+MynKTR0jP0P
+	Ovtdknxz+bpWZ4WXEFB6n1s3IETYKGSJMhDiSN4LLFFnjpzTqIxxnQbM1MEHkkUNrGGcIqf
+	MEbcdCMPeS9j/SLiMPg3d1L9dgTzd3i20jZ4ksECAJ80TwtIeH8ruf9Bt/5Vb8zL1WA/W3U
+	Yd12GocbPA9S2oAOX+IyLgDSlKStBMbJRRpQoDNp8KEFtlVcTDP1gwk0HYpd3F/0auoGut6
+	bLOWl2WKZzL6a4idWTFXouUgFEcQltm68olybEXyfkStazz4CUvhUa13lbSd42EwOoeeaqx
+	5/x6Uda71fW
+X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
+X-QQ-RECHKSPAM: 0
 
-On Mon, Mar 2, 2026 at 6:27=E2=80=AFAM Thomas Wei=C3=9Fschuh
-<thomas.weissschuh@linutronix.de> wrote:
->
-> There is nothing userspace can do with this value. In the kernel is
-> always combined with AT_VECTOR_SIZE_BASE, which is not exposed to
-> userspace and also changes from time to time.
->
-> Move the symbol to a kernel-internal header.
->
-> Signed-off-by: Thomas Wei=C3=9Fschuh <thomas.weissschuh@linutronix.de>
+Remove an #if 0 block that has been dead since at least
+Linux 2.6.12.  The block was marked "P3: deadwood to debug
+precise flushes on Swift" and contained a never-compiled
+alternative implementation of swift_flush_tlb_page().  It also
+referenced the since-removed srmmu_flush_tlb_page(), dropped
+in commit 3d5f7d37c8b4 ("sparc32: drop unused functions in
+pgtsrmmu.h").
 
-Reviewed-by: Andy Chiu <andybnac@gmail.com>
+Assisted-by: unnamed:deepseek-v3.2 coccinelle
+Signed-off-by: Kexin Sun <kexinsun@smail.nju.edu.cn>
+---
+ arch/sparc/mm/srmmu.c | 29 -----------------------------
+ 1 file changed, 29 deletions(-)
 
-> ---
->  arch/riscv/include/asm/auxvec.h      | 13 +++++++++++++
->  arch/riscv/include/uapi/asm/auxvec.h |  2 --
->  2 files changed, 13 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/riscv/include/asm/auxvec.h b/arch/riscv/include/asm/aux=
-vec.h
-> new file mode 100644
-> index 000000000000..fb4233445276
-> --- /dev/null
-> +++ b/arch/riscv/include/asm/auxvec.h
-> @@ -0,0 +1,13 @@
-> +/* SPDX-License-Identifier: GPL-2.0-only */
-> +/*
-> + * Copyright (C) 2012 ARM Ltd.
-> + * Copyright (C) 2015 Regents of the University of California
-> + */
-> +
-> +#ifndef _ASM_RISCV_AUXVEC_H
-> +#define _ASM_RISCV_AUXVEC_H
-> +
-> +/* entries in ARCH_DLINFO */
-> +#define AT_VECTOR_SIZE_ARCH    10
-> +
-> +#endif /* _UAPI_ASM_RISCV_AUXVEC_H */
-> diff --git a/arch/riscv/include/uapi/asm/auxvec.h b/arch/riscv/include/ua=
-pi/asm/auxvec.h
-> index 95050ebe9ad0..0a725f2aa2e7 100644
-> --- a/arch/riscv/include/uapi/asm/auxvec.h
-> +++ b/arch/riscv/include/uapi/asm/auxvec.h
-> @@ -33,8 +33,6 @@
->  #define AT_L3_CACHESIZE                46
->  #define AT_L3_CACHEGEOMETRY    47
->
-> -/* entries in ARCH_DLINFO */
-> -#define AT_VECTOR_SIZE_ARCH    10
->  #define AT_MINSIGSTKSZ         51
->
->  #endif /* _UAPI_ASM_RISCV_AUXVEC_H */
->
-> --
-> 2.53.0
->
->
-> _______________________________________________
-> linux-riscv mailing list
-> linux-riscv@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-riscv
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 1b24c5e8d73d..9a74902ad181 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -581,35 +581,6 @@ extern void swift_flush_tlb_range(struct vm_area_struct *vma,
+ 				  unsigned long start, unsigned long end);
+ extern void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
+ 
+-#if 0  /* P3: deadwood to debug precise flushes on Swift. */
+-void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
+-{
+-	int cctx, ctx1;
+-
+-	page &= PAGE_MASK;
+-	if ((ctx1 = vma->vm_mm->context) != -1) {
+-		cctx = srmmu_get_context();
+-/* Is context # ever different from current context? P3 */
+-		if (cctx != ctx1) {
+-			printk("flush ctx %02x curr %02x\n", ctx1, cctx);
+-			srmmu_set_context(ctx1);
+-			swift_flush_page(page);
+-			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
+-					"r" (page), "i" (ASI_M_FLUSH_PROBE));
+-			srmmu_set_context(cctx);
+-		} else {
+-			 /* Rm. prot. bits from virt. c. */
+-			/* swift_flush_cache_all(); */
+-			/* swift_flush_cache_page(vma, page); */
+-			swift_flush_page(page);
+-
+-			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
+-				"r" (page), "i" (ASI_M_FLUSH_PROBE));
+-			/* same as above: srmmu_flush_tlb_page() */
+-		}
+-	}
+-}
+-#endif
+ 
+ /*
+  * The following are all MBUS based SRMMU modules, and therefore could
+-- 
+2.25.1
+
