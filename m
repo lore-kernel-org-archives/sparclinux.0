@@ -1,53 +1,84 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCCA223DCE;
-	Mon, 23 Mar 2026 07:02:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2CB81DE8BB;
+	Mon, 23 Mar 2026 07:48:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774249351; cv=none; b=QXbNC42fIUnvk54oiDKcGlueC8iHm8i9ZKQiiqKQ0C+HGHCtkDbWfYVMPZbyw4nzjbL95113bskw17gGG6LkvgSdzsG0o9UScDUX6vWsV2gt10re6ItvADDSdwGqVIiNQrykcu6kZZLtPkGt7b1rwpmzwXzFYvv4iVzRekZewQQ=
+	t=1774252130; cv=none; b=DRp8SqRyWt73GNyWyDMSD+AEbV0R/hOdu32Bio4lZNj/l9x39aYCJftlDxWGBS5KjPrb+0wwICLiy971w7WJN9rLy5Y1fCaCF98O4vt9LbqApCgQ6ucv0LEyV9QYFFOw/bNcqr+cgfy1WkyEgqEgwnmbF64DlNZpGEMkYnHZjDw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774249351; c=relaxed/simple;
-	bh=EatjSQw4+B5pP/iKZyBLC7kKTvA5t+96nriL2cudrzc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RWbI7/rWol5zyC++nWZfGTDPdXrVJHRGhRrWGLh5M3/rQE0gUdrSMRHurSPjK/DHBTJS/DNgwejhZtzDlvrLl+7LgSXXKw87YPCKPycu3FVSJlPHaXRFu5bztYhKFjU9FHLBmVP72ZGgnIADOfD4+zhyOuDKb5Cy6UHysXddv3Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=TRdqtC3V; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1774252130; c=relaxed/simple;
+	bh=pCbilTTHI/VwIdYALA976lc/t17gtYFZ5ukjoWq9Zt0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lEJDOIqk5DuBqh4DMgB/NNrxcP5Aq8olD6Wf9aqC5w/05iJDspw0+3o+uPB9QKmLO4gpaPE/BG0t/U1HW5TP7Kf14ThjGk+FzuNOWJY/eFPo8IQDszy1cqxUH7EBptwvrF0AQ5a/6GxZ+DH5UGS//97lPpG16s+TZQ78Kyzs8d4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rlv1S8+0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="TRdqtC3V"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=Wlkrm0myB9P5DBDaclzihXCLak0GcKolkRDqx8ZruQ0=; b=TRdqtC3V4JFkKzclMhRAwPhHvy
-	haVphzi2M7zk2uFS2hNi2cvsdo3KRHQNhivSBcXRnQY04c/UZFTQUTWRBCRGlYddGLskEQJv3Y+62
-	SDFsbVLO+EL5tXadw1l46vFGdvKD9ppMVDE/hUbqjPRgrSFgAcAWkNETxhTUOlzZz9cuyrHZU9svb
-	+kW/i3TienruQ8EuClSUwk/Y+uSNWjzooEsCpDUbTCywABz1EyUkpWPW3kxAyRx3/MCoQfpRUNwzs
-	vhXUJmOuK5THFvsbqDy0IQ/jjLSkS0FvtgFwEY30dC0kyDFHrH8AkLvYUqfmJUz0Zd3bfW+Njpl7X
-	r2vG4dnA==;
-Received: from 2a02-8389-2341-5b80-d601-7564-c2e0-491c.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:d601:7564:c2e0:491c] helo=localhost)
-	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w4ZIz-0000000G9lB-1wml;
-	Mon, 23 Mar 2026 07:02:30 +0000
-From: Christoph Hellwig <hch@lst.de>
-To: Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>,
-	x86@kernel.org,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rlv1S8+0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC71BC4CEF7;
+	Mon, 23 Mar 2026 07:48:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774252130;
+	bh=pCbilTTHI/VwIdYALA976lc/t17gtYFZ5ukjoWq9Zt0=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Rlv1S8+0zQURdG9YTxr4y3pNRy8/ylu6kZZ6eCiQf+sFd02KfS8+YNnbcyhsi4jov
+	 S5w11oK7YTX3gkuWTcyu3hCCiTiR3veT8ei69ieEMGgMa2ZYMUeINhQjyhnr9FSaE8
+	 Uj98YvIFa19EU/fOo55YccuDjUkb9MArMrSqYZ/sLc3WXjjEkYT/en9m3MbKASypiu
+	 mxy2taD/9hMXzY7nvOCde6k5j3T9Mi98SQf3en8jrYNH2nRMr3fIiwj2mujYUhGjba
+	 bnwQO6qLYjo9aQPPjQMfazIbKXhjL7hgiC8xGbSCEvOmYFBujPtB+XyBem0ZCuxVV4
+	 bFbyai2HlbXwg==
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Potapenko <glider@google.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Borislav Petkov <bp@alien8.de>,
+	Brendan Jackman <jackmanb@google.com>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christian Brauner <brauner@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Hildenbrand <david@kernel.org>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Jan Kara <jack@suse.cz>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Marco Elver <elver@google.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Hocko <mhocko@suse.com>,
+	Mike Rapoport <rppt@kernel.org>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Rob Herring <robh@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Will Deacon <will@kernel.org>,
+	Zi Yan <ziy@nvidia.com>,
+	devicetree@vger.kernel.org,
+	iommu@lists.linux.dev,
+	kasan-dev@googlegroups.com,
 	linux-arm-kernel@lists.infradead.org,
-	linux-mips@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
+	linux-efi@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-trace-kernel@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org,
 	sparclinux@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-api@vger.kernel.org
-Subject: [PATCH 3/3] fs: remove do_sys_truncate
-Date: Mon, 23 Mar 2026 08:01:46 +0100
-Message-ID: <20260323070205.2939118-4-hch@lst.de>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260323070205.2939118-1-hch@lst.de>
-References: <20260323070205.2939118-1-hch@lst.de>
+	x86@kernel.org
+Subject: [PATCH v2 0/9] memblock: improve late freeing of reserved memory
+Date: Mon, 23 Mar 2026 09:48:27 +0200
+Message-ID: <20260323074836.3653702-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -55,75 +86,58 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-do_sys_truncate ist only used to implement ksys_truncate and the native
-truncate syscalls.  Merge do_sys_truncate into ksys_truncate and return
-int from it as it only returns 0 or negative errnos.
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/open.c                | 8 ++++----
- include/linux/syscalls.h | 8 +-------
- 2 files changed, 5 insertions(+), 11 deletions(-)
+Hi,
 
-diff --git a/fs/open.c b/fs/open.c
-index 181c1597e73c..681d405bc61e 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -126,7 +126,7 @@ int vfs_truncate(const struct path *path, loff_t length)
- }
- EXPORT_SYMBOL_GPL(vfs_truncate);
- 
--int do_sys_truncate(const char __user *pathname, loff_t length)
-+int ksys_truncate(const char __user *pathname, loff_t length)
- {
- 	unsigned int lookup_flags = LOOKUP_FOLLOW;
- 	struct path path;
-@@ -151,13 +151,13 @@ int do_sys_truncate(const char __user *pathname, loff_t length)
- 
- SYSCALL_DEFINE2(truncate, const char __user *, path, long, length)
- {
--	return do_sys_truncate(path, length);
-+	return ksys_truncate(path, length);
- }
- 
- #ifdef CONFIG_COMPAT
- COMPAT_SYSCALL_DEFINE2(truncate, const char __user *, path, compat_off_t, length)
- {
--	return do_sys_truncate(path, length);
-+	return ksys_truncate(path, length);
- }
- #endif
- 
-@@ -222,7 +222,7 @@ COMPAT_SYSCALL_DEFINE2(ftruncate, unsigned int, fd, compat_off_t, length)
- #if BITS_PER_LONG == 32
- SYSCALL_DEFINE2(truncate64, const char __user *, path, loff_t, length)
- {
--	return do_sys_truncate(path, length);
-+	return ksys_truncate(path, length);
- }
- 
- SYSCALL_DEFINE2(ftruncate64, unsigned int, fd, loff_t, length)
-diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
-index 8787b3511c86..f5639d5ac331 100644
---- a/include/linux/syscalls.h
-+++ b/include/linux/syscalls.h
-@@ -1285,13 +1285,7 @@ static inline long ksys_lchown(const char __user *filename, uid_t user,
- 
- #define FTRUNCATE_LFS	(1u << 0)	/* allow truncating > 32-bit */
- int ksys_ftruncate(unsigned int fd, loff_t length, unsigned int flags);
--
--int do_sys_truncate(const char __user *pathname, loff_t length);
--
--static inline long ksys_truncate(const char __user *pathname, loff_t length)
--{
--	return do_sys_truncate(pathname, length);
--}
-+int ksys_truncate(const char __user *pathname, loff_t length);
- 
- static inline unsigned int ksys_personality(unsigned int personality)
- {
+Following a recent discussion about leaks in x86 EFI [1], I audited usage of
+memblock_free_late() and free_reserved_area() and made some imporovements how
+we handle late freeing of the memory allocated with memblock.
+
+[1] https://lore.kernel.org/all/ec2aaef14783869b3be6e3c253b2dcbf67dbc12a.camel@kernel.crashing.org/
+
+v2 changes:
+* fix UAF issue in memblock_discard() reported by 0day and sashiko
+* address relevant sashiko comments
+* squash memblock test stubs changes into the commit with core updates
+
+v1: https://lore.kernel.org/all/20260318105827.1358927-1-rppt@kernel.org
+
+Mike Rapoport (Microsoft) (9):
+  memblock: reserve_mem: fix end caclulation in reserve_mem_release_by_name()
+  powerpc: fadump: pair alloc_pages_exact() with free_pages_exact()
+  powerpc: opal-core: pair alloc_pages_exact() with free_pages_exact()
+  mm: move free_reserved_area() to mm/memblock.c
+  memblock: make free_reserved_area() more robust
+  memblock: extract page freeing from free_reserved_area() into a helper
+  memblock: make free_reserved_area() update memblock if ARCH_KEEP_MEMBLOCK=y
+  memblock, treewide: make memblock_free() handle late freeing
+  memblock: warn when freeing reserved memory before memory map is initialized
+
+ arch/arm64/mm/init.c                       |   3 -
+ arch/powerpc/kernel/fadump.c               |  16 +--
+ arch/powerpc/platforms/powernv/opal-core.c |  11 +-
+ arch/sparc/kernel/mdesc.c                  |   4 +-
+ arch/x86/kernel/setup.c                    |   2 +-
+ arch/x86/platform/efi/memmap.c             |   5 +-
+ arch/x86/platform/efi/quirks.c             |   2 +-
+ drivers/firmware/efi/apple-properties.c    |   2 +-
+ drivers/of/kexec.c                         |   2 +-
+ include/linux/memblock.h                   |   2 -
+ init/initramfs.c                           |   7 --
+ kernel/dma/swiotlb.c                       |   6 +-
+ lib/bootconfig.c                           |   2 +-
+ mm/internal.h                              |  10 ++
+ mm/kfence/core.c                           |   4 +-
+ mm/memblock.c                              | 124 +++++++++++++++------
+ mm/page_alloc.c                            |  46 --------
+ tools/include/linux/mm.h                   |   1 +
+ tools/testing/memblock/internal.h          |  34 +++++-
+ 19 files changed, 144 insertions(+), 139 deletions(-)
+
+
+base-commit: 1f318b96cc84d7c2ab792fcc0bfd42a7ca890681
 -- 
-2.47.3
+2.53.0
 
