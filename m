@@ -1,110 +1,120 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C25F03947B9;
-	Mon, 23 Mar 2026 11:44:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BA1F1B86C7;
+	Mon, 23 Mar 2026 18:20:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774266276; cv=none; b=IpOAyOs0W9RzNYX1HcrzPFnON1ch5BD/YxEXk2AVHN8fdfejjSscjpZf5jv8otE6cjhS+BX8orFr1EJIuscl355o5kchVtncRBWFqSOK8CuCPqJlVN3mJSYkmij5IPvCmkna4+cWF37IU7U7N9uV59Zw+nBRQiEUcQaN4KkSDLI=
+	t=1774290045; cv=none; b=oHfhgInYavSsXFls58bW3nH6Varyhy+75LfUQcOg5/0VuzDiHk7s1vMLIVGDrY5OjUjAEsnPnSTaKfr9vwqm94Xkkpf3s4molWgS+I/VCdT49V8pkz6ouprGVI/CUyoeoAQdAiVBpX9a4rmVZclVs51JygaDOJ/8E15qAhDRWRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774266276; c=relaxed/simple;
-	bh=aXd296Lm46/RWsbI4I1OOM2FgVG5HdKEPdtKxCcKiSg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KaItbg3pNpaZhj1Z0GAnQIf0MosoEVsRYYRQX+8WbOtXNyXOVXAjpAbKGYADx0Igs73NAKhXzLBqAU9jSTLH2mArAPyUzO313pCnQYfjvcEoRs1MfDMIn3aJQD8trMHT3eF40Vo6gMaGAIHTKWIDM5Nexwm022YqzYizO+o4SfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gR/RCY7x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774290045; c=relaxed/simple;
+	bh=9vpkkBfXRkLZrtOLMsxA44Brq1gUhkeUk+l1ZYdlBlk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jGIiouNba2mqFp3kIrQoWju8G5yR2HBSmx32g2nnd/nqe6IMIofKH5wyxUHbatohxpuAJF3T5JSlBW+nIDT4GE1GoE0tMAwVJ2Zcr2kzIZA81jcCgG3CrOfkpO0LPUJoKi014Aa+2TDIDS3PhlkAgMunP3fMJNzw4myQef1Vjos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rmz/4IvE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gR/RCY7x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 622CAC4CEF7;
-	Mon, 23 Mar 2026 11:44:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rmz/4IvE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1972EC4CEF7;
+	Mon, 23 Mar 2026 18:20:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774266276;
-	bh=aXd296Lm46/RWsbI4I1OOM2FgVG5HdKEPdtKxCcKiSg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gR/RCY7xEISChh9Lrf9qGuhPEZS19LykvA5um6hJZDCEVVMpMFmEesD49v4VS0VeX
-	 7tvtxyMDQ8xUKY4iIhm3sU/C9WMRUdj6Z81Mw6hUi1GQnRCuXsZFys+7kWnJiM8LcH
-	 8qIODBP67hQ9u9z4blHsBR/iyNhx3ikj0My0HbCKCwAfCv1CzXTou3L+pTZAo5icZX
-	 O7F1SyOoy3ailgv1X6DwqsvZtE5mFHC/I3tpfFNVdXE7iSSWu4p62HgxDdHbQH+JxZ
-	 xHniVseYGTA81Swnq7Ya3s5cLs7Yq1ml1dSxfQYULHCaMrleKub1aY5HyQ6V3LTinA
-	 /L+uZAmg1tcww==
-From: Christian Brauner <brauner@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Jan Kara <jack@suse.cz>,
-	x86@kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mips@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-api@vger.kernel.org,
-	Alexander Viro <viro@zeniv.linux.org.uk>
-Subject: Re: fix architecture-specific compat_ftruncate64 implementations
-Date: Mon, 23 Mar 2026 12:44:08 +0100
-Message-ID: <20260323-pocht-abberufen-825ffe02281f@brauner>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260323070205.2939118-1-hch@lst.de>
-References: <20260323070205.2939118-1-hch@lst.de>
+	s=k20201202; t=1774290044;
+	bh=9vpkkBfXRkLZrtOLMsxA44Brq1gUhkeUk+l1ZYdlBlk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Rmz/4IvEYdHKDOlM+Phbfig880vMCGnk9Td0EE+6xaEYHFuSWbIB2N8q/S89OlyPh
+	 y9Oj+n9qIf2rHm2RVNTPfDuFgSqgF8+9A9zsvR/wF6fN44nr2LdM3ZOCcv08Ikztb6
+	 FoItttsING5a0NUSYgz57GxYgdIbm1S0tVfcoJMgrP32N/YTemMXky4obCCHzODVlt
+	 j+2W5jfVu6t8b6Heh1WobGuUBl0kH7Q7gF2WO00anVa9rVS3rzMtHgsgImmSbQgsGL
+	 dRgGBNFaqFrXVtlLIsVUEDbzzmlsEVtzzLRT5gS3bAe8R1Coe3DTnfjIihhVlTWWYM
+	 +iBfMAYnX5ifw==
+Date: Mon, 23 Mar 2026 11:20:42 -0700
+From: Eric Biggers <ebiggers@kernel.org>
+To: Nathaniel Roach <nroach44@nroach44.id.au>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Andreas Larsson <andreas@gaisler.com>,
+	"David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org,
+	linux-crypto@vger.kernel.org
+Subject: Re: Does the SPARC optimized crypto and CRC code actually work?
+Message-ID: <20260323182042.GA2205@quark>
+References: <20260316204211.GA2661@quark>
+ <ca9ba2ec-849c-4f86-8ac9-274ac4b5f885@nroach44.id.au>
+ <20260317034539.GA2705965@google.com>
+ <76ed4ac4c86341c5c9168aeee8cd53566e018001.camel@physik.fu-berlin.de>
+ <29665ec3-5052-4cdd-8eb9-e6c91092de79@nroach44.id.au>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2179; i=brauner@kernel.org; h=from:subject:message-id; bh=aXd296Lm46/RWsbI4I1OOM2FgVG5HdKEPdtKxCcKiSg=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWQeVJ/Ny96b4PNJrzr+9NOiA/8+bLx4YW3lMTVfacWzS 0yOhLLad5SyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEzkwDmGf1plEULnTrzd+kq7 uMavcddW/zt2IduMvmY9VrKaK9Qs58Lw3/Gk5+XnL/zeeZz4yxfF98j+tsyNy3aT8znSj9yckRz wkh0A
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <29665ec3-5052-4cdd-8eb9-e6c91092de79@nroach44.id.au>
 
-On Mon, 23 Mar 2026 08:01:43 +0100, Christoph Hellwig wrote:
-> this series fixes a really old bug found by code inspection, where the
-> architecture-specific 32-bit compat ftruncate64 implementations enforce
-> the non-LFS file size limit unless opened with O_LARGEFILE.
+On Mon, Mar 23, 2026 at 06:36:52PM +0800, Nathaniel Roach wrote:
+> On 17/3/26 15:16, John Paul Adrian Glaubitz wrote:
+> > Hi Eric,
+> > 
+> > On Tue, 2026-03-17 at 03:45 +0000, Eric Biggers wrote:
+> > > On Tue, Mar 17, 2026 at 10:48:52AM +0800, Nathaniel Roach wrote:
+> > > > I've been testing some of the PCI changes that have come through on my T5-2.
+> > > > I'll happily add some tests for the crypto functions, I've just got no idea
+> > > > how to do so.
+> > > Well, try enabling all KUnit tests in lib/crc/ and lib/crypto/, as well
+> > > as CONFIG_CRYPTO_SELFTESTS=y and CONFIG_CRYPTO_SELFTESTS_FULL=y.
+> > > 
+> > > However, will this be a regular testing run, or only a one-off run?  If
+> > > it will only be one-off, we'll quickly be back to where we started.
+> > > 
+> > > We need regular testing on either hardware or QEMU.
+> > If Nathaniel can test the code from time to time for the time being, we should
+> > already get some coverage. In the near future, we could certainly set up a CI
+> > job if you let me know what infrastructure to use for it.
+> > 
+> > Please keep in mind that a lot of us are doing this as volunteers and we don't
+> > always have the possibilities to respond to such requests within a short time.
+> > 
+> > Feel free to use the sparclinux issue tracker if you want to file any requests:
+> > 
+> > https://github.com/sparclinux/issues/issues
+> > 
+> > Adrian
+> I enabled the below options, based on what I could find, in my test config:
 > 
-> Diffstat:
->  arch/arm64/kernel/sys32.c       |    2 +-
->  arch/mips/kernel/linux32.c      |    2 +-
->  arch/parisc/kernel/sys_parisc.c |    4 ++--
->  arch/powerpc/kernel/sys_ppc32.c |    2 +-
->  arch/sparc/kernel/sys_sparc32.c |    2 +-
->  arch/x86/kernel/sys_ia32.c      |    3 ++-
->  fs/internal.h                   |    3 +--
->  fs/open.c                       |   40 +++++++++++++++++++---------------------
->  include/linux/syscalls.h        |   16 +++-------------
->  io_uring/truncate.c             |    2 +-
->  10 files changed, 32 insertions(+), 44 deletions(-)
-> 
-> [...]
+> CONFIG_CRYPTO_SELFTESTS=y
+> CONFIG_CRYPTO_SELFTESTS_FULL=y
+> CONFIG_CRYPTO_ARIA,BLOWFISH,CAMELLIA,CAST5,CAST6,DES,FCRYPT,SERPENT,
+>   SM4_GENERIC,TWOFISH,CTR=m
+> CONFIG_CRC_KUNIT_TEST=m
+> CONFIG_CRC_BENCHMARK=y
+> CONFIG_CRYPTO_LIB_BENCHMARK=y
+> CONFIG_DEBUG_MEMORY_INIT=y
+> CONFIG_KUNIT=m
 
-VFS CI: https://github.com/linux-fsdevel/vfs/actions/runs/23425735066
+I recommend using the latest linux-next, to get the latest KUnit-related
+kconfig updates, and using the following on top of sparc64_defconfig:
 
-  x86_64 (gcc, debian, ovl-fstests)  pass
-  x86_64 (gcc, debian, selftests)    pass
-  x86_64 (gcc, debian, xfstests)     pass
-  x86_64 (gcc, fedora, ovl-fstests)  pass
-  x86_64 (gcc, fedora, selftests)    pass
-  x86_64 (gcc, fedora, xfstests)     pass
+(
+    cat lib/{crc,crypto}/.kunitconfig
+    echo CONFIG_EXPERT=y
+    echo CONFIG_CRYPTO=y
+    echo CONFIG_CRYPTO_SELFTESTS=y
+    echo CONFIG_CRYPTO_SELFTESTS_FULL=y
+    echo CONFIG_CRYPTO_DES_SPARC64=y
+    echo CONFIG_CRYPTO_AES_SPARC64=y
+    echo CONFIG_CRYPTO_CAMELLIA_SPARC64=y
+    echo CONFIG_CRYPTO_AES=y
+    echo CONFIG_CRYPTO_DES=y
+    echo CONFIG_CRYPTO_CAMELLIA=y
+    echo CONFIG_CRYPTO_ECB=y
+    echo CONFIG_CRYPTO_CBC=y
+    echo CONFIG_CRYPTO_CTR=y
+) >> .config
 
----
+Note: most of the complexity here is to fully enable the traditional
+crypto self-tests to cover arch/sparc/crypto/.  The plan is to finish
+migrating those into lib/crypto/, in which case that code will become
+covered by the lib/crypto/ tests and only the kunitconfigs would be
+needed.  But for now, the traditional tests are still needed too.
 
-Applied to the vfs-7.1.misc branch of the vfs/vfs.git tree.
-Patches in the vfs-7.1.misc branch should appear in linux-next soon.
-
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
-
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs-7.1.misc
-
-[1/3] fs: fix archiecture-specific compat_ftruncate64
-      https://git.kernel.org/vfs/vfs/c/e43dce8a0bc0
-[2/3] fs: pass on FTRUNCATE_* flags to do_truncate
-      https://git.kernel.org/vfs/vfs/c/0924f6b80d4a
-[3/3] fs: remove do_sys_truncate
-      https://git.kernel.org/vfs/vfs/c/e8767a3134ca
+- Eric
