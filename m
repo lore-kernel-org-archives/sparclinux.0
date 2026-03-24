@@ -1,29 +1,29 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBAA929D265;
-	Tue, 24 Mar 2026 12:59:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0455639B498;
+	Tue, 24 Mar 2026 16:42:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774357151; cv=none; b=NfSMl1JneZ8M0vINpNxv5+8vLRcVtcPKqLKAGAbJjtpCBogB4geWi0hxvxw066zao1fGeSKTUkxNyBiYxdu3yuEA75B1cZ1ldR32mbsl5BOTCKPhSJzgM3HTSJ6OkytMzYJJRILtZ/YC1P+kQkgUTco/B8iJvs2z14mhpi3NqGQ=
+	t=1774370543; cv=none; b=Nuh0JhSSlQCpAlPltz42D5WtRAPm50gmR/VrNv/Z0AwwI+HREHARp/mYbp31UDojx+3rAj3BjnclYd/sv5AxOmMjP36Fa1YsC3BVvYN5ZpS0B9EAjVtvX2AFB/0HC+K13YwIi8S/5LntMf/VrNrBDEfseIH9hE9mW2GFuxNXxjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774357151; c=relaxed/simple;
-	bh=DNZLnRzh+CvM88p8pkAqUjgyo33nZndxuNt19jJaIc0=;
+	s=arc-20240116; t=1774370543; c=relaxed/simple;
+	bh=TDgLcRhij5JQVZa60QmaxqOx203j51xbjV/q4WkoTac=;
 	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=a7NWM/UUwwIuu9pvztKNhYMjGzrgkCYF+zTHxrtBlHM4KE5b98GawHMCJhScTpw/Ys4cziL8lYCKjh89AJ5bOQZEhIp/uF6S8b4USRVtPgX/3fBJo5XQV5nmYb3dVmnbCwYCuVeZPGY27HT2lBeEqtLN06JfJNKfiPZv8rGWZZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L2bpOAmA; arc=none smtp.client-ip=10.30.226.201
+	 Mime-Version:Content-Type; b=XCHgQHGrHJAvm7GGtO77OFoXFntIc6XnX5lYMs/laTYSpgSLcAjccCpizO6dDhkIKBb224kzVCezwJH9t4RtXBnLGRWDAEKQYhTRntwXlQEtiVe0nA5OkyVuaoyupVS1WqDgBnjDOsHuzC9OcJBXYZt/+41EO5OCllAFLqHT+V4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DQOwZZrw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L2bpOAmA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 928E0C19424;
-	Tue, 24 Mar 2026 12:59:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DQOwZZrw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E44B6C19424;
+	Tue, 24 Mar 2026 16:42:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774357150;
-	bh=DNZLnRzh+CvM88p8pkAqUjgyo33nZndxuNt19jJaIc0=;
+	s=korg; t=1774370542;
+	bh=TDgLcRhij5JQVZa60QmaxqOx203j51xbjV/q4WkoTac=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=L2bpOAmA8emgVd/ZYEB/zrSuE9jofQHFZ27BdcP53YODoh57XV9LR2CPX59ADyD0z
-	 q7r1taKZSMDWKO39Sv/SPts3ItWTubPfixNB+/Y98emGdt7nlHO096btK1O0vCkoQ1
-	 6OtPOaaEWYgTpw6T6Z7ovs8Hs1s7B0CHbZRMoxPo=
-Date: Tue, 24 Mar 2026 05:59:07 -0700
+	b=DQOwZZrwl+GxIARWYI809PrjYZgIC0xfeubUvTNhKKAudWXflkBkHkOQxqHhcKfI5
+	 YEd8AoepFJifaDz0cIKUFkW85RTTMclmIhV4gfAqh3VY34KIx4Pm4UqjUG6y+A3vml
+	 FWjY7pXOdRDrlwOVcmMMkatFHeB/Fbf82T5tVjrs=
+Date: Tue, 24 Mar 2026 09:42:20 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
 To: Christoph Hellwig <hch@lst.de>
 Cc: Richard Henderson <richard.henderson@linaro.org>, Matt Turner
@@ -57,7 +57,7 @@ Cc: Richard Henderson <richard.henderson@linaro.org>, Matt Turner
  linux-crypto@vger.kernel.org, linux-btrfs@vger.kernel.org,
  linux-arch@vger.kernel.org, linux-raid@vger.kernel.org
 Subject: Re: cleanup the RAID5 XOR library v3
-Message-Id: <20260324055907.52f2304d0be85c1087e0b9f1@linux-foundation.org>
+Message-Id: <20260324094220.09e6eb90afc7f55937847f22@linux-foundation.org>
 In-Reply-To: <20260324062211.3216301-1-hch@lst.de>
 References: <20260324062211.3216301-1-hch@lst.de>
 X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
@@ -87,7 +87,7 @@ On Tue, 24 Mar 2026 07:21:36 +0100 Christoph Hellwig <hch@lst.de> wrote:
 > implementations (although none is contained here yet), and uses
 > static_call to avoid indirection function call overhead.
 
-Thanks, I'll update mm.git to this version.
+Thanks, I've updated mm.git's mm-nonmm-unstable branch to this version
+of the patchset.
 
-It looks like AI review has found a few things:
-	https://sashiko.dev/#/patchset/20260324062211.3216301-1-hch@lst.de
+
