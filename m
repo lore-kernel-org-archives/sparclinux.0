@@ -1,93 +1,132 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0455639B498;
-	Tue, 24 Mar 2026 16:42:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8797927E05E;
+	Wed, 25 Mar 2026 08:51:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774370543; cv=none; b=Nuh0JhSSlQCpAlPltz42D5WtRAPm50gmR/VrNv/Z0AwwI+HREHARp/mYbp31UDojx+3rAj3BjnclYd/sv5AxOmMjP36Fa1YsC3BVvYN5ZpS0B9EAjVtvX2AFB/0HC+K13YwIi8S/5LntMf/VrNrBDEfseIH9hE9mW2GFuxNXxjs=
+	t=1774428713; cv=none; b=sKSFCWPXncIk6LKeSrDDK8ozDcqxhL4I+FzpbwZ/hlNJ2dLqHI5HNUAkcspgU5brE6Qw1aFPGcpJkrL2jlG65Tmlqq0d7gst0MpVZO25AlgkjTCxdpS0B9zdlCmjDToBOkvWPezxCuN0W2BuSqz1sAdukDEJ60LXcEhNoEw8QnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774370543; c=relaxed/simple;
-	bh=TDgLcRhij5JQVZa60QmaxqOx203j51xbjV/q4WkoTac=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=XCHgQHGrHJAvm7GGtO77OFoXFntIc6XnX5lYMs/laTYSpgSLcAjccCpizO6dDhkIKBb224kzVCezwJH9t4RtXBnLGRWDAEKQYhTRntwXlQEtiVe0nA5OkyVuaoyupVS1WqDgBnjDOsHuzC9OcJBXYZt/+41EO5OCllAFLqHT+V4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DQOwZZrw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774428713; c=relaxed/simple;
+	bh=wb0mpku6g4vk6LeYoqKTVgZtD079ouSEG5afLG7CYHo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=nftf2ImoQNjFalmcayTxtG+yu50x3TVouFgdHShWretSJYZ63WP48gFT2BU5S9EXzjpf9ehTHDzKSKUqnwY3EaE1WsG0xWh/om7kNe7/iUApF1Xv8N+PW+UvrXD2Mf9jNwlRF4HGpJFD4l8Hd+GHMLGPU0CFKqw40l2wkX1MUjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b1e3/Kii; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DQOwZZrw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E44B6C19424;
-	Tue, 24 Mar 2026 16:42:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774370542;
-	bh=TDgLcRhij5JQVZa60QmaxqOx203j51xbjV/q4WkoTac=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=DQOwZZrwl+GxIARWYI809PrjYZgIC0xfeubUvTNhKKAudWXflkBkHkOQxqHhcKfI5
-	 YEd8AoepFJifaDz0cIKUFkW85RTTMclmIhV4gfAqh3VY34KIx4Pm4UqjUG6y+A3vml
-	 FWjY7pXOdRDrlwOVcmMMkatFHeB/Fbf82T5tVjrs=
-Date: Tue, 24 Mar 2026 09:42:20 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Richard Henderson <richard.henderson@linaro.org>, Matt Turner
- <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>, Russell King
- <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will
- Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, Huacai Chen
- <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, Madhavan
- Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>,
- Nicholas Piggin <npiggin@gmail.com>, "Christophe Leroy (CS GROUP)"
- <chleroy@kernel.org>, Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt
- <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti
- <alex@ghiti.fr>, Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik
- <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, Christian
- Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle
- <svens@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, Andreas
- Larsson <andreas@gaisler.com>, Richard Weinberger <richard@nod.at>, Anton
- Ivanov <anton.ivanov@cambridgegreys.com>, Johannes Berg
- <johannes@sipsolutions.net>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar
- <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Dave Hansen
- <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin"
- <hpa@zytor.com>, Herbert Xu <herbert@gondor.apana.org.au>, Dan Williams
- <dan.j.williams@intel.com>, Chris Mason <clm@fb.com>, David Sterba
- <dsterba@suse.com>, Arnd Bergmann <arnd@arndb.de>, Song Liu
- <song@kernel.org>, Yu Kuai <yukuai@fnnas.com>, Li Nan
- <linan122@huawei.com>, "Theodore Ts'o" <tytso@mit.edu>,
- "Jason A. Donenfeld" <Jason@zx2c4.com>, linux-alpha@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- loongarch@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
- linux-crypto@vger.kernel.org, linux-btrfs@vger.kernel.org,
- linux-arch@vger.kernel.org, linux-raid@vger.kernel.org
-Subject: Re: cleanup the RAID5 XOR library v3
-Message-Id: <20260324094220.09e6eb90afc7f55937847f22@linux-foundation.org>
-In-Reply-To: <20260324062211.3216301-1-hch@lst.de>
-References: <20260324062211.3216301-1-hch@lst.de>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b1e3/Kii"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67F3AC4CEF7;
+	Wed, 25 Mar 2026 08:51:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774428713;
+	bh=wb0mpku6g4vk6LeYoqKTVgZtD079ouSEG5afLG7CYHo=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=b1e3/Kii8oNvJgJ1AntUStWco7jvCebnWCtuv9zQCi2oUsNeV3CcabZ/VnDWT/4Bu
+	 SdMcpnZUmux3R7PA238aj+buhQoQTRaRCXpWVo3lfGnlVNamvRsJHecUDO4uY4JETZ
+	 xHJynwGclZ7csipkKUqwqfdSbhr2yZe/cHdAo7WUa3IRdxgN7vSItNWj8/2zpJM8+z
+	 ZD01fhqLFQqk3slMEX+1PFlTdn7jeaS5TQm3vnMZ8RuoTjWtwNM3l4/A2ygJ2Hvbj0
+	 HyR0HIfxv2d4zYS9GJNQyVlSryBTgfJVvw36EgMl3VIff5tJxeQAebFY0sT7kqzmW+
+	 QsAWpfwuNt7wg==
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Mike Rapoport <rppt@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Borislav Petkov <bp@alien8.de>,
+	Brendan Jackman <jackmanb@google.com>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christian Brauner <brauner@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Hildenbrand <david@kernel.org>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Jan Kara <jack@suse.cz>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Marco Elver <elver@google.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Hocko <mhocko@suse.com>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Rob Herring <robh@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Will Deacon <will@kernel.org>,
+	Zi Yan <ziy@nvidia.com>,
+	devicetree@vger.kernel.org,
+	iommu@lists.linux.dev,
+	kasan-dev@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-efi@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	sparclinux@vger.kernel.org,
+	x86@kernel.org,
+	Lorenzo Stoakes <ljs@kernel.org>
+Subject: Re: [PATCH v2 0/9] memblock: improve late freeing of reserved memory
+Date: Wed, 25 Mar 2026 10:51:37 +0200
+Message-ID: <177442863989.343689.8532363597437067519.b4-ty@b4>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260323074836.3653702-1-rppt@kernel.org>
+References: <20260323074836.3653702-1-rppt@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-On Tue, 24 Mar 2026 07:21:36 +0100 Christoph Hellwig <hch@lst.de> wrote:
-
-> the XOR library used for the RAID5 parity is a bit of a mess right now.
-> The main file sits in crypto/ despite not being cryptography and not
-> using the crypto API, with the generic implementations sitting in
-> include/asm-generic and the arch implementations sitting in an asm/
-> header in theory.  The latter doesn't work for many cases, so
-> architectures often build the code directly into the core kernel, or
-> create another module for the architecture code.
+On Mon, 23 Mar 2026 09:48:27 +0200, Mike Rapoport wrote:
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> Changes this to a single module in lib/ that also contains the
-> architecture optimizations, similar to the library work Eric Biggers
-> has done for the CRC and crypto libraries later.  After that it changes
-> to better calling conventions that allow for smarter architecture
-> implementations (although none is contained here yet), and uses
-> static_call to avoid indirection function call overhead.
+> Hi,
+> 
+> Following a recent discussion about leaks in x86 EFI [1], I audited usage of
+> memblock_free_late() and free_reserved_area() and made some imporovements how
+> we handle late freeing of the memory allocated with memblock.
+> 
+> [...]
 
-Thanks, I've updated mm.git's mm-nonmm-unstable branch to this version
-of the patchset.
+Applied to for-next branch of memblock.git tree, thanks!
 
+[1/9] memblock: reserve_mem: fix end caclulation in reserve_mem_release_by_name()
+      commit: ea459d3c24fefd90b60a702f4a73833434ae0248
+[2/9] powerpc: fadump: pair alloc_pages_exact() with free_pages_exact()
+      commit: 6e827110aea5fb9c53a5bf070413ffe5cad105b0
+[3/9] powerpc: opal-core: pair alloc_pages_exact() with free_pages_exact()
+      commit: 3cf80188ecb828ed034ba562614cf1d48156b126
+[4/9] mm: move free_reserved_area() to mm/memblock.c
+      commit: 0aa264cda784f9fbe1a80ef13144cf81610086c7
+[5/9] memblock: make free_reserved_area() more robust
+      commit: 456ac994018598bc57ceaacb8a2c72e722c9755b
+[6/9] memblock: extract page freeing from free_reserved_area() into a helper
+      commit: 40191dae9ed84c816b593bb1b36a80f86c2279d1
+[7/9] memblock: make free_reserved_area() update memblock if ARCH_KEEP_MEMBLOCK=y
+      commit: b9e028ca869de24df00206d7ec640380670fc38f
+[8/9] memblock, treewide: make memblock_free() handle late freeing
+      commit: 64cb853c2ab4d8bd25b965f05e33ac0c6672bae7
+[9/9] memblock: warn when freeing reserved memory before memory map is initialized
+      commit: c7fc9cde41be029cf6675befbafcbb2dab40b39b
+
+tree: https://git.kernel.org/pub/scm/linux/kernel/git/rppt/memblock
+branch: for-next
+
+--
+Sincerely yours,
+Mike.
 
