@@ -1,56 +1,47 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3183A263C8C;
-	Fri, 27 Mar 2026 17:12:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA68A3DEAC0;
+	Fri, 27 Mar 2026 17:24:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774631552; cv=none; b=oV+bUYFmD2YyiAsPSrTTDv99FQu3cgKmpSJAoRMG0c2mg/q7QXT2o1Tt91giJucNkUtUJtVwnXQzMfld+1feEwZy5AJ0jeeSQl8B0jKCaUJBxyozY0CqIok01g340h9z6mIU3umwMpZEs9vf1PII7BpkymgmLXG+IT+kOKb/NLQ=
+	t=1774632265; cv=none; b=Fr+OChdDw9Xh+8/RivE4ylOADHaB5zEZfIrzMtvHZPDTHgBcV3KJ1nDDabObHkZX2B9uSkCi/YAeCI99UIELxWmwXpsOnApD8m5W0sbXQCTBL7xBZrXEOqTbyX5mWXeKia2EOHHQJMoujpRut+EMXJiw4J2iSSo6Av5PbNgLX1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774631552; c=relaxed/simple;
-	bh=MvMFqhnsZZr06SdVmhQQ8yFBO4J0YHjtEFCesOzEOVg=;
+	s=arc-20240116; t=1774632265; c=relaxed/simple;
+	bh=gTtjGwzSChsLL9Od7n/9UFgIXBsiTV+PnVqaWgbAtH4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GdijukOkXp8MHEwMUGL0sfL21hPr2XcGu2DhQo269YVYnW9drdwIE9krjrsbQxPgY0BpAOWGJr3CtHRsYomKjBMbaCWAmRvmf5RRbkergZ0vOlburq192/emrcrTBiPiMVPrgcgo+rWFcqkpnhYMwIGqZsR3/IcRwkOp/T+kT+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CBBUkAdN; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=K2mqijCz9sHTX3NZtI0WD1Y/TdtRDtCZoWjBy6aopd0+b9p6lKP7cZLTZSUswL6BJ0K7caflb2wYIZ1GDyh4QwJCrZ5oUoNeXs6HV/GYmEgy54bFvX1Wt5FoXS91Xqf8DtlGDKfwQwT/lTLyoAaPudiHqr8xDaGdV7hw2ATCkJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mttds8zr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CBBUkAdN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0883CC19423;
-	Fri, 27 Mar 2026 17:12:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mttds8zr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15EDEC2BC9E;
+	Fri, 27 Mar 2026 17:24:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774631551;
-	bh=MvMFqhnsZZr06SdVmhQQ8yFBO4J0YHjtEFCesOzEOVg=;
+	s=k20201202; t=1774632265;
+	bh=gTtjGwzSChsLL9Od7n/9UFgIXBsiTV+PnVqaWgbAtH4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=CBBUkAdNPfmmIltuHE6pZ6GpwC9m1K+SXX9SsGPrXIW3gJCsavgLlBBFhllhQ8YOV
-	 tt4v86XDdlFoZfXDWWeQB/kZRnJsC72/2SzZfO03eHu3zwjOw/NRJZJdfe7tPOsj/H
-	 xZPsKYg2lEOyHQVDuzvBc3T+oW5ge/Ms1dc/coAeYjdDtxnlJCj3sgd0nOmr6HhLlb
-	 ryVmy9CH86EKbBkS5gNJ82lQSGvFhRoc7XumwqORtvLuF6ft5AuU9wHZOeQVY8tmIJ
-	 ikfw0WPIJMlejTpAQz8wOen8RRrBNWQTRHTEyw9/Q1dMm1o4NegwxmZRKfaj1AEbCW
-	 zcL0eU61oIoEA==
-Date: Fri, 27 Mar 2026 20:12:14 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Bert Karwatzki <spasswolf@web.de>
-Cc: linux-kernel@vger.kernel.org, Liam.Howlett@oracle.com,
-	akpm@linux-foundation.org, andreas@gaisler.com, ardb@kernel.org,
-	bp@alien8.de, brauner@kernel.org, catalin.marinas@arm.com,
-	chleroy@kernel.org, dave.hansen@linux.intel.com,
-	davem@davemloft.net, david@kernel.org, devicetree@vger.kernel.org,
-	dvyukov@google.com, elver@google.com, glider@google.com,
-	hannes@cmpxchg.org, hpa@zytor.com, ilias.apalodimas@linaro.org,
-	iommu@lists.linux.dev, jack@suse.cz, jackmanb@google.com,
-	kasan-dev@googlegroups.com, linux-arm-kernel@lists.infradead.org,
-	linux-efi@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	linux-mm@kvack.org, linux-trace-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, lorenzo.stoakes@oracle.com,
-	m.szyprowski@samsung.com, maddy@linux.ibm.com, mhiramat@kernel.org,
-	mhocko@suse.com, mingo@redhat.com, mpe@ellerman.id.au,
-	npiggin@gmail.com, robh@kernel.org, robin.murphy@arm.com,
-	saravanak@kernel.org, sparclinux@vger.kernel.org, surenb@google.com,
-	tglx@kernel.org, vbabka@kernel.org, viro@zeniv.linux.org.uk,
-	will@kernel.org, x86@kernel.org, ziy@nvidia.com
-Subject: Re: Warning from free_reserved_area() in next-20260325+
-Message-ID: <aca6blFFWskxAcAr@kernel.org>
-References: <20260323074836.3653702-10-rppt@kernel.org>
- <20260327140109.7561-1-spasswolf@web.de>
+	b=mttds8zrEN0sWll98lr8NoQsL/6553+pOoxQlRvhTRUVNJDAzECvyiaszsTrvSmLj
+	 amNBs9+0x9Fam4wTkNBEmkkCnrnuMxhdaa+A0AaiOrrEPkKAAB1LRtxzpV6plCGt2g
+	 rZU6fZxDcOruZxgvFPu86KDN+eE5Kh2E6ZK1N/D4uAbagzT2FvgJsurNcEiaKQBjOF
+	 BBpPJoOlyHWHdXNuejF5z7LNhGrmrLVBY+RLBpwbRtLMzk7q3Vn7cRcTzB3Jx0cR73
+	 Vtho9zWkDDuAub75p07nwAO3phn7ZwOqEt89TMGx3BhZSgJe/rWb4+j0CKNUO96WeE
+	 Eu7YetdJZPQHA==
+Date: Fri, 27 Mar 2026 17:24:23 +0000
+From: Eric Biggers <ebiggers@kernel.org>
+To: Simon Richter <Simon.Richter@hogyros.de>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	linux-crypto@vger.kernel.org,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, x86@kernel.org,
+	Harald Freudenberger <freude@linux.ibm.com>,
+	Holger Dengler <dengler@linux.ibm.com>
+Subject: Re: [PATCH 0/3] crypto: Remove arch-optimized des and des3_ede code
+Message-ID: <20260327172423.GA3407398@google.com>
+References: <20260326201246.57544-1-ebiggers@kernel.org>
+ <0982d4341f58e2f1181bc472dc9c9d8542148e3c.camel@physik.fu-berlin.de>
+ <20260326202733.GA2657@quark>
+ <35e00d0f-85f6-457a-99b4-703caf3e1e6e@hogyros.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -59,92 +50,70 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260327140109.7561-1-spasswolf@web.de>
+In-Reply-To: <35e00d0f-85f6-457a-99b4-703caf3e1e6e@hogyros.de>
 
-Hi Bert,
+On Fri, Mar 27, 2026 at 06:59:21PM +0900, Simon Richter wrote:
+> On 3/27/26 5:27 AM, Eric Biggers wrote:
+> 
+> > In general that's good of course, but DES and 3DES?  Really?  Why is
+> > effort going into these obsolete algorithms at all?
+> 
+> If there's dedicated instructions, we need to emulate them, even if the
+> kernel stops using them, because userspace might still use them. The
+> alternative is implementing them as a trap in the kernel that delegates to
+> the crypto subsystem, and nobody wants that. O_O
 
-On Fri, Mar 27, 2026 at 03:01:08PM +0100, Bert Karwatzki wrote:
-> Starting with linux next-20260325 I see the following warning early in the
-> boot process of a machine running debian stable (trixie) (except for the kernel):
+While I appreciate the sudden eagerness to implement these instructions
+in QEMU after them not being supported for 15 years, I'd suggest that
+the instructions for the more modern algorithms should be prioritized.
 
-Thanks for the report!
+> I wonder if it would make sense to split between "crypto" and "offload"
+> subsystems, so the "crypto" side can focus on a small number of contemporary
+> algorithms and give them simple, easily auditable interfaces, and move all
+> the complexity of asynchronous request processing in offload hardware over
+> to the "offloading" side. The userspace API would also move to the
+> "offloading" subsystem.
 
-> [    0.027118] [      T0] ------------[ cut here ]------------
-> [    0.027118] [      T0] Cannot free reserved memory because of deferred initialization of the memory map
-> [    0.027119] [      T0] WARNING: mm/memblock.c:904 at __free_reserved_area+0xa9/0xc0, CPU#0: swapper/0/0
-> [    0.027122] [      T0] Modules linked in:
-> [    0.027123] [      T0] CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Not tainted 7.0.0-rc5-next-20260326-master #385 PREEMPT_RT 
-> [    0.027125] [      T0] Hardware name: ASUS System Product Name/ROG STRIX B850-F GAMING WIFI, BIOS 1627 02/05/2026
-> [    0.027125] [      T0] RIP: 0010:__free_reserved_area+0xa9/0xc0
-> [    0.027126] [      T0] Code: 48 89 df 48 89 ee e8 06 fe ff ff 48 89 c3 48 39 e8 72 a0 5b 4c 89 e8 5d 41 5c 41 5d 41 5e c3 cc cc cc cc 48 8d 3d 97 c2 c6 00 <67> 48 0f b9 3a 45 31 ed eb df 66 66 2e 0f 1f 84 00 00 00 00 00 66
-> [    0.027127] [      T0] RSP: 0000:ffffffff9b203e98 EFLAGS: 00010202
-> [    0.027128] [      T0] RAX: 0000000e91c00001 RBX: ffffffff9b100c0f RCX: 0000000080000001
-> [    0.027128] [      T0] RDX: 00000000000000cc RSI: 0000000e2d42d000 RDI: ffffffff9b32ef60
-> [    0.027128] [      T0] RBP: ffff9eeafdd6fbc0 R08: 0000000000000000 R09: 0000000000000001
-> [    0.027129] [      T0] R10: 0000000000001000 R11: 8000000000000163 R12: 000000000000006f
-> [    0.027129] [      T0] R13: 0000000000000000 R14: 0000000000000045 R15: 000000005c8a1000
-> [    0.027129] [      T0] FS:  0000000000000000(0000) GS:ffff9eeb21c05000(0000) knlGS:0000000000000000
-> [    0.027130] [      T0] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [    0.027130] [      T0] CR2: ffff9ee8ad801000 CR3: 0000000e2ce1e000 CR4: 0000000000f50ef0
-> [    0.027131] [      T0] PKRU: 55555554
-> [    0.027131] [      T0] Call Trace:
-> [    0.027132] [      T0]  <TASK>
-> [    0.027132] [      T0]  free_reserved_area+0x89/0xd0
-> [    0.027133] [      T0]  alternative_instructions+0xee/0x110
-> [    0.027136] [      T0]  arch_cpu_finalize_init+0x10f/0x160
-> [    0.027138] [      T0]  start_kernel+0x686/0x710
-> [    0.027140] [      T0]  x86_64_start_reservations+0x24/0x30
-> [    0.027141] [      T0]  x86_64_start_kernel+0xd4/0xe0
-> [    0.027142] [      T0]  common_startup_64+0x13e/0x141
-> [    0.027143] [      T0]  </TASK>
-> [    0.027144] [      T0] ---[ end trace 0000000000000000 ]---
+lib/crypto/ and crypto/ already largely provides that distinction, no?
 
-Does this patch fix it for you?
+> This would give the offloading subsystem a bit more flexibility in API
+> design as well, so we could maybe represent offload capabilities in network
+> or storage hardware as well
 
-diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
-index e87da25d1236..62936a3bde19 100644
---- a/arch/x86/kernel/alternative.c
-+++ b/arch/x86/kernel/alternative.c
-@@ -2448,19 +2448,31 @@ void __init alternative_instructions(void)
- 					    __smp_locks, __smp_locks_end,
- 					    _text, _etext);
- 	}
-+#endif
- 
-+	restart_nmi();
-+	alternatives_patched = 1;
-+
-+	alt_reloc_selftest();
-+}
-+
-+#ifdef CONFIG_SMP
-+/*
-+ * With CONFIG_DEFERRED_STRUCT_PAGE_INIT enabled we can free_init_pages() only
-+ * after the deferred initialization of the memory map is complete.
-+ */
-+static int __init free_smp_locks(void)
-+{
- 	if (!uniproc_patched || num_possible_cpus() == 1) {
- 		free_init_pages("SMP alternatives",
- 				(unsigned long)__smp_locks,
- 				(unsigned long)__smp_locks_end);
- 	}
--#endif
- 
--	restart_nmi();
--	alternatives_patched = 1;
--
--	alt_reloc_selftest();
-+	return 0;
- }
-+arch_initcall(free_smp_locks);
-+#endif
- 
- /**
-  * text_poke_early - Update instructions on a live kernel at boot time
- 
-> Bert Karwatzki
+The kernel already has perfectly good support for inline storage
+encryption in the block layer.  See
+Documentation/block/inline-encryption.rst.  It's a completely different
+model from non-inline crypto engines.  Trying to create some common
+abstraction is not going to succeed.
 
--- 
-Sincerely yours,
-Mike.
+> However, even from the "crypto" perspective I believe that we can't get
+> around support for asynchronous offload devices, because of mobile devices.
+> I suspect no one would be building dedicated silicon for asynchronous AES
+> into mobile CPUs if that wasn't worth it somehow
+
+They do it anyway.  It's a checkbox feature.  I.e. the purpose is for it
+to be advertised on a list of features.
+
+> so if such a device is
+> present, we want to use it as much as possible, because the expectation is
+> that while the difference in performance compared to the CPU is hardly
+> noticeable, the difference in battery lifetime is (that's why dropping async
+> request support from fscrypt makes it largely useless on mobile).
+
+I'm quite familiar with how fscrypt is being used on mobile, thanks.
+Most people do use hardware offload with fscrypt, but it is *inline*
+hardware offload.  That remains fully supported via blk-crypto and is
+unrelated to the crypto API.  The rest just use the CPU.
+
+I've only ever heard of one case almost a decade ago where someone
+intentionally used a non-inline offload engine with fscrypt.  And I even
+recently showed that on the same line of SoCs that was being used in
+that case, it is no longer worth it, if it ever was.
+
+Every other case has just been someone using one by mistake and getting
+their performance tanked or encountering driver bugs as a result.
+
+Anyway, this seems very off-topic for this thread, which is about
+whether the architecture-optimized DES and 3DES code should be removed.
+
+- Eric
