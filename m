@@ -1,109 +1,83 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAF293CD8C7
-	for <sparclinux@vger.kernel.org>; Thu,  9 Apr 2026 12:46:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAC678BE9;
+	Thu,  9 Apr 2026 17:48:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775738796; cv=none; b=nwZEDaktvq4FLG6dk+vqkOh/LUss6F3X+sTyIGkhJa54C1u4D+V1xx7x30hXTbuLvalS6v5n28ldJvwOsWBiiFWou+urpdgfFRYBuQNQJz22lV+Pdzehowkb/rGWAQbj3RLex0lQADA9wqFizzgoTaxe5zAhcWEfncsOEHlgt7k=
+	t=1775756902; cv=none; b=CXH8jD0jx9zgGoPLGtq0W57u7FyjZp6XZk5R0Krl2LzgwvZb4Bnja7JotGSnyiUkjYuicXAvOtLyWmwPbKmJJYFWg7gb1Qy8jP7w7TshwoXRB6C5MZAbFEVsgEOXEgoaBf/L5eOZow4K/DKXL0/r70FO16O1nkQg0/jYfjbXqkk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775738796; c=relaxed/simple;
-	bh=GYbDUWp3SZzI4OwlK2TCKdEpUphnA+1nhWGm7+DWdFs=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=G/LfmUYPsoBnjCkl3uivx71F7TmCKiTRA8Q1Vdw4sjGNS6JJUK6nHV0my2tdVeUANmXh9RAfq5auUmX1ntqIjAH3VoClSyqraLqPXFPTLrjrwA+W7ib/m70T8OGTaE01aSfXV4n2uUzAMrJdCj7oSFcplMbDFC4Lh3w3aThmpn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UK4xtk0l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775756902; c=relaxed/simple;
+	bh=8q59SIFWEVq34cuARhd0ZskiMzGrBpaXP8qFu9ARl/8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kiuOGmH/csGoaD2rWb72pi6BJXOID9V6MyHPRv866tw5UEX606/KrPr+mSgd3tpiheXmwNB04jZyQDWfEXzFqZA9irnIm4K6LwMdmQ8OgkJAoex4WlN7o5JeipIiiQYoG5airV3Y6GTOQ4/1a7pq3hRAWASOnGAt7zoFKZWYJSI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rl61ENT6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UK4xtk0l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C35CC4AF0C;
-	Thu,  9 Apr 2026 12:46:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rl61ENT6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58966C4CEF7;
+	Thu,  9 Apr 2026 17:48:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775738796;
-	bh=GYbDUWp3SZzI4OwlK2TCKdEpUphnA+1nhWGm7+DWdFs=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-	b=UK4xtk0lPHiuLi8fKrx4pFc0cy7zO1j0/94yiXk0OK1g5ERctKyxE0b5kqZy1ysGm
-	 Ks+ct/i0h1ACngq9afgGszBwyTg+dZ3z7PR7g2z4zfNpDCA//x4E/z9/uUA3Etl1JL
-	 uerGWzyC3HLSLudWqV08ClJOmR2xyTuYWm7ZR6y4J+C0Bqcv+CJ3qjS07Qb4vr9CSi
-	 PiATHSqvg/7Lyzqshvsbs2xMn2wonlscJUTl6I1DpsQW+mw9er3HV6WveLNnlGS98W
-	 F/i6rv2TUbt8wLLwe35oqrhe6sYqgzqLUqZO36PAC6NoOyTzmnAR+jLfuR4x9rlheb
-	 vwR6PkzJdep0Q==
-Received: from phl-compute-01.internal (phl-compute-01.internal [10.202.2.41])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 69592F40074;
-	Thu,  9 Apr 2026 08:46:35 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-01.internal (MEProxy); Thu, 09 Apr 2026 08:46:35 -0400
-X-ME-Sender: <xms:q5_Xaf39ALOV8lVX38Y32UrY-6i78Vr-6QkiRMqNjIQLQJeVMgFfFQ>
-    <xme:q5_XaY5GaIKRJnLXmkAzkfoFtZhWUXv1Ef-v2aysLo1F0S1Obud4csjpnN3rN7Ppw
-    K5eKbcnNPkeN1gxjZl2O6JDkIUdqogdMiXbtnMIcBF3tk2vD88ahp0>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgddvieehvdcutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpefoggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdetrhguuceu
-    ihgvshhhvghuvhgvlhdfuceorghruggssehkvghrnhgvlhdrohhrgheqnecuggftrfgrth
-    htvghrnhepvdeuheeitdevtdelkeduudetgffftdelteefteevjeevjeeiheefhfejieej
-    fedunecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrugdomhgvshhmthhprghuthhhphgvrhhsohhnrghlihhthidqudeijedthedttdejledq
-    feefvdduieegudehqdgrrhgusgeppehkvghrnhgvlhdrohhrghesfihorhhkohhfrghrug
-    drtghomhdpnhgspghrtghpthhtohepuddupdhmohguvgepshhmthhpohhuthdprhgtphht
-    thhopehhvghrsggvrhhtsehgohhnughorhdrrghprghnrgdrohhrghdrrghupdhrtghpth
-    htohepshhimhhonhdrrhhitghhthgvrheshhhoghihrhhoshdruggvpdhrtghpthhtohep
-    vggsihhgghgvrhhssehkvghrnhgvlhdrohhrghdprhgtphhtthhopeigkeeisehkvghrnh
-    gvlhdrohhrghdprhgtphhtthhopeguvghnghhlvghrsehlihhnuhigrdhisghmrdgtohhm
-    pdhrtghpthhtohepfhhrvghuuggvsehlihhnuhigrdhisghmrdgtohhmpdhrtghpthhtoh
-    epghhlrghusghithiisehphhihshhikhdrfhhuqdgsvghrlhhinhdruggvpdhrtghpthht
-    oheplhhinhhugidqtghrhihpthhosehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpth
-    htoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:q5_XaSE_j8wQIdJMhBWtzpO2VN-pz6nNfy-et5WZXJashbwd8oTuEQ>
-    <xmx:q5_XaXB65zkrYeRTiaaHDiIbbW1_2f3nd_h2_8TQ7BpSca1Yys5byQ>
-    <xmx:q5_XaUwPR2Y8KC6TQYnz-6Mp_tWo8S2rQp12tM_TbIJS_83IZyvyyQ>
-    <xmx:q5_XadcSkJYzlR6Jiw_gnqbi2F4gb6wwxNeBpy_gkbfU4wkypLVPbA>
-    <xmx:q5_XaZu343smsMA784xcQD5eej3RBtIjLWibVpoddMxQ6zTndogbQwoI>
-Feedback-ID: ice86485a:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 457F6700065; Thu,  9 Apr 2026 08:46:35 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	s=k20201202; t=1775756902;
+	bh=8q59SIFWEVq34cuARhd0ZskiMzGrBpaXP8qFu9ARl/8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Rl61ENT6PT27kifDfWND/EIh19RZuYNyCuiQJt5tMoYIInZ2qQ7vqw82Xe+1oWqzu
+	 qPoJpj/ZPEvGp0yu79kp3xUO5Ep63sgyWnGbRu9FD0/yFtQx5OuS8QJ3xRReO6FLPp
+	 ZGjBpXxdAdTwUUCwixhPs+XR+JFt4yI91scY456ruIV+3nn+wnghPjsejF5C9K58N5
+	 oP+8Ybkos3Q3/Nwjs9+Zfl2BInPWz3nVIbxy4gYv6R9mtiW/xzxzsbtiLpCPbinFr9
+	 C4XycfrkVAtFP4++knG9XMoXSesRWWNpi4OHgu//u1FxikR/gVwA5cT6zldAUbYxY2
+	 zfZKs3PYp+0bQ==
+Date: Thu, 9 Apr 2026 17:48:20 +0000
+From: Eric Biggers <ebiggers@kernel.org>
+To: Holger Dengler <dengler@linux.ibm.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	linux-crypto@vger.kernel.org,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, x86@kernel.org,
+	Harald Freudenberger <freude@linux.ibm.com>
+Subject: Re: [PATCH 1/3] crypto: s390 - Remove des and des3_ede code
+Message-ID: <20260409174820.GA535565@google.com>
+References: <20260326201246.57544-1-ebiggers@kernel.org>
+ <20260326201246.57544-2-ebiggers@kernel.org>
+ <09684f23-8937-4fed-b88a-361c9ccef04c@linux.ibm.com>
+ <d5fb24534a56017e622ef15272eb2f0cfc6d6de6.camel@physik.fu-berlin.de>
+ <e1767c51-0bfc-45fa-896e-ac2de0268828@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: ADDaTlyNV6JN
-Date: Thu, 09 Apr 2026 14:46:15 +0200
-From: "Ard Biesheuvel" <ardb@kernel.org>
-To: "Eric Biggers" <ebiggers@kernel.org>,
- "Simon Richter" <Simon.Richter@hogyros.de>
-Cc: "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
- linux-crypto@vger.kernel.org, "Herbert Xu" <herbert@gondor.apana.org.au>,
- linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
- sparclinux@vger.kernel.org, x86@kernel.org,
- "Harald Freudenberger" <freude@linux.ibm.com>,
- "Holger Dengler" <dengler@linux.ibm.com>
-Message-Id: <d1341501-883d-48f1-8a42-92934459cce4@app.fastmail.com>
-In-Reply-To: <20260327172423.GA3407398@google.com>
-References: <20260326201246.57544-1-ebiggers@kernel.org>
- <0982d4341f58e2f1181bc472dc9c9d8542148e3c.camel@physik.fu-berlin.de>
- <20260326202733.GA2657@quark>
- <35e00d0f-85f6-457a-99b4-703caf3e1e6e@hogyros.de>
- <20260327172423.GA3407398@google.com>
-Subject: Re: [PATCH 0/3] crypto: Remove arch-optimized des and des3_ede code
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e1767c51-0bfc-45fa-896e-ac2de0268828@linux.ibm.com>
 
+On Thu, Apr 09, 2026 at 10:22:11AM +0200, Holger Dengler wrote:
+> Hi Adrian,
+> 
+> On 09/04/2026 09:29, John Paul Adrian Glaubitz wrote:
+> > On Thu, 2026-04-09 at 09:08 +0200, Holger Dengler wrote:
+> >> On 26/03/2026 21:12, Eric Biggers wrote:
+> >>> Since DES and Triple DES are obsolete, there is very little point in
+> >>> maintining architecture-optimized code for them.  Remove it.
+> >>>
+> >>> Signed-off-by: Eric Biggers <ebiggers@kernel.org>
+> >>
+> >> Reviewed-by: Holger Dengler <dengler@linux.ibm.com>
+> > 
+> > Wouldn't it actually make sense to keep the old crypto code so we get
+> > additional coverage for QEMU's emulation of crypto instructions?
+> 
+> For qemu test coverage on s390, I would prefer the libica [1] test cases,
+> which covers mostly all functions codes of the CPACF instructions.
+> 
+> If you want to use the kernel code for testing in addition, you may stay with
+> a kernel version before the code removal.
+> 
+> [1] https://github.com/opencryptoki/libica
 
+Yes, the kernel is not a test suite for QEMU.  QEMU tests belong in the
+QEMU repository itself or in other projects.  We don't keep code around
+in the kernel purely to exercise functionality in QEMU.
 
-On Fri, 27 Mar 2026, at 18:24, Eric Biggers wrote:
-> On Fri, Mar 27, 2026 at 06:59:21PM +0900, Simon Richter wrote:
-...
->> However, even from the "crypto" perspective I believe that we can't get
->> around support for asynchronous offload devices, because of mobile devices.
->> I suspect no one would be building dedicated silicon for asynchronous AES
->> into mobile CPUs if that wasn't worth it somehow
->
-> They do it anyway.  It's a checkbox feature.  I.e. the purpose is for it
-> to be advertised on a list of features.
->
-
-Often, h/w crypto IP blocks are part of the SoC-specific authenticated/confidential boot chain, which is anchored in the mask ROM. Nobody wants to put software implementations of RSA and AES in there, and so it offloads the crypto processing to a h/w block instead. Since the h/w block is there, it can be used by the OS too, but that doesn't mean doing so makes any sense.
-
-Only h/w accelerators with multiple internal queues can generally keep up with the CPUs and network/block I/O in a meaningful manner, and those are quite rare IME.
-
+- Eric
