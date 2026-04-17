@@ -1,79 +1,161 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 598E13815F5;
-	Thu, 16 Apr 2026 19:32:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC0072D0C9D;
+	Fri, 17 Apr 2026 07:55:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776367969; cv=none; b=mJgvB5HoJocH0W6lg7G0i6CoMNqKQ58k+mqwgI9Y2ptNK8IYowac/UY5rF9KYybph0clkQgGW2k5LU+Gfvt+UQioUnBxVvu5lIdj36LSWEMfVXdpHTUgzujv1YimMqq2zF4x3CrhscbIuUUEdeyLko+6nK8H42sVUb7Uzitnrv8=
+	t=1776412509; cv=none; b=uhQedXIFtDxm/+0t+w48UAEn4cTUgocomiFCcF4g5dDfBkIPzkw8062NE70V7ihtfT/AstHXsBwC/hj//naRpxfX+auJaQtM5bwdEzEYQmsEyJGA5KhyctZF45qyznyQqaSD5mhski0bluSoeqxgWi34lxxDU4wl4mRkckrPr2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776367969; c=relaxed/simple;
-	bh=92ERkl7IqZ3D3ZBskV2Dg9cLo0xCsyjyPbt0J7jJ1bo=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=Scxh1NkGaNsvnzbXZfibAYa+946n0CpefIf5Mgu+BOTisye8zhAzeCYGYYEL4DGIfd+Rpn8MaAuu0f9hnQrF0yvb2EJxnZnDdkH1PsESrffjsIwKWgqDiUvrNejj+dAn9N5JuKRIeBnRtrWzT17kYU6QBi2SDM3STPHXpLMXQQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rw1vIfWy; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rw1vIfWy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36E8AC2BCB0;
-	Thu, 16 Apr 2026 19:32:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776367969;
-	bh=92ERkl7IqZ3D3ZBskV2Dg9cLo0xCsyjyPbt0J7jJ1bo=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=Rw1vIfWy5g39RTrQBVfk7P8+0yZErGWNG5UA9/vEtpQjlFkvwDTSfy9DcHen7/CI1
-	 yvB26rPsstyEixHeRP2kRFTYsbED9hoqdAx8pp9JCjVGtqsECj0BmLbEADz/j0Ea1z
-	 cuKaCVwjWLvXDg/CryubhnWhKyfuiuUjmH8fhvqeL/w/0cvoWWHyuhgdCpeuqDPtkC
-	 KhOKnJGX3lMBUei6zDvHwn/e429dg5HpUaKZZFagDf5a9Cwpgy1mEmtIvUBtm2UV8a
-	 d3rsfZkg4WL5nt8ssrtLumcRxpUUuH7CR13mk1NCsH3yKQQbT7v7wh+ISgR1TJLd7z
-	 vH5LnF1y8pygA==
-From: Thomas Gleixner <tglx@kernel.org>
-To: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, LKML
- <linux-kernel@vger.kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Lu Baolu
- <baolu.lu@linux.intel.com>, iommu@lists.linux.dev, Michael Grzeschik
- <m.grzeschik@pengutronix.de>, netdev@vger.kernel.org,
- linux-wireless@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>,
- linux-crypto@vger.kernel.org, Vlastimil Babka <vbabka@kernel.org>,
- linux-mm@kvack.org, David Woodhouse <dwmw2@infradead.org>, Bernie Thompson
- <bernie@plugable.com>, linux-fbdev@vger.kernel.org, Theodore Tso
- <tytso@mit.edu>, linux-ext4@vger.kernel.org, Andrew Morton
- <akpm@linux-foundation.org>, Uladzislau Rezki <urezki@gmail.com>, Marco
- Elver <elver@google.com>, Dmitry Vyukov <dvyukov@google.com>,
- kasan-dev@googlegroups.com, Andrey Ryabinin <ryabinin.a.a@gmail.com>,
- Thomas Sailer <t.sailer@alumni.ethz.ch>, linux-hams@vger.kernel.org,
- "Jason A. Donenfeld" <Jason@zx2c4.com>, Richard Henderson
- <richard.henderson@linaro.org>, linux-alpha@vger.kernel.org, Russell King
- <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, Catalin
- Marinas <catalin.marinas@arm.com>, Huacai Chen <chenhuacai@kernel.org>,
- loongarch@lists.linux.dev, Geert Uytterhoeven <geert@linux-m68k.org>,
- linux-m68k@lists.linux-m68k.org, Dinh Nguyen <dinguyen@kernel.org>, Jonas
- Bonn <jonas@southpole.se>, linux-openrisc@vger.kernel.org, Helge Deller
- <deller@gmx.de>, linux-parisc@vger.kernel.org, Michael Ellerman
- <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org, Paul Walmsley
- <pjw@kernel.org>, linux-riscv@lists.infradead.org, Heiko Carstens
- <hca@linux.ibm.com>, linux-s390@vger.kernel.org, "David S. Miller"
- <davem@davemloft.net>, sparclinux@vger.kernel.org
-Subject: Re: [patch 07/38] treewide: Consolidate cycles_t
-In-Reply-To: <0758843e-8f75-4c82-b9c0-25fab502e62f@kernel.org>
-References: <20260410120044.031381086@kernel.org>
- <20260410120318.045532623@kernel.org>
- <0758843e-8f75-4c82-b9c0-25fab502e62f@kernel.org>
-Date: Thu, 16 Apr 2026 21:32:45 +0200
-Message-ID: <87v7dqem5e.ffs@tglx>
+	s=arc-20240116; t=1776412509; c=relaxed/simple;
+	bh=QJWOQg1OEDPm1eMtA9Ud52kmNM1YLJc4TL3itkN150Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iqxtHu5lUc9nimJMkTcVxJlMY7WBWcBtSO3M6F6PmwEyXJEy2aOvnw5UmFVYlYN4G/jODFSIbw+vOlg2eMLFzbfBXjR22O5yVhhnWr+fMUMII8Zfk4M+/m9W6iBdmSMT8x2KCxl5o1Fb4YnFYXmTvjTN4LF0GXkF5xAIK0AlXuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from localhost.localdomain (unknown [111.196.245.116])
+	by APP-05 (Coremail) with SMTP id zQCowADndwtU5+FpplzYDQ--.226S2;
+	Fri, 17 Apr 2026 15:55:00 +0800 (CST)
+From: Pengpeng Hou <pengpeng@iscas.ac.cn>
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Pengpeng Hou <pengpeng@iscas.ac.cn>
+Subject: [PATCH] sparc32: prom: check OF console path formatting against the early buffer
+Date: Fri, 17 Apr 2026 15:54:58 +0800
+Message-ID: <20260417075458.31262-1-pengpeng@iscas.ac.cn>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:zQCowADndwtU5+FpplzYDQ--.226S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxZw4rGr48Kr1DXF48Kw48JFb_yoW5WF4fpr
+	9xJF13Xr45ZF43WF4avr1kZr9Yva1rJ3W7Kws3tw47uFnxA3y8ua42yw4fZ3yDJFy3Gr1j
+	ya90vFsxGF17AaUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUkE14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
+	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
+	CE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
+	2Ix0cI8IcVAFwI0_JF0_Jw1lYx0Ex4A2jsIE14v26r4j6F4UMcvjeVCFs4IE7xkEbVWUJV
+	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AFwI0_
+	JF0_Jw1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67
+	AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIY
+	rxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_JFI_Gr1lIxAIcVC0I7IYx2IY6xkF7I0E14
+	v26F4j6r4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr0_
+	Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUxcT
+	PUUUUU=
+X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-On Wed, Apr 15 2026 at 08:43, Christophe Leroy wrote:
->> -typedef unsigned long cycles_t;
->> -
->> -static inline cycles_t get_cycles(void)
->> +ostatic inline cycles_t get_cycles(void)
->
-> What is 'ostatic' ?
+of_console_init() allocates a fixed 256-byte buffer for the console path
+and then formats "%pOF" into it with sprintf(), optionally appending
+":a" or ":b" with strcat().
 
-That's a really good question :)
+The full OF path is not bounded to fit in that early buffer, so the
+console path formatting can overrun the allocation before the buffer is
+published globally.
+
+Use snprintf()/strlcat() and halt early if the console path does not fit
+in the fixed early allocation.
+
+Fixes: c73fcc846c91 ("[SPARC]: Fix serial console device detection.")
+Fixes: a412c85aa82a ("sparc: Convert to using %pOF instead of full_name")
+
+Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+---
+ arch/sparc/kernel/prom_32.c | 65 +++++++++++++++++++++++++------------
+ 1 file changed, 45 insertions(+), 20 deletions(-)
+
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index cd94f1e8d644..7bfede7e64d2 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -245,15 +245,23 @@ void __init of_console_init(void)
+ 		if (!dp) {
+ 			prom_printf("Cannot find PROM_V0 console node.\n");
+ 			prom_halt();
+-		}
+-		of_console_device = dp;
++			}
++			of_console_device = dp;
+ 
+-		sprintf(of_console_path, "%pOF", dp);
+-		if (!strcmp(type, "serial")) {
+-			strcat(of_console_path,
+-			       (skip ? ":b" : ":a"));
+-		}
+-		break;
++			if (snprintf(of_console_path, of_console_path_sz,
++				     "%pOF", dp) >= of_console_path_sz) {
++				prom_printf("PROM_V0 console path is too long.\n");
++				prom_halt();
++			}
++			if (!strcmp(type, "serial")) {
++				if (strlcat(of_console_path, skip ? ":b" : ":a",
++					    of_console_path_sz) >=
++				    of_console_path_sz) {
++					prom_printf("PROM_V0 console path options are too long.\n");
++					prom_halt();
++				}
++			}
++			break;
+ 
+ 	default:
+ 	case PROM_V2:
+@@ -279,18 +287,35 @@ void __init of_console_init(void)
+ 			prom_halt();
+ 		}
+ 
+-		of_console_device = dp;
+-
+-		if (prom_vers == PROM_V2) {
+-			sprintf(of_console_path, "%pOF", dp);
+-			switch (*romvec->pv_stdout) {
+-			case PROMDEV_TTYA:
+-				strcat(of_console_path, ":a");
+-				break;
+-			case PROMDEV_TTYB:
+-				strcat(of_console_path, ":b");
+-				break;
+-			}
++			of_console_device = dp;
++
++			if (prom_vers == PROM_V2) {
++				if (snprintf(of_console_path, of_console_path_sz,
++					     "%pOF", dp) >=
++				    of_console_path_sz) {
++					prom_printf("PROM_V2 console path is too long.\n");
++					prom_halt();
++				}
++				switch (*romvec->pv_stdout) {
++				case PROMDEV_TTYA:
++					if (strlcat(of_console_path, ":a",
++						    of_console_path_sz) >=
++					    of_console_path_sz) {
++						prom_printf("%s",
++							    "PROM_V2 console path options are too long.\n");
++						prom_halt();
++					}
++					break;
++				case PROMDEV_TTYB:
++					if (strlcat(of_console_path, ":b",
++						    of_console_path_sz) >=
++					    of_console_path_sz) {
++						prom_printf("%s",
++							    "PROM_V2 console path options are too long.\n");
++						prom_halt();
++					}
++					break;
++				}
+ 		} else {
+ 			const char *path;
+ 
+-- 
+2.50.1 (Apple Git-155)
+
