@@ -1,32 +1,63 @@
-Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC0072D0C9D;
-	Fri, 17 Apr 2026 07:55:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C028B3A6F15;
+	Fri, 17 Apr 2026 10:24:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776412509; cv=none; b=uhQedXIFtDxm/+0t+w48UAEn4cTUgocomiFCcF4g5dDfBkIPzkw8062NE70V7ihtfT/AstHXsBwC/hj//naRpxfX+auJaQtM5bwdEzEYQmsEyJGA5KhyctZF45qyznyQqaSD5mhski0bluSoeqxgWi34lxxDU4wl4mRkckrPr2w=
+	t=1776421475; cv=none; b=EsgC7JmTZ2+G3WT7oNAT1ZyYdqAnsvkyQODdFQKUBu8fwmNegstLHh4zQZzWtzmSToDqe9M3WaobuGJ+IPJ01dGpElszoWK+e7RuIMXfEQCpk6onLX/bnxsh0tXvEe4ISq3gCUmTSThc1h2ZGcIi87cesVYU4JgVf14Jep7L6Yk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776412509; c=relaxed/simple;
-	bh=QJWOQg1OEDPm1eMtA9Ud52kmNM1YLJc4TL3itkN150Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iqxtHu5lUc9nimJMkTcVxJlMY7WBWcBtSO3M6F6PmwEyXJEy2aOvnw5UmFVYlYN4G/jODFSIbw+vOlg2eMLFzbfBXjR22O5yVhhnWr+fMUMII8Zfk4M+/m9W6iBdmSMT8x2KCxl5o1Fb4YnFYXmTvjTN4LF0GXkF5xAIK0AlXuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost.localdomain (unknown [111.196.245.116])
-	by APP-05 (Coremail) with SMTP id zQCowADndwtU5+FpplzYDQ--.226S2;
-	Fri, 17 Apr 2026 15:55:00 +0800 (CST)
-From: Pengpeng Hou <pengpeng@iscas.ac.cn>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH] sparc32: prom: check OF console path formatting against the early buffer
-Date: Fri, 17 Apr 2026 15:54:58 +0800
-Message-ID: <20260417075458.31262-1-pengpeng@iscas.ac.cn>
-X-Mailer: git-send-email 2.50.1
+	s=arc-20240116; t=1776421475; c=relaxed/simple;
+	bh=pizWJrvuQ48cGLUkst8VVI51daUIasrR1V7+pSa+3gY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=G63c3GQt0gmi4mRBDaNgrZsaNCksRyy9bXnPlnHmmjEIGvjaTzIwiDHiL93yl5esu2AaFjuocZmP6x+UblESU2EBVur3HOoY9WfLM5pnWKVLVQ2IZWGE9SNJ21HROFHuCGK5J+v3XUSQ6rc4g5Z6FG/4EWEUhICCyYUtqePjl24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=1gqdm1+K; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=fLWGHfzh; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="1gqdm1+K";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="fLWGHfzh"
+From: John Ogness <john.ogness@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1776421464;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=GMrkWwsRJJM8nf2vHkNwRnlQxiLbrNpUSyN/P1PXVuU=;
+	b=1gqdm1+KQYmc0lEaKrij2m/6iN7QFvYv3SdOnrNnO3SQ1wiZPG7keCQDQS/EHzu7rYSJjx
+	oJYIZYC7rWtTseO47NUH2BarudQdV3LxY/ouu2PE7mvadxv7BbskGH0GtJmDBgcQAELXRi
+	HFIpXvcs+6U8+PB2JDCmJdgwf+vws3F84XiquOpqtoNZETiE2qZw87Acz6gOQtIDhxucuJ
+	exTPPcqTcj9C8X2f1qI9P8rhoNnfCtu8i3OEose6YbeUN81e9u0xCAD4ncMqUDF31UIkJ8
+	bHZ9sdkkeNVnWaMdQ0GBHltkPl17ml2MK76xbsc2OckN1+qgjvTzclWhDJnuXw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1776421464;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=GMrkWwsRJJM8nf2vHkNwRnlQxiLbrNpUSyN/P1PXVuU=;
+	b=fLWGHfzhqiorZuAalaeL38ZW4UB8KT8DPAXlcCpsSmhp/s5uf+e10bZ3MXAqW5jtletG/x
+	EYf5LmNSdHizcLDQ==
+To: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	Alim Akhtar <alim.akhtar@samsung.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Thomas Fourier <fourier.thomas@gmail.com>,
+	Kees Cook <kees@kernel.org>,
+	linux-serial@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: [PATCH tty v3 2/6] serial: Replace driver usage of UPF_CONS_FLOW
+Date: Fri, 17 Apr 2026 12:30:15 +0206
+Message-ID: <20260417102423.40984-3-john.ogness@linutronix.de>
+In-Reply-To: <20260417102423.40984-1-john.ogness@linutronix.de>
+References: <20260417102423.40984-1-john.ogness@linutronix.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -34,128 +65,181 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowADndwtU5+FpplzYDQ--.226S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxZw4rGr48Kr1DXF48Kw48JFb_yoW5WF4fpr
-	9xJF13Xr45ZF43WF4avr1kZr9Yva1rJ3W7Kws3tw47uFnxA3y8ua42yw4fZ3yDJFy3Gr1j
-	ya90vFsxGF17AaUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUkE14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
-	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
-	CE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
-	2Ix0cI8IcVAFwI0_JF0_Jw1lYx0Ex4A2jsIE14v26r4j6F4UMcvjeVCFs4IE7xkEbVWUJV
-	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AFwI0_
-	JF0_Jw1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67
-	AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIY
-	rxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_JFI_Gr1lIxAIcVC0I7IYx2IY6xkF7I0E14
-	v26F4j6r4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr0_
-	Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUxcT
-	PUUUUU=
-X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-of_console_init() allocates a fixed 256-byte buffer for the console path
-and then formats "%pOF" into it with sprintf(), optionally appending
-":a" or ":b" with strcat().
+Rather than using the UPF_CONS_FLOW bit of uart_port.flags to track
+the user configuration of console flow control, use the newly added
+uart_port.cons_flow (via its get/set functions).
 
-The full OF path is not bounded to fit in that early buffer, so the
-console path formatting can overrun the allocation before the buffer is
-published globally.
+A coccinelle script was used to perform the search/replace.
 
-Use snprintf()/strlcat() and halt early if the console path does not fit
-in the fixed early allocation.
+Note1: The sh-sci driver is blindly copying platform data
+       configuration flags to uart_port.flags. Thus UPF_CONS_FLOW
+       could get set. A follow-up commit will address this.
 
-Fixes: c73fcc846c91 ("[SPARC]: Fix serial console device detection.")
-Fixes: a412c85aa82a ("sparc: Convert to using %pOF instead of full_name")
+Note2: Aside from sh-sci, the samsung_tty driver is also using
+       UPF_CONS_FLOW as a platform data configuration flag.
 
-Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+Signed-off-by: John Ogness <john.ogness@linutronix.de>
 ---
- arch/sparc/kernel/prom_32.c | 65 +++++++++++++++++++++++++------------
- 1 file changed, 45 insertions(+), 20 deletions(-)
+ drivers/tty/serial/8250/8250_port.c | 4 ++--
+ drivers/tty/serial/bcm63xx_uart.c   | 2 +-
+ drivers/tty/serial/omap-serial.c    | 2 +-
+ drivers/tty/serial/pch_uart.c       | 2 +-
+ drivers/tty/serial/pxa.c            | 2 +-
+ drivers/tty/serial/samsung_tty.c    | 8 ++++----
+ drivers/tty/serial/serial_txx9.c    | 4 ++--
+ drivers/tty/serial/sunsu.c          | 2 +-
+ 8 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
-index cd94f1e8d644..7bfede7e64d2 100644
---- a/arch/sparc/kernel/prom_32.c
-+++ b/arch/sparc/kernel/prom_32.c
-@@ -245,15 +245,23 @@ void __init of_console_init(void)
- 		if (!dp) {
- 			prom_printf("Cannot find PROM_V0 console node.\n");
- 			prom_halt();
--		}
--		of_console_device = dp;
-+			}
-+			of_console_device = dp;
+diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
+index af78cc02f38e7..c91b0fa7111a7 100644
+--- a/drivers/tty/serial/8250/8250_port.c
++++ b/drivers/tty/serial/8250/8250_port.c
+@@ -1988,7 +1988,7 @@ static void wait_for_xmitr(struct uart_8250_port *up, int bits)
+ 	wait_for_lsr(up, bits);
  
--		sprintf(of_console_path, "%pOF", dp);
--		if (!strcmp(type, "serial")) {
--			strcat(of_console_path,
--			       (skip ? ":b" : ":a"));
--		}
--		break;
-+			if (snprintf(of_console_path, of_console_path_sz,
-+				     "%pOF", dp) >= of_console_path_sz) {
-+				prom_printf("PROM_V0 console path is too long.\n");
-+				prom_halt();
-+			}
-+			if (!strcmp(type, "serial")) {
-+				if (strlcat(of_console_path, skip ? ":b" : ":a",
-+					    of_console_path_sz) >=
-+				    of_console_path_sz) {
-+					prom_printf("PROM_V0 console path options are too long.\n");
-+					prom_halt();
-+				}
-+			}
-+			break;
+ 	/* Wait up to 1s for flow control if necessary */
+-	if (up->port.flags & UPF_CONS_FLOW) {
++	if (uart_get_cons_flow(&up->port)) {
+ 		for (tmout = 1000000; tmout; tmout--) {
+ 			unsigned int msr = serial_in(up, UART_MSR);
+ 			up->msr_saved_flags |= msr & MSR_SAVE_FLAGS;
+@@ -3351,7 +3351,7 @@ void serial8250_console_write(struct uart_8250_port *up, const char *s,
+ 		 * it regardless of the CTS state. Therefore, only use fifo
+ 		 * if we don't use control flow.
+ 		 */
+-		!(up->port.flags & UPF_CONS_FLOW);
++		!uart_get_cons_flow(&up->port);
  
- 	default:
- 	case PROM_V2:
-@@ -279,18 +287,35 @@ void __init of_console_init(void)
- 			prom_halt();
- 		}
+ 	if (likely(use_fifo))
+ 		serial8250_console_fifo_write(up, s, count);
+diff --git a/drivers/tty/serial/bcm63xx_uart.c b/drivers/tty/serial/bcm63xx_uart.c
+index 51df9d2d8bfc5..be6777dfdc532 100644
+--- a/drivers/tty/serial/bcm63xx_uart.c
++++ b/drivers/tty/serial/bcm63xx_uart.c
+@@ -675,7 +675,7 @@ static void wait_for_xmitr(struct uart_port *port)
+ 	}
  
--		of_console_device = dp;
--
--		if (prom_vers == PROM_V2) {
--			sprintf(of_console_path, "%pOF", dp);
--			switch (*romvec->pv_stdout) {
--			case PROMDEV_TTYA:
--				strcat(of_console_path, ":a");
--				break;
--			case PROMDEV_TTYB:
--				strcat(of_console_path, ":b");
--				break;
--			}
-+			of_console_device = dp;
-+
-+			if (prom_vers == PROM_V2) {
-+				if (snprintf(of_console_path, of_console_path_sz,
-+					     "%pOF", dp) >=
-+				    of_console_path_sz) {
-+					prom_printf("PROM_V2 console path is too long.\n");
-+					prom_halt();
-+				}
-+				switch (*romvec->pv_stdout) {
-+				case PROMDEV_TTYA:
-+					if (strlcat(of_console_path, ":a",
-+						    of_console_path_sz) >=
-+					    of_console_path_sz) {
-+						prom_printf("%s",
-+							    "PROM_V2 console path options are too long.\n");
-+						prom_halt();
-+					}
-+					break;
-+				case PROMDEV_TTYB:
-+					if (strlcat(of_console_path, ":b",
-+						    of_console_path_sz) >=
-+					    of_console_path_sz) {
-+						prom_printf("%s",
-+							    "PROM_V2 console path options are too long.\n");
-+						prom_halt();
-+					}
-+					break;
-+				}
- 		} else {
- 			const char *path;
+ 	/* Wait up to 1s for flow control if necessary */
+-	if (port->flags & UPF_CONS_FLOW) {
++	if (uart_get_cons_flow(port)) {
+ 		tmout = 1000000;
+ 		while (--tmout) {
+ 			unsigned int val;
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 0b85f47ff19e0..a9879bc655745 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1092,7 +1092,7 @@ static void __maybe_unused wait_for_xmitr(struct uart_omap_port *up)
+ 	} while (!uart_lsr_tx_empty(status));
  
+ 	/* Wait up to 1s for flow control if necessary */
+-	if (up->port.flags & UPF_CONS_FLOW) {
++	if (uart_get_cons_flow(&up->port)) {
+ 		for (tmout = 1000000; tmout; tmout--) {
+ 			unsigned int msr = serial_in(up, UART_MSR);
+ 
+diff --git a/drivers/tty/serial/pch_uart.c b/drivers/tty/serial/pch_uart.c
+index 6729d8e83c3c5..08cb9ff30506f 100644
+--- a/drivers/tty/serial/pch_uart.c
++++ b/drivers/tty/serial/pch_uart.c
+@@ -1444,7 +1444,7 @@ static void wait_for_xmitr(struct eg20t_port *up, int bits)
+ 	}
+ 
+ 	/* Wait up to 1s for flow control if necessary */
+-	if (up->port.flags & UPF_CONS_FLOW) {
++	if (uart_get_cons_flow(&up->port)) {
+ 		unsigned int tmout;
+ 		for (tmout = 1000000; tmout; tmout--) {
+ 			unsigned int msr = ioread8(up->membase + UART_MSR);
+diff --git a/drivers/tty/serial/pxa.c b/drivers/tty/serial/pxa.c
+index fea0255067ccd..80afa47f09880 100644
+--- a/drivers/tty/serial/pxa.c
++++ b/drivers/tty/serial/pxa.c
+@@ -573,7 +573,7 @@ static void wait_for_xmitr(struct uart_pxa_port *up)
+ 	} while (!uart_lsr_tx_empty(status));
+ 
+ 	/* Wait up to 1s for flow control if necessary */
+-	if (up->port.flags & UPF_CONS_FLOW) {
++	if (uart_get_cons_flow(&up->port)) {
+ 		tmout = 1000000;
+ 		while (--tmout &&
+ 		       ((serial_in(up, UART_MSR) & UART_MSR_CTS) == 0))
+diff --git a/drivers/tty/serial/samsung_tty.c b/drivers/tty/serial/samsung_tty.c
+index e27806bf2cf3e..f9b0dbded1f43 100644
+--- a/drivers/tty/serial/samsung_tty.c
++++ b/drivers/tty/serial/samsung_tty.c
+@@ -319,7 +319,7 @@ static void s3c24xx_serial_stop_tx(struct uart_port *port)
+ 	ourport->tx_enabled = 0;
+ 	ourport->tx_in_progress = 0;
+ 
+-	if (port->flags & UPF_CONS_FLOW)
++	if (uart_get_cons_flow(port))
+ 		s3c24xx_serial_rx_enable(port);
+ 
+ 	ourport->tx_mode = 0;
+@@ -493,7 +493,7 @@ static void s3c24xx_serial_start_tx(struct uart_port *port)
+ 	struct tty_port *tport = &port->state->port;
+ 
+ 	if (!ourport->tx_enabled) {
+-		if (port->flags & UPF_CONS_FLOW)
++		if (uart_get_cons_flow(port))
+ 			s3c24xx_serial_rx_disable(port);
+ 
+ 		ourport->tx_enabled = 1;
+@@ -781,7 +781,7 @@ static void s3c24xx_serial_rx_drain_fifo(struct s3c24xx_uart_port *ourport)
+ 		uerstat = rd_regl(port, S3C2410_UERSTAT);
+ 		ch = rd_reg(port, S3C2410_URXH);
+ 
+-		if (port->flags & UPF_CONS_FLOW) {
++		if (uart_get_cons_flow(port)) {
+ 			bool txe = s3c24xx_serial_txempty_nofifo(port);
+ 
+ 			if (ourport->rx_enabled) {
+@@ -1830,7 +1830,7 @@ static int s3c24xx_serial_init_port(struct s3c24xx_uart_port *ourport,
+ 
+ 	if (cfg->uart_flags & UPF_CONS_FLOW) {
+ 		dev_dbg(port->dev, "enabling flow control\n");
+-		port->flags |= UPF_CONS_FLOW;
++		uart_set_cons_flow(port, true);
+ 	}
+ 
+ 	/* sort our the physical and virtual addresses for each UART */
+diff --git a/drivers/tty/serial/serial_txx9.c b/drivers/tty/serial/serial_txx9.c
+index 436a559234dfe..103f03c1fe748 100644
+--- a/drivers/tty/serial/serial_txx9.c
++++ b/drivers/tty/serial/serial_txx9.c
+@@ -422,7 +422,7 @@ static void wait_for_xmitr(struct uart_port *up)
+ 		udelay(1);
+ 
+ 	/* Wait up to 1s for flow control if necessary */
+-	if (up->flags & UPF_CONS_FLOW) {
++	if (uart_get_cons_flow(up)) {
+ 		tmout = 1000000;
+ 		while (--tmout &&
+ 		       (sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS))
+@@ -857,7 +857,7 @@ serial_txx9_console_write(struct console *co, const char *s, unsigned int count)
+ 	 *	Disable flow-control if enabled (and unnecessary)
+ 	 */
+ 	flcr = sio_in(up, TXX9_SIFLCR);
+-	if (!(up->flags & UPF_CONS_FLOW) && (flcr & TXX9_SIFLCR_TES))
++	if (!uart_get_cons_flow(up) && (flcr & TXX9_SIFLCR_TES))
+ 		sio_out(up, TXX9_SIFLCR, flcr & ~TXX9_SIFLCR_TES);
+ 
+ 	uart_console_write(up, s, count, serial_txx9_console_putchar);
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index 6505a1930da9a..97019b5ec49e2 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -1245,7 +1245,7 @@ static void wait_for_xmitr(struct uart_sunsu_port *up)
+ 	} while (!uart_lsr_tx_empty(status));
+ 
+ 	/* Wait up to 1s for flow control if necessary */
+-	if (up->port.flags & UPF_CONS_FLOW) {
++	if (uart_get_cons_flow(&up->port)) {
+ 		tmout = 1000000;
+ 		while (--tmout &&
+ 		       ((serial_in(up, UART_MSR) & UART_MSR_CTS) == 0))
 -- 
-2.50.1 (Apple Git-155)
+2.47.3
 
