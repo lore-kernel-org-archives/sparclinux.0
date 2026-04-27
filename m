@@ -1,175 +1,229 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E10E3BE633
-	for <sparclinux@vger.kernel.org>; Tue, 21 Apr 2026 11:22:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7460E29405;
+	Mon, 27 Apr 2026 17:16:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776770577; cv=none; b=BB9KMWS7Vk9JNsd6etYsdwvNVFu2wC57ycmY+GOK1WBlO++8w4ZvwuuDvgK69duEVB/8Zng0i4jRPwFnro4idwQWzgvwOEbwiyj5tutGqeppLQhxuaXktChuT+YoEdlEC1weKsFgQTovHxmJTPdTXZPMLFRs2NQ4ZLHPpaE+Bbw=
+	t=1777310219; cv=none; b=lnKg7BoxsEj+KpDcf/oALBrXT1ccTPBpkTI3ECVX2s5+j9fNGEdNiRPFZQ8HHDtmvwK+7jcFnrgXz6RbeU/6P/VLAj5z8DPYqKu0fs6R/6tWQQ0otKZOoYGLjzORJyOu7yinHhzzi5Rz3N/XoPqxUmBTM7+3NcZDBN5Fa5hGw78=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776770577; c=relaxed/simple;
-	bh=7J5sLUyTcEtZ5b/o54KJz2TjlXrWGH0W+oigsdVGJYY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AUgGYf8bFOxHA9Eb/ampr15QFqEmWhSb8pURCrmCmkH/AU7I2IByR3Of9HvBTB+/3/VMFcBHphsCvfk8HUtt4l1xzFT7eGwZiohA4OqmRcrJdLZaJhc9gj0fYyUrUddDSFYyYb3/8w8e4+hVpIZsXjWP67QLsJU4vt5xc4wWzBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lU9jm6kG; arc=none smtp.client-ip=209.85.210.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777310219; c=relaxed/simple;
+	bh=Gdo90UdOw5JDNcbBc6CTpgqBoS99tJWdzzhKt47HDkg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QCWJwhkgyQIPBwW36YBLsUTxKenVr8c/dnY28kBLLI5w/jdSgmUcTrI8h7IRMX6fYYCmnIiH5daNsx88sS8N05ODBVdWNquhCzzZoTW7kiY+fqoobv6Du/Xc5AYtVrf7QCsNShxs3Cx0dwSSwP+bsgcv8u6JdQAck3yTm/GilNE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U2+LLE02; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lU9jm6kG"
-Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-82f943870baso1460245b3a.1
-        for <sparclinux@vger.kernel.org>; Tue, 21 Apr 2026 04:22:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776770574; x=1777375374; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=pbepvZoiaQHnY8ojgGndHUN0tqRJnJo2KRx8HLgDgUI=;
-        b=lU9jm6kGqDjqxIjkWxGDeqDvr17UMQYeVNP9rS5P3UWd7+VE4cpTrRwlYKSpCHI1KD
-         zZA4+dsX0fyXlhWGoGhioT7GlAk6Cad2+kFgyXXf+ZkLjXgYuVSOk6W9JhbsksRhS+cn
-         JjoUEw79Nz86BTgOmxYEMCIS5sQKYiwZ5dfniI9hbARcbUXmygsWFT4/6ZYrU7er4B5b
-         AF39CTz+lEumwPTp8qh8DUlpS3e4Z+amiPfglYGt2PS3FjwfgzzvqXLqKOW/KsOHooqZ
-         aJdiZQCu+ux924UJHp8L48osT1cgJGdd6A/cCTA6wbL1kWXsoMldHo20OThek5XInH4F
-         NHfw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776770574; x=1777375374;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=pbepvZoiaQHnY8ojgGndHUN0tqRJnJo2KRx8HLgDgUI=;
-        b=YkPFf2ZCG9JvsA3R6t3v4ZkEL0oPu6Ouys3UmAAxihnZqbx97boTQh4ZTKe6hXF4Na
-         en5hTbHl19wvoe9W6ekUDrCvIphgy6U0+nS2JJ86rVM9Lok6uC5MWt0My5iJESZ0PFjk
-         4hbbqr7BrwnOzozU+bMrEuh2zcIoXQd7sodYeK9ZZL4gOOSymcHN5w8jtdXZLJIxSOM+
-         WdTe+50r76SmO6MLFUHfxtO2VtGSBbd2gSEfh1ZZZQS+qh1SOTwPip96MYnJ9xtoBAdU
-         3CDvfaup8nRLg/YpZzlGFINFSJvYXawdQGeSQaXg9z3tPM99VMv4xI0sduIFLqQF9T0Q
-         AmMw==
-X-Forwarded-Encrypted: i=1; AFNElJ/90GDXQbAl8qrxpONsFC3JpUB5kwRo7WDuvTS5LAE3bdCndsDT234Lxy1lyxEG/U9ZROtfYQuP6/N5@vger.kernel.org
-X-Gm-Message-State: AOJu0YwSlGRmcNX76uLCBiqx2fsJr+v24Esly0EPSuUsBj+gWx+krFZ/
-	y4We4+Y1Y3TKJMKVFCUPGB/tvpsdJTWvZDEd97EOd1iu/EfCNf2VF/Cg
-X-Gm-Gg: AeBDiethWFTXd4BDgVEsjeIGeRYHseRb8IQlKSpJY9gwrY1FUMfBZl3UqvgS8ry96Ut
-	6d1Uc1RdLYPsy0En0MCCUtu03mf1UBYXWNTc4CgNLBhOTBGIuZKjvlEOKBWcBXIvjFGu78jaIEr
-	ccmFJQLZn9w1DXASGYCph6tQ87C0uRB0gQ+wLoLIMMdeZJbLmnkNzqTiqCNXGHelK/8Yy7Pt/9Q
-	vQYBAprIyqY947X41B5UHO5A0tO9rwYL9AfEuLfil5dm+DWHQSyXpXStkWaOkQnBEd3L4tZ02vE
-	OG1FWePwE4776IjAu7+Ohw2znegK2dFt866yen6q5h9B3OSgicDAD/u7hwPUJRDMn6UvizLz2dE
-	2uPNxvyLjSCmYuDVuiD31R6rz34cFOIwL57VfBqo2Lj0pGPmDvCLKkxjuHa4OY85jPzPPU+ObOZ
-	WlHU/gqEQkLvCsJwObUS3iiCqT5HrpdIvQ20hqQuz+etTrVMdnJScle0vDGljcJRbRbmlnSfcgH
-	gTZhQ==
-X-Received: by 2002:a05:6a00:6988:b0:82f:aae5:c7a9 with SMTP id d2e1a72fcca58-82faae5d438mr7228492b3a.27.1776770573719;
-        Tue, 21 Apr 2026 04:22:53 -0700 (PDT)
-Received: from li-1a3e774c-28e4-11b2-a85c-acc9f2883e29.ibm.com ([129.41.58.4])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82f8e981a0asm14155014b3a.3.2026.04.21.04.22.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 21 Apr 2026 04:22:53 -0700 (PDT)
-Date: Tue, 21 Apr 2026 16:52:37 +0530
-From: Mukesh Kumar Chaurasiya <mkchauras@gmail.com>
-To: Thomas Gleixner <tglx@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, 
-	Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org, Arnd Bergmann <arnd@arndb.de>, 
-	x86@kernel.org, Lu Baolu <baolu.lu@linux.intel.com>, iommu@lists.linux.dev, 
-	Michael Grzeschik <m.grzeschik@pengutronix.de>, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, 
-	Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org, 
-	Vlastimil Babka <vbabka@kernel.org>, linux-mm@kvack.org, David Woodhouse <dwmw2@infradead.org>, 
-	Bernie Thompson <bernie@plugable.com>, linux-fbdev@vger.kernel.org, Theodore Tso <tytso@mit.edu>, 
-	linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, 
-	Uladzislau Rezki <urezki@gmail.com>, Marco Elver <elver@google.com>, 
-	Dmitry Vyukov <dvyukov@google.com>, kasan-dev@googlegroups.com, 
-	Andrey Ryabinin <ryabinin.a.a@gmail.com>, Thomas Sailer <t.sailer@alumni.ethz.ch>, 
-	linux-hams@vger.kernel.org, "Jason A. Donenfeld" <Jason@zx2c4.com>, 
-	Richard Henderson <richard.henderson@linaro.org>, linux-alpha@vger.kernel.org, 
-	Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, 
-	Catalin Marinas <catalin.marinas@arm.com>, Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, linux-m68k@lists.linux-m68k.org, 
-	Dinh Nguyen <dinguyen@kernel.org>, Jonas Bonn <jonas@southpole.se>, linux-openrisc@vger.kernel.org, 
-	Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org, Paul Walmsley <pjw@kernel.org>, 
-	linux-riscv@lists.infradead.org, Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org, 
-	"David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Subject: Re: [patch 33/38] powerpc: Select ARCH_HAS_RANDOM_ENTROPY
-Message-ID: <aedc9UddBSYXzrAj@li-1a3e774c-28e4-11b2-a85c-acc9f2883e29.ibm.com>
-References: <20260410120044.031381086@kernel.org>
- <20260410120319.789114053@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U2+LLE02"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87FE1C2BCB4;
+	Mon, 27 Apr 2026 17:16:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777310218;
+	bh=Gdo90UdOw5JDNcbBc6CTpgqBoS99tJWdzzhKt47HDkg=;
+	h=From:To:Cc:Subject:Date:From;
+	b=U2+LLE02v2RJdGrHn64GqYJdP4+hDdO9CRQcGon9U+fg19LBxhX5PBepS5h9HJCqe
+	 szqGGe/Sn0Ja8ufrVfKBRayklpg7ZNqhD3AjlJFyhWTD2cy+E9nyVtxoXvU6RVePwS
+	 nC/EKNFwPrGycTqEuaSwxvd9NLoS3iznsIjTk0KPgTVc+veLovfoR+uQQZvkXu6BEL
+	 XY5HSP+s8CkmcaZnZCCWlv0qtPkuKqPRoos+3EvmYxD3lbF+eVbofOW/u0ribOc9N6
+	 46gB4iCE7qS4DHXiu+LbPED9AO2rWWkmtG0xffEU92OaQJ+vWiy9PumgjbDE3AiKLE
+	 isfjlgjrnrghg==
+From: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
+To: Yury Norov <ynorov@nvidia.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	David Laight <david.laight.linux@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>
+Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-mips@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	kvm@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	dmaengine@vger.kernel.org,
+	linux-efi@vger.kernel.org,
+	linux-fsi@lists.ozlabs.org,
+	amd-gfx@lists.freedesktop.org,
+	dri-devel@lists.freedesktop.org,
+	intel-gfx@lists.freedesktop.org,
+	linux-wpan@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org,
+	linux-spi@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	linux-staging@lists.linux.dev,
+	linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	xen-devel@lists.xenproject.org,
+	linux-fsdevel@vger.kernel.org,
+	ocfs2-devel@lists.linux.dev,
+	bpf@vger.kernel.org,
+	kasan-dev@googlegroups.com,
+	linux-mm@kvack.org,
+	linux-x25@vger.kernel.org,
+	rust-for-linux@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	sound-open-firmware@alsa-project.org,
+	linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org,
+	linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	linux-arch@vger.kernel.org
+Subject: [RFC PATCH v1 0/9] uaccess: Convert small fixed size copy_{to/from}_user() to scoped user access
+Date: Mon, 27 Apr 2026 19:13:41 +0200
+Message-ID: <cover.1777306795.git.chleroy@kernel.org>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260410120319.789114053@kernel.org>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=7253; i=chleroy@kernel.org; h=from:subject:message-id; bh=Gdo90UdOw5JDNcbBc6CTpgqBoS99tJWdzzhKt47HDkg=; b=owGbwMvMwCV2d0KB2p7V54MZT6slMWS+nxkaMinl/6P42P3bc0Qj3v7nk1G4YbGg/rEse+BPv 7e7BNgWdJSyMIhxMciKKbIc/8+9a0bXl9T8qbv0YeawMoEMYeDiFICJRDExMmwV0vIK89sWnHjX Y4WN3O+gaTyvmP0m2koKTvi9YNORsocM/wPkn2xoM0q8N63lWvLNy/m/speGuG7LLGiQ1I6bVSB dxgQA
+X-Developer-Key: i=chleroy@kernel.org; a=openpgp; fpr=10FFE6F8B390DE17ACC2632368A92FEB01B8DD78
+Content-Transfer-Encoding: 8bit
 
-On Fri, Apr 10, 2026 at 02:21:09PM +0200, Thomas Gleixner wrote:
-> The only remaining usage of get_cycles() is to provide random_get_entropy().
-> 
-> Switch powerpc over to the new scheme of selecting ARCH_HAS_RANDOM_ENTROPY
-> and providing random_get_entropy() in asm/random.h.
-> 
-> Remove asm/timex.h as it has no functionality anymore.
-> 
-> Signed-off-by: Thomas Gleixner <tglx@kernel.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: linuxppc-dev@lists.ozlabs.org
-> ---
->  arch/powerpc/Kconfig              |    1 +
->  arch/powerpc/include/asm/random.h |   13 +++++++++++++
->  arch/powerpc/include/asm/timex.h  |   21 ---------------------
->  3 files changed, 14 insertions(+), 21 deletions(-)
-> 
-> --- a/arch/powerpc/Kconfig
-> +++ b/arch/powerpc/Kconfig
-> @@ -150,6 +150,7 @@ config PPC
->  	select ARCH_HAS_PREEMPT_LAZY
->  	select ARCH_HAS_PTDUMP
->  	select ARCH_HAS_PTE_SPECIAL
-> +	select ARCH_HAS_RANDOM_ENTROPY
->  	select ARCH_HAS_SCALED_CPUTIME		if VIRT_CPU_ACCOUNTING_NATIVE && PPC_BOOK3S_64
->  	select ARCH_HAS_SET_MEMORY
->  	select ARCH_HAS_STRICT_KERNEL_RWX	if (PPC_BOOK3S || PPC_8xx) && !HIBERNATION
-> --- /dev/null
-> +++ b/arch/powerpc/include/asm/random.h
-> @@ -0,0 +1,13 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +#ifndef _ASM_POWERPC_RANDOM_H
-> +#define _ASM_POWERPC_RANDOM_H
-> +
-> +#include <asm/cputable.h>
-> +#include <asm/vdso/timebase.h>
-> +
-> +static inline unsigned long random_get_entropy(void)
-> +{
-> +	return mftb();
-> +}
-> +
-> +#endif	/* _ASM_POWERPC_RANDOM_H */
-> --- a/arch/powerpc/include/asm/timex.h
-> +++ b/arch/powerpc/include/asm/timex.h
-> @@ -1,21 +0,0 @@
-> -/* SPDX-License-Identifier: GPL-2.0 */
-> -#ifndef _ASM_POWERPC_TIMEX_H
-> -#define _ASM_POWERPC_TIMEX_H
-> -
-> -#ifdef __KERNEL__
-> -
-> -/*
-> - * PowerPC architecture timex specifications
-> - */
-> -
-> -#include <asm/cputable.h>
-> -#include <asm/vdso/timebase.h>
-> -
-> -ostatic inline cycles_t get_cycles(void)
-> -{
-R> -	return mftb();
-> -}
-> -#define get_cycles get_cycles
-> -
-> -#endif	/* __KERNEL__ */
-> -#endif	/* _ASM_POWERPC_TIMEX_H */
-> 
-Build tested for this series with allmodconfig and allyesconfig on ppc64le
-machine for ppc64le.
-tree: git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel.git getcycles-v1
+A lot of copy_from_user() and copy_to_user() perform copies of small
+fixed size pieces of data between kernel and userspace, and don't
+care about partial copies.
 
-Boot tested for this series on powernv9 qemu, powernv10 qemu and pSeries
-power11 hardware.
+copy_from_user() and copy_to_user() are big functions optimised for
+copying large amount of data, with cache management, etc ... This is
+often overkill for small copies that could just be inlined instead.
 
-Tested-by: Mukesh Kumar Chaurasiya (IBM) <mkchauras@gmail.com>
-Reviewed-by: Mukesh Kumar Chaurasiya (IBM) <mkchauras@gmail.com>
+What makes things a bit more tricky is that those copy functions
+are designed to handle partial copies in case of page fault. But among
+the 6000 callers of those functions, only 2% really care about the
+quantity of no-copied data that those functions return. All other ones
+fails as soon as the returned value is not 0, returning -EACCESS.
+
+So first step in this series is to introduce variants called
+copy_from_user_partial() and copy_to_user_partial() which will be
+called by the 2% users that care about the partial copy, then the
+original copy_from_user() and copy_to_user() are changed to return
+-EFAULT when the copy fails.
+
+Then the second step is to implement copy of small fixed-size data
+with scoped user access instead of calling the arch specific heavy
+user copy functions.
+
+Patch 5, can be split in different patches for each archicture or
+subsystem, but let's get a first feedback and agree on the principle.
+
+Christophe Leroy (CS GROUP) (9):
+  uaccess: Split check_zeroed_user() out of usercopy.c
+  uaccess: Convert INLINE_COPY_{TO/FROM}_USER to kconfig and reduce
+    ifdefery
+  x86/umip: Be stricter in fixup_umip_exception()
+  uaccess: Introduce copy_{to/from}_user_partial()
+  uaccess: Switch to copy_{to/from}_user_partial() when relevant
+  uaccess: Change copy_{to/from}_user to return -EFAULT
+  x86: Add unsafe_copy_from_user()
+  arm64: Add unsafe_copy_from_user()
+  uaccess: Convert small fixed size copy_{to/from}_user() to scoped user
+    access
+
+ arch/alpha/Kconfig                            |   1 +
+ arch/alpha/kernel/osf_sys.c                   |   4 +-
+ arch/alpha/kernel/termios.c                   |   2 +-
+ arch/arc/include/asm/uaccess.h                |   3 -
+ arch/arc/kernel/disasm.c                      |   2 +-
+ arch/arm/include/asm/uaccess.h                |   2 -
+ arch/arm64/include/asm/gcs.h                  |   2 +-
+ arch/arm64/include/asm/uaccess.h              |  30 +++--
+ arch/arm64/kernel/signal32.c                  |   2 +-
+ arch/csky/Kconfig                             |   1 +
+ arch/hexagon/include/asm/uaccess.h            |   3 -
+ arch/loongarch/include/asm/uaccess.h          |   3 -
+ arch/m68k/include/asm/uaccess.h               |   3 -
+ arch/microblaze/include/asm/uaccess.h         |   2 -
+ arch/mips/include/asm/uaccess.h               |   3 -
+ arch/mips/kernel/rtlx.c                       |   8 +-
+ arch/mips/kernel/vpe.c                        |   2 +-
+ arch/nios2/include/asm/uaccess.h              |   2 -
+ arch/openrisc/include/asm/uaccess.h           |   2 -
+ arch/parisc/include/asm/uaccess.h             |   3 -
+ arch/powerpc/Kconfig                          |   1 +
+ arch/powerpc/kvm/book3s_64_mmu_hv.c           |   4 +-
+ arch/powerpc/kvm/book3s_64_mmu_radix.c        |   4 +-
+ arch/powerpc/kvm/book3s_hv.c                  |   2 +-
+ arch/riscv/Kconfig                            |   1 +
+ arch/riscv/kernel/signal.c                    |   2 +-
+ arch/s390/include/asm/idals.h                 |   8 +-
+ arch/s390/include/asm/uaccess.h               |   3 -
+ arch/sh/include/asm/uaccess.h                 |   2 -
+ arch/sparc/include/asm/uaccess_32.h           |   3 -
+ arch/sparc/include/asm/uaccess_64.h           |   2 -
+ arch/sparc/kernel/termios.c                   |   2 +-
+ arch/um/include/asm/uaccess.h                 |   3 -
+ arch/um/kernel/process.c                      |   2 +-
+ arch/x86/Kconfig                              |   1 +
+ arch/x86/include/asm/uaccess.h                |  29 ++++-
+ arch/x86/kernel/umip.c                        |   2 +-
+ arch/x86/lib/insn-eval.c                      |   2 +-
+ arch/x86/um/signal.c                          |   2 +-
+ arch/xtensa/include/asm/uaccess.h             |   2 -
+ drivers/android/binder_alloc.c                |   2 +-
+ drivers/comedi/comedi_fops.c                  |   4 +-
+ drivers/dma/idxd/cdev.c                       |   2 +-
+ drivers/firmware/efi/test/efi_test.c          |   2 +-
+ drivers/fsi/fsi-scom.c                        |   2 +-
+ .../amd/display/amdgpu_dm/amdgpu_dm_debugfs.c |   2 +-
+ drivers/gpu/drm/i915/gt/intel_sseu.c          |   4 +-
+ drivers/gpu/drm/i915/i915_gem.c               |   4 +-
+ drivers/hwtracing/intel_th/msu.c              |   2 +-
+ drivers/misc/ibmvmc.c                         |   2 +-
+ drivers/misc/vmw_vmci/vmci_host.c             |   2 +-
+ drivers/most/most_cdev.c                      |   2 +-
+ drivers/net/ieee802154/ca8210.c               |   4 +-
+ drivers/net/wireless/ath/wil6210/debugfs.c    |   2 +-
+ .../intel/iwlwifi/pcie/gen1_2/trans.c         |   2 +-
+ drivers/net/wireless/ti/wlcore/debugfs.c      |   2 +-
+ drivers/ps3/ps3-lpm.c                         |   2 +-
+ drivers/s390/crypto/zcrypt_api.h              |   4 +-
+ drivers/spi/spidev.c                          |   2 +-
+ .../staging/media/atomisp/pci/atomisp_cmd.c   |   8 +-
+ drivers/tty/tty_ioctl.c                       |  14 +--
+ drivers/tty/vt/vc_screen.c                    |   4 +-
+ drivers/usb/gadget/function/f_hid.c           |   4 +-
+ drivers/usb/gadget/function/f_printer.c       |   2 +-
+ drivers/vfio/vfio_iommu_type1.c               |   4 +-
+ drivers/xen/xenbus/xenbus_dev_frontend.c      |   2 +-
+ fs/namespace.c                                |   2 +-
+ fs/ocfs2/dlmfs/dlmfs.c                        |   2 +-
+ fs/proc/base.c                                |   4 +-
+ include/asm-generic/uaccess.h                 |   2 -
+ include/linux/bpfptr.h                        |   2 +-
+ include/linux/sockptr.h                       |   4 +-
+ include/linux/uaccess.h                       | 107 ++++++++++++++----
+ ipc/msg.c                                     |   8 +-
+ ipc/sem.c                                     |   8 +-
+ ipc/shm.c                                     |  18 +--
+ kernel/regset.c                               |   2 +-
+ kernel/sys.c                                  |   4 +-
+ lib/Kconfig                                   |   3 +
+ lib/Makefile                                  |   4 +-
+ lib/kfifo.c                                   |   8 +-
+ lib/{usercopy.c => usercheck.c}               |  22 ----
+ lib/usercopy.c                                |  66 -----------
+ mm/kasan/kasan_test_c.c                       |   4 +-
+ mm/memory.c                                   |   2 +-
+ net/x25/af_x25.c                              |   2 +-
+ rust/helpers/uaccess.c                        |   6 +-
+ sound/pci/emu10k1/emufx.c                     |   4 +-
+ sound/pci/rme9652/hdsp.c                      |   6 +-
+ sound/soc/intel/avs/probes.c                  |   6 +-
+ sound/soc/sof/compress.c                      |  12 +-
+ sound/soc/sof/sof-client-probes.c             |   6 +-
+ 92 files changed, 269 insertions(+), 288 deletions(-)
+ copy lib/{usercopy.c => usercheck.c} (73%)
+
+-- 
+2.49.0
 
