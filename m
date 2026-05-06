@@ -1,75 +1,70 @@
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A06823AB87
-	for <sparclinux@vger.kernel.org>; Wed,  6 May 2026 03:18:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FBB614B977;
+	Wed,  6 May 2026 12:16:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778037515; cv=none; b=ZSJgHXDKICPTH9Ui9sBpwjIczoZrYkHPwV3uuAcuUPooLeR4EnLI0xn+jyy/wDBZ1+YeqcF4d/vtsszyVicG3sFWv8ENAQ6kWDD07+7lXIj/DknETIgQqY4kePQ7dN+Spnw/oawRRhKJFdER32OazFLHFr0a6+CavrOBzxCeLzA=
+	t=1778069770; cv=none; b=W3rfhIq9vxUODQJF3DTDr2itiaFSDDaja/cja/vQAIMQNUTuteOgUfPXP0tdxZI88NHauh4K+Wfyr5fyCUbLTpzH4xuhODIf9yZvxHO95/Eumt4acGzCy0WUZah4EXbNFff24nrxH1EeRGU5B7znD/QnYuQeOIBG5aA5bkZDoVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778037515; c=relaxed/simple;
-	bh=oFW9BUX/4Mla/eO++X5alZMZn6T/UsyDMMSKbSQM2go=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=A5cBEifCAr4Y/pEPT+E+vQRXMlvDSQfzKXiDQMMWqM9ouO98WK16RUhfg3U8rcHEKb3WRWcupmnUHz4lF1paV2GpfMAQl88rXJNNoNb2n0QySFXoE7wGmKXirpnWthPWSWjnmUcV2otZCv5E+y2zOjrOGUdIoW5xKWWr9p+/N5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lj22HMkk; arc=none smtp.client-ip=209.85.214.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1778069770; c=relaxed/simple;
+	bh=x+Bc1kuWG1hcJxmVzrQn0qSYj0iUKEhtmICqJ94J7uo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=r/TLj9ulTaYXaTmVXz355fLziJvgL3JPX8DOrng6NQuqjfxLcJsqjwxx7600k0M4LqbHavVKKorTDlr8Aizwsr/73967PEkFR8KMrPKhVPrGjpx7PziX69hGt56ECfjE4aOsqbCUl43AB2sttWm7Ha43Qab49lPZCRatrVRZjDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=KEZNfb6a; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=HDAiL6vd; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lj22HMkk"
-Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2a871daa98fso35588115ad.1
-        for <sparclinux@vger.kernel.org>; Tue, 05 May 2026 20:18:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778037514; x=1778642314; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=4yyAt6acVktoGggLFhfqeecMgUcwrLK8LmcMk1I0ocs=;
-        b=lj22HMkk8HAPuLChDT2OyDzHD6YZ1xUn7WBYaFXU0XhL2tiw6P1tg72DCtOSMWMWyJ
-         SPlLPZqRZnjm2IZWNRzxJCszId7YAwXs/20sezGakPSoclBQ2pl5moBXJOyVLQ/27Bwb
-         sVdZnKSwogguNgugj6ZVBOqlRBG5mu4HmGiyq1kMfyS2DlTolerZT1r9Ev9h47LtEf7O
-         j/HUBrNI4SjQdYKySofmqv1/AA7THgRHU+yZf+ckZn/9KFYczJ1ahM6OB8p8B9GnhowA
-         aGYtIMAOFjIW7S5rIkfJnUfnw2Sxg0ppSDF8VVrjFJjyqEFuw/+MrvWSHBJipXxHAH4+
-         3+kg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778037514; x=1778642314;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4yyAt6acVktoGggLFhfqeecMgUcwrLK8LmcMk1I0ocs=;
-        b=YZnUKq9qB5UzZtcX/rKFT7NPy00RmhyAY44/ygD3EfKRFfbJmtgSnyQjU70UulJWjp
-         karv5fYjeQDctH9ZI0FH2ohlTQK9wPpyGREkuauUkQdo0A9AwDZe49trtlyWY7sdcc6g
-         VdFxY5o4AJUzr4ehGJ1bCivz5tLiLPPINR9z/tbfbouah2q5J12X1jdAQ3jPuK4r9AkH
-         gxaT2qwDOCrWGleSxJ4e0TA5TQA8rh+d5iD4aa0MgEBHBXe6L1/8yE45Ah2BO8xFEo0X
-         5HIsgRwS2Zda9Kn0M3c3VayLlL8KCreXJRyyZZbZ70/Evq/eIqmXV92BGm4tMPT6lJHx
-         /GAQ==
-X-Forwarded-Encrypted: i=1; AFNElJ/Xl5aMO40jd4Q1Y4WQE8GDXoLqFJIJfyFTmcd0AQSEwAsMWDh1TR4KzeJQfALdM/pvTTd6SJwXY106@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw2OdTxbyoAyyAg7PUglmgQBd3b7gaMXZdISQRagOwXahbd2WjT
-	6IgL9sVzLkLD9ie0YTN30X3u/ZgIatLMd6ecyf1hxBpBWK6J4SH/9t6wWqeFUxzx
-X-Gm-Gg: AeBDievRYjq+L3Z4iyYv5yfADlLA79obnUuBj8gQrB20xYlDen6JnrhCG3//xjeK+tf
-	GMVfrNW27qo4xdc9Ej5Ew31DTqTXXmOljmDZ/Hr3pWOzS5ZWum5MwT/H9mij99oLnMuy5wp6kEx
-	w3D3ObL4e+fMyCXOelfzzRSin+7v05t2ICfPvEuGJvTh6yWLILCNCX68Rc3UmaGoVk1uRhOfrbD
-	+vkFsAbPdZRC0M+zGlEk0uX3Bxez51WU7DGmEfY8bP6RgnBDLTJn+TiFOH1R/Saa/ghJ5dlwnb4
-	zv1W3ccflRoqk+eQpJFSM/FAI4E5H53wZuorHokC05KkV1DzV6UKiEFlH6r5HPaTtgSVkbSqzpi
-	0QNzjWDOI8hswmZUPrUXiTa/pcvRyCvgurm/OPyrRFtpomaQSu4QwQsZeCp6HiPQwxpXKCB2Rs8
-	3nluLDej6VaK9PfOpAuDfwIDeFvxWQ4mZEdx9T+L47dwZy9oSqCiuKKqzHE8VT73lV8I1kuZpT1
-	OxVhONiFZ0eOXlh42RZKhdL573KUfs744H2qYJs3ndjCEPuDtUj1ye5
-X-Received: by 2002:a17:902:74c2:b0:2ba:7354:7299 with SMTP id d9443c01a7336-2ba79bdb06emr11493905ad.27.1778037513560;
-        Tue, 05 May 2026 20:18:33 -0700 (PDT)
-Received: from ryzen ([2601:644:8000:5b5d:7285:c2ff:fe45:8a32])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ba7bf330a0sm7799985ad.31.2026.05.05.20.18.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 May 2026 20:18:32 -0700 (PDT)
-From: Rosen Penev <rosenp@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: Masami Hiramatsu <mhiramat@kernel.org>,
-	Oleg Nesterov <oleg@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="KEZNfb6a";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="HDAiL6vd"
+From: John Ogness <john.ogness@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1778069767;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=+1/uCUb/9Eo1Px+rgMFN1iRosL2spXsTi3KsPZ1F3xA=;
+	b=KEZNfb6au2XwQeEEi0swhycY4FJgNVfQtWY/FhK/yCoI3hSDLSwaRRZI7RlzCEMExUQY7f
+	T+QvDlQipN8FjeKi9rITCGTCItHT1Du7tdlSvZgdhQ74eu9zdcBtt8pwU8sOJ181n2cmw8
+	J9/k9sA5/zZtm5ooh/ksw3AgrucA71XVof7sdGHN+LWlrg0VV3tte3HlksbB5VLszGhz28
+	H4IgGvitX+Dn21W9SBCcjK0JOXsIi/JrEVu6xlth/4EHNuMcc01rZuEvaxqYBbT1EoX7Cs
+	d0OeQzL+2UoVRxfvwy9zy3ryLgFelOU8Zr/F5jtXA+rwQit7NsJnRKlvKmc2QA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1778069767;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=+1/uCUb/9Eo1Px+rgMFN1iRosL2spXsTi3KsPZ1F3xA=;
+	b=HDAiL6vdcaFMCJJ0GmldyQzwhs3/86r20VaemvAKGIZwBdTF4E/PwfsT+zLFPFOhI9PuXQ
+	Bfk90npEht4yNjAQ==
+To: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	Alim Akhtar <alim.akhtar@samsung.com>,
 	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	linux-trace-kernel@vger.kernel.org (open list:UPROBES),
-	sparclinux@vger.kernel.org (open list:SPARC + UltraSPARC (sparc/sparc64))
-Subject: [PATCH] sparc64: uprobes: add missing break
-Date: Tue,  5 May 2026 20:18:15 -0700
-Message-ID: <20260506031815.779909-1-rosenp@gmail.com>
-X-Mailer: git-send-email 2.54.0
+	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Thomas Fourier <fourier.thomas@gmail.com>,
+	Kees Cook <kees@kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	Biju Das <biju.das.jz@bp.renesas.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+	Thierry Bultel <thierry.bultel.yh@bp.renesas.com>,
+	Osama Abdelkader <osama.abdelkader@gmail.com>,
+	Ingo Molnar <mingo@kernel.org>,
+	Xin Zhao <jackzxcui1989@163.com>,
+	Joseph Tilahun <jtilahun@astranis.com>,
+	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
+	Lukas Wunner <lukas@wunner.de>,
+	"Dr. David Alan Gilbert" <linux@treblig.org>
+Subject: [PATCH tty v4 0/6] 8250: Add console flow control
+Date: Wed,  6 May 2026 14:21:55 +0206
+Message-ID: <20260506121606.5805-1-john.ogness@linutronix.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -78,33 +73,116 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Missing fallthrough causes failure with newer compilers:
+Hi,
 
-arch/sparc/kernel/uprobes.c:284:2: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
-  284 |         default:
-      |         ^
-arch/sparc/kernel/uprobes.c:284:2: note: insert 'break;' to avoid fall-through
-  284 |         default:
-      |         ^
-      |         break;
+This is v4 of a series to implement console flow control for the
+8250 serial driver. v3 is here [0].
 
-Signed-off-by: Rosen Penev <rosenp@gmail.com>
----
- arch/sparc/kernel/uprobes.c | 1 +
- 1 file changed, 1 insertion(+)
+The 8250 driver already has code in place to support console flow
+control. However, there is no way to activate it and it is
+incomplete. This series provides the necessary missing pieces while
+attempting to be as conservative as possible, so as not to introduce
+any side effects into the many 8250 variants or other non-8250 serial
+drivers.
 
-diff --git a/arch/sparc/kernel/uprobes.c b/arch/sparc/kernel/uprobes.c
-index 305017bec164..c8cac64e9988 100644
---- a/arch/sparc/kernel/uprobes.c
-+++ b/arch/sparc/kernel/uprobes.c
-@@ -280,6 +280,7 @@ int arch_uprobe_exception_notify(struct notifier_block *self,
- 	case DIE_SSTEP:
- 		if (uprobe_post_sstep_notifier(args->regs))
- 			ret = NOTIFY_STOP;
-+		break;
- 
- 	default:
- 		break;
+For patch 2 I used the following Coccinelle script to perform the
+modifications...
+
+===== BEGIN cons_flow.cocci =====
+// SPDX-License-Identifier: GPL-2.0-only
+// Options: --all-includes
+
+virtual patch
+
+@r1@
+type T1;
+identifier U;
+@@
+
+T1 {
+   ...
+   struct uart_port U;
+   ...
+};
+
+@r2@
+r1.T1 *E;
+@@
+
+- (E->port.flags & UPF_CONS_FLOW)
++ uart_cons_flow_enabled(&E->port)
+
+@r3@
+struct uart_port *U;
+@@
+
+- (U->flags & UPF_CONS_FLOW)
++ uart_cons_flow_enabled(U)
+
+@r4@
+struct uart_port *U;
+@@
+
+- U->flags |= UPF_CONS_FLOW
++ uart_set_cons_flow_enabled(U, true)
+===== END cons_flow.cocci =====
+
+Changes for v4:
+
+- Rename uart_get_cons_flow() to uart_cons_flow_enabled().
+
+- Rename uart_set_cons_flow() to uart_set_cons_flow_enabled().
+
+Changes for v3:
+
+- Deprecate UPF_CONS_FLOW. Provide separate boolean with wrappers as
+  alternative.
+
+- Update all UPF_CONS_FLOW users to new cons_flow wrappers.
+
+- Use irqsave variant of spin lock for status update.
+
+- When 8250 console flow control is not specified, clear the policy.
+
+Changes for v2:
+
+- Prepend a patch to perform an extra LSR wait after CTS assertion if
+  the initial LSR wait timed out.
+
+- Close a window in serial8250_register_8250_port() where console
+  flow control was briefly disabled.
+
+- Add port lock synchronization to the port->status RMW update in
+  uart_set_options().
+
+John Ogness
+
+[0] https://lore.kernel.org/lkml/20260417102423.40984-1-john.ogness@linutronix.de
+
+John Ogness (6):
+  serial: core: Add dedicated uart_port field for console flow
+  serial: Replace driver usage of UPF_CONS_FLOW
+  serial: sh-sci: Avoid deprecated UPF_CONS_FLOW
+  serial: 8250: Set cons_flow on port registration
+  serial: 8250: Check LSR timeout on console flow control
+  serial: 8250: Add support for console flow control
+
+ drivers/tty/serial/8250/8250_core.c |  6 ++++++
+ drivers/tty/serial/8250/8250_port.c | 21 +++++++++++++++++----
+ drivers/tty/serial/bcm63xx_uart.c   |  2 +-
+ drivers/tty/serial/omap-serial.c    |  2 +-
+ drivers/tty/serial/pch_uart.c       |  2 +-
+ drivers/tty/serial/pxa.c            |  2 +-
+ drivers/tty/serial/samsung_tty.c    |  8 ++++----
+ drivers/tty/serial/serial_core.c    | 21 ++++++++++++++++++++-
+ drivers/tty/serial/serial_txx9.c    |  4 ++--
+ drivers/tty/serial/sh-sci.c         |  5 ++++-
+ drivers/tty/serial/sunsu.c          |  2 +-
+ include/linux/serial_core.h         | 20 ++++++++++++++++++++
+ 12 files changed, 78 insertions(+), 17 deletions(-)
+
+
+base-commit: a2083fd1fa7aa0ef5cd8fd92396da0de2d0654b0
 -- 
-2.54.0
+2.47.3
 
