@@ -1,71 +1,75 @@
-Received: from mail-dl1-f65.google.com (mail-dl1-f65.google.com [74.125.82.65])
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFFEA42AB7
-	for <sparclinux@vger.kernel.org>; Tue,  5 May 2026 00:09:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A06823AB87
+	for <sparclinux@vger.kernel.org>; Wed,  6 May 2026 03:18:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777939769; cv=none; b=UW+YpKLpy8T8RJBWlsL0LN41X8++Ubfmz5EvnUGCuKCLeqnUGFspiYzuPCf4MZ8Cynpc71ejTifDIblWB7TgiivEo3c44ZX6LZzaqPVHOleTDqxA3Lmu7JGVKujIG4lww/R/L08lm4hsS9ioOkzIPjq4b+EW6h3ybrrf2QAu8WM=
+	t=1778037515; cv=none; b=ZSJgHXDKICPTH9Ui9sBpwjIczoZrYkHPwV3uuAcuUPooLeR4EnLI0xn+jyy/wDBZ1+YeqcF4d/vtsszyVicG3sFWv8ENAQ6kWDD07+7lXIj/DknETIgQqY4kePQ7dN+Spnw/oawRRhKJFdER32OazFLHFr0a6+CavrOBzxCeLzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777939769; c=relaxed/simple;
-	bh=ffdFtLX0QriqrCpK5790vZSF1WkZbc+9EpOUnwocJj0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=G8+ATi1+pg3FTuu6rtRveDXrLiR6XQI44QUWLMHoLXoGTSTWuameXpybOE2EGIKz2c2hf+pGsqzqvTvl8v9wGPNVusEpkG89tmwYFUrH3FO1tRoVFN6MbDCwt07bwd1tTTZlmh2qnbPguzwZtEmXu426hMkHOi+xiC20gkJEJ0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=O8PjGcf4; arc=none smtp.client-ip=74.125.82.65
+	s=arc-20240116; t=1778037515; c=relaxed/simple;
+	bh=oFW9BUX/4Mla/eO++X5alZMZn6T/UsyDMMSKbSQM2go=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=A5cBEifCAr4Y/pEPT+E+vQRXMlvDSQfzKXiDQMMWqM9ouO98WK16RUhfg3U8rcHEKb3WRWcupmnUHz4lF1paV2GpfMAQl88rXJNNoNb2n0QySFXoE7wGmKXirpnWthPWSWjnmUcV2otZCv5E+y2zOjrOGUdIoW5xKWWr9p+/N5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lj22HMkk; arc=none smtp.client-ip=209.85.214.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O8PjGcf4"
-Received: by mail-dl1-f65.google.com with SMTP id a92af1059eb24-12c19d23b19so6817079c88.0
-        for <sparclinux@vger.kernel.org>; Mon, 04 May 2026 17:09:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lj22HMkk"
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2a871daa98fso35588115ad.1
+        for <sparclinux@vger.kernel.org>; Tue, 05 May 2026 20:18:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777939767; x=1778544567; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778037514; x=1778642314; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=6SiGGmk1W7rGOAmTgu0wNG7K88mTT/h+RH+oM7T/g74=;
-        b=O8PjGcf46TLb6NR649Xh5ZTyga/BCn1dT8nl5CARSadrx5YRodCvITbEa7F/CX0A5k
-         rikYDCFuYllT3k33AeR8qPVfo7nZXmhH6/1KP45hllRnACepEJB0xZG430YY/etYkXrp
-         O5fgGRSSqMuB5nqKEc65wHs2orGMfc0WYy2la/Ty/k3ZqbanbAy7eJJuy+XEw0PzP8rS
-         c/YafPEReYxbRWoYfIMPRn0YXRh0Qf+hYeNy/F+7KOOCScfi2O1DACm36jY0qGasIKZ7
-         oaZ3b5HqaoOUztq5P6vd+ZJyRNnvLgVTQVRkMyy/nSWpiQPz8AeMRw/1RpASh33Ep+bK
-         p9zw==
+        bh=4yyAt6acVktoGggLFhfqeecMgUcwrLK8LmcMk1I0ocs=;
+        b=lj22HMkk8HAPuLChDT2OyDzHD6YZ1xUn7WBYaFXU0XhL2tiw6P1tg72DCtOSMWMWyJ
+         SPlLPZqRZnjm2IZWNRzxJCszId7YAwXs/20sezGakPSoclBQ2pl5moBXJOyVLQ/27Bwb
+         sVdZnKSwogguNgugj6ZVBOqlRBG5mu4HmGiyq1kMfyS2DlTolerZT1r9Ev9h47LtEf7O
+         j/HUBrNI4SjQdYKySofmqv1/AA7THgRHU+yZf+ckZn/9KFYczJ1ahM6OB8p8B9GnhowA
+         aGYtIMAOFjIW7S5rIkfJnUfnw2Sxg0ppSDF8VVrjFJjyqEFuw/+MrvWSHBJipXxHAH4+
+         3+kg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777939767; x=1778544567;
+        d=1e100.net; s=20251104; t=1778037514; x=1778642314;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=6SiGGmk1W7rGOAmTgu0wNG7K88mTT/h+RH+oM7T/g74=;
-        b=dnBfv0fhJx4AEM2s0Goq9yqKfmvIfBXtZwv8h7exNyyZ14T68vjBYOzkQzmtthLNA3
-         IlhHBBLDNYZW5hhLbTJOg4puHa6kgtqZaSuw4Esbu87pqSnBGetW6ONr4s2Kv5BOFY65
-         7h18kTcle1QGACZFU9KMiQ0tQaYj+q4uH1Qguq2gpseLD30a/aZIYBR4hCTLUbZAclPm
-         ybjtk+Z+TbaT3g6WmGVk2vU421iXWvCT3LUBwb2HQ8reOJiU4vwIjQrNVPXgJ/53+hLZ
-         BC/JCxBLR0V4p5n9HovQHq9NNAgpTl1qlowHxOIv2N2j37YvD4QnhdYj/7EiQ3VxuoE8
-         FK9w==
-X-Gm-Message-State: AOJu0Yw/ce3JdqFvlo4P6twZjbp72GfiYNbrvS4DFk+0/NAr0IXWhewK
-	zLd63m+bFyQPdG3XVbUMZuLY+FWh66lQb83+9uzCN677n9OVCjkuWq4I9WZBmtiN
-X-Gm-Gg: AeBDievgLJRMqjZkpQt9leBzjM6qhTlFe1mHR2DcS1gAB+CPYSvvmoe3LBw99jRDXsE
-	hQ6q4bEFv7yo4MAhG0OMFE1LNvyDpqyEbE0oNhBLp3vJMByGj+RUxRzFvec62zrvHpQnI8WgELb
-	sHP9C/DPR1wZPoQbXTMmFKaEw9FLAO0w3oHpCf1zBtJ5di/uYd1qpUhKa6/MfO15S99dRAhxRRE
-	ustF0k4AmF+5Y4EdranwVRdfx8Zw71G9irIc5GIcWOrxC3dVVWhO6HdOFUtAA51a7IFwXzfxfXk
-	KYdVZ+TWvcfupUCTqpg2kKaqp1wnhHnuPk2BEXqxnvgA5GPXuoNo8XHrQOugFV+aOzhHH2T2hqO
-	ccmYboTi4tC4JmOLkdxCKSN8Wjdnvp6gBHg4Kxr6/Ojmlfdf/US36Ia1f6gNNbA99QdjqyfpjZF
-	pdmMeBwD6GG+C8lEcHYapBfedVXQwtQFWGiHDqJV0YmYL2RgqC3mYPIsMZHCjZNeRDbi+Cr99Lz
-	aY3iYILG0G9DTrh6MzlbqzdJFc/kkbbGKqIjkAK2WxdadL6DXTgb/Lbb1wplgd5kM0Rix3PmaAJ
-	SbMJvN5K93YpzEgp/Sw/53go3/WK
-X-Received: by 2002:a05:7022:b8f:b0:128:d577:dc21 with SMTP id a92af1059eb24-12dfd7bd8fcmr4329561c88.13.1777939766982;
-        Mon, 04 May 2026 17:09:26 -0700 (PDT)
-Received: from ethan-latitude5420.. (host-127-24.cafrjco.fresno.ca.us.clients.pavlovmedia.net. [68.180.127.24])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12df82a141asm20608603c88.8.2026.05.04.17.09.26
+        bh=4yyAt6acVktoGggLFhfqeecMgUcwrLK8LmcMk1I0ocs=;
+        b=YZnUKq9qB5UzZtcX/rKFT7NPy00RmhyAY44/ygD3EfKRFfbJmtgSnyQjU70UulJWjp
+         karv5fYjeQDctH9ZI0FH2ohlTQK9wPpyGREkuauUkQdo0A9AwDZe49trtlyWY7sdcc6g
+         VdFxY5o4AJUzr4ehGJ1bCivz5tLiLPPINR9z/tbfbouah2q5J12X1jdAQ3jPuK4r9AkH
+         gxaT2qwDOCrWGleSxJ4e0TA5TQA8rh+d5iD4aa0MgEBHBXe6L1/8yE45Ah2BO8xFEo0X
+         5HIsgRwS2Zda9Kn0M3c3VayLlL8KCreXJRyyZZbZ70/Evq/eIqmXV92BGm4tMPT6lJHx
+         /GAQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/Xl5aMO40jd4Q1Y4WQE8GDXoLqFJIJfyFTmcd0AQSEwAsMWDh1TR4KzeJQfALdM/pvTTd6SJwXY106@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw2OdTxbyoAyyAg7PUglmgQBd3b7gaMXZdISQRagOwXahbd2WjT
+	6IgL9sVzLkLD9ie0YTN30X3u/ZgIatLMd6ecyf1hxBpBWK6J4SH/9t6wWqeFUxzx
+X-Gm-Gg: AeBDievRYjq+L3Z4iyYv5yfADlLA79obnUuBj8gQrB20xYlDen6JnrhCG3//xjeK+tf
+	GMVfrNW27qo4xdc9Ej5Ew31DTqTXXmOljmDZ/Hr3pWOzS5ZWum5MwT/H9mij99oLnMuy5wp6kEx
+	w3D3ObL4e+fMyCXOelfzzRSin+7v05t2ICfPvEuGJvTh6yWLILCNCX68Rc3UmaGoVk1uRhOfrbD
+	+vkFsAbPdZRC0M+zGlEk0uX3Bxez51WU7DGmEfY8bP6RgnBDLTJn+TiFOH1R/Saa/ghJ5dlwnb4
+	zv1W3ccflRoqk+eQpJFSM/FAI4E5H53wZuorHokC05KkV1DzV6UKiEFlH6r5HPaTtgSVkbSqzpi
+	0QNzjWDOI8hswmZUPrUXiTa/pcvRyCvgurm/OPyrRFtpomaQSu4QwQsZeCp6HiPQwxpXKCB2Rs8
+	3nluLDej6VaK9PfOpAuDfwIDeFvxWQ4mZEdx9T+L47dwZy9oSqCiuKKqzHE8VT73lV8I1kuZpT1
+	OxVhONiFZ0eOXlh42RZKhdL573KUfs744H2qYJs3ndjCEPuDtUj1ye5
+X-Received: by 2002:a17:902:74c2:b0:2ba:7354:7299 with SMTP id d9443c01a7336-2ba79bdb06emr11493905ad.27.1778037513560;
+        Tue, 05 May 2026 20:18:33 -0700 (PDT)
+Received: from ryzen ([2601:644:8000:5b5d:7285:c2ff:fe45:8a32])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ba7bf330a0sm7799985ad.31.2026.05.05.20.18.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 May 2026 17:09:26 -0700 (PDT)
-From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
-To: sparclinux@vger.kernel.org
-Cc: Ethan Nelson-Moore <enelsonmoore@gmail.com>,
+        Tue, 05 May 2026 20:18:32 -0700 (PDT)
+From: Rosen Penev <rosenp@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Masami Hiramatsu <mhiramat@kernel.org>,
+	Oleg Nesterov <oleg@redhat.com>,
+	Peter Zijlstra <peterz@infradead.org>,
 	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Subject: [PATCH] sparc: remove unused SERIAL_CONSOLE config option
-Date: Mon,  4 May 2026 17:09:12 -0700
-Message-ID: <20260505000913.25576-1-enelsonmoore@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	Andreas Larsson <andreas@gaisler.com>,
+	linux-trace-kernel@vger.kernel.org (open list:UPROBES),
+	sparclinux@vger.kernel.org (open list:SPARC + UltraSPARC (sparc/sparc64))
+Subject: [PATCH] sparc64: uprobes: add missing break
+Date: Tue,  5 May 2026 20:18:15 -0700
+Message-ID: <20260506031815.779909-1-rosenp@gmail.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -74,50 +78,33 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There are no references to this option in SPARC or
-architecture-independent code. Remove it to simplify the configuration
-process.
+Missing fallthrough causes failure with newer compilers:
 
-Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+arch/sparc/kernel/uprobes.c:284:2: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+  284 |         default:
+      |         ^
+arch/sparc/kernel/uprobes.c:284:2: note: insert 'break;' to avoid fall-through
+  284 |         default:
+      |         ^
+      |         break;
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
 ---
- arch/sparc/Kconfig | 24 ------------------------
- 1 file changed, 24 deletions(-)
+ arch/sparc/kernel/uprobes.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index a6b787efc2c4..fb53b21a8696 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -327,30 +327,6 @@ config SPARC_LED
- 	  by reading /proc/led and its blinking mode can be changed
- 	  via writes to /proc/led
+diff --git a/arch/sparc/kernel/uprobes.c b/arch/sparc/kernel/uprobes.c
+index 305017bec164..c8cac64e9988 100644
+--- a/arch/sparc/kernel/uprobes.c
++++ b/arch/sparc/kernel/uprobes.c
+@@ -280,6 +280,7 @@ int arch_uprobe_exception_notify(struct notifier_block *self,
+ 	case DIE_SSTEP:
+ 		if (uprobe_post_sstep_notifier(args->regs))
+ 			ret = NOTIFY_STOP;
++		break;
  
--config SERIAL_CONSOLE
--	bool
--	depends on SPARC32
--	default y
--	help
--	  If you say Y here, it will be possible to use a serial port as the
--	  system console (the system console is the device which receives all
--	  kernel messages and warnings and which allows logins in single user
--	  mode). This could be useful if some terminal or printer is connected
--	  to that serial port.
--
--	  Even if you say Y here, the currently visible virtual console
--	  (/dev/tty0) will still be used as the system console by default, but
--	  you can alter that using a kernel command line option such as
--	  "console=ttyS1". (Try "man bootparam" or see the documentation of
--	  your boot loader (silo) about how to pass options to the kernel at
--	  boot time.)
--
--	  If you don't have a graphics card installed and you say Y here, the
--	  kernel will automatically use the first serial line, /dev/ttyS0, as
--	  system console.
--
--	  If unsure, say N.
--
- config SPARC_LEON
- 	bool "Sparc Leon processor family"
- 	depends on SPARC32
+ 	default:
+ 		break;
 -- 
-2.43.0
+2.54.0
 
