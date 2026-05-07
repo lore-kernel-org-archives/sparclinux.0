@@ -1,93 +1,142 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6715123D283;
-	Thu,  7 May 2026 01:41:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97F4B19992C;
+	Thu,  7 May 2026 09:50:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778118108; cv=none; b=C017uQKxDtmDDw8+jwVn6pw8/ERCP00tOMxhUyjs+54e1rkdZeY6/t/7cYDoUigae61X+Lm4n1h1EjPXzgvv1V/kJ8lGgxZBvRu0uKd/7WNoaZVlL5zp0XOUEdQBTBFZrhbdiYiMCOBIhI5TlL07NPO0jAAud4lU85kvcYQh33s=
+	t=1778147451; cv=none; b=gX5ff4EBeKaQNbP0+yYSXvXG9oiKiNZNBJO+h6HHd/mXUMyNJGrtk9viS7gHsVoyZLR7LGjmT68Grr9PJK17vosDNVN8+b4BnFnF1F1jWH7+Ok83v3qRzAJs7UyYBLf15bF3oIxJm7UnkLYxg6leTN7Gz4AcJAplfgz9xQfQ7Ls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778118108; c=relaxed/simple;
-	bh=I3A5cWscMoEuGYe7noxywM4Tzupe8cCfmFvIgdz/SGA=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=gwTEoSUYVTzythzZ7z44IZKiV53Tbruq9/DLGCjmFYg6D8NloGm+QwlqkMxEBK++ffthdo+WZdYHUuLc7Kdv2KfzjlJvSu9jBdf4lqjwjNDZGJw+BORJdt/j8qfqdKzfoX1MVRmMdhyqM6WZvNyKpc9DWIWF3AaUFfRVHxrabzc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Bj4XLLe/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778147451; c=relaxed/simple;
+	bh=6/O4g5sKOzC1QkhFRj0XV8eT+wsdg3hxXAqmP1cUrkw=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=aK0WwUYIfNboo2tFVHzKUwTpRGumG5daSKkymYg3gkAf1e/MaC8asdlhrvo5giPojaOppK34xhAd0keFw4r38AznyW/tbTTi2EGyz2MjqhBduzmWLfzvIKAFQh6SFzIZrp6pJrlZ5HFZ3/rQcvk40pPYQpIc5Bg30njPn8A8YHw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=leWMdPdy; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=Tq2nphDt; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Bj4XLLe/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A00BAC2BCB0;
-	Thu,  7 May 2026 01:41:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778118107;
-	bh=I3A5cWscMoEuGYe7noxywM4Tzupe8cCfmFvIgdz/SGA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Bj4XLLe/8mgAZLCzPzFAi3j05BHK9TkFjj4TWH4ZAuS+4GKxkfB/X07hPJ4uLILCC
-	 mRhvEiJneZfZn8SIBmoqph96qZhIQi364+FbzEcGuz99TKvVwD/q8PbPvOBtEn98p7
-	 NFMYRNm6i45+B88ECI0s74jxeXv9Xt2LEXYoKU8cnyn2J8Sd6Cu7g64bSfMuCEitro
-	 +DuK3289GvAMhN7OKJmR6dWQ4PJ/RUn2B6BfJsHGqek6j7Y7PynyMhHuaDMHvipSQ/
-	 pOPNbz6ZT3iOaXsAwTXiZkreVxbm4DD9OjJ10G+fuPLwm4EFiXsn9bgf3wERc+YlVy
-	 QEgfRTYRrBYHA==
-Date: Thu, 7 May 2026 10:41:45 +0900
-From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-To: Rosen Penev <rosenp@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Masami Hiramatsu <mhiramat@kernel.org>,
- Oleg Nesterov <oleg@redhat.com>, Peter Zijlstra <peterz@infradead.org>,
- "David S. Miller" <davem@davemloft.net>, Andreas Larsson
- <andreas@gaisler.com>, linux-trace-kernel@vger.kernel.org (open
- list:UPROBES), sparclinux@vger.kernel.org (open list:SPARC + UltraSPARC
- (sparc/sparc64))
-Subject: Re: [PATCH] sparc64: uprobes: add missing break
-Message-Id: <20260507104145.ca21edc6e4597b85e8c8b0cb@kernel.org>
-In-Reply-To: <20260506031815.779909-1-rosenp@gmail.com>
-References: <20260506031815.779909-1-rosenp@gmail.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="leWMdPdy";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Tq2nphDt"
+From: John Ogness <john.ogness@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1778147447;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NBH0jyNZrOzmMWTTXswtxOpylKAjIZZm3k5vmlmFTBY=;
+	b=leWMdPdyfke1PG9kBHkhG5M8+CkYZqJLTLAqeCjYiODinG+/j5IfywZS4BLtwSeOnAhR6D
+	pw/eSfCLzgoMv61xYkcFltHJt75Aj5NL592c/QId6geF4NJndJWESdEbRgVpzZJaKCAEAk
+	S46RxvcRAIZA9ahHYcTAxrtRU+Lc+i248yF5/kVapuIJ8z3dVEqbikVTF3jyXqEuOI+x3T
+	3bevzAN4DzkSVknLp5v6SvQ6O8TC9Rp1nxTnpME2Yz+kDQdJ86k1KXyx7rg0SDmJQCUrew
+	Jl0XoiQVfdJ919Xfgwb85G6jo2BOn+QjO9UZmH6nOsM9NQzLPu3et2OdyeeYug==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1778147447;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NBH0jyNZrOzmMWTTXswtxOpylKAjIZZm3k5vmlmFTBY=;
+	b=Tq2nphDtcvBpFn3zxihLGoMnyKDvoUWprRrJufVzWFnDKGTEAFUEQ7hCJcHsFd6FLZEOal
+	HAqr18N14WAjRFBg==
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	Alim Akhtar <alim.akhtar@samsung.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Ilpo =?utf-8?Q?J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Thomas Fourier <fourier.thomas@gmail.com>,
+	Kees Cook <kees@kernel.org>, linux-serial@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH tty v4 2/6] serial: Replace driver usage of UPF_CONS_FLOW
+In-Reply-To: <20260506121606.5805-3-john.ogness@linutronix.de>
+References: <20260506121606.5805-1-john.ogness@linutronix.de>
+ <20260506121606.5805-3-john.ogness@linutronix.de>
+Date: Thu, 07 May 2026 11:56:46 +0206
+Message-ID: <87lddvy2dl.fsf@jogness.linutronix.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain
 
-On Tue,  5 May 2026 20:18:15 -0700
-Rosen Penev <rosenp@gmail.com> wrote:
+Hi,
 
-> Missing fallthrough causes failure with newer compilers:
-> 
-> arch/sparc/kernel/uprobes.c:284:2: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
->   284 |         default:
->       |         ^
-> arch/sparc/kernel/uprobes.c:284:2: note: insert 'break;' to avoid fall-through
->   284 |         default:
->       |         ^
->       |         break;
-> 
-> Signed-off-by: Rosen Penev <rosenp@gmail.com>
+(This email is particularly directed at the Samsung folks.)
 
-Looks good to me.
+Responding to Sashiko:
 
-Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+https://sashiko.dev/#/patchset/20260506121606.5805-1-john.ogness%40linutronix.de
 
-> ---
->  arch/sparc/kernel/uprobes.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/sparc/kernel/uprobes.c b/arch/sparc/kernel/uprobes.c
-> index 305017bec164..c8cac64e9988 100644
-> --- a/arch/sparc/kernel/uprobes.c
-> +++ b/arch/sparc/kernel/uprobes.c
-> @@ -280,6 +280,7 @@ int arch_uprobe_exception_notify(struct notifier_block *self,
->  	case DIE_SSTEP:
->  		if (uprobe_post_sstep_notifier(args->regs))
->  			ret = NOTIFY_STOP;
-> +		break;
->  
->  	default:
->  		break;
-> -- 
-> 2.54.0
-> 
+On 2026-05-06, Sashiko wrote:
+>> diff --git a/drivers/tty/serial/samsung_tty.c b/drivers/tty/serial/samsung_tty.c
+>> index e27806bf2cf3e..2f94fc798cffb 100644
+>> --- a/drivers/tty/serial/samsung_tty.c
+>> +++ b/drivers/tty/serial/samsung_tty.c
+>> @@ -319,7 +319,7 @@ static void s3c24xx_serial_stop_tx(struct uart_port *port)
+>>  	ourport->tx_enabled = 0;
+>>  	ourport->tx_in_progress = 0;
+>>  
+>> -	if (port->flags & UPF_CONS_FLOW)
+>> +	if (uart_cons_flow_enabled(port))
+>>  		s3c24xx_serial_rx_enable(port);
+>
+> This isn't a new bug introduced by this patch, but does this code
+> result in a recursive spinlock acquisition and deadlock when console
+> flow control is enabled?
+>
+> The serial core framework calls port->ops->stop_tx() with the
+> port->lock spinlock already held. When uart_cons_flow_enabled(port)
+> evaluates to true, s3c24xx_serial_stop_tx() invokes
+> s3c24xx_serial_rx_enable().
+>
+> Looking at s3c24xx_serial_rx_enable(), it unconditionally attempts to
+> acquire the exact same lock again:
+>
+> static void s3c24xx_serial_rx_enable(struct uart_port *port)
+> {
+> 	struct s3c24xx_uart_port *ourport = to_ourport(port);
+> 	unsigned long flags;
+> 	...
+> 	uart_port_lock_irqsave(port, &flags);
+> 	...
+> }
+>
+> Because spinlocks are not recursive in the kernel, it appears this
+> sequence would cause an immediate deadlock on the same CPU.
 
+Although out of scope for my series, the reported issue is real. Perhaps
+something for Krzysztof or Alim to look into.
 
--- 
-Masami Hiramatsu (Google) <mhiramat@kernel.org>
+>> @@ -493,7 +493,7 @@ static void s3c24xx_serial_start_tx(struct uart_port *port)
+>>  	struct tty_port *tport = &port->state->port;
+>>  
+>>  	if (!ourport->tx_enabled) {
+>> -		if (port->flags & UPF_CONS_FLOW)
+>> +		if (uart_cons_flow_enabled(port))
+>>  			s3c24xx_serial_rx_disable(port);
+>
+> Similarly here, s3c24xx_serial_start_tx() is also called with
+> port->lock held, and s3c24xx_serial_rx_disable() will attempt to
+> acquire port->lock again:
+>
+> static void s3c24xx_serial_rx_disable(struct uart_port *port)
+> {
+> 	struct s3c24xx_uart_port *ourport = to_ourport(port);
+> 	unsigned long flags;
+> 	...
+> 	uart_port_lock_irqsave(port, &flags);
+> 	...
+> }
+>
+> Could this pre-existing locking issue in the samsung_tty driver be
+> addressed so that the rx enable/disable helpers do not try to take the
+> port lock when it is already held by the caller?
+
+Also legitimate. But out of scope for my series.
+
+John Ogness
