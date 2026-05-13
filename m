@@ -1,129 +1,190 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 693A03DEAC2;
-	Wed, 13 May 2026 08:41:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 552663B776C;
+	Wed, 13 May 2026 19:50:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778661709; cv=none; b=MFjAuzjSS0PHebsVNba0lRP1LTnch39msY4KddK5JtK6Z20jROj53+FrZfdSusQZvJTvRqsO40WYKONmYvWgt1CwYqdNVDu36QVeTaali8l92+nEaQZUGq4XJu9YG7xqe8dNXzFbRbbjtsvdFHY4NmCEn+26/YfKCiWArtJIZiU=
+	t=1778701848; cv=none; b=SkKsfu9kF/BUb7GQC+j6ySIJ70nzC+Zi9Bp9yZ8V3rME6xPtUljt0pS9NtwlBxrRJeN4O2ecB9gbXbfKd/a3FvkRZYoSHCkY0/EO0aFpkxbzb1rn4KKlMnww+YNNuhsrNvDI9fguQS/Ox9jxK8w5X4PPgfk4oQPoZH/rEeus1Xc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778661709; c=relaxed/simple;
-	bh=G5ge1Ms5w5w/WOlbzkIN+oCsjgnKKihgDEBHNY+4t84=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=spQHp/Uq8E598b5d3awHeg741k/Yo5XRso0PbcXh5hBTKMOeNlTzy+6bXQQot/Yl2z464kOytwkZ7wLJvVWcUeuh359p5B/KZLL+JrxcegQxpDGXnoRqpjXHW48JmnS7+90zBC01Mdzp24bAwkDfToT9noUF2dEsa4OR6+o3EJ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gF1ZrZh2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778701848; c=relaxed/simple;
+	bh=DUyitwcj2pqGB9DvTz8dhmsbk8ZH1JOgKGFr5wFe24s=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=q62eLw3tp6Is35pCB1JVdCN5F9DbIMo30vuW6rlOZMFS+aaFlXaN+BuEnsE+TZ4sJcQp2pxYlGuF9xuIK/myZD7LMnPQCL8Gy/3l2tee+ASJX1hTojCLDtmPwzAvy3l5ISJRkQlUiqprcBz3MiiImQB0hRcDiM/nQtJEfXO1fSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W4xkVuoZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gF1ZrZh2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17B4BC2BCB7;
-	Wed, 13 May 2026 08:41:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W4xkVuoZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFD33C19425;
+	Wed, 13 May 2026 19:50:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778661708;
-	bh=G5ge1Ms5w5w/WOlbzkIN+oCsjgnKKihgDEBHNY+4t84=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gF1ZrZh2z0PfjXk/JaTiWJN3Zwq9n1yXdLYSwGgtH/UbaPGBeI1PqTFOWu+uw2fmv
-	 Lz2BCj9WAqFkC5+okdC8bt8qsrUwRjoGCTtmIVx421M+sYpp/fzlPQ7U3GqhFJxpOL
-	 eWQd+iFykyLefV4HtfewUidnx08Bm8oy069QupPbc0Cg/FoRNW1zMl/3q4Yz+fXTYT
-	 9aWTDk2zqKWoB77yQ/FdvQ853sm5qE3FID4NnDWBftlpdWIXTHmYe6kyq1pbxwW53C
-	 BpnQCY6u/QtkKHB4t28Ckn7ckSQVCqHqbbhViJQ80UnY04G7AA9ybc8FL5okBUdu1l
-	 vjNSlJ6SsWKUg==
-Date: Wed, 13 May 2026 11:41:37 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Lorenzo Stoakes <ljs@kernel.org>,
-	"Liam R. Howlett" <liam@infradead.org>,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
-Subject: Re: [PATCH 8/8] powerpc/mm: remove CONFIG_HAVE_BOOTMEM_INFO_NODE
-Message-ID: <agQ5QVEyMsEcKbxa@kernel.org>
-References: <20260511-bootmem_info_prep-v1-0-3fb0be6fc688@kernel.org>
- <20260511-bootmem_info_prep-v1-8-3fb0be6fc688@kernel.org>
+	s=k20201202; t=1778701848;
+	bh=DUyitwcj2pqGB9DvTz8dhmsbk8ZH1JOgKGFr5wFe24s=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=W4xkVuoZtpqwljl1IJw98+ExgePhhSGwfgR5puXpO22uMy+CUH/gGXLVFPWf+QNxC
+	 WATz4gIt6B5+d1BhgFI5QKk3KRsGRV5BCPkahkz1OBGhG/TYVE0L3CkEz9l8FnSE++
+	 VC3eHwHtrm/kNEGHSuNLBOqUAzf1B79imGShcRIsbfDLTD/AW+O8Kgs7Q+XROZ3Su0
+	 6E7Gaeu6kJ4iZOeeKwA2tCEKFOUcsoWp8c6wrbJCqYCgvf7iZtGLLEhxBHOx2SJs79
+	 IwyEpaNd3tY97rrvpsVcauOoY0Oy9Nas0+1EwhYqdnQ+po7nTr5sSJxmMV35yReq8a
+	 R25xr/k/Lwrqg==
+Message-ID: <1a5abd2e-e9ab-4a48-94c2-5e082f57adde@kernel.org>
+Date: Wed, 13 May 2026 21:50:42 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260511-bootmem_info_prep-v1-8-3fb0be6fc688@kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH tty v4 2/6] serial: Replace driver usage of UPF_CONS_FLOW
+To: John Ogness <john.ogness@linutronix.de>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Jiri Slaby <jirislaby@kernel.org>, Alim Akhtar <alim.akhtar@samsung.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
+ linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Thomas Fourier <fourier.thomas@gmail.com>, Kees Cook <kees@kernel.org>,
+ linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-samsung-soc@vger.kernel.org, sparclinux@vger.kernel.org,
+ Peter Griffin <peter.griffin@linaro.org>,
+ Tudor Ambarus <tudor.ambarus@linaro.org>,
+ =?UTF-8?Q?Andr=C3=A9_Draszik?= <andre.draszik@linaro.org>,
+ Alexey Klimov <alexey.klimov@linaro.org>
+References: <20260506121606.5805-1-john.ogness@linutronix.de>
+ <20260506121606.5805-3-john.ogness@linutronix.de>
+ <87lddvy2dl.fsf@jogness.linutronix.de>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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 a/A=
+In-Reply-To: <87lddvy2dl.fsf@jogness.linutronix.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, May 11, 2026 at 04:05:36PM +0200, David Hildenbrand (Arm) wrote:
-> register_page_bootmem_info_node() essentially only calls
-> register_page_bootmem_memmap(). However, on powerpc that function is a
-> nop. So there is not benefit in using CONFIG_HAVE_BOOTMEM_INFO_NODE
-> anymore, let's just drop it.
+On 07/05/2026 11:50, John Ogness wrote:
+> Hi,
 > 
-> We can stop including bootmem_info.h.
+> (This email is particularly directed at the Samsung folks.)
 > 
-> Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+> Responding to Sashiko:
+> 
+> https://sashiko.dev/#/patchset/20260506121606.5805-1-john.ogness%40linutronix.de
+> 
+> On 2026-05-06, Sashiko wrote:
+>>> diff --git a/drivers/tty/serial/samsung_tty.c b/drivers/tty/serial/samsung_tty.c
+>>> index e27806bf2cf3e..2f94fc798cffb 100644
+>>> --- a/drivers/tty/serial/samsung_tty.c
+>>> +++ b/drivers/tty/serial/samsung_tty.c
+>>> @@ -319,7 +319,7 @@ static void s3c24xx_serial_stop_tx(struct uart_port *port)
+>>>  	ourport->tx_enabled = 0;
+>>>  	ourport->tx_in_progress = 0;
+>>>  
+>>> -	if (port->flags & UPF_CONS_FLOW)
+>>> +	if (uart_cons_flow_enabled(port))
+>>>  		s3c24xx_serial_rx_enable(port);
+>>
+>> This isn't a new bug introduced by this patch, but does this code
+>> result in a recursive spinlock acquisition and deadlock when console
+>> flow control is enabled?
+>>
+>> The serial core framework calls port->ops->stop_tx() with the
+>> port->lock spinlock already held. When uart_cons_flow_enabled(port)
+>> evaluates to true, s3c24xx_serial_stop_tx() invokes
+>> s3c24xx_serial_rx_enable().
+>>
+>> Looking at s3c24xx_serial_rx_enable(), it unconditionally attempts to
+>> acquire the exact same lock again:
+>>
+>> static void s3c24xx_serial_rx_enable(struct uart_port *port)
+>> {
+>> 	struct s3c24xx_uart_port *ourport = to_ourport(port);
+>> 	unsigned long flags;
+>> 	...
+>> 	uart_port_lock_irqsave(port, &flags);
+>> 	...
+>> }
+>>
+>> Because spinlocks are not recursive in the kernel, it appears this
+>> sequence would cause an immediate deadlock on the same CPU.
+> 
+> Although out of scope for my series, the reported issue is real. Perhaps
+> something for Krzysztof or Alim to look into.
+> 
+>>> @@ -493,7 +493,7 @@ static void s3c24xx_serial_start_tx(struct uart_port *port)
+>>>  	struct tty_port *tport = &port->state->port;
+>>>  
+>>>  	if (!ourport->tx_enabled) {
+>>> -		if (port->flags & UPF_CONS_FLOW)
+>>> +		if (uart_cons_flow_enabled(port))
+>>>  			s3c24xx_serial_rx_disable(port);
+>>
+>> Similarly here, s3c24xx_serial_start_tx() is also called with
+>> port->lock held, and s3c24xx_serial_rx_disable() will attempt to
+>> acquire port->lock again:
+>>
+>> static void s3c24xx_serial_rx_disable(struct uart_port *port)
+>> {
+>> 	struct s3c24xx_uart_port *ourport = to_ourport(port);
+>> 	unsigned long flags;
+>> 	...
+>> 	uart_port_lock_irqsave(port, &flags);
+>> 	...
+>> }
+>>
+>> Could this pre-existing locking issue in the samsung_tty driver be
+>> addressed so that the rx enable/disable helpers do not try to take the
+>> port lock when it is already held by the caller?
+> 
+> Also legitimate. But out of scope for my series.
 
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 
-> ---
->  arch/powerpc/mm/init_64.c | 8 --------
->  mm/Kconfig                | 2 +-
->  2 files changed, 1 insertion(+), 9 deletions(-)
-> 
-> diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-> index b6f3ae03ca9e..64f0df5bb5cd 100644
-> --- a/arch/powerpc/mm/init_64.c
-> +++ b/arch/powerpc/mm/init_64.c
-> @@ -41,7 +41,6 @@
->  #include <linux/libfdt.h>
->  #include <linux/memremap.h>
->  #include <linux/memory.h>
-> -#include <linux/bootmem_info.h>
->  
->  #include <asm/pgalloc.h>
->  #include <asm/page.h>
-> @@ -388,13 +387,6 @@ void __ref vmemmap_free(unsigned long start, unsigned long end,
->  
->  #endif
->  
-> -#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
-> -void register_page_bootmem_memmap(unsigned long section_nr,
-> -				  struct page *start_page, unsigned long size)
-> -{
-> -}
-> -#endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
-> -
->  #endif /* CONFIG_SPARSEMEM_VMEMMAP */
->  
->  #ifdef CONFIG_PPC_BOOK3S_64
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index e221fa1dc54d..97b079372325 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -537,7 +537,7 @@ endchoice
->  
->  config MEMORY_HOTREMOVE
->  	bool "Allow for memory hot remove"
-> -	select HAVE_BOOTMEM_INFO_NODE if (X86_64 || PPC64)
-> +	select HAVE_BOOTMEM_INFO_NODE if X86_64
->  	depends on MEMORY_HOTPLUG
->  	select MIGRATION
->  
-> 
-> -- 
-> 2.43.0
-> 
+Thanks for letting us know. Deadlock did not happen so far, so something
+is missing in Sashiko's report. :)
 
--- 
-Sincerely yours,
-Mike.
+I am just back from vacation, so I won't have time to dig into this, but
+I will keep your email in the inbox. Cc-ing also a few Linaro folks
+which are using this platform and might be able to help us here.
+
+Best regards,
+Krzysztof
