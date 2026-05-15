@@ -1,89 +1,114 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8F033F86E7;
-	Fri, 15 May 2026 15:35:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 992BD2F7EE6;
+	Fri, 15 May 2026 17:51:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778859347; cv=none; b=aTwmp5HLiR6ocUEc5JZqZ5yb/ypmRWT6kvs8zn4MNSaNmzy8a/Dqc0C2MxjH9Z0n1LvSDd095uHPNZ3qFIkY9zJ/6RGHj+OnpIhPQz28+Cgj4xwN+4j7E51IF4IlvOw42DfkRfRyeokH8E6uoHnjyJtN0d/U3Q86jW6Z0Bzf86g=
+	t=1778867500; cv=none; b=SJh4JrzhbP4Ld0aY0r5vLlK+F1YLT+2uR59JLEL51wpfMTmwUNZfJksYYttTob/PcA+hA98UnlNQ2kjH60khTKIbV9mWHaBlFI00TmgY5xNseA3MxXJITWSknCTo2BBwNpfG/BEWkahGKxks5OWWxOmwGB18wCUS4jyRFHd7j8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778859347; c=relaxed/simple;
-	bh=9VmW/xr1YBf+AG43drrsh9q6V8WW2V8pY8B8arP8K2U=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=hUmttsXmAnlf7EJxuif/CGtTYH/vsHkeWrOtp2fB0SRZ8UI2u+Grc9cFbsL0b68f+TMBaKFmSKcfgaad32JYmMrb4D9bQdBKzsECfeyUYqYk3m2vzHG7xkGvXmxqbS2bKEsbCr64v+kqq8xRZoxIEtn28cLUBIo1sks8drMjyTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VjJPZhp6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778867500; c=relaxed/simple;
+	bh=gsQASe5VLtTK1CsE8cqevHSBFe/A5STk4AhJ2klQIWM=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=UjEv3loxMWJKWezZt17kx/dgMq4y0REYqlVFxXYa0+tjyNjHrc/zLuP3nAphn+ZYXUBsVh+MNEbZ9bIz7Gqb6C9/I8iAIZMM99zB0CRRlGHEAFXOpFQf7/XJaiFiXsKfcGKNfmXkK7/alvBGNl7t7hJwVtKunRhb82aBVPWoVhU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=dwPIg/f7; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VjJPZhp6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A1A8C2BCB0;
-	Fri, 15 May 2026 15:35:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778859346;
-	bh=9VmW/xr1YBf+AG43drrsh9q6V8WW2V8pY8B8arP8K2U=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=VjJPZhp6yF2hiF0vYz8FT1bA4Urs+04pW15Ha1kcNlR38fzSiW/Ap4yBbCH8Ewoxq
-	 0KpAkxMW3qPlDFllL58v9aVOUaIGcJZXKiY0wSKMopB+fNhy2eX2dc/DMX5gBy9TWU
-	 50UIGUOQAEIAiR1h/VQXgH+oD8ynpIVrjyvxYyLzEFUsctXddm44Pp/DEJjZDpwQhR
-	 lLTPvBgfSM3zb3GMOIZ/lWiwcIf//vXLVaQVdU3HPi8+a2oAbRpZ4cd+rJRTvS1y3r
-	 0TKpO8ypLNGmv8p1mdqOd7m+8aCGVihkkfx9NYqHIHSIFwbMjjgudozBZqKOwkQYGn
-	 J0BFXvBIwO12Q==
-From: Thomas Gleixner <tglx@kernel.org>
-To: Tony Rodriguez <unixpro1970@gmail.com>
-Cc: Linux kernel regressions list <regressions@lists.linux.dev>, LKML
- <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, John Paul
- Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Thorsten Leemhuis
- <regressions@leemhuis.info>, Linus Torvalds
- <torvalds@linux-foundation.org>
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="dwPIg/f7"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=HDc8Rbn6gSc83YkMlQR58q1uD3nHw5WFwhRyJ1E+IXA=; t=1778867496;
+	x=1779472296; b=dwPIg/f7kWv2ASd6w8Ond9dTst4U5tVZTXABk4TTpbjKoe5LaAXwx2X40sqr9
+	R+4kBWLz37Vy3c2YCvGxtepXVgIJ35c4jNgYW7jkLxLwV2vbKlPJlNvS/0nIOsptCfZuDufLXG4ic
+	B8TzFq/eTJz16ZAg5mlwuqilNZm++a2o2ecPlNPqAsSHInUqEOPGUpCdEedqeoJMHuu4i/mpxL4J8
+	HrRxiUMfcuM+3W2sM0hw1Wbpb2Lcfm+1UMQy5Wu4o9Gl08YEAVw1v11GVrvuPxhrFBVlqdFfoRU0h
+	wT/Xrtp+y1Rephx9d91t+TTmk/unBBjG4m+C1geGVIhnfOYrPw==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.99)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1wNwh5-00000001x7R-3CyX; Fri, 15 May 2026 19:51:27 +0200
+Received: from p5b13a134.dip0.t-ipconnect.de ([91.19.161.52] helo=[192.168.178.61])
+          by inpost2.zedat.fu-berlin.de (Exim 4.99)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1wNwh5-00000001Za4-1mX9; Fri, 15 May 2026 19:51:27 +0200
+Message-ID: <a0feba9667ac6760f82137cca89afac7da786f22.camel@physik.fu-berlin.de>
 Subject: Re: the stuttering regression in 7.0: should I have done something
  different
-In-Reply-To: <0669f754-a313-4aa3-9923-0c374d49feb3@gmail.com>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Thomas Gleixner <tglx@kernel.org>, Tony Rodriguez <unixpro1970@gmail.com>
+Cc: Linux kernel regressions list <regressions@lists.linux.dev>, LKML	
+ <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, Thorsten
+ Leemhuis	 <regressions@leemhuis.info>, Linus Torvalds
+ <torvalds@linux-foundation.org>
+Date: Fri, 15 May 2026 19:51:26 +0200
+In-Reply-To: <871pfcznw0.ffs@tglx>
 References: <ffb44522-f01c-4be3-849d-27dc17fbca7f@leemhuis.info>
- <D5D19776-C809-4284-9417-F9A860877B98@gmail.com>
- <1c165caf-36b4-4673-97fd-ed86bef17b88@leemhuis.info>
- <3332123b-9e11-4895-9ab3-1707fba5815c@gmail.com> <871pfj9cmj.ffs@tglx>
- <a7a0d78b-435e-43c8-b436-5e7f4dd39dee@gmail.com>
- <088e6cfa-0167-4748-af6c-458ade2f303a@gmail.com> <878q9p82je.ffs@tglx>
- <64f465ca-6117-4375-9c4b-af771b8205fd@gmail.com> <87tssb6olo.ffs@tglx>
- <e45438e7-8501-4c10-95ee-07f118de8a51@gmail.com> <87qznez3tf.ffs@tglx>
- <0669f754-a313-4aa3-9923-0c374d49feb3@gmail.com>
-Date: Fri, 15 May 2026 17:35:43 +0200
-Message-ID: <871pfcznw0.ffs@tglx>
+	 <D5D19776-C809-4284-9417-F9A860877B98@gmail.com>
+	 <1c165caf-36b4-4673-97fd-ed86bef17b88@leemhuis.info>
+	 <3332123b-9e11-4895-9ab3-1707fba5815c@gmail.com> <871pfj9cmj.ffs@tglx>
+	 <a7a0d78b-435e-43c8-b436-5e7f4dd39dee@gmail.com>
+	 <088e6cfa-0167-4748-af6c-458ade2f303a@gmail.com> <878q9p82je.ffs@tglx>
+	 <64f465ca-6117-4375-9c4b-af771b8205fd@gmail.com> <87tssb6olo.ffs@tglx>
+	 <e45438e7-8501-4c10-95ee-07f118de8a51@gmail.com> <87qznez3tf.ffs@tglx>
+	 <0669f754-a313-4aa3-9923-0c374d49feb3@gmail.com> <871pfcznw0.ffs@tglx>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.60.1 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-Tony!
+Hi Thomas,
 
-On Thu, May 14 2026 at 21:47, Tony Rodriguez wrote:
-> I=E2=80=99ve completed validation with the v7.0.7 release and v7.1=E2=80=
-=91rc3 on both=20
-> S7=E2=80=912 and T7=E2=80=911 systems. Everything looks good.
+On Fri, 2026-05-15 at 17:35 +0200, Thomas Gleixner wrote:
+> > Thank you again for the debugging guidance and for the feedback on my=
+=20
+> > original patch addressing the timer starvation issue. It was a pleasure=
+=20
+> > contributing to the resolution.
+>=20
+> Thank you for going through the hassle of chasing it down and providing
+> the debug data to analyze it.
+>=20
+> I'm still puzzled how this went unnoticed for almost two decades:
+>=20
+>    112f48716d9f ("[SPARC64]: Add clocksource/clockevents support.")
 
-Cool!
+My suspicion is that it was previously visible only in certain edge cases,
+in particular on machines with many cores and high load.
 
-> Thank you again for the debugging guidance and for the feedback on my=20
-> original patch addressing the timer starvation issue. It was a pleasure=20
-> contributing to the resolution.
+Case in point: In the past, SPARC LDOMs with lots of virtual CPUs could
+crash in rares cases when building packages such as GCC or LLVM and running
+their testsuites.
 
-Thank you for going through the hassle of chasing it down and providing
-the debug data to analyze it.
+I don't know if Tony's patch fixes this long-time issue that we have observ=
+ed
+in the past on Debian's buildds, but I think that the chances aren't too ba=
+d.
 
-I'm still puzzled how this went unnoticed for almost two decades:
+Tony, please clean up your patch and add an elaborate explanation in the co=
+mmit
+message! Hope to see this fix landed as soon as possible!
 
-   112f48716d9f ("[SPARC64]: Add clocksource/clockevents support.")
+Thanks to both of you for hunting this down!
 
-> PS: I agree that the second patch we discussed isn=E2=80=99t needed=E2=80=
-=94the systems=20
-> run correctly without it. The following patch alone is sufficient:
+Adrian
 
-I assume this patch will surface on a mailing list with a lengthy change
-log full of details and find it's way into the sparc tree through the
-usual channels.
-
-Thanks,
-
-        tglx
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
