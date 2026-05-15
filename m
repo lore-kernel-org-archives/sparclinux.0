@@ -1,137 +1,157 @@
-Received: from mail-dy1-f176.google.com (mail-dy1-f176.google.com [74.125.82.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F40F53090D7
-	for <sparclinux@vger.kernel.org>; Fri, 15 May 2026 04:47:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43C063E92B7;
+	Fri, 15 May 2026 07:53:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778820447; cv=none; b=AhBNyzY2EZ1aT2aAs7XRnS2W28MrWdto9fyRYnZUsPMezeFqI0PiT11HuILGSVwLZPkxJzlffrDy876EHF9CebRr1gH8Lxi1J1qXN9Y1KFNYvRCpOBKpYEyM4Ru9yXZjDsH+DRkpN35A8lR0T7p6ybe3cJ34wdJyiQOz4RnG2yc=
+	t=1778831639; cv=none; b=eyjWHHnvdtwAPFtuJoR5faLHvcEYnuJltyIO2vecDC2Vs34o4jBfrKK8bezvDSg6OZqm3n45GGLhnfk+6FfJx55qLmsRE37D5DJ4WpWHo/qYHXqpwMrAgmQOnAsqSw/tBuHsQY2nlK7/hDOmakPGyKCu03YMNx8RTHjemFk0uz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778820447; c=relaxed/simple;
-	bh=NijvWsrsHsPGHfADGjxWbC+hgUsKNBW5ghHkDQqiP8c=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=O0Vu/SKbn6/c6zNwVDX5KklRCZEX/TcKd7KUlH/dCGf2Lp63hfS6znbTC57Vrny13NkZ07elmVr0qK/925v60Kh1WhSz1tEkAIpov1HRaTjCp+rHmJPCznvMbsZ2W4MaYCPZnlm/6lwA7oLZkC8IskHof2rZR2nq1A8beJDKzjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mWh67mZW; arc=none smtp.client-ip=74.125.82.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1778831639; c=relaxed/simple;
+	bh=/nFq4OHmE8dbUM03xwqrDzHTp3KweVGytErCxZHr5oY=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=koNpz73XYphgDAcl+sZ7NgGtft5mBK7tc/iC2bNHFZfy5IeoHbEl6aLc4iyD1Yc1j2o3dcQnOmiVeOLYxGQfK/fiSKxwux6H1FEmh5n9DEtaiHcl/SWPXkF2dtfyr50Dm9be1xEwGx/fajAMQOl7mzj8QqDeCsoFKp7Cizo16iA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=qtpUpvoc; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=8QaW9UMC; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mWh67mZW"
-Received: by mail-dy1-f176.google.com with SMTP id 5a478bee46e88-2ff5472f263so5129010eec.1
-        for <sparclinux@vger.kernel.org>; Thu, 14 May 2026 21:47:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778820445; x=1779425245; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=WvZB5T4clNth7fcajE013KijBJD905/lgIzRhBekpSE=;
-        b=mWh67mZW0wm3j0pe4F7U0hDQRy5z2h6ndI2Z8hLgZrZLqJZpw9og9wKjwc04ZVv9OS
-         hnjlVBVXTQiW2+fWusBF0N64D9wlME6EjU+xxKYJsZ+lfyJBN8QXsk2gcX1hKy6qa5zJ
-         vguRoRZhIq53AOnwZODogtoYUSdWQyHEz1k6tLLLlcwjOaHdpon5XJPfIOw90Od3tRCX
-         FWj2Ejn7wlXNKgU9O+y6g3c6cHFKg3gVEZLJvWTjDBPWFaAmhQYQOxiziSyjIn4ZGtCp
-         z8NGF6NifrFxikK3UVPoHcPjdU7IhAPw/5KrBdHpcX5kFlSsaxfSSGKRl5PQdv1HhmzQ
-         RRnA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778820445; x=1779425245;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=WvZB5T4clNth7fcajE013KijBJD905/lgIzRhBekpSE=;
-        b=UnnlMWmYV6wfm1hMHpcOgxGG3OAHg8gxpD5PNBu0nTf2IXXctjNHEmoBCd2IenCjye
-         RA8ixl5nb/ICvq8tkKIChvLqunojRR0PnDrP6Nu/XKSq3hlTfdASr4U+iikQoN8APZwo
-         96xlHQ1CJ1bwn3UuSsezeAGinim1uFmza1+U0IZmjrZ+1cMQTvRtZdh1smCK3aCQyUIM
-         LCbRo8Li/NkrVybnZGj/lQjkTUlbhqPQ5wQPLwf5vvTUITWCmzAYg+/iAAePGvcS94WE
-         7ArZGztaXMEXeXCEwXvjDZJEfk0foQYwDX91DFfGzxTDpkKab3fj5gw5QZVSeEo9sm/U
-         ViXQ==
-X-Forwarded-Encrypted: i=1; AFNElJ9bLBhlJEAnl3A/vqYiT9BFdHCaaD+upTMOG7sd9YKIEhNPS4v7vr5vmSMewL8DRypiNvlQD8SMJ0Qy@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz5yHOj2OCk9P9WHe/Bm3OZgfqO58TNzhpmZlJ9Mv5auzY5g19g
-	bGxcJA04kJtElcT7AKWU7txNpMa0dpBKFLv+O9bxhtvKAOnz3N3Oe0WANmTCiq1R
-X-Gm-Gg: Acq92OEjOUw8Cq87VbmN/kcd6y6b4IeX5Pv9VqKdVTBjsTn9qHYmO8TCpe/bjLLSjYa
-	Q0Lra9zaEZR8it1MZMWebr9tsdeRl5jglMvLqtyfirjWwPVOhJ4M7c/f/Dx8pNl5XhmQLlBXENM
-	BlkaNFFgCg/oTyyAhJ6TYcdT7eNpWfzplL6SXa3UZ32M6rji5qLXJH/wOiRFQLQ9iJaVCvvEUw7
-	G4jTanH9LdKKl6xtBkCp6+7EMLThYhwrUZsM2iWo7kPLfJitkC4efef1sTkay910D7aTHQwYbNY
-	z8GgKRyGewNfWffgMsqvsZi61khsIhO3q3xzBUNWmLZiVi78Y0y+WwIiStI19i+5udYLO7UOu6P
-	WRihBECsI8N4m56nA20xNEcuAKOLX/L013EbuMVJagkp6eCPXKZ5KE/fL0AgJJwc1gD6PTDki+9
-	APMWTxZ9OYmWdklB1q2Avd3P7qEx32RQ==
-X-Received: by 2002:a05:7301:1983:b0:2d3:f3fc:bb6b with SMTP id 5a478bee46e88-3039818ee3dmr1245826eec.1.1778820444974;
-        Thu, 14 May 2026 21:47:24 -0700 (PDT)
-Received: from [192.168.21.192] ([67.170.89.46])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-302973bc9d4sm5528796eec.23.2026.05.14.21.47.24
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 14 May 2026 21:47:24 -0700 (PDT)
-Message-ID: <0669f754-a313-4aa3-9923-0c374d49feb3@gmail.com>
-Date: Thu, 14 May 2026 21:47:23 -0700
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="qtpUpvoc";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="8QaW9UMC"
+From: John Ogness <john.ogness@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1778831636;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=P5i3jr/Ze5LIkO9MuiHcaAM6dwhzewxwm2J6/ovcRNo=;
+	b=qtpUpvocYMS6ga/mG6+yHhgkECgfN4/AWHu4OEWfwDxipL5TsdQ5X3k+V+I7b14vol/Ctv
+	LpOvxyM8j8DcbYElrkoCF4USg0Lz7TKZMixJ4X1GEElr76JRimy/rGExHvpN/mrdb65GAW
+	Gc77mhFCmV1DUq3wnCiPLUmslcUvKlBQpEPW+dzhPRlGUMbflE3JJl5GUP5p/3x3KtYgMx
+	7ZEghSFNU3wSI5T898bHC4ltszzph/Mv7J+ibXEOR2XJ56jj7LNt0FNxcZunVNUB6npV9g
+	XpgT7vJpFDejIJEdJDPY6myZJhftYdOLHgFgzvdR/lv4jJVSrKgRs/ww97oMGw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1778831636;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=P5i3jr/Ze5LIkO9MuiHcaAM6dwhzewxwm2J6/ovcRNo=;
+	b=8QaW9UMC9D6WJDmRgFabqQSsEY7fzsi0K5cWTpOqVGgiQzDFkqENkkeARQkt0ciOL8/adq
+	qTcPuuNMZL70cODQ==
+To: Krzysztof Kozlowski <krzk@kernel.org>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, Alim
+ Akhtar <alim.akhtar@samsung.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
+ linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+ Ilpo =?utf-8?Q?J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, Andy
+ Shevchenko
+ <andriy.shevchenko@linux.intel.com>, Thomas Fourier
+ <fourier.thomas@gmail.com>, Kees Cook <kees@kernel.org>,
+ linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-samsung-soc@vger.kernel.org, sparclinux@vger.kernel.org, Peter
+ Griffin <peter.griffin@linaro.org>, Tudor Ambarus
+ <tudor.ambarus@linaro.org>, =?utf-8?Q?Andr=C3=A9?= Draszik
+ <andre.draszik@linaro.org>,
+ Alexey Klimov <alexey.klimov@linaro.org>
+Subject: Re: [PATCH tty v4 2/6] serial: Replace driver usage of UPF_CONS_FLOW
+In-Reply-To: <1a5abd2e-e9ab-4a48-94c2-5e082f57adde@kernel.org>
+References: <20260506121606.5805-1-john.ogness@linutronix.de>
+ <20260506121606.5805-3-john.ogness@linutronix.de>
+ <87lddvy2dl.fsf@jogness.linutronix.de>
+ <1a5abd2e-e9ab-4a48-94c2-5e082f57adde@kernel.org>
+Date: Fri, 15 May 2026 09:59:55 +0206
+Message-ID: <87wlx56rcc.fsf@jogness.linutronix.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Betterbird (Linux)
-Subject: Re: the stuttering regression in 7.0: should I have done something
- different
-Content-Language: en-US
-To: Thomas Gleixner <tglx@kernel.org>
-Cc: Linux kernel regressions list <regressions@lists.linux.dev>,
- LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Thorsten Leemhuis <regressions@leemhuis.info>,
- Linus Torvalds <torvalds@linux-foundation.org>
-References: <ffb44522-f01c-4be3-849d-27dc17fbca7f@leemhuis.info>
- <D5D19776-C809-4284-9417-F9A860877B98@gmail.com>
- <1c165caf-36b4-4673-97fd-ed86bef17b88@leemhuis.info>
- <3332123b-9e11-4895-9ab3-1707fba5815c@gmail.com> <871pfj9cmj.ffs@tglx>
- <a7a0d78b-435e-43c8-b436-5e7f4dd39dee@gmail.com>
- <088e6cfa-0167-4748-af6c-458ade2f303a@gmail.com> <878q9p82je.ffs@tglx>
- <64f465ca-6117-4375-9c4b-af771b8205fd@gmail.com> <87tssb6olo.ffs@tglx>
- <e45438e7-8501-4c10-95ee-07f118de8a51@gmail.com> <87qznez3tf.ffs@tglx>
-From: Tony Rodriguez <unixpro1970@gmail.com>
-In-Reply-To: <87qznez3tf.ffs@tglx>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-Hi Thomas,
+On 2026-05-13, Krzysztof Kozlowski <krzk@kernel.org> wrote:
+>> (This email is particularly directed at the Samsung folks.)
+>> 
+>> Responding to Sashiko:
+>> 
+>> https://sashiko.dev/#/patchset/20260506121606.5805-1-john.ogness%40linutronix.de
+>> 
+>> On 2026-05-06, Sashiko wrote:
+>>>> diff --git a/drivers/tty/serial/samsung_tty.c b/drivers/tty/serial/samsung_tty.c
+>>>> index e27806bf2cf3e..2f94fc798cffb 100644
+>>>> --- a/drivers/tty/serial/samsung_tty.c
+>>>> +++ b/drivers/tty/serial/samsung_tty.c
+>>>> @@ -319,7 +319,7 @@ static void s3c24xx_serial_stop_tx(struct uart_port *port)
+>>>>  	ourport->tx_enabled = 0;
+>>>>  	ourport->tx_in_progress = 0;
+>>>>  
+>>>> -	if (port->flags & UPF_CONS_FLOW)
+>>>> +	if (uart_cons_flow_enabled(port))
+>>>>  		s3c24xx_serial_rx_enable(port);
+>>>
+>>> This isn't a new bug introduced by this patch, but does this code
+>>> result in a recursive spinlock acquisition and deadlock when console
+>>> flow control is enabled?
+>>>
+>>> The serial core framework calls port->ops->stop_tx() with the
+>>> port->lock spinlock already held. When uart_cons_flow_enabled(port)
+>>> evaluates to true, s3c24xx_serial_stop_tx() invokes
+>>> s3c24xx_serial_rx_enable().
+>>>
+>>> Looking at s3c24xx_serial_rx_enable(), it unconditionally attempts to
+>>> acquire the exact same lock again:
+>>>
+>>> static void s3c24xx_serial_rx_enable(struct uart_port *port)
+>>> {
+>>> 	struct s3c24xx_uart_port *ourport = to_ourport(port);
+>>> 	unsigned long flags;
+>>> 	...
+>>> 	uart_port_lock_irqsave(port, &flags);
+>>> 	...
+>>> }
+>>>
+>>> Because spinlocks are not recursive in the kernel, it appears this
+>>> sequence would cause an immediate deadlock on the same CPU.
+>> 
+>> Although out of scope for my series, the reported issue is real. Perhaps
+>> something for Krzysztof or Alim to look into.
+>> 
+>>>> @@ -493,7 +493,7 @@ static void s3c24xx_serial_start_tx(struct uart_port *port)
+>>>>  	struct tty_port *tport = &port->state->port;
+>>>>  
+>>>>  	if (!ourport->tx_enabled) {
+>>>> -		if (port->flags & UPF_CONS_FLOW)
+>>>> +		if (uart_cons_flow_enabled(port))
+>>>>  			s3c24xx_serial_rx_disable(port);
+>>>
+>>> Similarly here, s3c24xx_serial_start_tx() is also called with
+>>> port->lock held, and s3c24xx_serial_rx_disable() will attempt to
+>>> acquire port->lock again:
+>>>
+>>> static void s3c24xx_serial_rx_disable(struct uart_port *port)
+>>> {
+>>> 	struct s3c24xx_uart_port *ourport = to_ourport(port);
+>>> 	unsigned long flags;
+>>> 	...
+>>> 	uart_port_lock_irqsave(port, &flags);
+>>> 	...
+>>> }
+>>>
+>>> Could this pre-existing locking issue in the samsung_tty driver be
+>>> addressed so that the rx enable/disable helpers do not try to take the
+>>> port lock when it is already held by the caller?
+>> 
+>> Also legitimate. But out of scope for my series.
+>
+>
+> Thanks for letting us know. Deadlock did not happen so far, so something
+> is missing in Sashiko's report. :)
 
-I’ve completed validation with the v7.0.7 release and v7.1‑rc3 on both 
-S7‑2 and T7‑1 systems. Everything looks good.
+Nothing is missing. I am guessing you never use console flow
+control. The deadlock is clearly visible:
 
-Thank you again for the debugging guidance and for the feedback on my 
-original patch addressing the timer starvation issue. It was a pleasure 
-contributing to the resolution.
+->stop_tx() (always called with the port locked)
+  s3c24xx_serial_stop_tx()
+    s3c24xx_serial_rx_enable()
+      uart_port_lock_irqsave() (DEADLOCK!)
 
-PS: I agree that the second patch we discussed isn’t needed—the systems 
-run correctly without it. The following patch alone is sufficient:
-
-Best regards,
-Tony Rodriguez
-
---- linux-7.1-rc1/arch/sparc/kernel/time_64.c.orig
-+++ linux-7.1-rc1/arch/sparc/kernel/time_64.c
-@@ -146,7 +146,7 @@
-                   : "=r" (new_tick));
-      new_tick &= ~TICKCMP_IRQ_BIT;
-
--    return ((long)(new_tick - (orig_tick+adj))) > 0L;
-+    return ((long)(new_tick - (orig_tick+adj))) >= 0L;
-  }
-
-  static unsigned long tick_add_tick(unsigned long adj)
-@@ -277,7 +277,7 @@
-                   : "=r" (new_tick));
-      new_tick &= ~TICKCMP_IRQ_BIT;
-
--    return ((long)(new_tick - (orig_tick+adj))) > 0L;
-+    return ((long)(new_tick - (orig_tick+adj))) >= 0L;
-  }
-
-  static unsigned long stick_get_frequency(void)
-@@ -411,7 +411,7 @@
-
-      val2 = __hbird_read_stick() & ~TICKCMP_IRQ_BIT;
-
--    return ((long)(val2 - val)) > 0L;
-+    return ((long)(val2 - val)) >= 0L;
-  }
-
-  static unsigned long hbtick_get_frequency(void)
-
+John Ogness
