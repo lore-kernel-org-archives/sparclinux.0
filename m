@@ -1,61 +1,63 @@
-Received: from mail-dy1-f176.google.com (mail-dy1-f176.google.com [74.125.82.176])
+Received: from mail-dl1-f43.google.com (mail-dl1-f43.google.com [74.125.82.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 805CB33AD99
-	for <sparclinux@vger.kernel.org>; Mon, 18 May 2026 23:56:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1503533ADB9
+	for <sparclinux@vger.kernel.org>; Mon, 18 May 2026 23:56:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779148606; cv=none; b=AX7FsoeNiid90rGZNJQU+tz3ikMFIr/ArA7Q87i0Cnu6tbnjpZcHVhuv7PLBihUWvdikme1/pNAoqs10/DoApv4rNa+22J1MoCgyB1NSj1wNL1uNjiuSfYckkAzQp5zlKGmPF7l+Ovv58mNIcdo7K2un7U1gnDVQX8MlKE6e/TQ=
+	t=1779148610; cv=none; b=VluyTQZAtsKGR/VMN/A7Uly9xBweiYOJV3fxDr4DKGoxbMQnWG6089y7G1BSEBr0qLcmZuRqkS3lnYWami9p/exWwXXbkTJZjoxR+n1xp8scHMjxV8QEs/I16O3ox2LC8eVGLWl/R8xYqqOSadtlBPFJQlkbuAjNVUhUi8aTdyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779148606; c=relaxed/simple;
-	bh=ETAPReuH7XXyRe6R3ZhrkUS4h9qrbkx5IonWV1VnUVs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=RL0ddYN7sl4gAvO2rtNEwiDJ/Ph8o2yFYVUYzqRnWGY/pbVYSpiCcSL0asoEf01MJX9v5d7HjCf4HR/AOsdX2Ksz+S5UQN/UgfS+fWrKuE7D43+APxdrjnzStOUPSaVTSWlHikvquoj1cT9LLN7bVOF4DvT+zzZKfTDcq9muYM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Te3cdoQE; arc=none smtp.client-ip=74.125.82.176
+	s=arc-20240116; t=1779148610; c=relaxed/simple;
+	bh=GaS4Ko50/fcvGwi7jfjzVijI3Xzh0Js36JrNYZOR7To=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=VgatcxpmHxGMUopTMFbJ0IoQeI4/arFm/fIcgED66xoZncRWrzvNEFUc4jZhaGwitB62tm4aURapdqivLDnE2GLBZxQA0IIkwRH7pRn2sgQbGFmh9EH9kYpxvLkajZ3pqVEL8MJmop3h57oo9mgFWLFuMPWQL63ynj8VA3ojyGY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T475WZHo; arc=none smtp.client-ip=74.125.82.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Te3cdoQE"
-Received: by mail-dy1-f176.google.com with SMTP id 5a478bee46e88-2f36da5c8fbso2637149eec.0
-        for <sparclinux@vger.kernel.org>; Mon, 18 May 2026 16:56:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T475WZHo"
+Received: by mail-dl1-f43.google.com with SMTP id a92af1059eb24-1334825de43so2671079c88.0
+        for <sparclinux@vger.kernel.org>; Mon, 18 May 2026 16:56:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779148603; x=1779753403; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=cl1a+XGpLPxspGSZgdM+QSxe+cRFXtFKMQbqP89OpSE=;
-        b=Te3cdoQEX6iET2xl+CKzUFwM613W4vfHvjOuF4Ed+WnkIjw4c5p4TSSqQUU85LgPvU
-         w5x5Nxf4xN3SoTW/W9NAmj+VRymHF6UgeueXvNcL5kdp6JPeJA6eMAZUx0pWs9LADqu3
-         hqHNIJgvS1d02tEoYgNijvX8qvn7QUaLpmf6cl8MJ9sxd5K7jl6ffvpO+2F+2Edzh3Yo
-         wN6M542krfMVkScSfEhd1xCZ3CHuNk8xFEd0pQahFZZCgC/IBu5ODCgyU/ydghtDndpH
-         ELmibeDVuWmF6Yhwz8HXHt3FVJ3HtRDcT8efwc97WdeDKm84wZzZWxPqfpVvqcwxtAPU
-         KLxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779148603; x=1779753403;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1779148608; x=1779753408; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=cl1a+XGpLPxspGSZgdM+QSxe+cRFXtFKMQbqP89OpSE=;
-        b=tF6dVrlHYUruZtvsD+VKsF1okmPs5BPiD3j874SQa3jv7gJ05tqSFuFK/UEcHhU4+p
-         E1DJZxBYbkNnBMmDfRHzQ/SzlTrtMvd7H1mcedGPWTSKemc/nGcvQf41ZUg+BNZaYCFz
-         Yx8f3RxWCZ3d6oj12uupuabFfE7q4QcvU5LPIH5Kh9z15D+FrMU15/D8G52Sxy9DYLKA
-         H5UEL/QlXv3H1byxOOdWspJXxCJmifr7PLTOgDuQrmSHnhzpWCHp3+vNaSq6OOUDJary
-         RCDKk6H/ooBe2W4OgMX0Hcp2R71FlNuV4rd23ljI9SesRACoagHnBLkbTw2pE5HZiUwB
-         KGAg==
-X-Forwarded-Encrypted: i=1; AFNElJ/fResEAotCoXcs2kQOcIpedQsAHqR2oUdSs4toHPxU2Z7oqDDN63RWcSNBnWbhg4fZKWOV0J5DEvnp@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz6HizZtlAkuuu+GqB5Fb3mmPBcgcBlEBhHJXnZMBixNzJtUDjx
-	rQLq+xZBKQhFJgurB66BUb/cweGXg29dCaZPaUqaIB4Gt9+H6x79Yd65
-X-Gm-Gg: Acq92OG+hupaagho483AbvVIYR5j0fiQIrla+QbxCODmY+pg7NSRgchrLlUDF8yo9AQ
-	yQyu6a5/79iJrhIIVlOuRSjtiusgCutWiihHlCXu142tNEHIA/Ti4kwAwBiJDjF/leBS7PjvvMw
-	p4AQnUVH4wzJ9oEMXhvh4elcToqYnqYF1qu3bWi0l+1dSVmrr6cw6bXwNIKnAA6FLiTlG0klsaG
-	zlE2BbEY7jeCbRT8QiClTsMEM/H+ucZ8b7gmY+hhWGzW3aNgrOFp9yzIkLjGO8ji8xQodkYCXYN
-	6BE1iwxT0oY0dRXydskFWrKPGnwxLkhrf8qODmqzPXiYG4HjhG2lBaMzjzIBh4uhLTAHEEpeUk3
-	3B641q4w7CGhJSTNq/FCL8WbrzeFVpZ2Mc8prc003M/00I8i7LVeWI73MW0KHIDC40TVWo4tbOB
-	HkcKwIFkMFeiocdnuims7zEUi213tbShVrKC+S
-X-Received: by 2002:a05:7301:608a:b0:2be:833c:149d with SMTP id 5a478bee46e88-3039869d771mr7418455eec.28.1779148603497;
-        Mon, 18 May 2026 16:56:43 -0700 (PDT)
+        bh=I/re5UGXJXnbUiTOLP9irqWGJnT3W7803B73Ky28WmY=;
+        b=T475WZHo7ikkIl4D7JX+StlEbKo29Kb2vDZx1nLrpjQFpH75Cn/3dXP7zs8eIwz3CO
+         V+VxpssK0Nb1rcbJBBVN3Ttvy3Cgr4VRpQM43bD2A9GszpBVqWKF8RwfOUOGQO7DamfJ
+         VtpDVFbh9JAKqUbTQ1S9/iLFh7ud9q18O9O+mx+Cv+s7ip+z2hgdPRicpBWSG7q+yXaV
+         0Jy5zzGH561N/40/Y2N1+J6HB91rkMyljFELGjHtwOAM9LxBx2g52g6dAFc8ghP0NcX8
+         nJUP4c47VwjF8uEeJai2wZn7WLllh8aIQ+Xpfc/tZDhU6gmHMODNgx94XTe3D2hNQ0lQ
+         OR2Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779148608; x=1779753408;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=I/re5UGXJXnbUiTOLP9irqWGJnT3W7803B73Ky28WmY=;
+        b=kzvCv3hUQw6pApLnZ3BIbeMxuAKGPsF4odqzjOV3NANW11VXJRJohTfPaLo8sjnYQl
+         5y7UFNYiPPaLHF6ibdj+Fd3889jXHRP1Oyr0rrdBMiUMdXOUsYg0wVqAtorDoFzvGYIC
+         6GQwFE95onNw5ZeV+Oc+hTdZMj957REjyNuKV8VFnD69orMwR3uOUpZqfLMDzfuEevdg
+         FTts3XDiPFJ5ATUrISc5OmR92ZCG9m8g85p++FK+I1uo1LuOWuxnnMCPhXJwr2MrjaAY
+         Jr7OZZ9b9tJLBj275HikHBFt/o6kpUSevjNj2HtmCd2drlaKmQULMmYHV/JN5sdyurJy
+         VHxg==
+X-Forwarded-Encrypted: i=1; AFNElJ81JY4eWQf2zxUb1qMa0AgLrA5w7TJfgimQvDAgeCfP/h1Z/KEaKx8XBs+u37kLrJcLWra4QnGu6Na/@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzfatws7/FR+PbvuleYLeuyYOdSAGFOowEh78Gj8f7+AMUHnWEz
+	NPIGT3zWDUA7awL2s/1yiwPAtBxffgU/TaOEkCI9j0LaiTbFOsKmcXxj
+X-Gm-Gg: Acq92OGi4V3ePUFijMdDl6rOf/mcswaaXQH4PBBN+OXlooToZXTO0vb8BDSAqSdpcSG
+	xNJXpz9pGTsPgPV1m/mSR+34lTEu3vaF8BPzddcNkHitnZmJh0QeqOlbCl2vWY3jE5mYI0n7Rbb
+	P+Kw8higjIp1mE4y7qrI03tNfXhAZ/mVNRwByeCQro5qfBWov3ltNB9+b2k9K3E95NDuJwRsi9h
+	++Ravowk14Rn7/DrH+Srwp09CHTc0exAP2oSfAM5hiLaTFYN2tCOeSg7zNU+ss7b2rK4EyFK3eb
+	TcCbp9AqFlwvz61tXhUlr/dziXwKeuLlG19O+5l1MV40m85hx1UvgTjDtD7PMQ+mWkdn1VYu3gu
+	x1H7MM8xyFt8M/DzAScitGDoPZ2MrazOjBvyZEpkk0P2IWHlcoZuR+FcW009Ybes3/qVgMy1txs
+	S2VebBNH12gM+cFRMYrqCM+LEnuyAUVqnYjJO9
+X-Received: by 2002:a05:7300:a94b:b0:2ed:a64:a457 with SMTP id 5a478bee46e88-303986552f6mr7440960eec.20.1779148608109;
+        Mon, 18 May 2026 16:56:48 -0700 (PDT)
 Received: from s7t7-debian-test.local ([67.170.89.46])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30294500726sm14141408eec.10.2026.05.18.16.56.42
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30294500726sm14141408eec.10.2026.05.18.16.56.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2026 16:56:43 -0700 (PDT)
+        Mon, 18 May 2026 16:56:47 -0700 (PDT)
 From: Tony Rodriguez <unixpro1970@gmail.com>
 To: davem@davemloft.net,
 	sparclinux@vger.kernel.org
@@ -68,45 +70,77 @@ Cc: linux-kernel@vger.kernel.org,
 	linux@leemhuis.info,
 	torvalds@linux-foundation.org,
 	Tony Rodriguez <unixpro1970@gmail.com>
-Subject: [PATCH 0/1] sparc64: Fix tick/stick comparator equal-compare hazard
-Date: Mon, 18 May 2026 16:56:02 -0700
-Message-ID: <20260518235632.5122-1-unixpro1970@gmail.com>
+Subject: [PATCH 1/1] sparc64: Fix tick/stick comparator equal-compare hazard
+Date: Mon, 18 May 2026 16:56:03 -0700
+Message-ID: <20260518235632.5122-2-unixpro1970@gmail.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260518235632.5122-1-unixpro1970@gmail.com>
+References: <20260518235632.5122-1-unixpro1970@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-sparc64: avoid missed timer interrupts when comparator equals counter
+On SPARC64 the timer interrupt is generated only when the counter
+equals the comparator (tick == tick_cmpr). There is a latency between
+writing the comparator register and the comparator becoming active.
+If the counter reaches the comparator value before the comparator is
+armed, the equality moment can be missed and the hardware may not
+generate the interrupt.
 
-This patch fixes an equal‑compare hazard in the SPARC64 tick/stick comparator
-logic that can cause missed timer interrupts and stalled hrtimers.
+Previously the helper treated equality as success:
 
-Full dmesg and crash dumps:
-https://github.com/unixpro1970/Sparc64-Kernel-Debugging-Dumps/blob/main/s7-2-05122026-dump.tar.gz
+    return ((long)(new_tick - (orig_tick + adj))) > 0L;
 
-Debugging discussion:
-https://lore.kernel.org/all/87tssb6olo.ffs@tglx/
-https://lore.kernel.org/all/871pfcznw0.ffs@tglx/
+Here `exp` is the expected comparator value (orig_tick + adj). If
+new_tick == exp the code considered the event scheduled, but the
+hardware may already have missed the equality window. Treat equality
+as failure so the caller will retry with a later expiration:
 
-Short dmesg excerpt:
-[   48.632215] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
-[   48.676018] rcu: rcu_sched kthread timer wakeup didn't happen for 5259 jiffies!
-[   48.743621] rcu:     Possible timer handling issue on cpu=100 timer-softirq=15
+    return ((long)(new_tick - (orig_tick + adj))) >= 0L;
 
-Test summary:
-After applying this patch, S7-2 and T7-1 systems no longer hang on v7 and v7.1 kernels.
+This prevents missed timer interrupts and stalled hrtimers on affected
+SPARC64 systems.
 
-Tony Rodriguez (1):
-  sparc64: Fix tick/stick comparator equal-compare hazard
-
+Signed-off-by: Tony Rodriguez <unixpro1970@gmail.com>
+---
  arch/sparc/kernel/time_64.c | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 87b267043ccd..783b60e547c4 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -146,7 +146,7 @@ static int tick_add_compare(unsigned long adj)
+ 			     : "=r" (new_tick));
+ 	new_tick &= ~TICKCMP_IRQ_BIT;
+
+-	return ((long)(new_tick - (orig_tick+adj))) > 0L;
++	return ((long)(new_tick - (orig_tick+adj))) >= 0L;
+ }
+
+ static unsigned long tick_add_tick(unsigned long adj)
+@@ -277,7 +277,7 @@ static int stick_add_compare(unsigned long adj)
+ 			     : "=r" (new_tick));
+ 	new_tick &= ~TICKCMP_IRQ_BIT;
+
+-	return ((long)(new_tick - (orig_tick+adj))) > 0L;
++	return ((long)(new_tick - (orig_tick+adj))) >= 0L;
+ }
+
+ static unsigned long stick_get_frequency(void)
+@@ -411,7 +411,7 @@ static int hbtick_add_compare(unsigned long adj)
+
+ 	val2 = __hbird_read_stick() & ~TICKCMP_IRQ_BIT;
+
+-	return ((long)(val2 - val)) > 0L;
++	return ((long)(val2 - val)) >= 0L;
+ }
+
+ static unsigned long hbtick_get_frequency(void)
 --
 2.53.0
 
