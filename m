@@ -1,119 +1,113 @@
-Received: from out-177.mta1.migadu.com (out-177.mta1.migadu.com [95.215.58.177])
+Received: from mail-24425.protonmail.ch (mail-24425.protonmail.ch [109.224.244.25])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30A7B32B9A8
-	for <sparclinux@vger.kernel.org>; Wed, 20 May 2026 15:31:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82F21367B91
+	for <sparclinux@vger.kernel.org>; Wed, 20 May 2026 16:21:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=109.224.244.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779291097; cv=none; b=GBW0F1jHEqCxbsb47C5FgQaIr+h2GpAfBV1pLf/IHX0ukePUiTAh2u3bXpqisDqiJNqS5DRqIk4vIt4EYT/hISlRIhqRlS4CA2cWPWnFzkMy+a9D5Km720OFQBtucV73mP5e4vLOXzfMoO+mfN4DDFW16zLIV+1cw9VlbBFWArk=
+	t=1779294064; cv=none; b=A1ukOI3iCHVTzlWoHFHPMdKJDhZrcPxC3ANDri38iUUgtAfqrmmFTqGD85EpZmeh3GCKApSquJzMAxQJHkTDmLszbicYsmjX7mvBeuDj0YkrldR3qAyMM7whKOxCImFvHYxQYK52/GD6B4IqTurVxOVe1x7/a5iohDr0PfKP/Mc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779291097; c=relaxed/simple;
-	bh=u8WjjRIrjIi+YYl0V7pzG2yc3criivYx2JxFgRlvXg4=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UplSDIFKXWv45g9KKtSHdExvk4WP0XU85nD0OX+xGjDwxPDNWgIotryxOx41cea9OmqFjLiBKpt2wS8JhZU3QnFjPu1bXbCtamIBlxYebdhtmkYvdijgr0tj/ZiYwLUGOZ3hob29xl7D9HbFpIlAnwcf2wdQdK6fmsw8Bebob80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=UrD4QznM; arc=none smtp.client-ip=95.215.58.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1779294064; c=relaxed/simple;
+	bh=qYPRTP3iQMlx5HrmiTZPaMTnMA/LljDJ13hVTLdeCFs=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Eqi6gjaVpkEKd6hH82lKq4J1EmoHj2vGZ6HNXQ2ufjoDz1nPqOnHT8Bo2G+jJfltgUNbed7fEMXwbAXxUjh8hJS8MQJqz8qApymiRKyfaEgLTwrdG+opwy5uixKN2nzNsOdHWxUmh93Zv354EQ5sGZQTYHLd5J7KURt9M+1+06Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=R6SWXnRK; arc=none smtp.client-ip=109.224.244.25
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="UrD4QznM"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1779291083;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gxePXEMQDWwNnRA4fuUAEJ8toZ4JkLQ6obW+0ibr2gg=;
-	b=UrD4QznMUDmQ0luAlbLeSSiws6nZUUkmtwBztn8k6zeWl1F6tpAnuJzA7kqzv5F400/CJu
-	tsnsT0njTgvs2egS7NWnQZ3sFoLN2sNldH6aweT3nAwMm/SUsrALg/hSZ40qnAurfGkQIy
-	7NDdgJx0NZYt+FVg9eFvyCYbotjwbEw=
-From: Lance Yang <lance.yang@linux.dev>
-To: david@kernel.org
-Cc: davem@davemloft.net,
-	andreas@gaisler.com,
-	rppt@kernel.org,
-	akpm@linux-foundation.org,
-	agordeev@linux.ibm.com,
-	gerald.schaefer@linux.ibm.com,
-	hca@linux.ibm.com,
-	gor@linux.ibm.com,
-	borntraeger@linux.ibm.com,
-	svens@linux.ibm.com,
-	maddy@linux.ibm.com,
-	mpe@ellerman.id.au,
-	npiggin@gmail.com,
-	chleroy@kernel.org,
-	ljs@kernel.org,
-	liam@infradead.org,
-	vbabka@kernel.org,
-	surenb@google.com,
-	mhocko@suse.com,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-s390@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	Lance Yang <lance.yang@linux.dev>
-Subject: Re: [PATCH 5/8] mm/bootmem_info: stop marking the pgdat as NODE_INFO
-Date: Wed, 20 May 2026 23:30:55 +0800
-Message-Id: <20260520153055.61173-1-lance.yang@linux.dev>
-In-Reply-To: <20260511-bootmem_info_prep-v1-5-3fb0be6fc688@kernel.org>
-References: <20260511-bootmem_info_prep-v1-5-3fb0be6fc688@kernel.org>
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="R6SWXnRK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1779294054; x=1779553254;
+	bh=qYPRTP3iQMlx5HrmiTZPaMTnMA/LljDJ13hVTLdeCFs=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=R6SWXnRKnfxeRlILBwWc24LPUd49clXY5kFKpfjDETwTRBohzAHSf3cgxRPmxKyHS
+	 slrTPeWsLEKHui1aUufqn0yny7xS0FFU7dB221Ztdsmx7iLrBjHGAJnXSRFA/dx3zT
+	 hvgVz7fqzQtbrILjdpTEVbEHEHkNfJ2ACc6rs7ShsLpARvW52i3/1jMgqgEFa+RpkC
+	 RgEXKWw/KFObVimCEEFymvCRtYCavMFkkh+K3LVYExseb0+Ijn1nRXPMAAZK8PcBSh
+	 y8+8opiquF83bjOYeO1+cBrzReTrSBF2SReW+Kp+FJ7YPAkjeWkxDxbMjYvCbjq90T
+	 6tis8BqLx+w/w==
+Date: Wed, 20 May 2026 16:20:50 +0000
+To: Nathan Chancellor <nathan@kernel.org>
+From: Koakuma <koachan@protonmail.com>
+Cc: Rosen Penev <rosenp@gmail.com>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Christian Brauner <brauner@kernel.org>, Nick Desaulniers <nick.desaulniers+lkml@gmail.com>, Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, open list <linux-kernel@vger.kernel.org>, "open list:CLANG/LLVM BUILD SUPPORT:Keyword:\\\\b(?i:clang|llvm)\\\\b" <llvm@lists.linux.dev>
+Subject: Re: [PATCH] sparc: Avoid unsupported LLD branch relocations
+Message-ID: <ov9qx_G3-lAxKXO_ur8gXhE8J5toGs8NkZ2mtMBdwEVND6y0f9CakihiR1kVbaS_lgMVbYs3NegNpFgCRjzzb79wzfbm4_1WeVt1q5pe_f0=@protonmail.com>
+In-Reply-To: <20260514125820.GB1781775@ax162>
+References: <20260514041908.874355-1-rosenp@gmail.com> <f8a58a8d567149f514f2f5f47af25905f254f72f.camel@physik.fu-berlin.de> <CAKxU2N_p7unDCif826jpTUtzs8=-ZoKw4u-Eg1UEM+4o+5Fbzg@mail.gmail.com> <20260514125820.GB1781775@ax162>
+Feedback-ID: 6608610:user:proton
+X-Pm-Message-ID: dc4801de4e8e130a94d9c0d4ad5566170f8ca541
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
+Nathan Chancellor <nathan@kernel.org> wrote:
 
-On Mon, May 11, 2026 at 04:05:33PM +0200, David Hildenbrand (Arm) wrote:
->We removed the last user of NODE_INFO in commit 119c31caa59e ("mm/sparse:
->remove !CONFIG_SPARSEMEM_VMEMMAP leftovers for CONFIG_MEMORY_HOTPLUG").
->
->But it really was never used it besides for safety-checks ever since it was
->introduced in commit 04753278769f ("memory hotplug: register section/node
->id to free"), where we had the comment:
->
->	5) The node information like pgdat has similar issues. But, this
->	   will be able to be solved too by this.
->	   (Not implemented yet, but, remembering node id in the pages.)
->
->Of course, that never happened, and we are not planning on freeing the
->node data (pgdat/pglist_data), during memory hotunplug.
->
->So let's just stop marking the pgdat as NODE_INFO.
->
->Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
->---
-> mm/bootmem_info.c | 9 +--------
-> 1 file changed, 1 insertion(+), 8 deletions(-)
->
->diff --git a/mm/bootmem_info.c b/mm/bootmem_info.c
->index 74c1116626c8..cce1d560f094 100644
->--- a/mm/bootmem_info.c
->+++ b/mm/bootmem_info.c
->@@ -62,15 +62,8 @@ static void __init register_page_bootmem_info_section(unsigned long start_pfn)
-> 
-> void __init register_page_bootmem_info_node(struct pglist_data *pgdat)
-> {
->-	unsigned long i, pfn, end_pfn, nr_pages;
->+	unsigned long pfn, end_pfn;
-> 	int node = pgdat->node_id;
->-	struct page *page;
->-
->-	nr_pages = PAGE_ALIGN(sizeof(struct pglist_data)) >> PAGE_SHIFT;
->-	page = virt_to_page(pgdat);
->-
->-	for (i = 0; i < nr_pages; i++, page++)
->-		get_page_bootmem(node, page, NODE_INFO);
+> + Koakuma
+>=20
+> On Wed, May 13, 2026 at 10:34:44PM -0700, Rosen Penev wrote:
+> > On Wed, May 13, 2026 at 10:03=E2=80=AFPM John Paul Adrian Glaubitz
+> > <glaubitz@physik.fu-berlin.de> wrote:
+> > >
+> > > Hi Rosen,
+> > >
+> > > On Wed, 2026-05-13 at 21:19 -0700, Rosen Penev wrote:
+> > > > LLD does not support several SPARC branch relocation types, includi=
+ng
+> > > > R_SPARC_WDISP16, R_SPARC_WDISP19, and R_SPARC_WDISP22. A sparc64
+> > > > allmodconfig LLVM build can therefore fail when trap table code and
+> > > > low-level assembly leave branches to global symbols for the linker.
+> > > >
+> > > > Use local labels for branches that stay within the same assembled
+> > > > object so the assembler can resolve them directly. Convert the
+> > > > remaining cross-object branches and tail calls to absolute set/jmpl
+> > > > sequences, which LLD handles through the usual HI22/LO10 relocation=
+s.
+> > > >
+> > > > Disable the unused sparc32 syscall trace entry points when compat
+> > > > support is not built, and request sys_llseek for the native syscall
+> > > > table so the LLD allmodconfig build remains self-contained.
+> > >
+> > > I would rather fix LLD than making such intrusive changes to the SPAR=
+C
+> > > code in the kernel. In particular, since this touches the CPU-optimiz=
+ed
+> > > memory routines which had been haunted by subtle bugs for years and w=
+ere
+> > > only fixed recently.
+> > >
+> > > Is improving LLD in this case not possible?
+> > Above my paygrade. I use this so that allmodconfig succeeds.
+>=20
+> We document sparc64 as only having support for clang as the compiler
+> (not even supporting the integrated assembler yet, although maybe that
+> needs to be updated [1]?) in Documentation/kbuild/llvm.rst, so I don't
+> think we should take a patch like this. As far as I am aware, ld.lld
+> work for sparc64 has not happened yet to make it work with the kernel.
+> If you need to test with clang, use CC=3Dclang LLVM_IAS=3D0 with GNU
+> binutils (CROSS_COMPILE=3Dsparc64-linux-gnu-).
+>=20
+> [1]: https://github.com/llvm/llvm-project/issues/40792
 
-Cool. IIUC, pgdat isn't freed during memory hotremove. Offline nodes
-stick around and can get reinitialized on hotadd, so NODE_INFO doesn't
-buy us anything here :D
+Yes, at the moment LLD only has very basic capabilities and still can't lin=
+k
+the kernel, at least not without some rather invasive changes.
+(And even if you manage to land all the changes to the kernel, still there =
+are
+many complex programs out there that's currently unlinkable by LLD that I f=
+eel
+like improving LLD would be a better use of resources, in the long term)
 
-LGTM, feel free to add:
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
+As for the integrated assembler, now that PR 187534 [1] is merged it should
+be possible to build the kernel with IAS, but that commit hasn't made it in=
+to
+a release yet so I don't feel like it's the time to update the kernel's
+docs... maybe?
+
+[1]: https://github.com/llvm/llvm-project/pull/187534
