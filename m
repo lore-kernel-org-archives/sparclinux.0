@@ -1,155 +1,126 @@
-Received: from mail-dy1-f172.google.com (mail-dy1-f172.google.com [74.125.82.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-170.mta0.migadu.com (out-170.mta0.migadu.com [91.218.175.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E20A63A7F7E
-	for <sparclinux@vger.kernel.org>; Tue, 19 May 2026 23:57:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39B163DB313;
+	Wed, 20 May 2026 12:15:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779235029; cv=none; b=j4Wh2qKP/b+VnV55YF0CVpHjO9MzM6xgGS0o6n17tTyUJB1cQViG+XUisqUk77hfoH7P/OxfOJMMHAodNkfgQfswgA8nEjQAcM9yDF/fGeVDmGfwBIIgtcmHKQlenaai6k3CIWyhuhZgFtlZJP1hspn+fpawRNZhJSqfGM1bojk=
+	t=1779279325; cv=none; b=Whth+MjB0FWAfe0AKokhEZjAyjwE7Lmz7DMWcp7e3XChy6hbNc795Y7KBag9emyFgq0ZG90qfyAzb3xG5vbqUkbkLUDwEcb2Zk1SNxcYPFyjkNanB/3a0I9Oaud2i8PdLUJ5DF6ZsgKgAcfGte6rfjjVZxmvu7ALEz6q8aXiy6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779235029; c=relaxed/simple;
-	bh=s+3OhO8jaiv4gp4W2MmMu1vTmS+Aqx0YsvRWaoIeR9U=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=msA689yW2DIcJUGIyz8ps+/NkGeE+0hcUi/dur2zQ+O6mm37xno+BvfAxGyV/QcObMHkrCcmqRG6899Q1uhMvtBeDaOUNJMbEhkn0GmgVLlgLxvFq6IIzS4px0WXzRA14x1s11RmbJ22fk5YREcWMXJE/HOI7aeBOh7pj3whkwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=a87O32tl; arc=none smtp.client-ip=74.125.82.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779279325; c=relaxed/simple;
+	bh=3tdAJI8XIZgWJFVgKSkNIeLL1HS/t3CWBHC7BMxsuqI=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=VpRlQBfAGSKuE8T5vD4AZ1NfpYAG+8P2LxrmPQt+YfhR3vtX8vmHqT7VyJ1wqnLhcSRAQWXNWFSEoq2rk2WlsWNU5PrxHjuuRlLVNEDK8xbmqqps/zeNUYnr2uZN6ZZJSH9njEbY2Jlztcl1G27PVAN38MMyR4RraU4xrYVlGek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=CxR4mGr/; arc=none smtp.client-ip=91.218.175.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a87O32tl"
-Received: by mail-dy1-f172.google.com with SMTP id 5a478bee46e88-2f0d3e07e30so15180113eec.0
-        for <sparclinux@vger.kernel.org>; Tue, 19 May 2026 16:57:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779235026; x=1779839826; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=KwVNzBda9+o6BwkcgCejimTHlfEURUsk3PVURqJTo84=;
-        b=a87O32tlOK17uO+m4T3LC33csKERnF8IFn/bN0Y7nR/bel8amFKiW56WB4EjLulu/M
-         E3FDZebp0GEj9ekFLZhuyyrulk7GcA77laPjSiry3Rj+NymvUHEak5VrM1GRzzkq8DJV
-         9veFPA0T8lVzlriCps5SH1cUI+1zTDjsLwstr/zO3q7rCHQbmsKvI7Oa+E49dIQhCq2u
-         IL0oGuLnk58Z3LV+wF40UYMHATHy1XlToQJNgTG8q1U5FILYF0mGaSRHAi6PwGyOeuhW
-         K+YAppcoAF3+2QrkvbAsdOPmg0mOywqSZR6UR+4f1zRf+nMdJxGc1WB5groEVCo8/5O9
-         sV8w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779235026; x=1779839826;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=KwVNzBda9+o6BwkcgCejimTHlfEURUsk3PVURqJTo84=;
-        b=M8MJn6LUWiphDTU66LcjK8ZC3xWeJdIWRZdH4ckWX0wdNxF18JEtJd4ncPO3GHwWws
-         eE+UinhOntK+U9V9FvJCT9hWM0P3Go0XSQ0s3Fo/JCs1X+e/1ECMjvUnPzM/7DBPe84x
-         NNO1KqctG9FSKVlPYI6BYC7wwfhicrDHatxKw7FU6xfakEitCDmvOIXgJ+NUNKGmc4vq
-         KTgq8+YwWWG1+FcRQxYvXDNLNimANuPf7Cj168cCcBbsX7i3YhtxhOjGukq7Y+9a31PV
-         fc9+y9qhJ6zs5fkMjzT6JHj766jlSdTorsWePPUYWrNnkWiwndNI95Ra8fjIUVC5Pcw6
-         PLVQ==
-X-Forwarded-Encrypted: i=1; AFNElJ9us6IqM1ijXiBDPdiWvV8VQLCKi16W9L1Tr+ORewAHGB+0cI1M1+CJ+6TLXJTgm62Zmc5XWRbLf0JI@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywr5oZ+ntBgyjBFZUw6+FonUIQJ6GcNzAGbtvW1GsPnyrAzv5qL
-	438Y1hngW7rXjD7amQf8QKGMYKro2gZvJnXl3/rclA+pOrdJtJgKNKGQ
-X-Gm-Gg: Acq92OEvEawKDtZOkK7KSrx1Ui2eQKhuYWssdw21auYFYIW0coPIiAurRfARqJtAKvl
-	GnejczUNXbdvl6ZTOcI10SkyNa1qUMx0E1mZ5c8ClL0IXLPV0F004owxFfhvOc0oJ12CYqEcmnn
-	8e3mXc37x5KAc4/Eir7tsjfcztVngw7CzMbKSbEkwCYNBCbBRjVtX9kGhVSPER7/YAB8XKp2Lh0
-	U6cILDviI3f+2PlrWClsTGdRs203w+/xwmZpTq4QHULSjKGG0NPftueJQVbHrOihpGirhWGXc9J
-	/lhENQjXcm2F2Qf4vrAFZ4W1h12iRkwj0bu5xsaF23anj1bTg54A9nODcPzJ9zMNHMHDGtBFhAx
-	XCI7IKBxKXZyHsEI6z/yKgQcbxGUHSExUKdmwG6kFmLwWjuE46gS7/FXKo2XOYms+vL+jYo4ZFN
-	TKFkiAjicf+AhsEv8GxpKFEEWS3gSmZQ==
-X-Received: by 2002:a05:7300:a286:b0:2f1:6252:f8fe with SMTP id 5a478bee46e88-303981914a5mr9989210eec.3.1779235026049;
-        Tue, 19 May 2026 16:57:06 -0700 (PDT)
-Received: from [192.168.21.192] ([67.170.89.46])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-304052f79ecsm3305232eec.11.2026.05.19.16.57.05
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 19 May 2026 16:57:05 -0700 (PDT)
-Message-ID: <05e0e7a5-107b-410b-853b-883810b1be3e@gmail.com>
-Date: Tue, 19 May 2026 16:57:04 -0700
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="CxR4mGr/"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1779279320;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=lpVD7PvJ3yLAhhJddRj1iqDdwuhUY+Ubp+n7mSO2yuo=;
+	b=CxR4mGr/kbCFb8VOKtUL9MJeH5OxsnTYvxgXmVOSe0Z9v82ZfRdNB3x4IjDWyCRj/mcar0
+	2MlOZFVwz6UAb24nlbVSQvG8zVgEBTUcHXyjchJ9+S+e3On01dfRhOwahPNI2CzLOC+eU2
+	2RM45/OVYi7NgcXDE3Ms3iA9ru4uu3M=
+From: Lance Yang <lance.yang@linux.dev>
+To: david@kernel.org
+Cc: osalvador@suse.de,
+	davem@davemloft.net,
+	andreas@gaisler.com,
+	rppt@kernel.org,
+	akpm@linux-foundation.org,
+	agordeev@linux.ibm.com,
+	gerald.schaefer@linux.ibm.com,
+	hca@linux.ibm.com,
+	gor@linux.ibm.com,
+	borntraeger@linux.ibm.com,
+	svens@linux.ibm.com,
+	maddy@linux.ibm.com,
+	mpe@ellerman.id.au,
+	npiggin@gmail.com,
+	chleroy@kernel.org,
+	ljs@kernel.org,
+	liam@infradead.org,
+	vbabka@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-s390@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	Lance Yang <lance.yang@linux.dev>
+Subject: Re: [PATCH 4/8] mm/bootmem_info: remove call to kmemleak_free_part_phys()
+Date: Wed, 20 May 2026 20:15:05 +0800
+Message-Id: <20260520121505.60854-1-lance.yang@linux.dev>
+In-Reply-To: <b2a8e918-7ed2-46b4-bf59-e65dc9359310@kernel.org>
+References: <b2a8e918-7ed2-46b4-bf59-e65dc9359310@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Betterbird (Linux)
-Subject: Re: [PATCH 0/1] sparc64: unify thread stack sizing and add explicit
- 32KB stack
-Content-Language: en-US
-To: David Laight <david.laight.linux@gmail.com>
-Cc: davem@davemloft.net, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org, andreas@gaisler.com, thuth@redhat.com,
- regressions@lists.linux.dev, glaubitz@physik.fu-berlin.de
-References: <20260519075809.8993-1-unixpro1970@gmail.com>
- <20260519110223.5aeb88e3@pumpkin>
-From: Tony Rodriguez <unixpro1970@gmail.com>
-In-Reply-To: <20260519110223.5aeb88e3@pumpkin>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
 
-On 5/19/26 3:02 AM, David Laight wrote:
-> On Tue, 19 May 2026 00:57:54 -0700
-> Tony Rodriguez <unixpro1970@gmail.com> wrote:
+On Tue, May 12, 2026 at 10:45:03AM +0200, David Hildenbrand (Arm) wrote:
+>On 5/12/26 10:34, Oscar Salvador wrote:
+[...]
+>>> diff --git a/mm/bootmem_info.c b/mm/bootmem_info.c
+>>> index 6e2aaab3dca9..74c1116626c8 100644
+>>> --- a/mm/bootmem_info.c
+>>> +++ b/mm/bootmem_info.c
+>>> @@ -32,7 +32,6 @@ void put_page_bootmem(struct page *page)
+>>>  
+>>>  	if (page_ref_dec_return(page) == 1) {
+>>>  		set_page_private(page, 0);
+>>> -		kmemleak_free_part_phys(PFN_PHYS(page_to_pfn(page)), PAGE_SIZE);
+>> 
+>> A bit odd that kmemleak_free_part_phys() did not complain if we never
+>> did kmemleak_alloc_phys() for these pages?
 >
->> This patch fixes a reproducible stack exhaustion issue on SPARC64
->> that occurs during USB hub enumeration. This regression may have
->> started sometime after kernel v6.12. With the default 16KB kernel
->> stack, the following panic is triggered early in boot:
->>
->>      [   25.528399] Call Trace:
->>      [   25.528403] [<0000000000433cd4>] dump_stack+0x8/0x18
->>      [   25.528419] [<00000000004297ac>] vpanic+0xdc/0x318
->>      [   25.528429] [<0000000000429a0c>] panic+0x24/0x30
->>      [   25.528436] [<0000000000be2280>] __schedule+0xa8/0x7bc
->>      [   25.528445] [<0000000000be2b60>] schedule+0x24/0x4c
->>      [   25.528452] [<0000000000be6970>] schedule_timeout+0xc8/0xe4
->>      [   25.528459] [<0000000000be3318>] __wait_for_common+0x78/0xf0
->>      [   25.528466] [<0000000000be3550>] wait_for_completion_timeout+0x1c/0x2c
->>      [   25.528473] [<000000001005e2f4>] usb_start_wait_urb+0x68/0x128 [usbcore]
->>      [   25.528502] [<000000001005e468>] usb_control_msg+0xb4/0xf8 [usbcore]
->>      [   25.528518] [<0000000010051180>] set_port_feature+0x44/0x54 [usbcore]
->>      [   25.528530] [<00000000100530f0>] hub_power_on+0xc8/0xe8 [usbcore]
->>      [   25.528543] [<0000000010054fd8>] hub_activate+0x12c/0x644 [usbcore]
->>      [   25.528557] [<0000000010059438>] hub_probe+0xdd4/0xeb0 [usbcore]
->>      [   25.528570] [<0000000010062360>] usb_probe_interface+0x234/0x26c [usbcore]
->>      [   25.528585] [<0000000000a10a40>] really_probe+0x1ac/0x3b0
->>
->> This is caused by large SPARC64 trapframes, register-window spills,
->> and deep call paths in usbcore. A 16KB stack is insufficient for
->> this workload.
-> Increasing the stack size for all threads seems overkill.
-> That stack doesn't even look deep.
-> I suspect there are large on-stack buffers in there.
+>delete_object_part() calls __find_and_remove_object() and essentially just skips
+>if it didn't find anything.
 >
-> Unfortunately the traceback doesn't print the stack pointers making
-> debugging hard.
->
-> -- David
+>Maybe the kmemleak_warn() would trigger, but it's guarded by "#ifdef DEBUG" ...
 
-Hi David. Any specific grub command line keywords and values, and 
-functions you recommend for debugging this?  I would be happy to share 
-Trace Calls, etc. so it is easier to reconfirm and zero in on the issue. 
--- Tony
+Right! With kmemleak DEBUG enabled, kmemleak_free_part_phys() does warns
+whenever delete_object_part() cannot find the corresponding physical
+object ...
 
->> The new logic is:
->>
->>      SPARC64:
->>          THREAD_SIZE = 4 * PAGE_SIZE (32KB)
->>          THREAD_SHIFT = PAGE_SHIFT + 2
->>          THREAD_SIZE_ORDER = 2
->>
->>      Non‑SPARC64 with PAGE_SHIFT == 13:
->>          Retains the existing 16KB stack behavior
->>
->>      Fallback:
->>          Retains the existing 8KB stack behavior
->>
->> Signed-off-by: Tony Rodriguez <unixpro1970@gmail.com>
->>
->>
->> Tony Rodriguez (1):
->>    sparc64: unify thread stack sizing and add explicit 32KB stack
->>
->>   arch/sparc/include/asm/thread_info_64.h | 28 ++++++++++++-------------
->>   1 file changed, 14 insertions(+), 14 deletions(-)
->>
->> --
->> 2.53.0
->>
->>
+Before this patch, booting with:
+
+"kmemleak=on hugetlb_free_vmemmap=on default_hugepagesz=2M hugepagesz=2M hugepages=512"
+
+I got a lot of warnings, something like:
+
+[   44.481883] kmemleak: Partially freeing unknown object at 0x2acc59000 (size 4096)
+[   44.482754] CPU: 2 UID: 0 PID: 1 Comm: swapper/0 Not tainted 7.1.0-rc3 #206 PREEMPT(full)
+[   44.482758] Hardware name: Red Hat KVM, BIOS 1.11.0-2.el7 04/01/2014
+[   44.482760] Call Trace:
+[   44.482762]  <TASK>
+[   44.482764]  dump_stack_lvl+0x60/0x90
+[   44.482769]  dump_stack+0x14/0x1a
+[   44.482774]  delete_object_part.cold+0x28/0x2d
+[   44.482779]  kmemleak_free_part_phys+0x67/0x80
+[   44.482783]  put_page_bootmem+0xc0/0x100
+[   44.482787]  free_vmemmap_page_list+0x13e/0x230
+[   44.482791]  __hugetlb_vmemmap_optimize_folios+0x351/0x430
+[...]
+
+So, yeah, looks like these calls are trying to free physical kmemleak
+objects that are no longer tracked after memmap_alloc() started using
+MEMBLOCK_ALLOC_NOLEAKTRACE :)
+
+With this patch applied, those stale calls are gone, and so are the
+warnings :P
+
+Tested-by: Lance Yang <lance.yang@linux.dev>
