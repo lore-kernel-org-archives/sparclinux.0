@@ -1,89 +1,324 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FDFA4C97;
-	Mon, 25 May 2026 20:39:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2CC53469E7
+	for <sparclinux@vger.kernel.org>; Sat, 30 May 2026 12:30:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779741589; cv=none; b=NtKVlZqx0V2wH/2pPr8F1byPeQugOIGStwdF18qJ7DDLDOYMVe77XG9P/mc4h/LtV6qu9s/QJgHNUWRymSJOszro371Hrr7lcrVLh3AZwxciz1xeGi/zT+TkDO9/2Ev2EeTWKLmXwfPMzPzXuUdWvxQ6CB4Mz1tEPj/O7lcEE1M=
+	t=1780144248; cv=none; b=T5DKZ3hpWRV5qloNTHsdDhHAgnEQjEkgNoB6s84gIITIFVw5EpUTM/vPfTHkx9MXCzwQjGPm+tIofbDnXw+TAv9CDrUtiW0sTMFEsYWev0ybi4Qm9+MLAGrLdzaDDBc6yIL7f/Re05oQ8BXiTKOAqQnlNmUhG3/XO9/bW+qE9O8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779741589; c=relaxed/simple;
-	bh=dHXV5aP5N83DP99Lq2gXtKKjsXxUcKwQnafXNksITyQ=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=orR5jYMwbDg877kfVH680PggP22ut/pLXbK2JEJ2y3oQzDjBTdEo9qXDzHtYehmC1MGnKGFw/uxeZTHJBXuyiOnGzfaA/t+NkpC+2oJd7JsCts4rPMilt2OAqv/lv6g6QsRS4H9hVEERNONPsodLrk7gUDa1LGd3TYYYknXI6To=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QRrG+Jyi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780144248; c=relaxed/simple;
+	bh=JOkh0VtUTMNM8R2U5kHd24sbbewIR96ibV2lt7jrRmc=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=jjFXBarKslyaAsdwRs83w6VCIxYHvlPpDCAKgt/AiMzmBOwGFzEgaeR71N/8qfvSPvaMSn8e8Tdf3F6OYzzxdIdDuEkWg2G31OpvqHG97Pz4XihiqOc3E41LuuwLAWw8D98nBcHTzuGqahyxjaiBw5VTTOGz5cSYAyVAMm/9qZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CROhc5P9; arc=none smtp.client-ip=209.85.128.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QRrG+Jyi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D835C1F000E9;
-	Mon, 25 May 2026 20:39:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CROhc5P9"
+Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-4891d7164ddso70194705e9.3
+        for <sparclinux@vger.kernel.org>; Sat, 30 May 2026 05:30:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779741588;
-	bh=tC0EXkh43LAKavatMnYRfVv7P7qGBC/NuUZuhsOUubw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=QRrG+JyifSO7rmecdKRqPzyLyF/c2WP8AximfpmwjuYghHqdGDGvEODkpYme3Zm7W
-	 tkttcF+F+9j4wqpe8fnpbbPbiwDvj9uM2tyaprmDmkJ0d1l+lptkHvoNUbi+2gI6Zs
-	 2WTzkbBPn8vy3HgrirWR3WRvsWjP8m+pbtv5jTDk=
-Date: Mon, 25 May 2026 13:39:47 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Thomas =?ISO-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>
-Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson
- <andreas@gaisler.com>, Ankur Arora <ankur.a.arora@oracle.com>,
- "David Hildenbrand (Red Hat)" <david@kernel.org>,
- sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] sparc: Avoid -Wunused-but-set-parameter in
- clear_user_page()
-Message-Id: <20260525133947.8e4f427cad8c8fa9c7d9d9a8@linux-foundation.org>
-In-Reply-To: <07713350-d55b-4be7-acf8-3853b08c0358@t-8ch.de>
-References: <20260525-sparc-clear_user_page-v2-1-e7a47fbcf439@weissschuh.net>
-	<20260525104439.ce06c784e4b8bf25cadaf8e9@linux-foundation.org>
-	<07713350-d55b-4be7-acf8-3853b08c0358@t-8ch.de>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        d=gmail.com; s=20251104; t=1780144245; x=1780749045; darn=vger.kernel.org;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=3IrPF7Yf2T/CTW8tuqL+BCfM7WayAgdlVua5IFI5JOo=;
+        b=CROhc5P9gSarVcjI0y7/5wwK8cDGEb4HJaEHXWxFlJMsU47xBBcFsFOwrqGJSPUBc4
+         qcz46E8BAcyKvHn/L/EwIe34f/xY/PW/F6d5ktW86ATKoAKdBWGYeGv3wOqvFjPZzEv5
+         V+Pv90wPLcexY2hnKCNpGbAn1kQwEbMAM+VK7rFHVXiO6oP3dMpM/xXMDc/htVOt40mc
+         L9uUMJdoR1bTv1gSsHji3SoqbKLiq88VZXjGzzi+lSMcn+yP3dCwypZFePwJIQF71EgG
+         zEo42OGCqxWTFhPBzy0l7S5RyEZx14R/ZhxY5spcX+NgUDaf4saJKXRT9cyOc4UzDFp3
+         SJEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780144245; x=1780749045;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3IrPF7Yf2T/CTW8tuqL+BCfM7WayAgdlVua5IFI5JOo=;
+        b=G5GRWmv6AYb3+gKvr29Aw+Gc6TPXk4tZEKxX4JwOcEWpbgzQmU3T7jKrauZvntcYKR
+         1C0c7zvhagmsusFKajPW4zGW+rCzziX24TXjZQIxyu1toGwCsEDmOQTNWPvcMd0ml5NA
+         B5Yb4BZAMwmS9IZG4yOc+ZVZDxcij4vAUS/QYLNUBi2lZR5piqniGJZOkEgtRf1OW2pC
+         qLQTrsZEovfA3LYPMoYgpe2/6OrkFZdCuL3bi4hek7m50A2MzTRhie5akR7tJxqhDSba
+         g5Sg3Ua4/Yjgca6RdCTTUC1/5J+yfTEde8ScsQbMofCj0AJooQhuhOONnKb8dI4r+Wcb
+         OHWQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/KuCpohQSmAhZgx7Z7tYwCAiVzQzOBpIW13T4nUSWw/J/Jspnbzmhm7n1p0Vc8SZFO3AEaxKRsBT/o@vger.kernel.org
+X-Gm-Message-State: AOJu0YzYWtLs1x3LxI8PinktB85qH2UzFYxYsfkQYvDsRwGgUlPNGw4D
+	enujcPPV806AWijqXH8vjHzEHnieja1AX1hmuSjBISQWx3eD8Y3QdHcgEqHZUbTR
+X-Gm-Gg: Acq92OEQ9UZPv63/qMqqO33aqZEDNGKSCydAmY/g/1Gk/uUKjDWkn1/BmkHwKZIrJ1e
+	7XZLP2Rt9nDKZUY6d5m/XzE1tDZHFuxGTlVnmWlGqFXCN7BIeHa/1BdbprMMfheHyD8ESo1ukOE
+	KBvpjzObWBKdCd6k/U8FjXoWpbAQ2Sk+NKED5C+XJ//gca6EI3Wh9aIYIPzXx/lSSr65PxQl2JL
+	g1EKvNTQF8sBxqD5o+XL7AglWKb/S8Eq08AiwjA1riA4gHSVfByVRF+vOSEWo0PA9vO4WPGt+zI
+	dyQOcnXrqUrnyE1J+1pJyYEBhNHEqnYSALl2kxRT4+SsY6hLM60S837cYgOQ1ORXrV7X64n9s03
+	/SRngpSqKp+txPGbbRK9/MZtEknKcKj7hIEqe0x9D3Zzk6hVautYbpCFpEcui112rcRHeTaqAoM
+	LbPb17Pyh84RJAfKxyruE03+tL/T+wCtDEOspXe8zQoWE=
+X-Received: by 2002:a05:600d:6413:20b0:490:890a:da46 with SMTP id 5b1f17b1804b1-490a292a4b7mr46598725e9.2.1780144244852;
+        Sat, 30 May 2026 05:30:44 -0700 (PDT)
+Received: from localhost ([94.53.77.213])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4909c0c39b0sm55179475e9.2.2026.05.30.05.30.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 30 May 2026 05:30:44 -0700 (PDT)
+From: Catalin Iacob <iacobcatalin@gmail.com>
+Date: Sat, 30 May 2026 15:31:22 +0300
+Subject: [PATCH] scsi: core: Remove dead code export of
+ scsi_device_from_queue
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260530-remove-pktcdvd-references-v1-1-aa56941d4315@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMUQrCMBCE4auUfTYQUxLQq4gPNTvqKqYl2wah9
+ O6u+vgxzL+SogqUjt1KFU1UxmLY7zrK96Hc4ITNFHxIPvbeVbzGBjc958yNjVdUlAx1B4459Sk
+ MkUH2n2yT9699Ov+ty+WBPH+DtG0fGfyzFH0AAAA=
+X-Change-ID: 20260530-remove-pktcdvd-references-9d5c6362a5de
+To: Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+ Madhavan Srinivasan <maddy@linux.ibm.com>, 
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+ Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ "Martin K. Petersen" <martin.petersen@oracle.com>, 
+ Jens Axboe <axboe@kernel.dk>
+Cc: linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, 
+ sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org, 
+ Catalin Iacob <iacobcatalin@gmail.com>
+X-Mailer: b4 0.16-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=7848;
+ i=iacobcatalin@gmail.com; h=from:subject:message-id;
+ bh=JOkh0VtUTMNM8R2U5kHd24sbbewIR96ibV2lt7jrRmc=;
+ b=owGbwMvMwCX261qtXAKXKjvjabUkhiypG6sLntvMDjCYxBM9Lyi3xOfHzogig8LdgutDb9Vf0
+ nRRlLnQUcrCIMbFICumyPLi3PW2DXvOBNxLsmuBmcPKBDKEgYtTACbC8Ybhr9zTN/w1LhaSHd1W
+ e+UXcJ5zF266PE9izuRDc7y1I/YvnsnIcOoo/36rKsWFmo9C9/zP2M3LESaWvmyasflW7+qD6iy
+ bWQA=
+X-Developer-Key: i=iacobcatalin@gmail.com; a=openpgp;
+ fpr=F609BFABD84EB5C9DDDC37EDE89C6A3571CD0E33
 
-On Mon, 25 May 2026 21:48:14 +0200 Thomas Wei=DFschuh <linux@weissschuh.net=
-> wrote:
+Commit 1cea5180f2f8 ("block: remove pktcdvd driver") left behind some
+CONFIG_CONFIG_CDROM_PKTCDVD* references in defconfigs and around an
+export. Remove them.
 
-> On 2026-05-25 10:44:39-0700, Andrew Morton wrote:
-> > On Mon, 25 May 2026 10:36:21 +0200 Thomas Wei=DFschuh <linux@weissschuh=
-.net> wrote:
-> >=20
-> > > The loop in clear_user_pages() iterates over all pages and calls
-> > > clear_user_page() for each of them. During the loop "vaddr" is modifi=
-ed.
-> > > However on sparc clear_user() is a macro which does not use "vaddr".
-> > > The compiler sees a variable which is modified but never used and emi=
-ts
-> > > a warning for that:
-> > >=20
-> > > 	include/linux/highmem.h: In function 'clear_user_pages':
-> > > 	include/linux/highmem.h:234:63: warning: parameter 'vaddr' set but n=
-ot used [-Wunused-but-set-parameter=3D]
-> > > 		static inline void clear_user_pages(void *addr, unsigned long vaddr,
-> > >=20
-> > > Other architectures use an inline function for clear_user_page() which
-> > > avoids the warning. This is not possible on sparc, as
-> > > sparc_flush_page_to_ram() is not yet declared where clear_user_page()=
- is
-> > > defined. Including cacheflush_32.h will trigger recursive and lots of
-> > > other issues.
-> > >=20
-> > > So hide the warning with a cast to (void) instead.
-> > >=20
-> > > While we are here, do the same for copy_user_page().
-> >=20
-> > A pleasing solution to these sorts of problems is often "don't use
-> > macros".  Other architectures use inlined C for these functions - will
-> > that work for sparc?
->=20
-> Probably yes. But it would require a major reshuffling of the header
-> files to get the dependencies right. So I went with the easy solution to
-> avoid a lot of churn. As I tried to explain this in the patch message.
+Signed-off-by: Catalin Iacob <iacobcatalin@gmail.com>
+---
+Found this incidentally while looking at kernel sources to understand
+what pktcdvd is
+---
+ arch/mips/configs/fuloong2e_defconfig    | 1 -
+ arch/mips/configs/ip22_defconfig         | 1 -
+ arch/mips/configs/ip27_defconfig         | 1 -
+ arch/mips/configs/ip30_defconfig         | 1 -
+ arch/mips/configs/jazz_defconfig         | 1 -
+ arch/mips/configs/malta_defconfig        | 1 -
+ arch/mips/configs/malta_kvm_defconfig    | 1 -
+ arch/mips/configs/maltaup_xpa_defconfig  | 1 -
+ arch/mips/configs/rm200_defconfig        | 1 -
+ arch/mips/configs/sb1250_swarm_defconfig | 1 -
+ arch/powerpc/configs/g5_defconfig        | 1 -
+ arch/powerpc/configs/ppc6xx_defconfig    | 1 -
+ arch/sh/configs/sh2007_defconfig         | 1 -
+ arch/sparc/configs/sparc64_defconfig     | 2 --
+ drivers/scsi/scsi_lib.c                  | 8 --------
+ 15 files changed, 23 deletions(-)
 
-Oh, OK, thanks, reading skills, sorry for noise.
+diff --git a/arch/mips/configs/fuloong2e_defconfig b/arch/mips/configs/fuloong2e_defconfig
+index b6fe3c962464..840130a73992 100644
+--- a/arch/mips/configs/fuloong2e_defconfig
++++ b/arch/mips/configs/fuloong2e_defconfig
+@@ -89,7 +89,6 @@ CONFIG_MTD_CFI_STAA=m
+ CONFIG_MTD_PHYSMAP=m
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_RAM=m
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_BLK_DEV_SR=y
+diff --git a/arch/mips/configs/ip22_defconfig b/arch/mips/configs/ip22_defconfig
+index e123848f94ab..61f09cc9ac12 100644
+--- a/arch/mips/configs/ip22_defconfig
++++ b/arch/mips/configs/ip22_defconfig
+@@ -177,7 +177,6 @@ CONFIG_NET_ACT_SIMP=m
+ CONFIG_NET_ACT_SKBEDIT=m
+ CONFIG_RFKILL=m
+ CONFIG_CONNECTOR=m
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_RAID_ATTRS=m
+ CONFIG_SCSI=y
+diff --git a/arch/mips/configs/ip27_defconfig b/arch/mips/configs/ip27_defconfig
+index fea0ccee6948..60da9cf71b72 100644
+--- a/arch/mips/configs/ip27_defconfig
++++ b/arch/mips/configs/ip27_defconfig
+@@ -83,7 +83,6 @@ CONFIG_CFG80211=m
+ CONFIG_MAC80211=m
+ CONFIG_RFKILL=m
+ CONFIG_BLK_DEV_LOOP=y
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+diff --git a/arch/mips/configs/ip30_defconfig b/arch/mips/configs/ip30_defconfig
+index 718f3060d9fa..5c2911ff9a87 100644
+--- a/arch/mips/configs/ip30_defconfig
++++ b/arch/mips/configs/ip30_defconfig
+@@ -77,7 +77,6 @@ CONFIG_NET_ACT_PEDIT=m
+ CONFIG_NET_ACT_SKBEDIT=m
+ # CONFIG_VGA_ARB is not set
+ CONFIG_BLK_DEV_LOOP=y
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+diff --git a/arch/mips/configs/jazz_defconfig b/arch/mips/configs/jazz_defconfig
+index a790c2610fd3..dd3486b8d1fc 100644
+--- a/arch/mips/configs/jazz_defconfig
++++ b/arch/mips/configs/jazz_defconfig
+@@ -33,7 +33,6 @@ CONFIG_BLK_DEV_FD=m
+ CONFIG_BLK_DEV_LOOP=m
+ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=m
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_RAID_ATTRS=m
+ CONFIG_SCSI=y
+diff --git a/arch/mips/configs/malta_defconfig b/arch/mips/configs/malta_defconfig
+index 81704ec67f09..b10dac71f400 100644
+--- a/arch/mips/configs/malta_defconfig
++++ b/arch/mips/configs/malta_defconfig
+@@ -224,7 +224,6 @@ CONFIG_BLK_DEV_FD=m
+ CONFIG_BLK_DEV_LOOP=m
+ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=y
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_RAID_ATTRS=m
+ CONFIG_BLK_DEV_SD=y
+diff --git a/arch/mips/configs/malta_kvm_defconfig b/arch/mips/configs/malta_kvm_defconfig
+index 82a97f58bce1..bdd5d99884e3 100644
+--- a/arch/mips/configs/malta_kvm_defconfig
++++ b/arch/mips/configs/malta_kvm_defconfig
+@@ -228,7 +228,6 @@ CONFIG_BLK_DEV_FD=m
+ CONFIG_BLK_DEV_LOOP=m
+ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=y
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_RAID_ATTRS=m
+ CONFIG_BLK_DEV_SD=y
+diff --git a/arch/mips/configs/maltaup_xpa_defconfig b/arch/mips/configs/maltaup_xpa_defconfig
+index 0f9ef20744f9..523c0ff329ac 100644
+--- a/arch/mips/configs/maltaup_xpa_defconfig
++++ b/arch/mips/configs/maltaup_xpa_defconfig
+@@ -226,7 +226,6 @@ CONFIG_BLK_DEV_FD=m
+ CONFIG_BLK_DEV_LOOP=m
+ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=y
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_RAID_ATTRS=m
+ CONFIG_BLK_DEV_SD=y
+diff --git a/arch/mips/configs/rm200_defconfig b/arch/mips/configs/rm200_defconfig
+index ad9fbd0cbb38..60054e54bc5a 100644
+--- a/arch/mips/configs/rm200_defconfig
++++ b/arch/mips/configs/rm200_defconfig
+@@ -177,7 +177,6 @@ CONFIG_PARIDE_ON26=m
+ CONFIG_BLK_DEV_LOOP=m
+ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=m
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_RAID_ATTRS=m
+ CONFIG_SCSI=y
+diff --git a/arch/mips/configs/sb1250_swarm_defconfig b/arch/mips/configs/sb1250_swarm_defconfig
+index 4a25b8d3e507..a50a7c097542 100644
+--- a/arch/mips/configs/sb1250_swarm_defconfig
++++ b/arch/mips/configs/sb1250_swarm_defconfig
+@@ -43,7 +43,6 @@ CONFIG_FW_LOADER=m
+ CONFIG_CONNECTOR=m
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=9220
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_RAID_ATTRS=m
+ CONFIG_BLK_DEV_SD=y
+diff --git a/arch/powerpc/configs/g5_defconfig b/arch/powerpc/configs/g5_defconfig
+index 5ca1676e6058..647775f6d174 100644
+--- a/arch/powerpc/configs/g5_defconfig
++++ b/arch/powerpc/configs/g5_defconfig
+@@ -57,7 +57,6 @@ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=65536
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_CHR_DEV_ST=y
+ CONFIG_BLK_DEV_SR=y
+diff --git a/arch/powerpc/configs/ppc6xx_defconfig b/arch/powerpc/configs/ppc6xx_defconfig
+index eda1fec7ffd9..5c3e25fd8edd 100644
+--- a/arch/powerpc/configs/ppc6xx_defconfig
++++ b/arch/powerpc/configs/ppc6xx_defconfig
+@@ -306,7 +306,6 @@ CONFIG_BLK_DEV_LOOP=m
+ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=16384
+-CONFIG_CDROM_PKTCDVD=m
+ CONFIG_VIRTIO_BLK=m
+ CONFIG_ENCLOSURE_SERVICES=m
+ CONFIG_SENSORS_TSL2550=m
+diff --git a/arch/sh/configs/sh2007_defconfig b/arch/sh/configs/sh2007_defconfig
+index 5d9080499485..f287a41cd38c 100644
+--- a/arch/sh/configs/sh2007_defconfig
++++ b/arch/sh/configs/sh2007_defconfig
+@@ -45,7 +45,6 @@ CONFIG_NETWORK_SECMARK=y
+ CONFIG_NET_PKTGEN=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_RAM=y
+-CONFIG_CDROM_PKTCDVD=y
+ CONFIG_RAID_ATTRS=y
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
+index 632081a262ba..4abea39281cd 100644
+--- a/arch/sparc/configs/sparc64_defconfig
++++ b/arch/sparc/configs/sparc64_defconfig
+@@ -60,8 +60,6 @@ CONFIG_CONNECTOR=m
+ CONFIG_BLK_DEV_LOOP=m
+ CONFIG_BLK_DEV_CRYPTOLOOP=m
+ CONFIG_BLK_DEV_NBD=m
+-CONFIG_CDROM_PKTCDVD=m
+-CONFIG_CDROM_PKTCDVD_WCACHE=y
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_SUNVDC=m
+ CONFIG_ATA=y
+diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+index 6e8c7a42603e..f836212c2acf 100644
+--- a/drivers/scsi/scsi_lib.c
++++ b/drivers/scsi/scsi_lib.c
+@@ -2201,14 +2201,6 @@ struct scsi_device *scsi_device_from_queue(struct request_queue *q)
+ 
+ 	return sdev;
+ }
+-/*
+- * pktcdvd should have been integrated into the SCSI layers, but for historical
+- * reasons like the old IDE driver it isn't.  This export allows it to safely
+- * probe if a given device is a SCSI one and only attach to that.
+- */
+-#ifdef CONFIG_CDROM_PKTCDVD_MODULE
+-EXPORT_SYMBOL_GPL(scsi_device_from_queue);
+-#endif
+ 
+ /**
+  * scsi_block_requests - Utility function used by low-level drivers to prevent
+
+---
+base-commit: e7ae89a0c97ce2b68b0983cd01eda67cf373517d
+change-id: 20260530-remove-pktcdvd-references-9d5c6362a5de
+
+Best regards,
+--  
+Catalin Iacob <iacobcatalin@gmail.com>
+
