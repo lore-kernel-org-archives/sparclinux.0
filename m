@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 897F5157A5A;
-	Mon,  1 Jun 2026 12:24:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18675157A5A;
+	Mon,  1 Jun 2026 12:25:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780316687; cv=none; b=GKwQrfpVNPvfc7+Cwe9PmnTwIWUN2VL++6qRTAaizc0MF23YVSKYNPGCDUfqEHhNWo9qoUqXc0d47FeTYk0jPSQF9hkOFav2kYKNN5CyGGCL/PDSXIewVPVwdUv89XqPbmFeUpVCUOFRWRui9Ps0oH3piFP0TS/iu/PXKFfeTPM=
+	t=1780316716; cv=none; b=H8Kcu7GmtCIf1aTGZowGLMFJzSAlD4xx3supHVW1/iJyQB4FICp6D3dSlji0GGFCOT87PC79I9q0hpBsWtOTxiFztj9nmEVq/Cy0Y6ZUo0cmFABd2wMovdKuMjDLDsfObq9dsA6RSi21uMCV6ZG6j28LvVW7SrCG3Wf1dS9hmiA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780316687; c=relaxed/simple;
-	bh=nAsIw90TAwxK3ryIPKppCeH96220jNQ+eI0ztzuVj4M=;
+	s=arc-20240116; t=1780316716; c=relaxed/simple;
+	bh=Ixt/7oYs6wLiMsmCbGwCxs4fSUGQDbZnjM2BVq5ICaE=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=uxF9vRKbGjn2K4rl0X3RaocwlxoCvXpd1Ih3XmO9NP3HJ5tUF06+fR/toV2j4/BUEQ1pTqTpNpS1zoQCWsEIva7Yxe1FlPpB2WGN/ivZDMF4WryBHhG4EiVGpnJwFT/8/0Camn7ZxKDfotadePVmmRgdYgIwS714tQSfeT48joI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GC/gRRyp; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=HWyCypdug8BHv2TtUUmZ/wyJO4YXE0rook3Vx11ueivCgr2yL2K9H/4xjqwyy8F4GG8tvnHaV+etd8oUeWFqEPu/8y1APLiXqyzk2j/TkuIv/EpZtD4+5pnFy8VCAxIfGJzOcxLvzG3usn9zXZGQ9budHMcAsjT0gSdjnwivyDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RaGrIm3b; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GC/gRRyp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8C2A1F00893;
-	Mon,  1 Jun 2026 12:24:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RaGrIm3b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D5FC1F00893;
+	Mon,  1 Jun 2026 12:25:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780316686;
-	bh=fcuOYNxk791F5phRxcJhyOXalMxWmtZOwcs6ao7FDp4=;
+	s=k20260515; t=1780316714;
+	bh=cYcQT8q/6pcHDijPFpn7Zqm8UKJHm8ARfSL5dPPFUZg=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=GC/gRRypNO4Nl2crsnc1yh8KH4CZ2CTYtOgVJCcD6HY9cbk4h26lAeZLnsAEhV8+Z
-	 R2ux5FJc6G8c5I0dEWFnNtewHs7ybgmCPOZGJy2UBrYG6RiTbF9grpTAR1PhnQyGaj
-	 rq75IwCuHOQRNq+ccOl0wXtosg/JiSh5UGhuJTENhPXHGkHVa2/YzONyKVVn+bgH9A
-	 lh4SDGRhqxfdF+VNv/nZ7LXvbPnbC+2fhVV1AOqrexDH4DbWiVRGud2HIGluNaUX3l
-	 0d7RPohnvinFGjRFpOW1HXyCoOzA1EKxfbAl0Fd9ZdLU+Ro6/8fbsuSkQu6YThem4i
-	 yGhl0VbgAJgxg==
-Message-ID: <8c60f9bb-7a4a-4340-b414-9f7fbef4150c@kernel.org>
-Date: Mon, 1 Jun 2026 14:24:38 +0200
+	b=RaGrIm3b37zExCbGvnLit9YPbCbouimlSert890a/KWdlqDOMPAzzGhWIDyy+iXNW
+	 iQDuvjZwtTlNrECIrU+MzDI+wl73RBYmXFT0IdHeuZLJs95SUEXUMoTy/y0b7SZBgr
+	 M+spxd9nWdqFKjdRrIINWoqjwaMwX0FJ1S02FZt0gJ8wzQVd5RiSByOkcr6bmaD2ti
+	 Tip6dhSUWkdGITuWSg/IWj9e4tB1ItEu/mIzMghUODRITxqHgbDbGrN7t7KjLocMk5
+	 haNINr8CIPKM3LJ7jbia1lh/IfJdbRaKrQJ18BnluCjEukmdNM+78elr5Y59+Nz3Xb
+	 gkZE3Y19L54qw==
+Message-ID: <61f0dae7-4e49-4142-8b0d-10c175856277@kernel.org>
+Date: Mon, 1 Jun 2026 14:25:05 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 4/5] loongarch/mm: drop vmemmap_check_pmd helper and
- use generic code
+Subject: Re: [PATCH v3 5/5] sparc/mm: drop vmemmap_check_pmd helper and use
+ generic code
 To: Muchun Song <songmuchun@bytedance.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
@@ -52,7 +52,7 @@ Cc: Muchun Song <muchun.song@linux.dev>, linux-mm@kvack.org,
  Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>,
  Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>
 References: <20260601084845.3792171-1-songmuchun@bytedance.com>
- <20260601084845.3792171-5-songmuchun@bytedance.com>
+ <20260601084845.3792171-6-songmuchun@bytedance.com>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -99,15 +99,14 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260601084845.3792171-5-songmuchun@bytedance.com>
+In-Reply-To: <20260601084845.3792171-6-songmuchun@bytedance.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 6/1/26 10:48, Muchun Song wrote:
-> The generic implementations now suffice; remove the loongarch copies.
+> The generic implementations now suffice; remove the sparc copies.
 
-You are only removing a single function? So "copy"
-
+"copy"
 
 Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 
