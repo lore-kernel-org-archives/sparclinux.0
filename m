@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DC0B371880;
-	Mon,  1 Jun 2026 12:23:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB8A6356770;
+	Mon,  1 Jun 2026 12:23:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780316581; cv=none; b=Ur7yugKQGvgZPZoiWFBnbBYRyT52XKWvArUjZHaY8N0D7ALprnuy4sBuZL9gmp5sNze6/nnDC4/IBr8ZuPMPkUMHRn4qqAf5Ms/yjaLopeg7A1L3t5KK58rAlX9BRq7poCFcG0bL0FRs6rMfO0XSvZPMPR1DRqgbUPDjttJvzTk=
+	t=1780316596; cv=none; b=JL4dG0utkcjEZFESXxphHkvlxDGH9jfJHsQptq0lwEXGY1VJuTf/ziSgE0+WtKQcwGYrMu0Rmcd1ynd5hT5sSd36JpOFVydI8qBVFG/2l0pUyvldMdhXvcz8SBLCOC/JP4emK7YAvwTczZbwMyNjSgzv2KLC16G0V/N4LC1iyWE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780316581; c=relaxed/simple;
-	bh=It5j+uKwExCAPgfzUA4FOcfU7RjQJkpflSf61Q77SEs=;
+	s=arc-20240116; t=1780316596; c=relaxed/simple;
+	bh=e3um0bPfkVmVxZkc+i/nsMtGGJzm8jv9b5Qv5CVX7ZE=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DTisNnMCno/ZM3haM3cbFzmaI6QmwwyvqVnePA8Sb1wDmfwKtFEHYYBq7L7nQrV6REiP52iZwLv4ZaINLGCA4vmRxNNTSFJTH0pW14YGloPYLRYFJv9j3yHxO6jaGY4TVX8QPkDNWvdp/0h6jNGWgYr73I2uMVrMoJCOd/hZPtY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HZ3/nOyb; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=N5721Fbx/dZYDk1BveRVMxutYErfKjO+Ma8l7IXmXEcRXmy40qng5N7ljHC6kVqb51XBx9oKIu2qye/T3Zhro3KvQ5fUczYm6DT2VuqKjJuWLITZybvgpnNaZQx+FE2OcaKrkf20V22kBzjCsAeQh6GdmBgunlMx1AIVLCBCun8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J6Qh0QtI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HZ3/nOyb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F0ED1F00898;
-	Mon,  1 Jun 2026 12:22:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J6Qh0QtI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4FAC1F00893;
+	Mon,  1 Jun 2026 12:23:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780316580;
-	bh=2HJYM3dNzF5LORInRRkOcTckUxVkdRL/1E6g7brQZRI=;
+	s=k20260515; t=1780316595;
+	bh=nJCaoM91VpKZfWQWP/5PUdBhVElKt1iDyT7TnkO/j00=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=HZ3/nOybNpQqn0VWCdJ2o/JEoKM5S5V32oi7n7pgsEbQHunMGrVGX/HLFHrTnWLHp
-	 TH9t7N53LRFcLDUhY1wmjXCVr8VKlLfC8xgVuIgm1WZFJaBNVv1/BcyuAT4tV4dBut
-	 d98zL8IwhBmWtTeTTBtXvqk9h+9KCqHW2PSEibV5EYrzX4NiM5zFe/etvUptu1g+G6
-	 ZoDvZDh01VdKnmb62ATtqUPMivusVohx2G34SOXtciUYaYP1iwy21J8kTDyUMaVahX
-	 i2ra0fXDTeknDXQ2P+LrkhpdhouEW/Bg2iz3DC7RdrI/LHEcSiyBw2ju1w08pXaLDy
-	 4BVj1LSte2+dA==
-Message-ID: <db8d440d-c8a1-4f77-b5d9-00bab8737f12@kernel.org>
-Date: Mon, 1 Jun 2026 14:22:52 +0200
+	b=J6Qh0QtILNf67i7Bca2/p59Xf4vTiAbfvsb2nezebefYadRAp0p9yWFug/E12s1jD
+	 RQvXWD4MSepeDA9QX0uC2wG4HjENaCS8GNifYaTqB/bY2KdWthhslFdCnMWk29pUCC
+	 R2vdEDETX2GkLw5N7k5vZNZgflMkksMyLL8nKCJ/NYml9hBve0TEEPXWkRMTCYKgMj
+	 ssQLCkU/O8+jBOXJu57NfQ2Mkr2UG00LCi304riFqeGL54E02Y/p4omgSdNe167K5t
+	 ZLrz/YoHBzIslYWCLKvZm6gUWzbNW2QfPhsgg1CKk89OYjLHIlyFF5tBV4MJlshJhM
+	 ezMshiJz2UAMQ==
+Message-ID: <c9783e61-cbc0-449a-9a0b-db40fb335e99@kernel.org>
+Date: Mon, 1 Jun 2026 14:23:08 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 1/5] mm/sparse-vmemmap: provide generic
- vmemmap_set_pmd() and vmemmap_check_pmd()
+Subject: Re: [PATCH v3 2/5] arm64/mm: drop vmemmap_pmd helpers and use generic
+ code
 To: Muchun Song <songmuchun@bytedance.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
@@ -52,7 +52,7 @@ Cc: Muchun Song <muchun.song@linux.dev>, linux-mm@kvack.org,
  Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>,
  Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>
 References: <20260601084845.3792171-1-songmuchun@bytedance.com>
- <20260601084845.3792171-2-songmuchun@bytedance.com>
+ <20260601084845.3792171-3-songmuchun@bytedance.com>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -99,47 +99,18 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260601084845.3792171-2-songmuchun@bytedance.com>
+In-Reply-To: <20260601084845.3792171-3-songmuchun@bytedance.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 6/1/26 10:48, Muchun Song wrote:
-> The two weak functions are currently no-ops on every architecture,
-> forcing each platform that needs them to duplicate the same handful
-> of lines.  Provide a generic implementation:
-> 
-> - vmemmap_set_pmd() simply sets a huge PMD with PAGE_KERNEL protection.
-> 
-> - vmemmap_check_pmd() verifies that the PMD is present and leaf,
->   then calls the existing vmemmap_verify() helper.
-> 
-> Architectures that need special handling can continue to override the
-> weak symbols; everyone else gets the standard version for free.
+> The generic implementations now suffice; remove the arm64 copies.
 > 
 > Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+> Acked-by: Will Deacon <will@kernel.org>
 > ---
-> v2->v3:
-> - Replace BUG_ON() with WARN_ON_ONCE() in vmemmap_set_pmd()
-> ---
->  mm/sparse-vmemmap.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-> index 112ccf9c71ca..99e2be39671b 100644
-> --- a/mm/sparse-vmemmap.c
-> +++ b/mm/sparse-vmemmap.c
-> @@ -386,12 +386,17 @@ int __meminit vmemmap_populate_hvo(unsigned long addr, unsigned long end,
->  void __weak __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
->  				      unsigned long addr, unsigned long next)
->  {
-> +	WARN_ON_ONCE(!pmd_set_huge(pmd, virt_to_phys(p), PAGE_KERNEL));
 
-
-Not sure if a VM_WARN_ON_ONCE() would be appropriate. (then, we have to move the
-pmd_set_huge() out of the statement).
-
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 
 -- 
 Cheers,
