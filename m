@@ -1,63 +1,63 @@
-Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E6BB345CD8
-	for <sparclinux@vger.kernel.org>; Mon,  1 Jun 2026 08:49:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7E112045AD
+	for <sparclinux@vger.kernel.org>; Mon,  1 Jun 2026 08:49:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780303749; cv=none; b=WYEPciO1ul0LS243oLDc6JvcA9e/UEULRA4ptDOXur2U6R9a3ylqPPUAMB643pEcBLOkkBXz1NdzdvrS4vqmyWkU9KGLkt90jJateLcMm4EqxyOXr+9L/Z+p9DTLDFI220fNV3iCP+5riG2WSq60Lwjc9Bq6XAYAmeLvZNm0IIY=
+	t=1780303756; cv=none; b=DBLc3YIe65ijcEyX76H59ShRa/0DukzV5lCehLjIOvTl3HxC4DRUcMMjqZI4t74b8B/4KlTntFluNvB371YJ9nlNUwayr9tMuOW1mJ9ecUZw7nOVRYuNgXFrWl6X4C6KlpWyLBOyiHn8DZRdXGxGDJhOByGzbWLUyvVSbaDDTo4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780303749; c=relaxed/simple;
-	bh=wH70zWV2qRQtDszFuov+55ovrVEDAsgUnnbN6OqXmcc=;
+	s=arc-20240116; t=1780303756; c=relaxed/simple;
+	bh=90ZcI8WdDuxzGpB8f60twhO+4k8/kpTvbg92FgL7hmo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JmrjHAAyDJNn+IDerws+TWkkcuddlQDvY5E14XVK8a6bk6gUIA1eLPlsuI0OerNoJcpZ9t372YbGCh9eX4wflWIyDmRhg4Difj5Oll8Z1HsChTLFujI6iPhfO5C+8u6CD95Bcu6NTGld6qcd7/G8hVP0hmwlhDyBVW451xztxYU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=TjUr9rZo; arc=none smtp.client-ip=209.85.210.178
+	 MIME-Version; b=RCh96KhT6+nZTowK6TO683emi7Krl7ui9eBR0snlcKdh43S3UxnUStPZsKsWkgSj1wYdJEtt5qkTRlrLJvFuess/Pq1/43HOKbuX4akSq1jyh8SD6f2TB2/ahYEEaJkBzaGhcy5eFLAE75rvmxwFTxDkabncXS/LrQhWBNRcs7g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=Qb1lrRqa; arc=none smtp.client-ip=209.85.216.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="TjUr9rZo"
-Received: by mail-pf1-f178.google.com with SMTP id d2e1a72fcca58-841882f8f4bso3300039b3a.0
-        for <sparclinux@vger.kernel.org>; Mon, 01 Jun 2026 01:49:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="Qb1lrRqa"
+Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-36da8439078so798975a91.2
+        for <sparclinux@vger.kernel.org>; Mon, 01 Jun 2026 01:49:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1780303748; x=1780908548; darn=vger.kernel.org;
+        d=bytedance.com; s=google; t=1780303754; x=1780908554; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ct8LTm9E0tar8OtNDyCoaad0P31p+YAvHyjb0MDrcWY=;
-        b=TjUr9rZo6I+KBXS3KtHWqCYmwariRULVAXJZMVZl0n8MCMJKpAp50WFFtmkxG5mJQa
-         QlaXzYSBq8tbYvVVAKb6/bys8wx7t0e38x6oBvqR/6QSjtz89KFbWPy/jNB+BV5UMoTS
-         xuH4ydBkWGCdhAA0v4lI7Y8Op4DJ1d+GlTuA31oBfxhWljJhvPR/jTnnh0g4A4szsQDo
-         xbZJhixtq1mnUls3L+M9ZzGga1tkX0rHlI72yFzACts5g5qPFszQRZaFNJsH1nG8qSZD
-         wHkYm7tnHowZAP3dzEPRuwj59AWKKS1EP99o3NYG74vUsr6zlXIzlBFc8UeEEEo4K9Yb
-         +A/g==
+        bh=q8b/yYnv8ZH41kctmwMZLOttDvAzW7LNe3UEG0HH1sI=;
+        b=Qb1lrRqa+2fzGaIKqVmjJ+FGBiJkdsFHIU69RDa9OoBnw+nLel9u2xjZt0a5rnuFFc
+         +G1DX+OghOZEF0b+Xj3N0gKwB3Lhk7EDk6fYa6D14QR0SuliQ1A9oC6d6yVEGMkLSYLc
+         oM7GLyDclUtW+JIhqX6+Fh4nuHx7Ovdyn8Q9hj2mC8YeM+5GxdYlo5k/EA5nn/aydjA4
+         rCJQ/LImh+ZMwmu/mzMg1MIKox6aDT/Yhqn5K2QFayghd5b2YYyyMrXFQtDhO2OeDIb7
+         gBnq5sKQLnQMtBKQMelG15DeQlNBlndegHA2UV+Eft5F+z1LaRUT14Ec5/Rfoo+eQEy8
+         K3eQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780303748; x=1780908548;
+        d=1e100.net; s=20251104; t=1780303754; x=1780908554;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=ct8LTm9E0tar8OtNDyCoaad0P31p+YAvHyjb0MDrcWY=;
-        b=dUQQL/7h6gingiZMfr1jGjkMJwVFkVt03kGkndhhVOEKz75ORbEqxsoX8N4e4Yrtgn
-         U8k3zQd53JF1U5ECX8Yp/MFYDrYrttJPCuRHhkKyVC55jv5Aw8sNRbB8zzHQJr4aGJYO
-         Pi7DIsOPwfVV/cVs1BokhLNwwOJVcmq65oi2uJ/LOIiKVZr1BKm3RWJdWYlt4WjoOLSF
-         1Bsk+vdpOlEggbD3L0XphZVD0p/UnB0lyUYi9d694guTqahzX1Szujp7UvtGmazq3hH0
-         Poo8aaV/VSD5d0JZNorYyfJkLTT68dMEBHvzgUn75qRSgn/v+cDKybRkevaZWBmj3E6N
-         +ofA==
-X-Forwarded-Encrypted: i=1; AFNElJ+1q92HivLNLzvT76LOZDihYPdbVQ7e/D7O52JddSrfyxbJiAf7SYBwE6Ya0qzkgSRMrH1xckG5gnzi@vger.kernel.org
-X-Gm-Message-State: AOJu0YxcBKN1b6NKsGZEOBAq4hEuc1KS/a7YamKFaIZeH2Hsnaq3Yzfq
-	/q303CKhzCDmI3XTy2e++8SXGFFQBqLArASSiT3pFu9vC9ddP9k6DybcChBl2lsZbd4=
-X-Gm-Gg: Acq92OFc+gsu0Vq2Zifs3yjK5LDlXMHREYja2/wRN0O63khvL2IsoX4dAM2OUxMi2VM
-	GDPxegcGp4fC6OhSok8TYfvFP2BS9doF1/dPAsgkqwAc1HAToUceTyWMmFjhS1gUtGbnGPfiao3
-	4TBa55jlsZqKCz9KMJzSiq5Kn2iEaAS5YrnjWeRPK116/VtFYnxeE6oD6eViPS6iDdrkP4Sc7GQ
-	ucGzNtW0EFNE9qe2OSIbl3kGuU5qoYlT1XUef1hGwHROVY2KVjn9f1PfxzSjQbgxhBreQc7zUYt
-	wgnQXw6FjjYqHj/3tfRcio3dph12+rkHYhvwfrpmvkUufEd/kwOXfzUd+IXCPAoKL3LhkX8pBmH
-	LdcFQbxurEpK3SIm4F5Mph67m2+FQKxsD/MOVgicqRWmVqCIFcfZ/Ym72Wa7WwSATbMni2GGVH+
-	aSE64vpTOR+Jy9fI2S440VZbjGZGDDhc6g2l9KcE7+pHKWJuyJg+Pc6g==
-X-Received: by 2002:a05:6a00:3903:b0:842:2382:a0ea with SMTP id d2e1a72fcca58-8422535fc9bmr8854602b3a.14.1780303747688;
-        Mon, 01 Jun 2026 01:49:07 -0700 (PDT)
+        bh=q8b/yYnv8ZH41kctmwMZLOttDvAzW7LNe3UEG0HH1sI=;
+        b=bNj6iAtqdZhsxh62ikbf15FhAH4F/OZ7tZ9EaVxXGCcejnBPq4xtc8p8B4gRKuErB8
+         ha83h33IZA6Oz6NtiWz8w4oxUrG9yID9qaRgtvbKTjeHMoK7gzVMa09wf/Io74uWe6Mm
+         GuH7aqRw3zuuKPGrXf/jlTAuwnLWINgP5DbD3PZhYbyHVRQU0bclBUd5VUkifZMbVQOb
+         6VOPKzgQPsEZzPYLu3NBZTMQtU9bp3M5voHdp+P5haNd8QM0kfgEOlqLSvvNDGWrpt6P
+         aiaUsMC5GWw25qaUJppC5ooaDosUX1dPVHoHtjL41EmB2yPT+yAnDfw+ziW06h2zNk4h
+         Zwyw==
+X-Forwarded-Encrypted: i=1; AFNElJ/uOAE/jmE8RiIt0ytAj3E5gVh9+qrDSWswKwerCnZufe+WQGw9PIaksc1qgIS0JpWJFrg6kpGCgP/f@vger.kernel.org
+X-Gm-Message-State: AOJu0YwVJKgBuZHdxBASO129wbND0K+oZFKEXUYWK9MHSZuQWp8BeR4j
+	Tr4mh5WdxQtvmu0xytbeZc6nItP9ZrfvzzcRjAouoEl9zunR12QhdBk70izc85jX9pQ=
+X-Gm-Gg: Acq92OGz48+YTyPT0byZ2vh19fSGRMsOA8PqO3dmqnVXnH5GajLmx1eVuO6zoFI15CU
+	1IPzwZNaC/WVusnWsxigkyWHdLuFf6CDJ6f3BCoAdpVup2f4Y8gZmGkbfljsN4pBgZ6wK7FSmr4
+	8rQMcAfn+KII/KEb+ImhUd6llUsn3XNusYO3CpvVXRPRDdEMBniE5zcb6Ov8QOPoDrgbH6IZp7L
+	R0RlogL7IscpLjMlZBCUKnGn0C9YApKJYzTN2Q2ZuxVelZp98bzhJuH6cThQOrN43RYKt7EZN+l
+	+3VaclEAiDPMQ8ydQT6F+uzO74jXAKiNtOuRhHTsVw3vFKiK+63SRx69XjL7FyELEiG7CbU9KGs
+	N/DixZuLp1Abr1Pgj7sPZGK37njyOLyTXO8qaRK+0CcH949XyhecctODzwBcPokvJMwQx7o/iXj
+	TERzaIXy0U1T1RZovdZP72D4TX19g7+2Uh/8zQo/qvXiEF8PQdqQfyag==
+X-Received: by 2002:a05:6a21:8ccb:b0:38b:eadd:449a with SMTP id adf61e73a8af0-3b428242975mr12005378637.38.1780303754272;
+        Mon, 01 Jun 2026 01:49:14 -0700 (PDT)
 Received: from n232-176-004.byted.org ([36.110.163.96])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84232ef8172sm6316230b3a.12.2026.06.01.01.49.01
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84232ef8172sm6316230b3a.12.2026.06.01.01.49.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Jun 2026 01:49:07 -0700 (PDT)
+        Mon, 01 Jun 2026 01:49:13 -0700 (PDT)
 From: Muchun Song <songmuchun@bytedance.com>
 To: Andrew Morton <akpm@linux-foundation.org>,
 	David Hildenbrand <david@kernel.org>,
@@ -85,9 +85,9 @@ Cc: Muchun Song <muchun.song@linux.dev>,
 	Mike Rapoport <rppt@kernel.org>,
 	Suren Baghdasaryan <surenb@google.com>,
 	Michal Hocko <mhocko@suse.com>
-Subject: [PATCH v3 2/5] arm64/mm: drop vmemmap_pmd helpers and use generic code
-Date: Mon,  1 Jun 2026 16:48:41 +0800
-Message-ID: <20260601084845.3792171-3-songmuchun@bytedance.com>
+Subject: [PATCH v3 3/5] riscv/mm: drop vmemmap_pmd helpers and use generic code
+Date: Mon,  1 Jun 2026 16:48:42 +0800
+Message-ID: <20260601084845.3792171-4-songmuchun@bytedance.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260601084845.3792171-1-songmuchun@bytedance.com>
 References: <20260601084845.3792171-1-songmuchun@bytedance.com>
@@ -99,41 +99,36 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The generic implementations now suffice; remove the arm64 copies.
+The generic implementations now suffice; remove the riscv copies.
 
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Will Deacon <will@kernel.org>
 ---
-v2->v3:
-- Collect Acked-by from Will Deacon
----
- arch/arm64/mm/mmu.c | 14 --------------
- 1 file changed, 14 deletions(-)
+ arch/riscv/mm/init.c | 13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff --git a/arch/arm64/mm/mmu.c b/arch/arm64/mm/mmu.c
-index 24388e5c727d..ea10b0ebecd7 100644
---- a/arch/arm64/mm/mmu.c
-+++ b/arch/arm64/mm/mmu.c
-@@ -1776,20 +1776,6 @@ static void free_empty_tables(unsigned long addr, unsigned long end,
+diff --git a/arch/riscv/mm/init.c b/arch/riscv/mm/init.c
+index 885f1db4e9bf..5f680eb83e86 100644
+--- a/arch/riscv/mm/init.c
++++ b/arch/riscv/mm/init.c
+@@ -1359,19 +1359,6 @@ void __init misc_mem_init(void)
  }
- #endif
  
--void __meminit vmemmap_set_pmd(pmd_t *pmdp, void *p, int node,
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
 -			       unsigned long addr, unsigned long next)
 -{
--	pmd_set_huge(pmdp, __pa(p), __pgprot(PROT_SECT_NORMAL));
+-	pmd_set_huge(pmd, virt_to_phys(p), PAGE_KERNEL);
 -}
 -
 -int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
 -				unsigned long addr, unsigned long next)
 -{
 -	vmemmap_verify((pte_t *)pmdp, node, addr, next);
--
--	return pmd_leaf(READ_ONCE(*pmdp));
+-	return 1;
 -}
 -
  int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
- 		struct vmem_altmap *altmap)
+ 			       struct vmem_altmap *altmap)
  {
 -- 
 2.54.0
