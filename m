@@ -1,119 +1,175 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f49.google.com (mail-wr1-f49.google.com [209.85.221.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94028352C2B;
-	Thu,  4 Jun 2026 05:44:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC70547DD7A
+	for <sparclinux@vger.kernel.org>; Thu,  4 Jun 2026 13:19:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780551872; cv=none; b=lb39x/xgTANtvtvPCP5YkWI45uek8/QP1ZAlurv+az0ReD0nT5DesZvkYwJLG8EnDv4bIxgvvQ8X5PEzTfhXtXYcycORHblQ1Srr72Y/Dm7bz/B+grSrYYgtUdbzBU56uiwcrT1W+f8mSF+MZYkDb8Zj43nwBWV4tR2mKfibENk=
+	t=1780579196; cv=none; b=U2FXdIoqI6qUeo6b/B/uNxOVYP/Bv0g8mUhNsgUuai8TX8xk8ZZ9EvKlEOHGS7ZinqbWJoaO7kmiu3VRrbsQaVLMY7IUMwuUCv6VKllUpxpSm+PeUzJqlbl6Mpjs1CIMKafFdMKMiIShQdbmJ6OA4sJD8YYcd18K6pje8glWHrc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780551872; c=relaxed/simple;
-	bh=mcTCxxOX9qnxOD3RbX1q1ypIFdLNwAoDyZX/Ca0KeWk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cqiOJjXAlob0O+IY5gJRtI64HWsnd9bLrFVE6R8vR32FVQlnUydt6azX8R3wjGLS3TfWb2o737Ih+TM0c3grD7IhtOEQrfVOxceuNIJP4pkKCf8SBZHktz+/1HTVjlUVJm21O4HCw0aIOupKj/c3qjZhsUdylh1jbeRS693RSso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FtPfhMok; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780579196; c=relaxed/simple;
+	bh=R4we36p9qeb3bR5yeLPjWMa3iuESdosoLdNbQrwnbbw=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:
+	 In-Reply-To:References:To:Cc; b=a5a3+YFaKOZt90Z2N4k9xeqblqdVF5pgdzp+4TbiNe00m+8gVK6wtVDV5A7IPi7Z73fpAXAXNezU2HM2Ee+cLcflRMgnZTESYYBKsFO1xXI546lqR8CTOLbPkxzSY0PM1mJic2lF1UfC1IGlSNqvlZpLaVoqLqOzPnD/Dv6X2S4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Pf2b2OD9; arc=none smtp.client-ip=209.85.221.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FtPfhMok"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9C211F00893;
-	Thu,  4 Jun 2026 05:44:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780551868;
-	bh=i9U2E5wM9GwBXet0D5NfI+XdIVHV58zoDfgA5pHkk0Q=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=FtPfhMok/Sq6q/EWpl0HkfZHEXB93SkrfDQ1avxGAUV0U6pC/V8iyBvjtTtkts5gq
-	 d6vlMQSw4o8T3gbCW4X22yPx9/vz5b82hMCVFd1HYtcPdQyIciO3mIbCIcZc1wrmma
-	 pN6gbeazjyTVMZPMXWpbMHaC0tgciwvZA+RdwFPtQuPcaS9v/lin5GSukXB4rXlAfq
-	 Uah0e5RmyQV53tamwmMAV28lqbVKPQuwSxe2uLqoeZP0IEvSMZkbvjcrX0X8P4nvW/
-	 aAohKKtprbmaxyiWh6xqDjRdNXm2yaFDtq2Q0KVYJ34jueUE/x8hwlvBWu738nzBWy
-	 g1UVQim2kTCQg==
-Date: Thu, 4 Jun 2026 08:44:17 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Zhen Ni <zhen.ni@easystack.cn>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	David Hildenbrand <david@kernel.org>,
-	Lorenzo Stoakes <ljs@kernel.org>,
-	"Liam R. Howlett" <liam@infradead.org>,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org,
-	linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: Re: [PATCH] mm/memblock: Introduce memblock_alloc_node_or_panic()
- helper
-Message-ID: <aiEQscLI2LkNSj2v@kernel.org>
-References: <20260604034139.2827148-1-zhen.ni@easystack.cn>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Pf2b2OD9"
+Received: by mail-wr1-f49.google.com with SMTP id ffacd0b85a97d-4602e2a0372so213713f8f.3
+        for <sparclinux@vger.kernel.org>; Thu, 04 Jun 2026 06:19:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1780579188; x=1781183988; darn=vger.kernel.org;
+        h=cc:to:references:in-reply-to:content-transfer-encoding:mime-version
+         :message-id:date:subject:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=1xn1l2TJuksG9hWrI7UNiVITikDxe2DLajifMmxjpHU=;
+        b=Pf2b2OD9pC8hs0fTQ+5aZmCNFECAqCJHP0dDB3926pvRYhjmjWMF0IwmMjR1tOGle3
+         u2bJegNtAVZFAm5R6mJTR0+CVjqjTpxf4ffevMgM9C2KMpkeF7PIG8cpa7dY1wePxJxP
+         IJ08WL0XZ4Cautw9u4DYVWpC2WzedNfTrIZ2BR+MkDhwLhj3sW7JWigw4aS4Rr12YFLP
+         SzOCko8R9LPxsLCE6ImAfixwF9gE1W1HP3AxBxNx9mOCdbqpnoKMAUJcvLCGl0cHUfrz
+         0ol0OKJyzeAxSTJ/fiPRQAyvidQpArRn9MNrRzBL7kdCsP80jfX7bxX5/dB4jfrfE1Wb
+         GSNA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780579188; x=1781183988;
+        h=cc:to:references:in-reply-to:content-transfer-encoding:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=1xn1l2TJuksG9hWrI7UNiVITikDxe2DLajifMmxjpHU=;
+        b=oUW8fxNfkt9lXcBO5PurzD7ewRD5ydKNtU6yrN/+dsYy7HrgBDGjZ/yJdrBDh+VoVN
+         mpY6N99LcPN8ceS0hl8B1Yuvd1l1jRf7qnjCUSjNlNWCnU4SbvdoFICupqPONs19+sLs
+         fN3/KrVV6B0lcGnbH8M5px8lU4FQz7h1Ft389QR/2eRf/TTDI1Sv+xeTamL+mBSVQEEj
+         zORjTSysl2HEFrAMVCOXPHOLBA/CS9Dhy37LMvrsBARCqgRdzOqUDmR/3HtvKtD3PVbW
+         INc66g6NLKcWRUWb6Ido2i7vSN/ROxyPgqfgN0EBlbQzfTbgaDtbfFH9MCHzoua6iFIj
+         obMg==
+X-Forwarded-Encrypted: i=1; AFNElJ/44F/0vkDA+zUkKztHMSQ2gaU1+tx3c8+zNHQU9Mc6mFfQ+TevQZVN6hF9uxgsZclHILsVuPzgiXov@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz7yGI+sozJTV8VGaMk5uOv+d8m5rmpxyPcBNtiEuH1DLU9qUGL
+	S4kOO6ODFxj0vnv0/yvmFZq9IWuSoZgHSLo7ti6RnHaERGXSMmKy91hb
+X-Gm-Gg: Acq92OG2xRqMZqbYufz5XIlGSwHYszDaO/U0XedsxROpaynqL+tebSMtjAlXKgJVmmj
+	Sny/wYmvq8HwbIUg0uxXkjH9hGzpZk5tC7j2v+6qPwoWKOYLxFcL6DigyUPicQeRGBCUIp6+MHv
+	5GeLrvumwirORwXsN13u+NOL/8sJnR9qsal5GDOzHc8zpM1ITVrGP8ORS64FEqkXIt2k3wsbGih
+	FJRhUQG/xBLtwZtEe00CKN35WulEPbPslo1y/Fc36ZzrX0JAjrQiYzqzVdBsOdzjq9b7L9i5eMn
+	3yyeUgwfCZV2LsnY12uMdhe1sdzyBoMI007UYbWgh/idhA264ebsv6VHLcEfVTZJyfjSj0gST+v
+	EuLZ1PtgkERuvnGvCdRaANDtj8L17CDI4Jnt+8DQuYnjw+GwjlHbZLXi7qkm/JzlC02oKegYL76
+	MgJnRxLnD6jPzPN/Fh9fB2jgrEabrwEkeU
+X-Received: by 2002:a05:6000:40c8:b0:460:1d74:a1b2 with SMTP id ffacd0b85a97d-460216e681dmr12313234f8f.16.1780579187766;
+        Thu, 04 Jun 2026 06:19:47 -0700 (PDT)
+Received: from localhost ([94.53.77.213])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4601f2e4004sm16337889f8f.9.2026.06.04.06.19.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 04 Jun 2026 06:19:47 -0700 (PDT)
+From: Catalin Iacob <iacobcatalin@gmail.com>
+Subject: [PATCH v3 0/6] Remove remaining references to the pktcdvd driver
+Date: Thu, 04 Jun 2026 16:20:23 +0300
+Message-Id: <20260604-remove-pktcdvd-references-v3-0-e2f06fb4eef4@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260604034139.2827148-1-zhen.ni@easystack.cn>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/42NzQ7CIBAGX6XhLIb/pJ58D+MBYW1RWxpAomn67
+ kI96Ml4nOy3MzOKEBxEtGtmFCC76PxYgG8aZHo9doCdLYwYYYpITnCAwWfA0zUZm23BMwQYDUT
+ cWmkUV0xLC6j8T+XmHqv7cHxzvJ8uYFIV1kXvYvLhucYzrbt/OpliirWWqhXUCk7lvhu0u22NH
+ 1DtZPYxKcJ/mVgxGSEIo1JYyfW3aVmWF8+MvUgeAQAA
+X-Change-ID: 20260530-remove-pktcdvd-references-9d5c6362a5de
+In-Reply-To: <20260530-remove-pktcdvd-references-v1-1-aa56941d4315@gmail.com>
+References: <20260530-remove-pktcdvd-references-v1-1-aa56941d4315@gmail.com>
+To: Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+ Madhavan Srinivasan <maddy@linux.ibm.com>, 
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+ Rich Felker <dalias@libc.org>, 
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ "Martin K. Petersen" <martin.petersen@oracle.com>, 
+ Jens Axboe <axboe@kernel.dk>, Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, 
+ sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org, 
+ Catalin Iacob <iacobcatalin@gmail.com>
+X-Mailer: b4 0.16-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2996;
+ i=iacobcatalin@gmail.com; h=from:subject:message-id;
+ bh=R4we36p9qeb3bR5yeLPjWMa3iuESdosoLdNbQrwnbbw=;
+ b=owGbwMvMwCX261qtXAKXKjvjabUkhizF6nWWTd8PNG5pa6ncseOD6qKrzIFOLXtr1v1hfSnD2
+ 7Kir3BaRykLgxgXg6yYIsuLc9fbNuw5E3Avya4FZg4rE8gQBi5OAZhIsCAjQ2tH5sHzGVb84Zqa
+ 1vs95lneP3w/Z7cBZ+JTpWcfsk4JCDAy7BLNvOpwTvaV8Czn9C3Pz2uIy76cJe3ct+IVW8sRo1U
+ f2QA=
+X-Developer-Key: i=iacobcatalin@gmail.com; a=openpgp;
+ fpr=F609BFABD84EB5C9DDDC37EDE89C6A3571CD0E33
 
-On Thu, Jun 04, 2026 at 11:41:39AM +0800, Zhen Ni wrote:
-> During early boot, several subsystems allocate memory from specific
-> NUMA nodes using memblock_alloc_node(). When allocation fails, the
-> typical requirement is to panic immediately.
-> 
-> Introduce memblock_alloc_node_or_panic() to automatically panic on
-> allocation failure. This reduces repetitive error checking, improves code
-> consistency across subsystems, and enhances code readability.
+Found this incidentally while looking at kernel sources to understand
+what pktcdvd is
 
-memblock_alloc_or_panic() made sense because it's the most used memblock
-API.
+Signed-off-by: Catalin Iacob <iacobcatalin@gmail.com>
+---
+Changes in v3:
+- Split the defconfig changes in one patch per arch
+- Add patch to move the declaration of scsi_device_from_queue to the
+  private header as suggested by John
+- Link to v2: https://patch.msgid.link/20260603-remove-pktcdvd-references-v2-1-c4402154d53a@gmail.com
 
-Adding panic() versions for a handful of uses is unnecessary churn.
+Changes in v2:
+- Reworded commit message on John Paul Adrian's suggestion to be about
+  the removed references not the export symbol
+- Link to v1: https://patch.msgid.link/20260530-remove-pktcdvd-references-v1-1-aa56941d4315@gmail.com
 
-A better patch would be to update panic() messages to convey more useful
-information.
- 
-> Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
-> ---
->  arch/sh/mm/numa.c            | 10 ++++------
->  arch/sparc/kernel/setup_64.c | 16 ++++++----------
->  arch/x86/coco/sev/core.c     |  5 ++---
->  include/linux/memblock.h     |  6 ++++++
->  mm/memblock.c                | 22 ++++++++++++++++++++++
->  mm/mm_init.c                 | 11 ++++-------
->  mm/sparse.c                  | 13 +++++--------
->  7 files changed, 49 insertions(+), 34 deletions(-)
-> 
-> diff --git a/arch/sh/mm/numa.c b/arch/sh/mm/numa.c
-> index 9bc212b5e762..32b01697b27f 100644
-> --- a/arch/sh/mm/numa.c
-> +++ b/arch/sh/mm/numa.c
-> @@ -38,12 +38,10 @@ void __init setup_bootmem_node(int nid, unsigned long start, unsigned long end)
->  	__add_active_range(nid, start_pfn, end_pfn);
->  
->  	/* Node-local pgdat */
-> -	NODE_DATA(nid) = memblock_alloc_node(sizeof(struct pglist_data),
-> -					     SMP_CACHE_BYTES, nid);
-> -	if (!NODE_DATA(nid))
-> -		panic("%s: Failed to allocate %zu bytes align=0x%x nid=%d\n",
-> -		      __func__, sizeof(struct pglist_data), SMP_CACHE_BYTES,
-> -		      nid);
-> +	NODE_DATA(nid) = memblock_alloc_node_or_panic(
-> +				sizeof(struct pglist_data),
-> +				SMP_CACHE_BYTES,
-> +				nid);
+To: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+To: "Martin K. Petersen" <martin.petersen@oracle.com>
+To: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+To: Madhavan Srinivasan <maddy@linux.ibm.com>
+To: Michael Ellerman <mpe@ellerman.id.au>
+To: Nicholas Piggin <npiggin@gmail.com>
+To: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
+To: Yoshinori Sato <ysato@users.sourceforge.jp>
+To: Rich Felker <dalias@libc.org>
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: "David S. Miller" <davem@davemloft.net>
+To: Andreas Larsson <andreas@gaisler.com>
+Cc: linux-scsi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mips@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-Please don't touch this, the entire file is going away after rc1.
+---
+Catalin Iacob (6):
+      scsi: core: Remove remaining reference to the pktcdvd driver
+      scsi: core: Move scsi_device_from_queue() to scsi_priv.h
+      mips: Remove remaining defconfig references to the pktcdvd driver
+      powerpc: Remove remaining defconfig references to the pktcdvd driver
+      sh: Remove remaining defconfig reference to the pktcdvd driver
+      sparc: Remove remaining defconfig references to the pktcdvd driver
 
->  
->  	NODE_DATA(nid)->node_start_pfn = start_pfn;
->  	NODE_DATA(nid)->node_spanned_pages = end_pfn - start_pfn;
+ arch/mips/configs/fuloong2e_defconfig    | 1 -
+ arch/mips/configs/ip22_defconfig         | 1 -
+ arch/mips/configs/ip27_defconfig         | 1 -
+ arch/mips/configs/ip30_defconfig         | 1 -
+ arch/mips/configs/jazz_defconfig         | 1 -
+ arch/mips/configs/malta_defconfig        | 1 -
+ arch/mips/configs/malta_kvm_defconfig    | 1 -
+ arch/mips/configs/maltaup_xpa_defconfig  | 1 -
+ arch/mips/configs/rm200_defconfig        | 1 -
+ arch/mips/configs/sb1250_swarm_defconfig | 1 -
+ arch/powerpc/configs/g5_defconfig        | 1 -
+ arch/powerpc/configs/ppc6xx_defconfig    | 1 -
+ arch/sh/configs/sh2007_defconfig         | 1 -
+ arch/sparc/configs/sparc64_defconfig     | 2 --
+ drivers/scsi/scsi_lib.c                  | 8 --------
+ drivers/scsi/scsi_priv.h                 | 1 +
+ include/scsi/scsi_device.h               | 1 -
+ 17 files changed, 1 insertion(+), 24 deletions(-)
+---
+base-commit: e43ffb69e0438cddd72aaa30898b4dc446f664f8
+change-id: 20260530-remove-pktcdvd-references-9d5c6362a5de
 
--- 
-Sincerely yours,
-Mike.
+Best regards,
+--  
+Catalin Iacob <iacobcatalin@gmail.com>
+
