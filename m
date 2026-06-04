@@ -1,125 +1,107 @@
-Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 440F647ECE0
-	for <sparclinux@vger.kernel.org>; Thu,  4 Jun 2026 13:20:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A33F0331A65
+	for <sparclinux@vger.kernel.org>; Thu,  4 Jun 2026 15:27:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780579209; cv=none; b=A3WlLOozulJtROFxMF4WJCpUu0jkUW1S1MNcd3wkk3N8AM5RH6DIsVHLg8FoFz5d3pLYOxus1gdp1JXsb4Oh47qJEvMJcsrbpx8mC9/R67bE229WbVCQW2IyTjRRMf2KFXJ47/Yx7GSzrK9bhSQw4dph9jugZm1Dhd/ZS3X+rgg=
+	t=1780586875; cv=none; b=SJ03Iag+mslhzlMQCsoD04k+EvzXR7V7YADW6p91W/isqfERTVcPIxNlMBuOmfJcbdwkmINl2MczOVAxGXtqdEa0uzW/EbZ5gCZAmvtJcT0elfBRt+6WE4ytBBhN8QEr9C4nZ3LSZXM3Q2DvE421fjMI+Yi7taFlNQXw6PiUQis=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780579209; c=relaxed/simple;
-	bh=T2wQkK65vboZ4IeGnr4NbeD+9D8laMYxlcwY9lW95Qo=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=W5QIl9TpYe1kAU4sPQs+L1p3iDW27mYRkQUwdbLcq+8iPy2W3EYL6gdoYel7J6zd7cog5Ls0p3TrLplxMqNoMBuT/xdunG5XuZ15E2D/INYz6SQsQA6Lsik3upIOOmBjWJ9CK1sMLWSWnrQF/rYX0GdNSX5LpK2TOfgG1lWi9o0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U/MSGcKj; arc=none smtp.client-ip=209.85.221.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1780586875; c=relaxed/simple;
+	bh=vzKMFnSSlPcCRc7wimY6o+TgtiVDEpgrJTOmOq4+3Ms=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SvU3DsSSqoEBuXXtjZJn/fkGU9jkb+VpNMxQJVHIrimIUhLCTvMu6NmEMWidUNo0oPIL0VVtqdvRnESnMkq9yILwSxHVIbgVLwgFYM59Csmdcrw+uY9NsJp+dnfgoGSaW7MGYw4kSQgl6h4xVAGLt1L8Vitji0Flz2R61C/Wa6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=O6B+0lcv; arc=none smtp.client-ip=91.218.175.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U/MSGcKj"
-Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-46013161068so363747f8f.2
-        for <sparclinux@vger.kernel.org>; Thu, 04 Jun 2026 06:20:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780579204; x=1781184004; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=nCy5icZAFPKbCxn3K3WrZKHkVhOrNfCywaz2Tw/0Yng=;
-        b=U/MSGcKjCOLpKGiwmb+hS6FzWFLCtJ6wvdYdnHQmDaSBnqFmO05w0ioUV+SrGfOxfF
-         XiRqqhlPMZ1EcHJ4AVLYrCWuZ19nM5c9AcKiolBT6t5zfbp3Ka13PBs7LwN+/DLBzrIH
-         9YU1JoXrNLqvIMsTiGYf5aaXp9bRVN4b8CClSaEeU3PdL3JnzaAGZy2Sb4kipcA26Pnc
-         i0Vli4Vi2svsdclzVrs04iNFpA9+tNH4DTezcyVnlM80DLdidU50PMXNojOfg7OyVIAm
-         ZELBI6wVqLhYrQiWM6Ie3WKfuyuUzZaM/DOzmhmzhP6/A+U8vOFeQE4RDz8LuYFmvrcT
-         nPwg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780579204; x=1781184004;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=nCy5icZAFPKbCxn3K3WrZKHkVhOrNfCywaz2Tw/0Yng=;
-        b=XaGn+tDBwUk16IwOLGCLN3g+c+wBFlDbY8DFKW0WP++QnZp/z1mQWh8Pd5+H1lWh6d
-         x12gHyTUeIQ5CMbnOpMqMMThRxcCfrrxunNFav7cVn7ax9NdF6p9x1p1BNG5yjubnh50
-         GK5645M4pi23Nqe10tLHeWDWlC4vnxgtzeZeE6o1FKjxohc6DaHg6t4DDjNqWr+ehU0r
-         vCeH3Oz7vdiyziiuoOYCKlqwfutIl/twHyjm5hsADo50IuzkdXgiCveOqeaZ64vHDjGJ
-         IlzMO7LfAv+Uru5sWUVj1Ui9IXYp28COYLeee/apJwoukpCrult5Kzq3QWwmg3S54phr
-         Eg4w==
-X-Forwarded-Encrypted: i=1; AFNElJ9OqXjX3aOYMq88GcDOo1sS8TrHV7gbk9QrQse5X+rZk19UMnKAqCjrAPt6PvlzwS51GCMIkhWjUIPL@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxvhq7ISnQBBLyDYpRJr318jWmxEiD3PHIbQC80PpjleMBkbqQo
-	Bx7RsNz5lYrynLSi2qMlUtjMLr59U9IOBgoTqdIQkFuipU2J+5oFX38m
-X-Gm-Gg: Acq92OGEtEdGpbnI1ojgHR7EQJc/fL6ITQSM59Iiwe0tpvo9lFD2BQj3Wpw7e7AxPs/
-	fvOYjGsWU9IOzT+gopEuvY0s3sdco3t+9vv5UnHXIfjZ7yDZaUSJRe0KziocQZsF4V6uuv693/M
-	f5YjvnYPogPKgggjmDyrK/kBD7OZTmg7oddnKuk1Zy2e34IRpzxM8mHXlFU8wF1GXBPQNUVpFLI
-	ZvUrDb9/XjjeLvinjn7jZaQWxdEsoAEU3GS5MGDkPS3jlSnwg6zPsJ6POpODb4qo7w8ZPMpYrEh
-	pzkltaukZrmnBCeIPQ/u1tBqgLEYqsIu6SWa5aelRic+uADd/0Hq6/+MIyLTzRKNanT4yf80AT2
-	kyYmsdtnT7WUAYruH1IQ0ssWj/2CQB505UnBtGzOYD5n3PeNg3qWwcRaay9Jouy7HAmK/PstFZO
-	De5wtXaaahdAruQ3q4ZhPsmb4u14WEadY8
-X-Received: by 2002:a05:6000:299c:20b0:45e:7418:a3f2 with SMTP id ffacd0b85a97d-46021846dc0mr9148505f8f.26.1780579204445;
-        Thu, 04 Jun 2026 06:20:04 -0700 (PDT)
-Received: from localhost ([94.53.77.213])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4602cda3651sm3398435f8f.32.2026.06.04.06.20.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 04 Jun 2026 06:20:04 -0700 (PDT)
-From: Catalin Iacob <iacobcatalin@gmail.com>
-Date: Thu, 04 Jun 2026 16:20:29 +0300
-Subject: [PATCH v3 6/6] sparc: Remove remaining defconfig references to the
- pktcdvd driver
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="O6B+0lcv"
+Date: Thu, 4 Jun 2026 17:27:43 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1780586870;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=LkSlXgzudMtqbqY+56pBmTZ2AyqZgjPMvXF9NgKtZJY=;
+	b=O6B+0lcvZkw+7nBU9bFZa393hEBLH9XSl+d6pOU/4WNdMqFLQZnBEoX87hjGAmLhGnynmR
+	6AX/ofLET4LPv5fI8wpwE7NHk5sE/Ig8jYQOhw736jjD+BG5PaU+BB0mRQK0hkTdtRE/LO
+	R4t7pfSZN8Kq+G0PnRi9BJmRnNpyqIc=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Thorsten Blum <thorsten.blum@linux.dev>
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, Kees Cook <kees@kernel.org>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RESEND] sparc: vio: use sysfs_emit in sysfs show functions
+Message-ID: <aiGZbzWglHiPIQzA@linux.dev>
+References: <20260504181320.143003-2-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260604-remove-pktcdvd-references-v3-6-e2f06fb4eef4@gmail.com>
-References: <20260604-remove-pktcdvd-references-v3-0-e2f06fb4eef4@gmail.com>
-In-Reply-To: <20260604-remove-pktcdvd-references-v3-0-e2f06fb4eef4@gmail.com>
-To: Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
- Madhavan Srinivasan <maddy@linux.ibm.com>, 
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
- "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
- Rich Felker <dalias@libc.org>, 
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
- "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>, 
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
- "Martin K. Petersen" <martin.petersen@oracle.com>, 
- Jens Axboe <axboe@kernel.dk>, Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, 
- sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org, 
- Catalin Iacob <iacobcatalin@gmail.com>
-X-Mailer: b4 0.16-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=746; i=iacobcatalin@gmail.com;
- h=from:subject:message-id; bh=T2wQkK65vboZ4IeGnr4NbeD+9D8laMYxlcwY9lW95Qo=;
- b=owGbwMvMwCX261qtXAKXKjvjabUkhizF6vUry7hfsO25sPz06cyFgXWfhXOy1B3f+N6v/xxft
- T7rWuWjjlIWBjEuBlkxRZYX5663bdhzJuBekl0LzBxWJpAhDFycAjCRvxkM/8PWMczLnZQ1MVVk
- 61zh9Gc8zi+v3191c++BLfadB9vXLZzB8M+6u/j1BddEqaaNtVEqK99Nb7E/mlw1+8ssJ3HGyv3
- 3njIAAA==
-X-Developer-Key: i=iacobcatalin@gmail.com; a=openpgp;
- fpr=F609BFABD84EB5C9DDDC37EDE89C6A3571CD0E33
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260504181320.143003-2-thorsten.blum@linux.dev>
+X-Migadu-Flow: FLOW_OUT
 
-Commit 1cea5180f2f8 ("block: remove pktcdvd driver") left behind some
-CONFIG_CONFIG_CDROM_PKTCDVD* references in defconfigs. Remove them.
+Gentle ping?
 
-Signed-off-by: Catalin Iacob <iacobcatalin@gmail.com>
----
- arch/sparc/configs/sparc64_defconfig | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
-index 632081a262ba..4abea39281cd 100644
---- a/arch/sparc/configs/sparc64_defconfig
-+++ b/arch/sparc/configs/sparc64_defconfig
-@@ -60,8 +60,6 @@ CONFIG_CONNECTOR=m
- CONFIG_BLK_DEV_LOOP=m
- CONFIG_BLK_DEV_CRYPTOLOOP=m
- CONFIG_BLK_DEV_NBD=m
--CONFIG_CDROM_PKTCDVD=m
--CONFIG_CDROM_PKTCDVD_WCACHE=y
- CONFIG_ATA_OVER_ETH=m
- CONFIG_SUNVDC=m
- CONFIG_ATA=y
-
--- 
-2.54.0
-
+On Mon, May 04, 2026 at 08:13:20PM +0200, Thorsten Blum wrote:
+> Replace sprintf() and scnprintf() with sysfs_emit() in sysfs show
+> functions. sysfs_emit() is preferred to format sysfs output as it
+> provides better bounds checking.
+> 
+> Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+> ---
+>  arch/sparc/kernel/vio.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+> index 8b4f55047716..b7b06752a038 100644
+> --- a/arch/sparc/kernel/vio.c
+> +++ b/arch/sparc/kernel/vio.c
+> @@ -13,6 +13,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/slab.h>
+>  #include <linux/string.h>
+> +#include <linux/sysfs.h>
+>  #include <linux/irq.h>
+>  #include <linux/export.h>
+>  #include <linux/init.h>
+> @@ -121,7 +122,7 @@ static ssize_t devspec_show(struct device *dev,
+>  	else if (!strcmp(vdev->type, "vdc-port"))
+>  		str = "vdisk";
+>  
+> -	return sprintf(buf, "%s\n", str);
+> +	return sysfs_emit(buf, "%s\n", str);
+>  }
+>  static DEVICE_ATTR_RO(devspec);
+>  
+> @@ -129,7 +130,7 @@ static ssize_t type_show(struct device *dev,
+>  		struct device_attribute *attr, char *buf)
+>  {
+>  	struct vio_dev *vdev = to_vio_dev(dev);
+> -	return sprintf(buf, "%s\n", vdev->type);
+> +	return sysfs_emit(buf, "%s\n", vdev->type);
+>  }
+>  static DEVICE_ATTR_RO(type);
+>  
+> @@ -138,7 +139,7 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+>  {
+>  	const struct vio_dev *vdev = to_vio_dev(dev);
+>  
+> -	return sprintf(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
+> +	return sysfs_emit(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
+>  }
+>  static DEVICE_ATTR_RO(modalias);
+>  
+> @@ -192,7 +193,7 @@ show_pciobppath_attr(struct device *dev, struct device_attribute *attr,
+>  	vdev = to_vio_dev(dev);
+>  	dp = vdev->dp;
+>  
+> -	return scnprintf(buf, PAGE_SIZE, "%pOF\n", dp);
+> +	return sysfs_emit(buf, "%pOF\n", dp);
+>  }
+>  
+>  static DEVICE_ATTR(obppath, S_IRUSR | S_IRGRP | S_IROTH,
