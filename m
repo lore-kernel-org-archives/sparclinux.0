@@ -1,66 +1,61 @@
-Received: from GVZP280CU018.outbound.protection.outlook.com (mail-swedencentralazon11022101.outbound.protection.outlook.com [52.101.82.101])
+Received: from MM0P280CU010.outbound.protection.outlook.com (mail-swedensouthazon11022141.outbound.protection.outlook.com [52.101.77.141])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34DDA36A375;
-	Fri, 12 Jun 2026 09:11:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.82.101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6ADE380FF0
+	for <sparclinux@vger.kernel.org>; Fri, 12 Jun 2026 09:13:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.77.141
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781255489; cv=fail; b=iZaxBkbPIhw6coTRtmViJYnycqBFzfICNN6nImmay6b9Y1j8tA0OoS98zJ2Yk0mKAeXbE2ky2xFJBNFd5K4gzEvkAsdz4nWRbvDTxtcwgvX1WY8PbqCFw4xkWgdbqCvJx7Rc+jecjj+f+ACSeiAHzcrO8AqaR5u0LB2WwVmzGJE=
+	t=1781255589; cv=fail; b=clP7CB4gQXk0NTcwbdbT/ABb0bCoX+G0jOPF3TOplt4PId/YAW74mNWhrM4l0qnVWSiFD+Viurt0crjPEtK78BICtS9p4jKQWKRY6EqxSG3QadvHHAxqyxZWJGjF7MAiOKmUIElViiJV+tmRc6v33XZndiRVd7cfO1PWl8Qh/qw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781255489; c=relaxed/simple;
-	bh=7+rZyu0ElznE1cUAxyeaGLR0lWLqS6rrXfOKPWtvE9s=;
+	s=arc-20240116; t=1781255589; c=relaxed/simple;
+	bh=Z3bQ7/qDDL/BY2rU+4FTONPXa71JIvdKrq/sZ3/4nrk=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=WrAutf3enqgYG1siQ87tnjEK1m3vG8PilLooSzRlLDK/Oqn+SyEX5dC1k5aFKV8GkYEvLptnPDlaGG4IhDUrTo6t5vlx08om82QSyEnVOIAh9DXWIG08ft10hLTuRlPIpsvb1VhDojRPSADLGfx8/p3D37Bwz7oE4RAWUXYkW8o=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=kkHBSLBv; arc=fail smtp.client-ip=52.101.82.101
+	 Content-Type:MIME-Version; b=lJD8AEpG9++uRQ8Sk6l+cDBKt7BJvbCM6hODnZlv5ohgw6uHETAvJ0R6bch30AwvRWD36vTAw5D/fmwHzjoxtTkSRSK2aqeM6qkS/qd4HobIyuPb8GH49fnVqexycvuB53QbZc5ndfBM7V28QlZ8+dhhwMCWVcrKx85oUixo/Zw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=YFwHIQRN; arc=fail smtp.client-ip=52.101.77.141
 Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="kkHBSLBv"
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="YFwHIQRN"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=RahWhgbI+OQ5+O8plWU2DlDNdebip9JLE52DiT6YN98JyRpeh76eUV1hN5nWZLzIy0sPxxOrM49SUSGLDZpIgzDr5cWUgQL3xAgvTbtZk+db4sJz/eGhXQmg/hoglxRJjP2DJi+N2nvEU3+mu0+/lu1b3Ml3OPBwHwubUCnH4MtM4gV2df6jR+NYhVYQp7ONqFHT0QlU/KVuBuIEyNdDWXH87O+G17mRqVABK0M2GMUi9DHui3dCAvZ/fXxi+s/axpOn0YXxZG4IvHpvTOQwiI0D2iZPYAY9eJBDC9j3FuTkKdQZbpmuwTy/zUtfhCuWQMKyFLVRZ+GKdFj8EKohKg==
+ b=Sz9yrb8ckL4S8wwuTiKL1cxxMUpniSx0O6FNvcAnBjra2TzFUJ/3cDk6Bqi+xkPazHefgyWm88krVXDXIHDMNtr57JQrAawTu6vHXns+a58Cmm0ecY4jBXi1Bl3CPmE/khLNdRImT4prtxwP2DPukz18vWazhcdtJklgy0mquhFaXui5/echHDwU0biixBS/zAEG/wL1BzL0v/AzbQHCEhhG3RaaU0FjFYbS6lX7M34vmDACBBsjd/BLFnDuaOQthGs7FCsuQ59zrxvyEJNntuf2Ib4wdZppA5bjMVwKbOqpfkLMG9cFytByzhleiYGWZnTWmHaocvZA1Kzb5/OFwA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=qZQ4hyyrrdlMUzfMHsFVerGh0Q97RgleVpkui2ufjcA=;
- b=NnWiCoF31WdMu3qJjt+TGQKDzmdaellg8T8jbKuhNcCgA5ekE+LXlNCOcCQuR8OiM2diXSP43aZScewAlzA8HVilYY43V9qhEdURz7k2DW9e3D0kgwIo4a7c2ESxxWqm1pnoAU/8lNuxp6KrUbg+XLcelc+4BhxcMZGZgC5hd/eVWyU985EUVKQf3gWYSQWzD+aNgIMd6Wwyfe7sLRW9KGVR6dzweWxj1TCrXI36QAv70+F05MeFf5VOHe34P6zFuafvDhT7+FO2Ug5tDGiJNpLc6YsN0tzM35Cwtz8frle4al/SFVI9cX8saH7FHLihZ9Hkl3vgVmRIQwHPX9fHxQ==
+ bh=lCEVU6+iyadwm+IeJ0vGyc3PGAqfi1U9Ql1RDjAPU0E=;
+ b=cQLVstXpqbX1jw/fPNgFy3Js5fXxZfWDWsKkkK7jDSEG2NZompGt1Nn17jBvLC6IqdMQYow/+NNp80iDvJynhzG2L5zTJDU+fDlPPt9bAaXBV34R64LvHmiNIrJC/Bk0yQyANRpEWZIQFoYUKr0E52YFKYTMNEOyezFZ6ePWRdCFi4+BBU7JbCzEF+bqm6L7MRWuCxC9rbuP9uHRBX0Br2bbhntHi7THEca2m2PKC6+RHa9f17Dy3qbqKa5ehYNay8hD7KtAzSf1+ZrLxjSOSCkUB0P0D5l/n61U5GggB9QD0DPColdRUMUHMfo1LQcyAdTbTySxU3QfQTh8iX9/iQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
  dkim=pass header.d=gaisler.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qZQ4hyyrrdlMUzfMHsFVerGh0Q97RgleVpkui2ufjcA=;
- b=kkHBSLBv0wA6aJPrUJ0OOuYuv+iEhXLbnq4Kj7DAkPnQOwun5YirnCYQQ88wbwYgaJB+32siMtJWuhpYDFgi/gmD8QLp46bB2mrlgaHfhGJSDRsAZrUw0Y9JAizw3iQhGDSkFMdglEZoBkEA5c/A2xecEwJvgbFBmi14WZQtPPe7AqVeLjLKcQPDGxnC+ZXw0uzGnGDZTSnK59HSaSek4taWPrzBBR2aNbfwVg3IHU7SuiScNCqQlZZTr9HGHyNeObR6Dv8jWusdJ9dTscDpETtIPvMb+1BKNNz+VEQhlU330xSqrCowY6xvxPa88qxxVvVCnLunFKCXd6hLLnN0Ag==
+ bh=lCEVU6+iyadwm+IeJ0vGyc3PGAqfi1U9Ql1RDjAPU0E=;
+ b=YFwHIQRNOlBfXBsWIRQEy9JvQVP2gNwjqGkb0wpQACj28+wRna+Pg0TChOJbi0T4GMP2Df8uiwoCYL05VzBWKxzWmpfDkZaH0H7de3/4um+9sbt96JL8oNbfmVmd8SoIt7xx0yKwqLrpDyDwtIqviVzbeGIKYCDVziM1Aqc7iXBiXIrgnH/7pekfSDDbR2e0epxAgPH56Lx0xaComWiGwXVEN1RPN3Np50jQcryS4O6Hd1IbQfVX4d76wmKJBP1D83QHYCnOEtoEC6us8mReRG2+LpEluwdvU9YO87hAoTmSXY/dKL2js8B4xa6sOCq7WUd1+ffSoJl16W5VmIeX8w==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=gaisler.com;
 Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:195::18)
- by GVZP280MB1987.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:23c::6) with
+ by GV3P280MB0759.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:f1::8) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.113.14; Fri, 12 Jun
- 2026 09:11:23 +0000
+ 2026 09:13:00 +0000
 Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  ([fe80::be76:7636:f4ac:6773]) by GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  ([fe80::be76:7636:f4ac:6773%6]) with mapi id 15.21.0113.013; Fri, 12 Jun 2026
- 09:11:23 +0000
-Message-ID: <7706a203-f2e2-4d5b-9da9-c94b5cb428ef@gaisler.com>
-Date: Fri, 12 Jun 2026 11:11:22 +0200
+ 09:13:00 +0000
+Message-ID: <fef05556-b2ec-4e6d-bb74-51c0a5b9e4df@gaisler.com>
+Date: Fri, 12 Jun 2026 11:12:59 +0200
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] sparc32: remove deadwood swift_flush_tlb_page() debug
- code
-To: Kexin Sun <kexinsun@smail.nju.edu.cn>, davem@davemloft.net,
- akpm@linux-foundation.org, rppt@kernel.org, kevin.brodsky@arm.com,
- agordeev@linux.ibm.com, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: julia.lawall@inria.fr, xutong.ma@inria.fr, yunbolyu@smu.edu.sg,
- ratnadiraw@smu.edu.sg
-References: <20260321105935.8068-1-kexinsun@smail.nju.edu.cn>
+Subject: Re: [PATCH] sparc: remove unused SERIAL_CONSOLE config option
+To: Ethan Nelson-Moore <enelsonmoore@gmail.com>, sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>
+References: <20260505000913.25576-1-enelsonmoore@gmail.com>
 Content-Language: en-US
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20260321105935.8068-1-kexinsun@smail.nju.edu.cn>
+In-Reply-To: <20260505000913.25576-1-enelsonmoore@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: GVX0EPF0004F08C.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:158:401::634) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
+X-ClientProxiedBy: GVX0EPF0005F691.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:158:400::13a) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  (2603:10a6:150:195::18)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -69,125 +64,115 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: GVYP280MB1290:EE_|GVZP280MB1987:EE_
-X-MS-Office365-Filtering-Correlation-Id: c4dec44f-2368-49a9-e285-08dec86292ce
+X-MS-TrafficTypeDiagnostic: GVYP280MB1290:EE_|GV3P280MB0759:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3ef3910c-860b-4f95-7f57-08dec862cd11
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|366016|1800799024|7416014|376014|56012099006|6133799003|18002099003|22082099003;
+	BCL:0;ARA:13230040|1800799024|23010399003|376014|366016|18002099003|22082099003|6133799003|56012099006;
 X-Microsoft-Antispam-Message-Info:
-	Amdf/Cl40Y/skn92AtckTF+OF2/E4LR2HPBkCYe2poG1upmAibYlYyI3SJgC7WyFwiqMoQJUQPXwArZaABImFtsc2fq5T6U1jq59JgPsQNxSEZEhJigjXbB2gg7XyaDlhZ0bKUHL7ocmwx5vmGnZhFwne3KG988PLwKrvz9oA9RERSnA74GQlchlWgEP5KVmmuEaE4xewU4nLjBkLsvJf6Teg+qU1SBBMY+0TF0K8qQAPHtQvjT2YQ6KdpMqwmCBOxG5ZTAKWr7TvroHG9rbCLiRfunkz3zx3QbD5XV/6F/pCdEUGZ0RGxdgof+uiIW1Gr97iRCa02Rqj8RoEOEajgm9Vk280OImfM9PzcVtWh8dodDx6qGaq4NnfhsDZplYAbsaEFr9CKLkZllJBDOrk+aGHAAxJPNTJnlAg2nx5PphCbACp6BuMAK2qW9sp8+l0h43pjdDKjr2XsqRVxTYHTItLRgXQqwqGfYixL1Mlv8p5Jfmq4I/KneErG9zwusPxGH7iK4Ns90euZBUbZJ0ATetuGiRd2WZAtNWQNoq8w14ZrQdodwzDYiI5wtIC5nBzgD3L2UBAIJSAnnyZmddxDN/i20vf8jXuQk+y0qMVZbQKQEkdPWWmP/P5nKK9LJzip4ZXN4z38hFQIcIL+loqRr7tF67oY5hFGLdlOil8zwb0qT/sAljOcqCJeWLT5Me
+	w60RnmQ5r0dI+3QVU6/L4Gy3Sl2JjcLIrtntE4fWtjDGKNW0vGwHZA0aii859l8P1HlafoFzuSRqo5KSn3qf+ZHBOuFhBhhgJutsp71cDSVVsHz25b1zHcBsvpl17nH4NZYImwn4jeTAcCtpaicVN9gtRIDdjFsELgva2ddPtva6xua8aCpTnkY5dsuIWUWomvUv0oI44doBpYEzTmeBrZp2+C9OnnWhsFn2JM+gjcTB0pob1DatVvYf10iB/FHzIsayGT7Tnd4l6zz6OfCz1ljEMukvI/s3D6xZC1yKr9kJKPVx6b5Hwx1cZOhEywiLaKMpV/XfZeHsmENwe9iRkmh+H0yJwPVmvRdPSKVC8dUkm+BSSPFteHJcIb3OToi6t5UV4axKme7SypalsVWt/x6vOHmvl34U1+dQoNoJFBbtMvt2WT22bYO1l3NKuQfjYLwZmekaQfKDBaVy2PmoSBTv1BIJc4px70tRku23HbsrKdxo6WvnxT0tfGec8vp9BHbJ2KStK/G+YxN8Wr89/cfM9+cCG3z+NgOYggqrL5AISfgkWdajpTFo14Rt5GGM374mOs57bT8bs+YPKJEtGbxsp84M5YUxuUR6OL4aCjuvlILvvyn9w91R8kraXkSucSb9XjGWfyum0H/IO1I9gnxWamyrcqsNoVhCKAzhgl3rpXYEoAbmOLWVkOu7wpYX
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(1800799024)(7416014)(376014)(56012099006)(6133799003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(376014)(366016)(18002099003)(22082099003)(6133799003)(56012099006);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?dThha3RsTkhWOWc3TDgxR2RWNDBUTzBaSkpXMWhTTzhTbDlMS3E0WEtOM0ly?=
- =?utf-8?B?aGNRRENIQSt2Y1oxYUd3VmRxVXdRL3lvYW1OeUtuZmgzS05uTEdzM3kzQml5?=
- =?utf-8?B?ejBSS2JGWGpOU2tYdkVzYUpxSG1pbTNtTzZVL1R1VXVNL0lBQWxTK2F4dTRl?=
- =?utf-8?B?VVRtbElHL001SEpEWGxjRWNSNFhaWHZGRGRZaXBsMExYR05QYVJaOVd5b2xv?=
- =?utf-8?B?bElkWmxadzJTcXlGZ0F2VEVsc0RnNjBzWXA5a3F6UjVwQ2xONHl2amFtVzhj?=
- =?utf-8?B?VGlXMXl1WkxBQ0JQcTI3WEwveFZocDhSbUVIYVF2NDYrTTg4bnlSTWVROTVm?=
- =?utf-8?B?VngvL2NVUk1QMXpTOUdCOVZZa0JHWVp0MUpSWFVyenZIdkRxYldtQzdEQ1ZZ?=
- =?utf-8?B?dktvc25sbzJuZmMxZWRTaXQ4Q1c3TUlLOEkrT2Nwam9WVFM3L2J6QjF2Nllw?=
- =?utf-8?B?Rzlhc3hQT01Jdzlpa0UvUzRPU3JDSDZjcW5Tb2tYL3Z5UDNYQS9ZdFpIMG1L?=
- =?utf-8?B?UTFrSldhMnlUdldxOWlLaTFNUm03Vm9LTDJhS3ZqNHlucW83aml1VFJudmtW?=
- =?utf-8?B?S2tFRnd0YXpzb1NETGQ4NkZoQjR3cVIxUzFRNytvWGtzM210a3JIeUM4YkFr?=
- =?utf-8?B?TVhIQ0VvTFBZRmhPZGR1bXFqYXhDWkRYRXNxM2g0bVN3eE1scmlUT3E4dXps?=
- =?utf-8?B?aFI2Smg5QTdZTlh0OHF5bDU0ejk4M3VYbVhrbEd5eWEwQy9tcWFTQXY2SlRi?=
- =?utf-8?B?TC93RjNpUmRPSG5WZ1FCaXRoRk9NTkhMUGlYN2p3Y2VubFhxMkdRMi81L2Uw?=
- =?utf-8?B?bGJsVGg4MEFva3RTdExYWEhSR0xIKzdoZzJPOGQ1bndsZks4Yy8wTS9VRkg3?=
- =?utf-8?B?bkpMcVZzQlNobERhbTBIVTR1YmdINXExaTZiZ1ROV3piZThBdzM3L3FlaDVo?=
- =?utf-8?B?OEJ3MnpoQTEwMTBna2ViNTlVRzZQb1ZNYlhWWXR5UUgxSXl6VnVQMjB4Y3BV?=
- =?utf-8?B?VmpaNzBpNWp2eWxoY0V5UzdYZzkxTjNobzdhRUVvZ1Fhb0xJV0MxVmdpdjky?=
- =?utf-8?B?ZGJ0b1FzaEJ4UWdua1RrSXgremUxMFhKc2sxb2lJMVFiMzFKdDZDV0JVQlk0?=
- =?utf-8?B?TGdIU2JwaEpFaEk0cFE1UjN3ajBVMHV3ZkEyT0ZLcUptZnpqVUhUeENIejVU?=
- =?utf-8?B?SjBWdXdhR3FpSWl1S244RTY5OENyckNEZ2xJVUJ6VnFyZDcxam5GeUdKS1Az?=
- =?utf-8?B?VjJXQ21TV2xuK1JGemtObDN6NFVGS1dkVHVPNDFpcUgydVphV2lJUjlaNDNF?=
- =?utf-8?B?dEdWc0I3Ty9hRDFsbzdYVEoxYkJITmRienNWUm5OK1dLRFRHMGlpbzcxZVdR?=
- =?utf-8?B?R041SjVGYlB6dHVBNzE2SUk0b2poeFNod2I0WVVXaGpGUnI4U0pUc2VhNGpR?=
- =?utf-8?B?VDRrN05aa1NHaDBFdlZ0Uk96VU0wb20zbGZMTkRsZk1FOThUSngyQ01CQXZi?=
- =?utf-8?B?dDFSNzRJQzMyR2VOUkNlbW0rZTBSUEREWlRpdUg1dzMzSzFZellTb21OWk9j?=
- =?utf-8?B?U0UyYWIzUDdoZlI3RVBXdFpnRDhGT1NyQ2h6Q29WUkVkQjBmVFc3Z21UTGlq?=
- =?utf-8?B?TFJWZ05oT3RUM0NFczhHZ2Rmci85NThHSStsZnBxZW82dEpobUxYSWE1S2I0?=
- =?utf-8?B?SnoyQW5lZEJ3WE45a0wrZmp5SGVyM01jd1dBMStYT1ExNCtDWHY2Um44anJp?=
- =?utf-8?B?RHZBU0tqQzd1aEVXWjNsZW9tdGI2WnNIRjh4M3dVdWkyN1pOZ3RJVTZjeXl5?=
- =?utf-8?B?SEcwRkw1THJ6ZTBrblh3a2ZPR1ZRNEtnOUVmbjR3aVc1QUNteUVQWTh1bzRx?=
- =?utf-8?B?VVp6QW5CVUUzR0dPYUFVRVh0OCtqcTRDT1JVZzIrVGJQK2MwdmNCUnFqSmJq?=
- =?utf-8?B?bXBJMW9RZGNDbGtQNDhVRjhEZDBQVnExT0REMzBNVHh4OTl6MzlyVTRPSFEz?=
- =?utf-8?B?VjdWR1VKaGtRdWl1V0dnR2VTQmxSRWlHc2lnYjNtWTNzelZZdFRwYU9TV3JS?=
- =?utf-8?B?Yk9nNUk4QURxNHU2R2tpMG9FOXpVZkNjRGFQeE04NGx4d1ZpWVcrNXpYVUh5?=
- =?utf-8?B?Q0ZGSnlXS0tLaW50d3RvT2tpQkJ2cGJYNllOQW9GR3AzMGwyWW9BaXdUNG9B?=
- =?utf-8?B?NUQvQW43RGZzRTM3Mi9SL3hCaTJsdGFpdDhxRlVBN1Y4ZEpsanRnc3J1K3JK?=
- =?utf-8?B?am9yVGtCTzdpU3RLbmYxMGgyVDhtODU1UU9lRng1ZXp1dTJ4MVRhSnI2RzFH?=
- =?utf-8?B?NlZKUlk3L0NtS3F6Y21Wa3BKaHdINGNNV0NZU0xqQ054L2pOVHpLaC9SUEZ3?=
- =?utf-8?Q?+yV5iPwdqx3JBrik=3D?=
+	=?utf-8?B?SFRGTGs0MUU3a2pKbVQ4aDlNK0x6NHpCRjVmam82ZFhtc09LUkgzck9hVGdS?=
+ =?utf-8?B?MEh2cHJ4TXB2d3I5UDlqaDl1NGc0N3p0dEZaTGdNL2w0UklqSjByNEdvRHJ4?=
+ =?utf-8?B?aG9yVVgxbURFa2lvS2NRRmY2RHRRNVM3aVRpYllOZDY1dW1aT0xDVjRBOTVC?=
+ =?utf-8?B?YVFxTUMweHQ2aEYwUGttY2JwMWoxSHJmNVZWeDViYWRJd1lHWDhFaXM1VUQz?=
+ =?utf-8?B?SVZiY3F1V0hkaEpLWXhOcCszOWRFaUZzaVo5cFpXZVdxMFpreE1CUjJmaTZp?=
+ =?utf-8?B?Q2NMY1lJYnZwUDVqL2tYUXpIang2SzZJTXVwdXpoMmVhVUwwYnRZSWxOcWpp?=
+ =?utf-8?B?bTNOdDdFZjF6OTlOK3ZGUTR1alVHdHRPMXdCa3g0VXFjWlF4bkUrRkkxcmN3?=
+ =?utf-8?B?a05scEhYczFBTTc4My8vOHd6Wm93Q0NrYTlQNktpNGltb1JYSVVUOTlnQm96?=
+ =?utf-8?B?QkY4VHNobFdCZGJnWFpXbWNySFcvc01aMk1HckVCdysrUzlEeXQ0MHoxUms2?=
+ =?utf-8?B?S3BGdmhaTmNOZ3dBUWEzTWdzc1ZtSDM4ZXBabzFLN3V2MTRIdVdBcXR2ODZU?=
+ =?utf-8?B?N3dXS05xTjBDVW5FNXRYSm9yNnROOEhiem1YdVA2RExDTWtHZk9lejAzbFR6?=
+ =?utf-8?B?UDQwNjNDVXdhMkxtRm5kelZibllvZjdlb2R5S1JNN2lvSUtlN2wvLzlFQURH?=
+ =?utf-8?B?eXpreThBbUhrNUQ4cWhvb2FhRG8wVkdlY0tDQUV2UEdoUDdnTlBOMTY4aWxC?=
+ =?utf-8?B?L3dEVm5vbGZ5dnJZYmFlTHJkbDZTUlVUK0x4OHR0MVVWQ0NtcUpsTXFsTnlQ?=
+ =?utf-8?B?aURmandNYVAzOTYxeTVuaHZBUTdlYjJRODlKRTZVYXZxZW1QbEVPUzRHWE81?=
+ =?utf-8?B?UEhUcVhIVnM2UURTZktncFQ0b0VSMnJYTVVJbTM5TitTdGd1VjdMMkt2U1RG?=
+ =?utf-8?B?bmdha2NDYmVQYW04akJSRlF3RnNuVWxwUHA0RjgzZk9QcFFCUTRrVk9lbkll?=
+ =?utf-8?B?Q2tzSElmRVh6alJjZVdFZjcvUmpUTXhDNGhGaUg3eWFnS0NWRURlWHFvaHNk?=
+ =?utf-8?B?c05RekttZmxrcktIMlNlRlhtbEl4b3k0OWcvUmxPdnAxMGJqaVlJWU1vb3Nx?=
+ =?utf-8?B?bHFMazMwYlFOSnhFM2x0QnVhSDhpbHd0dEp4MERxS2dmOTdWWmtnbGVFSVB3?=
+ =?utf-8?B?THlIMi9lS3N3Ky9lS3BYenBGNHFybjFYdHJIR2VlY0xHTXlxaGxtWHNYaVNy?=
+ =?utf-8?B?T1FaV2lUd3JwejlLUnZsZk1tQUUvbTlPQmxUa2VQc0xNL0ZQQXl4Ylc2b0RD?=
+ =?utf-8?B?SHFSS3QrVWx3elkrR0JtRUVCSFpteEFwNVpkVHBrdlNDcTNKbEliMG9VWFJz?=
+ =?utf-8?B?K1NUQ0s4bFNPM0pOWUZXTUZvMWJrd3Z3b1E0UElzNmVCelcvVG1hOFMzeXJa?=
+ =?utf-8?B?dFpnWUJzNEtDQ0ExYlRvcWJoTHo2VTNrVnZxMEdmZVhENThRRXFQSSs1S3dZ?=
+ =?utf-8?B?S2s4VzJ5azFxUThLdUtGSHhQcjBwbTJtUk01MlMwNmQ0WmcyVG4vcXZvQStX?=
+ =?utf-8?B?dk16blRZUWFDT1BPYVhqVk5JNHB6Y0ZsRVpBZ2lqK0pHdTAzYSsxZkRvQldH?=
+ =?utf-8?B?V21sdWhoUm9sdmhPR1FkS3k5OUZ4MVJ0blpaSGVqSGZWaHhESDRKcW0xUzds?=
+ =?utf-8?B?UHpDRm9PMEp0Mlc3bEluTFNNRG12RUtNWnFUcjRCT1kyUWNtRDhxcy9Pa29B?=
+ =?utf-8?B?QXZuYmh4SS8yMVpleVFCWis5NHJBZ3ZTeTA0ZkZsQkowQnk3a0g4ZVp2YlpB?=
+ =?utf-8?B?WGJ3Sm4xYzhqQ3dOMVNVdzZXY3dqNSt0TkpyNXl0T3RQV2ZoMnRtZHl5dndo?=
+ =?utf-8?B?MWp1WE1oV1ptcEtLTG54enZwc3RUenN3N1hJbjMzSmdDQmZRSTlOUCtjSXJP?=
+ =?utf-8?B?cXVPMVNDQUl1YTc5cit4WUNOYlNjQTRUSmt0REl3bkpmenR1WWNHTHBrSERN?=
+ =?utf-8?B?b0h6aHJlSDMrSis5VXNlQ21SVWRaY1BqdTlOZnd3Q3JIdnd4YXFaN2V6RnZT?=
+ =?utf-8?B?WXE2M2hTSktiSTlTVmpNc1RsVWpWb1BLeVJBeFd4dmxDYkhZb2FWL1BjK3hX?=
+ =?utf-8?B?ZWJENFVUY0RPTU9CVVlYdE54Y2hRcHhUb2srVUpYeVZQK1pLTVhrKzJaRXBu?=
+ =?utf-8?B?OUlDVlhoZGhBVUZGZElVT3lHRkorQ1BjL1M5ajB4Z0JqYTlwdDgvWWovcGRE?=
+ =?utf-8?B?dnhFaUhwUVdIUVRsN3hjMGpSajQvSjJ1eERERitmK0pNTENJdldEWHBvTVhh?=
+ =?utf-8?B?am4vbXRwRk56ZFVnUThwZUs5c2tWVk1jbnpwaGZwNDk0dSszY0FZQkJYR2NM?=
+ =?utf-8?Q?84qW7NhKCAd7qGSY=3D?=
 X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c4dec44f-2368-49a9-e285-08dec86292ce
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3ef3910c-860b-4f95-7f57-08dec862cd11
 X-MS-Exchange-CrossTenant-AuthSource: GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jun 2026 09:11:23.0764
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jun 2026 09:13:00.7726
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: BH/fot8w2vlV2rQhvgWsccERFJy+6rWYHlbMoI6n2ROW4dUEh+WK62Q6NiCdvCzBJRxUbgr4HAQuuDtPs4ZA91h5jNC6Y1wJPfJbjCF0hWo=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVZP280MB1987
+X-MS-Exchange-CrossTenant-UserPrincipalName: iuZrPk+1Ac67UABKRThs9kl5zeeTrteDfZZ/mkXsYUvgXCQu0w0mNH1Gxeqyji77X4KtuzwbzoF2bYOyIskn6E1wcefTJQE/S+861I+tOUA=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV3P280MB0759
 
-On 2026-03-21 11:59, Kexin Sun wrote:
-> Remove an #if 0 block that has been dead since at least
-> Linux 2.6.12.  The block was marked "P3: deadwood to debug
-> precise flushes on Swift" and contained a never-compiled
-> alternative implementation of swift_flush_tlb_page().  It also
-> referenced the since-removed srmmu_flush_tlb_page(), dropped
-> in commit 3d5f7d37c8b4 ("sparc32: drop unused functions in
-> pgtsrmmu.h").
+On 2026-05-05 02:09, Ethan Nelson-Moore wrote:
+> There are no references to this option in SPARC or
+> architecture-independent code. Remove it to simplify the configuration
+> process.
 > 
-> Assisted-by: unnamed:deepseek-v3.2 coccinelle
-> Signed-off-by: Kexin Sun <kexinsun@smail.nju.edu.cn>
+> Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
 > ---
->  arch/sparc/mm/srmmu.c | 29 -----------------------------
->  1 file changed, 29 deletions(-)
+>  arch/sparc/Kconfig | 24 ------------------------
+>  1 file changed, 24 deletions(-)
 > 
-> diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-> index 1b24c5e8d73d..9a74902ad181 100644
-> --- a/arch/sparc/mm/srmmu.c
-> +++ b/arch/sparc/mm/srmmu.c
-> @@ -581,35 +581,6 @@ extern void swift_flush_tlb_range(struct vm_area_struct *vma,
->  				  unsigned long start, unsigned long end);
->  extern void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
+> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+> index a6b787efc2c4..fb53b21a8696 100644
+> --- a/arch/sparc/Kconfig
+> +++ b/arch/sparc/Kconfig
+> @@ -327,30 +327,6 @@ config SPARC_LED
+>  	  by reading /proc/led and its blinking mode can be changed
+>  	  via writes to /proc/led
 >  
-> -#if 0  /* P3: deadwood to debug precise flushes on Swift. */
-> -void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
-> -{
-> -	int cctx, ctx1;
+> -config SERIAL_CONSOLE
+> -	bool
+> -	depends on SPARC32
+> -	default y
+> -	help
+> -	  If you say Y here, it will be possible to use a serial port as the
+> -	  system console (the system console is the device which receives all
+> -	  kernel messages and warnings and which allows logins in single user
+> -	  mode). This could be useful if some terminal or printer is connected
+> -	  to that serial port.
 > -
-> -	page &= PAGE_MASK;
-> -	if ((ctx1 = vma->vm_mm->context) != -1) {
-> -		cctx = srmmu_get_context();
-> -/* Is context # ever different from current context? P3 */
-> -		if (cctx != ctx1) {
-> -			printk("flush ctx %02x curr %02x\n", ctx1, cctx);
-> -			srmmu_set_context(ctx1);
-> -			swift_flush_page(page);
-> -			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
-> -					"r" (page), "i" (ASI_M_FLUSH_PROBE));
-> -			srmmu_set_context(cctx);
-> -		} else {
-> -			 /* Rm. prot. bits from virt. c. */
-> -			/* swift_flush_cache_all(); */
-> -			/* swift_flush_cache_page(vma, page); */
-> -			swift_flush_page(page);
+> -	  Even if you say Y here, the currently visible virtual console
+> -	  (/dev/tty0) will still be used as the system console by default, but
+> -	  you can alter that using a kernel command line option such as
+> -	  "console=ttyS1". (Try "man bootparam" or see the documentation of
+> -	  your boot loader (silo) about how to pass options to the kernel at
+> -	  boot time.)
 > -
-> -			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
-> -				"r" (page), "i" (ASI_M_FLUSH_PROBE));
-> -			/* same as above: srmmu_flush_tlb_page() */
-> -		}
-> -	}
-> -}
-> -#endif
->  
->  /*
->   * The following are all MBUS based SRMMU modules, and therefore could
+> -	  If you don't have a graphics card installed and you say Y here, the
+> -	  kernel will automatically use the first serial line, /dev/ttyS0, as
+> -	  system console.
+> -
+> -	  If unsure, say N.
+> -
+>  config SPARC_LEON
+>  	bool "Sparc Leon processor family"
+>  	depends on SPARC32
 
 Reviewed-by: Andreas Larsson <andreas@gaisler.com>
 
