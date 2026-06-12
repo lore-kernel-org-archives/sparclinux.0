@@ -1,61 +1,67 @@
-Received: from GV3P280CU013.outbound.protection.outlook.com (mail-swedencentralazon11020110.outbound.protection.outlook.com [52.101.75.110])
+Received: from GV3P280CU013.outbound.protection.outlook.com (mail-swedencentralazon11020089.outbound.protection.outlook.com [52.101.75.89])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74008305673
-	for <sparclinux@vger.kernel.org>; Fri, 12 Jun 2026 09:21:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.75.110
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A5B030566C;
+	Fri, 12 Jun 2026 09:28:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.75.89
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781256092; cv=fail; b=Rie8ci5RHBHCLaXsxHYWdWEw/aiukYQaZg5iTyzWAV36nw17AXExeKOXADNjEMQdwrY3Hfd5EeGnxd6m8hBxyKNhBs3ZXh/QbaMV+S2X8mTqilFgpMjuGM1ZKuMsAPXHGfCGcVuXfLzPw10jP8T0HXRplpPN7xZiKk+xyFTbBS0=
+	t=1781256534; cv=fail; b=dHw6I2FEXUJ/XcjxyBeiDE4BBWHUkVCUKhofUs4LjGIKmqVW/TCENH1u3MHrB4lkNwM6n7qvldolpHil5w72Z3mjTHZe0x6LGJ8GxsL9yJY80ibA5IF64TrXAsY91yFWgbTQV3Z0wE6Ehp0WVWZf3j9/aVQUkodhWx8QU2f6pno=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781256092; c=relaxed/simple;
-	bh=HlZs1aHxdxjpx+07gEFnURsN9NWmv40HxQ55aw5XpNg=;
-	h=Message-ID:Date:Subject:To:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=Bqv/UhMOmjvUWTr8kec5Jpyr2CIe+JAwkGDDhCyJd7LalrPhEI7SAcBqJxoiJWp7Pg01wvWXaPK9ROtlTXFBbvHgr2yr/9NjsqdFvLxZ3npLEYXkB7MOZDq5V6WeGm7Ju/HSMzT4d/4unTKKhxPT60teefUvYKlDmNoQi8fYkfM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=gsKuhiyP; arc=fail smtp.client-ip=52.101.75.110
+	s=arc-20240116; t=1781256534; c=relaxed/simple;
+	bh=yMIwNrH3UZJwwdBXQyEnrjFIuWTK4cytR8lnQMTKz0E=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=FtDYST1V/Am+pJbyX4R6a35wmfrnh3MeiqCykqyAKLo3JLm4EMLEFS+ckvv0WxBHRDZhYLClWZAL70SXNL2VZNEAWrpFhTEpmwjIB88xGG1KxHWg4opktF26jh6gskEAj21mGkRLj6bxAbsdMNPXQ9pVKvMBMACxDEGw4/EW4vE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=AZbYGWZD; arc=fail smtp.client-ip=52.101.75.89
 Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="gsKuhiyP"
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="AZbYGWZD"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qdl9R3mUQFVq6EK2JMXCbvWWh/ZJHdTRQJS2/jqqyF95lqPlE4lvbJlkanfjGUT0A/MQ3bkeHvZX5s1cVh0/Beoka1+mQxxMO+oHuPAOKeOfWp2VbnPsKjqCFlSCczsm+otSFDwOeSjMXSnxBzJGUG2/ZPlYBCsRztNE8HNuf3rPK6WRByW5Cy9ap4MYAlFI/FYCRRSjduhwB1UmQ3dgZJfVUm7XsfOFD3v7d6SRUyngHxB17eX2OabkxZntYIVrAwbdoQ1I2jMbDe4CmSAl3MkGHf9yaFv7uWCMxNJEv7dKJkdecZ3NPkvT8mRK0lvHax5m96gDOwjY5mD18qCNYQ==
+ b=FRaOBEiiB0CNZDC5ZCDgfMEH29qBtA4xIrr9ksdGJQV7aT55hEKMA7nbbPjpUWv686nDpjjg6eVgbDZcdprb5Ab32lFLeFpVaWkNbY5Wp/Al+ymmAVjAN9KCpmCs1IUgEzM44756ULHqJPJKwBvBxeBcLjqeiRui/5ozShjOLRJj4vWb8iT8Pu2Hq752TNLKk3pEXMn+gJBRK175ROLVteFmd2J9fWzJQ0Jxy+Kt+AA0CphUQW9dMtLTvs1pqDNFLWSDD/bKGdtd4QYUWMv26ZQ/p1ahh/pUYYenB2kMtpArL3Gl00WMkdzGESszmgA2AZBzn49uaRmVKiNlOOzYfQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=aCHyW2SIHTHgctvQwYjgcxGReUxZT1h+VHoC6OOmhss=;
- b=D1wqCJxjFieP5h/yhutRzYCWzqtROEIEZzBhWOgzsG5GPUdVusByfWdZ0ru5vL+VHb5GRN34WVRBT89I8pGFExbJ4DmyQ6TVbWHjyriY77hvhvJBG3jSuSiiyWPKHpV5u1VcuKd22rY/saQKFtjdmqTZIY99yFH/FRfWNBkKf9bDLIHZbVElu5ucb6b4FGpYn/zvrL0U5hL0CEa68YfcGzvpXCPX5RtJ+LkDjNEx1sjn3+zvazsmujO/desquIahc4CMU6v5qTfVVb0acV6aRLuqKTjXHO2qv0ejIeJnUUMGVOI2vc0MfuwEjrXRwysQIYCikQ9kTIbidz507AAStA==
+ bh=3Np95C0ByQP1u5ySmDscahxi+g8/69uUqPkln9mkFQQ=;
+ b=TdwMgf3hy5g1eRi37ZRolByUgPe3ocWXPyDwJACh/juEReFjVyQVfsE5UHJlLTvnQUMwDIirlTkwbBKnxxJR1oo5/um1waW6zPSH0+8+1xisMBsPLXJp+o5xGMF8/f8FDnO8htoSOYeAUywbPTpyPAncZiGGJiIbTp2+IECPpcvEiBkqSd3879BjQaT080MXcqlDjDlw+zHF4uIfQ1WVSHnomrFmhttIRdYMADrW11eO4OIdh1M7UXfqxyh4phteJ5kt6UhwX0lZCFhCgIxTBryWhEUIJLxP6LDg3hZyBnn2LXQ5GeOMz4GSh4RPIA3SRb2ceRM48qs3BtTYFaTNkA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
  dkim=pass header.d=gaisler.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aCHyW2SIHTHgctvQwYjgcxGReUxZT1h+VHoC6OOmhss=;
- b=gsKuhiyPwNnBcCkAskgPwauaKxvrUoWJ10AFHJ4ozEgtAqenGwsAvNsmaqecCXB2wI1V4jfBCf5q8mpiKUNX3pUSVy9wZXCXzVU0M1kibzsrNSjujS6hAqRoY1xFWQqYHC7tjYm22PWNMFbgcWp/eer39XYgsu+B3eVSR+Kzy7PrlO6QRX/kfSE0uu2W7qmR7TKn834TAlTury6Nm32a7+5F7FnPBQls23b6MNLYOMBvp4/qrjdXEw61qeZYJ96Ackuf/zFGlABuH+RS6fr7JfxoREltm8VD0+0Q6xzwk8j9NyDQbi6WgdjY9Er1Jzkee08nOCoE+Ajj1qxmRHvKtQ==
+ bh=3Np95C0ByQP1u5ySmDscahxi+g8/69uUqPkln9mkFQQ=;
+ b=AZbYGWZDjkUauzK8Z22ounACtsR0W5wzn1KUmE8HoYiDOQAUMqNqWlhsm7pkiB3N0VNZMrCrZxUulmrI7j8bWatQghoKyiJBUGN9SUV/WwuRsV7pstgOh9MYC5ahFIZXCJ4ewpoifK4tId7htVeO62ATTONiQiB9rGvyvWgSy2a8G+H0t48S7zNvAECXxb3GIxFB7NV3R1NoFbYfLnfcirZMdazKyi/fxzTKbK3gtrtUIFZ7HERm9q0BAbgZXghDK2cOJwSbHyD6K/BPqWWwwahhFpXB4oew4j58PE8iqfIpwKlzl+zxBfvqS/BOkpd/0W0/BW3XlrA3Up3MFOhOcw==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=gaisler.com;
 Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:195::18)
- by GVZP280MB1985.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:233::11) with
+ by GVTP280MB2194.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:371::14) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.113.14; Fri, 12 Jun
- 2026 09:21:25 +0000
+ 2026 09:28:46 +0000
 Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  ([fe80::be76:7636:f4ac:6773]) by GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  ([fe80::be76:7636:f4ac:6773%6]) with mapi id 15.21.0113.013; Fri, 12 Jun 2026
- 09:21:25 +0000
-Message-ID: <e84d7753-fb02-42c9-b4d9-8a7bce96a489@gaisler.com>
-Date: Fri, 12 Jun 2026 11:21:24 +0200
+ 09:28:46 +0000
+Message-ID: <9a48cc07-0ead-453b-99e6-ff1980e52381@gaisler.com>
+Date: Fri, 12 Jun 2026 11:28:45 +0200
 User-Agent: Mozilla Thunderbird
-Subject: Re: [patch 1/1] sparc: add _mcount() prototype
-To: Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org,
- davem@davemloft.net
-References: <20260523042535.C3A6B1F000E9@smtp.kernel.org>
+Subject: Re: [PATCH] sparc: Export mcount for Clang-built modules
+To: Rosen Penev <rosenp@gmail.com>, sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Nathan Chancellor <nathan@kernel.org>,
+ Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
+ Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>,
+ open list <linux-kernel@vger.kernel.org>,
+ "open list:CLANG/LLVM BUILD SUPPORT:Keyword:b(?i:clang|llvm)b"
+ <llvm@lists.linux.dev>
+References: <20260508021119.1635054-1-rosenp@gmail.com>
 Content-Language: en-US
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20260523042535.C3A6B1F000E9@smtp.kernel.org>
+In-Reply-To: <20260508021119.1635054-1-rosenp@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: GVZP280CA0039.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:150:26f::7) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
+X-ClientProxiedBy: GVX0EPF0005F70B.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:158:400::38a) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  (2603:10a6:150:195::18)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -64,110 +70,106 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: GVYP280MB1290:EE_|GVZP280MB1985:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8f987c30-31f1-47e3-053e-08dec863f9e8
+X-MS-TrafficTypeDiagnostic: GVYP280MB1290:EE_|GVTP280MB2194:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2e892dfb-9ae0-4390-81db-08dec86500d7
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|23010399003|376014|366016|18002099003|22082099003|56012099006;
+	BCL:0;ARA:13230040|366016|376014|1800799024|23010399003|18002099003|22082099003|6133799003|56012099006;
 X-Microsoft-Antispam-Message-Info:
-	sab6xC11Gu06iI5R6hY61BgYd1GvBuTGrd7nWOhHtAkSwANDOXMJF2CCz923U57U2ucMU5nSMVKA7m+OGoL6m0bS72Pf/jxpap33OYwLk8XVG7E56+AefttooKpk6aBYaKnQbNQMi3rHhwIkN/QaAwGK/5T6v1DhR8bipSPI6G7Ub01QubllNiuBBbBr4407zADdU7tV5rnCaOptCuVsqXUQ2lgQ02oYewSTd0r410lz3krYbRYPkNkiwCW4XLto98vwEvZWIy4dEARrnGOpNzK5GCA11CwZf9UxARKR9dq5o7N0OZEWnhisbM9H5D40yAEnHHuNIShQqI16q1JuSke4yurxHLtU5XepWywRAq1ci1RHPZIlniMcckKmhG3qGSxyfs7vjcuGv5fF3D65T19J1wIMS+df6izGgr41kTQM5Bmi6TVTdGSdlp3+Wm6UA9CdkpQwm4i1QgbOtITtmIqofU4rMVwdXeUNJe9ahvuXN1YdoPEc4S8Yf4HNjra5hd05xcTcIvW6vy4vo11dA1L6rjo3oF8VHbxNXwplvacTJQuJNpJHyElfQbSkKEDRDs95SIjccrZz+CDHxI1mPHHySUCOAyTZ5rw62nJHqh3sUQuctaTQwo0b8TTxPkoC/9/tI2wpjPI3RD/npN1m1P0zV/MMHgFQBXoOx4VpjHFTxPNE1OSjpcGsxLWkI1rM
+	RkpS9NKW9mRMG8451o/WDNRnohpHvUeJMp1M9L/cTYf8Q9u0ZvRqw/r+CytexqBMm/G9N2dCe3HPvT2wrhxKEQlHKyd2OkVHAvgOL+y8ajBgCnU/l6Vci9VIW4Z57153JF6k71XpIhWRrhO68c8BW4c2LpHQMU+6j96gdPr9bKRcruXAUcJz9ulfsQm4zbfv2T+T87OLZ2Vi9TlUNtaf/pKzrt4Xl1/zZy94ffvZI0drezZ5QlJgWyF8cejYS46VmQK6lAVjhGudObZ5P+RW0/9lnu5iLLVZE117HFKFMl48muVkpX+DWlMQ+n4exHY37rjPOc0r++sE6nhMr3O3sQwACZSsUl3S6FkBsFen8QShdnQPcXkxJEcxINJkbbFp1BhltIr2Jdty3K7El0yTuEpVgX+D/177Nrx136x3ou5YRHLlD2E72jmRSDp8utJ/mEvlstJXFX8O/jCuj5VKhoZKw4fGvJrm5q3Yom87rCsddxJez0XaWK63o+/KhEMZ7e9bAtQ3xKLaTSPgSUcwI6rN1xCA7FlJWUZv22meXrkgs68U+pQ5HUTTi2Vi0xJDRUa0LoAcEJ7dVShN+7jNmeerrBfv5EYCbGRohocULYk0a8V1xYgAT/Ym67EnRcKLmILDdZITDuTeFa/QLMYptZJR27zq9xUrwLjcq6I4cDhmO0+RpZ0P0PZY3BMIBAIYz+S7bX+Oqkm1EAjaW+xZfg==
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(376014)(366016)(18002099003)(22082099003)(56012099006);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(23010399003)(18002099003)(22082099003)(6133799003)(56012099006);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?aXhnUE0yZnNnMmxLOU5rdEx1aTF6WEtuMTBxQmFoQzMzNk1KYUNkcFRweG41?=
- =?utf-8?B?dXlNOHVsa0gvcENIcjZGSG1EYXZrTnV5Sm5kNElibXU1QUhRcFJsNUJHZEU1?=
- =?utf-8?B?WUtTZDFjRVBhQmNWR2NMM1hGa2FEMWxyRGUwZWtRRUl5N2M5bTdVclpKZlJy?=
- =?utf-8?B?RndBbWtXaXc3cSswUXpFaWRrYkZzUWhOOXEreWJObnhtbUxtUVEwUEFSM3dE?=
- =?utf-8?B?ODR6ZlJnN2x5bTk2aXJicG5PUkFIY3p3SVNMVFRSQVROVVJrTkpUYUltc3lj?=
- =?utf-8?B?WGpZQXllbUtwMkFFUlpGSmxLOXlBNHB6Y0lJQTJ6ZFhoNUhqeWY2R0d6ZHJW?=
- =?utf-8?B?L2MzTEFzSGRuUG5ZSngzUEdWaUJWRXU2N0JidHB0NWM2dHErUXB0dkhBSHR3?=
- =?utf-8?B?UFA4c2d6cHhRYmFDRko0UEdMUzFGamlJZW54QXNPczc4a05TelZlVDFXYmR2?=
- =?utf-8?B?OXhMV25BcDdDV0FOTVNQVTFSSlRyVm5ySFI2NDZOdXpBbVM0TlI2WE1FM0tE?=
- =?utf-8?B?QWR5elVWNVFYb1hrREFaRjlaRHN2NHVEWmU3ckFRSlBXNGFIMWV4S0FlOEpH?=
- =?utf-8?B?c1N0MVVSSUlhalFlZUZXMUJTOEhXSUR1TmIrdWNSMzVPQ2U3anRkTndhTklt?=
- =?utf-8?B?UUx1U256Um1nb2tlNmphZVd4ZUw1bnM0MVpnWW1PK05jRjVKT2liaWN6R2dJ?=
- =?utf-8?B?NFg3M2JOMjh4NzdjczR1d0w0RHoyVDBtTm1odlZ0YjhxMWdrdk1BRTZ3aWZQ?=
- =?utf-8?B?bWhublZ0U3dMak0rdG5pODlMc2s0VE5SclRoanpnZ1dkcFF6ZzdRWFFPbUl5?=
- =?utf-8?B?bFNycnB0aHpiWlRnV08zKy9OSFdySEdIdlpWb3BYUVhBcktRY2VOK0hnVm9o?=
- =?utf-8?B?bHpxZk5CcEdHWnZnN2N1UXRuekNycVpQTWZIV1FIYWtPeTF0Q0h6TytmcHJ1?=
- =?utf-8?B?NUNTOUhyRCt3UDBzV1Y4TEdPUVkxZkxFMFp1R2NnQnJjK1Jiam9jbUJnRW5n?=
- =?utf-8?B?T2NxWm00L1VaVmhwMTA5b0hJT0dFc1ovN0pQU29XZnpEdy9hbVlnZnpZd3JQ?=
- =?utf-8?B?NEI2NDZRa1NBbnlxUmtRZ3ptdHpGbHo2VjdVUE53MUZlU0lkM0ZXQ3RHVXVD?=
- =?utf-8?B?Skd4TzFSOVBzSGM2bDFuNmFyTTk5L0dJU0VhbHh0dlJYV0JVSHg4dG5WWkMr?=
- =?utf-8?B?NXk0MytaRzdzL2wzOGlQeVJJRW5zendNei9NWUZsRjltWFRWN3ZCZ2xsMXA0?=
- =?utf-8?B?TEJ3cTJpNGZxVnFCbFdxaWtBWmpmTGlicStvSXMrSWdRSEM4VFloOGNNenVt?=
- =?utf-8?B?YjJMemQwcWMvNFBKd2hGNUphdmxnS2VraldUKzE3UUhVUU5oYVNrdUY1a0dF?=
- =?utf-8?B?a0NtY2tnZWRIcVRnSEJLMmYyNi90cHphTlBTcUhMb2NFMERZc1FZVG5EcFFO?=
- =?utf-8?B?Q0F2VjJ6OE84UWdYcXc2RUZMbEtTdGVCTUxUbWlFMVY3bDFzRi9hTGRBejUx?=
- =?utf-8?B?NkRzWE5MRlV1TDFDam15bW8zUUl5TEVIYmJyRVFZaVkzblRHV09uWGgySkdz?=
- =?utf-8?B?V2dLV0ZKVnJDVDZLRTIyaEVrM1hRV0Fva3hTRkE2dXZXZk1NTlVjTEhjeHcx?=
- =?utf-8?B?L1ZsK1E2T2E0Mzg0YlE4TFdEcHZxdTZDUVdEMjllYU83ZUFuUHhBOFVrUnFw?=
- =?utf-8?B?N0pEYVRjYVVzbDJmMDhPVll6MXNudDZaWjNyZGRUOSs2eXRDU1Y3UXVuZXZu?=
- =?utf-8?B?bSsyV0FZRGxPYUI4S3c1SitaQUNqWDFkbG01MDJGQlJSK01jdVdPMWc2c3lT?=
- =?utf-8?B?L2ZIYTM3OG1WZFM4UHlnQWd6UEJaQitzMkZ6ZGdrTVJua3Nadk9rb0R0VXVq?=
- =?utf-8?B?MER0RUZFTTRwMDVGUXluUmdaSThSQ2dsa1R2L2dNL1p5ejVQMWZVRy9UeFBp?=
- =?utf-8?B?MzNKbmcyQ0tIT1JmWHZXcGFESjloNHh2T2Y5WXBzYWFtdXZCeC91NzJ1eFZ3?=
- =?utf-8?B?ZFZ0NS9TUno0RzhmMUJrNXJ5YlJ2R3M2NW5FMTN1Q29aa3QvdDRqSjl4T2dT?=
- =?utf-8?B?SWwyOHhxb1kwZjhneGd1T0VUbVk1RzhxT29HT2w4d29Qb0t1dUNPMVkwRjhv?=
- =?utf-8?B?dEQ5dFEvZnJ2R0ExWHlYbnk3MUVVOG91WC83VzhjRitOaDRjcytXZGxmRjFq?=
- =?utf-8?B?UERVUjJYcVpreHRKZjZGR3Z2bzRYN2s1T1MyR0k4d3A2ZWV3RC84ZlRzRkZK?=
- =?utf-8?B?Q0hxaEJHdXY0dkNGYmpVMTFGRm1CWFdHOGQvdjY2OXhXdGEwcVQ0ZEcwZS96?=
- =?utf-8?B?dlZwU1YwOGhDMndxNzU3TUN1VTBZZFFCd2Eza0ZUQ1pNVHpjVFdhcHFUbUp3?=
- =?utf-8?Q?6cbqaDiGR+6qQZXQ=3D?=
+	=?utf-8?B?TlZxRktpVDI0L3JaSDAydmVISlNTSlJxWHNRK09OWUgwRmdlcWMzeS8xYm9n?=
+ =?utf-8?B?YUxudzJ3QW5yOUozRENLRlRhcHFtWC9xQ2p4anpWNCt6RXlWazBzdTlNd3Rw?=
+ =?utf-8?B?bkQzYktsYzltTmp5NjN2U0Jnd0hCSlpRdTN5WE5UVjBrb2wzK1BFczNiaDVo?=
+ =?utf-8?B?TUJZRm0yN3JqSGlmM29HS0xkVGdBYWl1bFpUSVg4YmI4WFQ3bGg5bG1ZeEU3?=
+ =?utf-8?B?V0t4enYxSHdzbTBWN0t5T3ZGaFk3anhuNUh5Z2pya2ltZTNwd3VWMVU3OUdy?=
+ =?utf-8?B?SG1qSVRYbTVOdWFRTm5PS0RsdFlzQUo2Q3FmbG1pa01jdnNMWDZZK01tMzFQ?=
+ =?utf-8?B?elJoUjJtVERjZ3RNQjEyMHJXaE9kUWczajVYMnFqazRCbmVlSGxkcnphMi9q?=
+ =?utf-8?B?eVdBajdTMFV0Y1FwdkQvdU1GMTArZCtKbnNyWmZMOUNBa1ZaT240bDNEdVFN?=
+ =?utf-8?B?cjJoTE1TeWlIVDBjTjVMbUcrQkNFeWZQcTdlVEVuMmFacW4zTmNmMUhjNktU?=
+ =?utf-8?B?TC9EcTM3UWduRURWMjBVWUdQcGp1b3FHQlZzTk5FTnFrUjRvR2VLOGxkUlpL?=
+ =?utf-8?B?YldINVpOb1pjZjM2WGVsaWw2WWN2TldPWmk4NjByY2lWK2l2Q3JiVVdvZDk4?=
+ =?utf-8?B?VnY4eFJkRG9CMVhTenVWbTBKL3BDeThUakRkbEJCcWRmOWpoYy92WG9yelNq?=
+ =?utf-8?B?NnhJU0hRa2N6M0pPSE5xT2k0TkdaVU5xa3BjUmpLSzFOQllRbi9xdnRJdkR2?=
+ =?utf-8?B?WVRpQnp5Sk1CeElYT1F1RUQ5VmgrSkk0YXRyRDh1SlAzN3hiSVBzanBLN2RW?=
+ =?utf-8?B?QlBJMFJkanlVNGtod2VmNzhpQnV3WkNBN0src3hjZ1pRZ1A4OE1UVHBIVUNl?=
+ =?utf-8?B?R3AxMEFsbnpZVDcyMTVpL1U1azI0aXR3bVM0WUlURkVyNjBsSlJtV0tkc3lh?=
+ =?utf-8?B?Y2R0ZldtNjRETXhQWDFMUktBaFBQZ3JlS1dNbUc2a0ZrcDVoc2QrTml3WUM4?=
+ =?utf-8?B?eXdqbVBnY1J0cFJTeXhkdXhkNEI5ZGo3dUZKbklmUGhoZFZpTGptSmc5Rktx?=
+ =?utf-8?B?aHNuSWVydXJ2bjQ2Nm8rb3RXL0NZL3VRMWRFOWNoU3ZJakhZZWV0cUp6RGsr?=
+ =?utf-8?B?WW9mNml3VVRUSGgwUlBtVmYrNGtPNFpYQkU3U00rcGQxYjBoSlFzcmVXOUZJ?=
+ =?utf-8?B?a2Z4dG5qSDdJSldUMnZwQ3QyVlVwSUdwUzUvVHFxR3J2MndjSHpwU2lFNkVI?=
+ =?utf-8?B?S3lJeWxZVWhxcGpaTUlWaUlNUUs2aSsrbHIxRml5cUFUU0J5eGJkYVVFSDJJ?=
+ =?utf-8?B?TW5wMVdKdG1wZmU2Ynk5VGhZK2JieGVXOXF3NnorOEh0d1owbXNNbm5NZGtR?=
+ =?utf-8?B?Q01YSzB6K3VRUytVQ21GcU1XaHV4K0hIWVVUZmFOZjVDazlWdzFSNzZHQ293?=
+ =?utf-8?B?bnBnUTBEYTZSRXpYNDBKZHl3M2tuRUZWbnZRQmM3ekgyVjJGTkNxRWozQUxo?=
+ =?utf-8?B?N3JoY0FXL29zTVRJem9PWXhmREM1YWFFWlBUQWRmNmxxWlV5YlJhVGp6Qkhz?=
+ =?utf-8?B?QlppUW0zeXhPVm84UVlEWHVTdTlGWjR0ZHcybXNZU3JtZGN4dDMxTWlPcXZG?=
+ =?utf-8?B?R3FkNDZuekxMSlRSdFZvZnhpbWN3K2E1Y3hxb2gwZ0hwSG51Y050RkRNTlZr?=
+ =?utf-8?B?aEVGTGlrSWZNMEJ6S1VKNjJ4UDR1T3ora0dPODc5aVhFOGsyejVid3hoL1JM?=
+ =?utf-8?B?N2lKSWNqMTcwazk0bmhvMWR4WXk1QkxPUW40c2p3MXNpNzJkZGI4ZWlGcGFF?=
+ =?utf-8?B?bEF6TWwzZnpjNU5Ha0pRMGpEVHZVSWxNVjRPWG43SDBNeXU0VEE2UUNMNEll?=
+ =?utf-8?B?SWd2WUdnaFFaZTUra2tYazlkZVkzYUhsL1pDTzY4VnpXWmdQZmVJMjBrM2tk?=
+ =?utf-8?B?d1M0TmpGbzJBWFQyL3UvQ0NSV3dXVE9WTEthSkw3RnRISlNsMEpnWUxTS3dO?=
+ =?utf-8?B?ZHJialh0WmtFNjFPbzJDMHh6SzZqdkQ2SjN2c3k2NkZONGZ2TGp6T3ZDLzdv?=
+ =?utf-8?B?bzQyZC93LytVN1N3ZXlzWFRSYUtwV1plakVLd3VCY0xXY2QycmU1bzlzV1l2?=
+ =?utf-8?B?NGZkdUpEWEZKZGw1YXJxWGNVTWh5RjRrczVtYVAwenFHRkJROERhQWZ0cUNo?=
+ =?utf-8?B?NkxzNDltSVMyQUZUMldTaTcwNUk0Tng3dGpVUWpRcVRXQTlqaDhUOXRyY1dO?=
+ =?utf-8?B?TFg1dVd5S0JHTFYyb2pDS0RoRnY1UXdpMkxIbmgzVVM1WjFXUzIrVXd1UGJk?=
+ =?utf-8?B?RG1aZUZhZzNGMjU0UmFIM1BRMVJDbitwaTRxZ1U1SHZHTnJlMGFkdG1mKzdo?=
+ =?utf-8?Q?N1EqYl/Zz0eSaRM8=3D?=
 X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8f987c30-31f1-47e3-053e-08dec863f9e8
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2e892dfb-9ae0-4390-81db-08dec86500d7
 X-MS-Exchange-CrossTenant-AuthSource: GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jun 2026 09:21:25.5033
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jun 2026 09:28:46.5956
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ZW2UVi3s3KWtbJmw2+y1RRDjnbgmXT+lsbY/a+Qk6B6lV6hwH5uBj4e9/WfMt/6Zs762XeOlFbIrzDZJy3e3+iZ1zDTc9RxAE8Yl8lJAnxo=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVZP280MB1985
+X-MS-Exchange-CrossTenant-UserPrincipalName: DyvuAiIyXa1sfbAwKHee/0VYxNcImpWS9V3hJAwk90pswO5cxZWtS/ersM5bd/O87atf7+yfupd6m431aOZWpGllkZyQL8uw+eQqr1AOdDo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVTP280MB2194
 
-On 2026-05-23 06:25, Andrew Morton wrote:
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: sparc: add _mcount() prototype
-> Date: Fri May 22 09:20:26 PM PDT 2026
+On 2026-05-08 04:11, Rosen Penev wrote:
+> Clang emits calls to mcount for -pg on sparc64, while the
+> existing ftrace support only exports the _mcount name. With
+> FUNCTION_TRACER enabled, modules can therefore keep relocations
+> against mcount and fail during modpost:
 > 
-> sparc64 defconfig told me
+>   ERROR: modpost: "mcount" [arch/sparc/kernel/chmc.ko] undefined!
 > 
-> WARNING: modpost: EXPORT symbol "_mcount" [vmlinux] version generation failed, symbol will not be versioned.
-> Is "_mcount" prototyped in <asm/asm-prototypes.h>?
+> _mcount and mcount are aliases in arch/sparc/lib/mcount.S. Export
+> the plain mcount alias as well so Clang-built modules can resolve
+> their profiling call target.
 > 
-> so I added it.
-> 
-> BTW, altering arch/sparc/include/asm/asm-prototypes.h then running `make'
-> doesn't compile anything, so there's a missing dependency somewhere?
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Andreas Larsson <andreas@gaisler.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> Assisted-by: Codex:GPT-5
+> Signed-off-by: Rosen Penev <rosenp@gmail.com>
 > ---
-> 
->  arch/sparc/include/asm/asm-prototypes.h |    1 +
+>  arch/sparc/lib/mcount.S | 1 +
 >  1 file changed, 1 insertion(+)
 > 
-> --- a/arch/sparc/include/asm/asm-prototypes.h~sparc-add-_mcount-prototype
-> +++ a/arch/sparc/include/asm/asm-prototypes.h
-> @@ -25,6 +25,7 @@ void *memcpy(void *dest, const void *src
->  void *memset(void *s, int c, size_t n);
->  typedef int TItype __attribute__((mode(TI)));
->  TItype __multi3(TItype a, TItype b);
-> +void _mcount(void);
->  
->  s64 __ashldi3(s64, int);
->  s64 __lshrdi3(s64, int);
-> _
+> diff --git a/arch/sparc/lib/mcount.S b/arch/sparc/lib/mcount.S
+> index f7f7910eb41e..0309ba2c4712 100644
+> --- a/arch/sparc/lib/mcount.S
+> +++ b/arch/sparc/lib/mcount.S
+> @@ -21,6 +21,7 @@
+>  	EXPORT_SYMBOL(_mcount)
+>  	.globl		mcount
+>  	.type		mcount,#function
+> +	EXPORT_SYMBOL(mcount)
+>  _mcount:
+>  mcount:
+>  #ifdef CONFIG_FUNCTION_TRACER
 
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
-Tested-by: Andreas Larsson <andreas@gaisler.com>
+Hi,
 
-Picking this up to my for-next, minus the BTW comment which is a
-separate discussion.
+Please also add it to arch/sparc/include/asm/asm-prototypes.h, like in
+https://lore.kernel.org/sparclinux/20260523042535.C3A6B1F000E9@smtp.kernel.org
+to not get an added warning about mcount in modpost.
 
 Thanks,
 Andreas
