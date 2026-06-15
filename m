@@ -1,67 +1,62 @@
-Received: from MM0P280CU009.outbound.protection.outlook.com (mail-swedensouthazon11021128.outbound.protection.outlook.com [52.101.76.128])
+Received: from GV3P280CU013.outbound.protection.outlook.com (mail-swedencentralazon11020085.outbound.protection.outlook.com [52.101.75.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DA6F31F9BD;
-	Mon, 15 Jun 2026 08:01:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.76.128
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0682831E84A;
+	Mon, 15 Jun 2026 08:01:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.75.85
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781510473; cv=fail; b=X2gmEx+UINA7lQBbwQv/7/BI743aQB29dN+HSdPMfIEACErvvxfs0WRnFqQdxQTg7WugyKYO4m09clRARYp3ES7W8Vdm0C1dSXA1oVg8VpjAxMfJRVZLxWMh2Dvg6nvWjoKZ4QQxBOLwc7MgT4WIu4TaTdqp58XGM4Z+1ky47gQ=
+	t=1781510503; cv=fail; b=Wzk15UOLjf2cg7GsvhJxrWMytav2ZQCHstOJetBzKv7L1PbWul/gmS+LzeFDC30tYMvG2ZOz0+RWLv+8IAdnsr5xWpRR1QAkpemhCVFcJQeCZMbck5I2rZPLjIwNIxvGTIdwl+YVKy9aj6TFwJnsAHkEKSmzJAq0Ls/JdtUQ6uM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781510473; c=relaxed/simple;
-	bh=k99pZ/WObxkMjtd/AKZ8skaONdCVqcAe7R4WXDjJjnI=;
+	s=arc-20240116; t=1781510503; c=relaxed/simple;
+	bh=1xAnwZS7/0YrE8ChSoj64116LZqYRvI37gZuPrI4zjQ=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=nuH/lKK5M6HM/36ym1equYUljU1IOBi2xiSErGg6PF/tHRzpzsyFmVZHsu17L8CE3T6CXX+fqy+8oGOG2kt5vprO0M8X2xVznja90LSd7LsIBlRcCjZia/41TZqLG6FF/Um0tachJe+yIQvIIwvqlyIc/91z6P5OtoOljQsqQD8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=qoW+QdP9; arc=fail smtp.client-ip=52.101.76.128
+	 Content-Type:MIME-Version; b=Mj+0Ht+t8VVRIjC9Dzh82drPAMnGjyqTkSzzyVpMN7pTPnOfb7Eu1qfAtvsBFZa+e6plgkrdpy2ZzVp6KsG7o7q4vNQey+cF0yjmx1BAkta/IkFSFGpetVVw5qXspBs8y94ssQe86JRKxFAYVC8d+jcmJ9TDFribQADuBAZpdJQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=WGiPIExX; arc=fail smtp.client-ip=52.101.75.85
 Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="qoW+QdP9"
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="WGiPIExX"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wW94kqOruwugzWbUJPsR56rOETv1dRw+YtlQAWBYkSQlw/8wqKaF+TLwTSkEQohITRT9iaV1hrxF0aKRbJp8r9Oe+Iwdm+l5UIXVXrsDTvL1o9QlYbfvWk/pduKZiciQoQm64CEsCzEkyHeSyNqT8gngPkmPttRrJs2A9X7T3C4RxLq2MerAqNX32CADbUfDsucEhVSwNRQ7Y6MopPCiA7eLJ4RAt+jMauhrgFzy1U2bbs3ErsAk+oNwTeBgboc01xjMfp/jEtPxZSXSJeHvNzBnljGIyromwO2G8SOyjhFcJfONT7q7YRbDZh+UX6u3x1LXxVywZimbJwK4ghtYXw==
+ b=WkWo2wy1H7ehHF5xImKcDEbKn2wu6Ek/PxspuIp4XWTz8cqyIRs19DOgSazts3UP6ItXGwzxBLfwDqRLjTgAtu+7lvdVId3DqYw8HlKWB4nnfMW/ARrZ8z+bX3+a371qQoW3zI0yY6KXbHBi/NTtfpkws3Tz1dLdJ+zNpKEb6ha7v5IpJnsl5dr4D1XBjYdcLQnRuhChGD0IInm0aNBu75mrqhDwGWyXqqN3OsIv88IGxLTpvE7FNFZkoKi9wrzB56klaQc7HEbOxphU7NICgkStDdHbX/tp1gXvW2KYi2tkRH2NFZKc5sYESXuDVlShw3Z1AXnSnVnCDe4g6b53Gg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TiL9ONWX7HKdsHTACAor4DbuwYzjCyQajpHUX4vCQrU=;
- b=p1j6bgYJB6d4Ilt+tyadI8gVugaR+lZObjTBXfIGIKHypAuOsBV2BHwuuK2ztbY7sU8ZX+OK6jExQhcgTXYXiprsPbBDHUnsKwTCneDRmL5IocPimtjeNvfGGvsurBxV9mlfvm9xzvsQY6NPdaRQYYkEjq+B6cYIp7Y383dQJc0rPZ92BKYt2gkUC/vb81yXrJ+9qBJIIW3MDlHIC0LPbqQakUQz7Psf/TZO4s5EuApnozyzv4TgBCMk0poDYqwu7zCRpRv8QYLWR99VRxrDjY91feWOW3G4JC6ETDOdKtafRofM37sg4nPK5JVWOSUvg867342erIhEsWFPG/gxJQ==
+ bh=uIQvrxY2ceOA2SxPyd82RvIdsB/rDZO415gEpsUc7LI=;
+ b=LP22tfbEOv7jdv4lofZ4tYLEruheyn3RjpVsKlw3RCPGHxZjvo2FRwhDGcfvA2c6dJvMuncnpNmWOfcBPibJuwXp59XQ+fhPyuKOe8dQC25ZPWY1WuBxa80CClRv1yHClcpQyAbJUbw8cAT8fiF+rFi2fYCrjgUznlsK08/kf1dPfCIH+yKTewvo1Q5wzcV6sUnwN+9hDrX+6/PtQQx+Bes0eDb1dxstLtWbCKNtEWFZRfDLbOobB0XQqIarLOv6brMA1C2trW92BpNl4fMaCdstTWvuuPuei3/5SIaEb2Ci4xY7/YhrBhztFMMAoxyHOZTs8jTus+N6EappGjK5QQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
  dkim=pass header.d=gaisler.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TiL9ONWX7HKdsHTACAor4DbuwYzjCyQajpHUX4vCQrU=;
- b=qoW+QdP9Ldm0k0lKh2TfUXvJ4zUa5oHuHvcyTgXXYsosgu75e22BSeZ44ndWb7/C3y/jlCWZv97/lzGBHJCquJXEh2Dr8y1jY6t05lgHbGUUnPtQHVMQI2kd9B1sHPOsHYmZtRK0uDIaGuNvu2J87R3ghm8j/gwA57nuiim1ky+ax87EYV5eS1wFsK2eUu7i5TfeAw2SnE156mMe1UXO9+njT8uUOPD5YXtvVHzeEnlkdeYFk+61+SkhCmRxCamGfB5coDc+KsKpbQ4dvIpV07ftHq9q0NogFM5Y4+MyIIvwMGytxZvW28TpMA+XhbEB30jmh58ej/oJ0GL8sXfWrg==
+ bh=uIQvrxY2ceOA2SxPyd82RvIdsB/rDZO415gEpsUc7LI=;
+ b=WGiPIExXyeqBbXLCC1JGvT4lmzwPDiQlXSyjaiZgiatTs7mtNSeXPjsgypaRCJtzkgPPcR0lkymR6fUkml6muSW3cQHbPFlt7L7C1tSdSdooeVQc0GC58Sw+P+YK+RM7DQ14GmbTley1cWvCaAU2fmlpYv6E0sSq1uilmrheWa5ZXk0zWxR1hUwioVOE2INJA/ZvsnCjsN63+/yvfEy1hzpv565h1XjlhBaBEVsO9oP6mf+WBVpRHYQaWbtXjYGIgThOFvupIcLJV8qTAhczcJKx5eSsGUB/kT4O6mr9tq9MMhpFi1IAYn6C5/LaA4EIzqClaCtA5c+EBmnBZZevBA==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=gaisler.com;
 Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:195::18)
  by GVYP280MB2063.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:365::15) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.113.18; Mon, 15 Jun
- 2026 08:01:04 +0000
+ 2026 08:01:38 +0000
 Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  ([fe80::be76:7636:f4ac:6773]) by GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  ([fe80::be76:7636:f4ac:6773%6]) with mapi id 15.21.0113.015; Mon, 15 Jun 2026
- 08:01:03 +0000
-Message-ID: <a061ffed-fa21-47ec-9472-ce1812fdf460@gaisler.com>
-Date: Mon, 15 Jun 2026 10:01:02 +0200
+ 08:01:38 +0000
+Message-ID: <2a45e280-104a-435c-891d-2c1e0e8e9c1c@gaisler.com>
+Date: Mon, 15 Jun 2026 10:01:37 +0200
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCHv2] sparc: Export mcount for Clang-built modules
-To: Rosen Penev <rosenp@gmail.com>, sparclinux@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
- Nathan Chancellor <nathan@kernel.org>,
- Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
- Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>,
- open list <linux-kernel@vger.kernel.org>,
- "open list:CLANG/LLVM BUILD SUPPORT:Keyword:b(?i:clang|llvm)b"
- <llvm@lists.linux.dev>
-References: <20260612181503.4509-1-rosenp@gmail.com>
+Subject: Re: [PATCH v2] sparc: led: avoid trimming a newline from empty writes
+To: Pengpeng Hou <pengpeng@iscas.ac.cn>, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <c968c25b-7174-4b27-985a-9428a4ad429c@gaisler.com>
+ <20260615055850.66363-1-pengpeng@iscas.ac.cn>
 Content-Language: en-US
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20260612181503.4509-1-rosenp@gmail.com>
+In-Reply-To: <20260615055850.66363-1-pengpeng@iscas.ac.cn>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: GV3PEPF0001DC48.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:158:400::2e9) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
+X-ClientProxiedBy: GV3PEPF0001DC3D.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:158:400::2e8) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
  (2603:10a6:150:195::18)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -71,118 +66,105 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: GVYP280MB1290:EE_|GVYP280MB2063:EE_
-X-MS-Office365-Filtering-Correlation-Id: 927549c7-2078-4073-4dd8-08decab43efe
+X-MS-Office365-Filtering-Correlation-Id: 916bc158-0aef-47b4-fcf1-08decab453f0
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|376014|366016|1800799024|56012099006|6133799003|18002099003|22082099003;
+	BCL:0;ARA:13230040|23010399003|376014|366016|1800799024|56012099006|4143699003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	UN0dETG43Fp1hVh9HKq8fA5XTwLB86vYCj4p5Podc3hsZJujkGGzQ4lvkehNvxM9VXw/miv6+7XB0B/+2KepPQvTd5Z7KXORmBBi26qAoXYo8foQ7fiBsOUM45WvJG/VqUFPDzoorYUxXEwNqJ/WKia1/4QogFhWovtLNhBbxia8GJThz2c0H2vFW1ZQMO2V8BTfoTJlowsW6ylRdPjj1JLRqCtm/JP5kzcdoDNI1OGv5siaUXkG8IaF6N3msSIHzg+5sV8MCRjNS3aP/c2D1ZsT+O2A29ju4kNx5IeadrTpra4HOixU1dKqMcE6euWitwkGH0LPuR/KN19CRkeqNS/GqXvBlXZpDW6vrtT7h4R+q/hMWaTI2p91wNmjF0j8P+7k4DNC/ecBLleMYzuBsF9N9A+dBOosGTHVClSjDyDkpuM3hq57uS6hOd4UoS57tB2Zkr9gdC1Ug6aKtskeWlJwk3t3KuLTR2U3vlPz/xPBJJngtCegGLCqcWkGJ8CkYSoOLgJAluwLtyMxkcgvbVcR/Oyc4F7DPaTwhz6rfKnzhx+axxtP/icYv8j0JVubqwsMNmK7bnbxHEyE+kzImp1R2gXP6CC50xY+9Vawc9n2mj4FGJO2fYi0k/JNPoRKPFufGpJ8azUHlhlyrL/guqkdq/9I4+kXdlnUDbyNJr6pPgdm8ebGOguK1KW4k/ad
+	r34s1YbfepF2t+Ox0IFtDkwTn/X8caFNGCWLinrxhGVoDU4V0WTpr4Q8X0LvZYnFcCuO424Ye/qDDryYsDcvat/9Ljggd1P/cj9epH2jItwWE1mPTIAI8wdflfhmlp8LDr4dizyGOV4hxR6GyTVq+GeUBHWYUpYRE46AKct6snNqctmJLgS/0+eNcJSNJ/DFfwi6GufM+1fliIS+nF69dWZITS1rN/nTp+5gtMWiYREjdMBtx6EGwCCQuLoXXbNTD1oAnRwQgbvep5YhnUfejtcj0uyIb7OusctEexHAQza86+3XSUFh6EZcCbi9zGyN85brEhEH5mHs+bTJ3gRWPCR65JMgBX6vcGACW4geF4kOVSxxRy2YlqpJRe/rfkWW8DkDZxrpE4mgbPZbwO1YwdZnVblIMReUqUsvO8Fu/16xQMXN6lSCpfrIl9LuZTLvmCA8e+n1eXga9pjnprTDMM5eKT/L8zppY2RykyE73x9sPFt6wjUcRr92CNU8XOu80ESOiRH+4R2dMuGvxnBEujpnM4VDPAksBEmQ8mXfn8jU3y8f8hZetkL/pKMcG6C29yTJ7/hEZZy7tzopMO5XOpIGfVBMOmqgcxD1EQidQMc8zW5jRDgnCJmIS7R+W9+n8zE3VHVRcWSAsRhfNLtk3M+ho4oHD9CY6cB4z67y3SkmPlUp0/AIQUQJb2GhPwko
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(366016)(1800799024)(56012099006)(6133799003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(366016)(1800799024)(56012099006)(4143699003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?TERRQXZXbDVkSG40b0hPRTZ4SVg3ZXZqaytPZnlDODVIRDRFZVZSZ085NUQy?=
- =?utf-8?B?N1crUERDdnp2OVord1VINEFZQTY5WitmRGV5MGpsclVQaXd2TncyTDY5ejFY?=
- =?utf-8?B?eDR6WW5JL1pjeDQwM2JEbHlPUEFldFdMbmt1L016dUdNODFja08yNjBVaDV1?=
- =?utf-8?B?eTVKU1EwNjFobVJvN0RDcENEQkJzL3ZKUmlSUWZYZmdUVnFRSy9YbnpCOUZS?=
- =?utf-8?B?Y0M2TXcrNjEwV2dCd1RWMkN4WWJLVTZ6TkhNVXdSajQ1VklhcHdvWEFZa2xX?=
- =?utf-8?B?QXFRc2FCMjdDS2xUMWNicEpmbmJNSW1UbnFlU3djUnMrdEVpTjI4bUFsRGRD?=
- =?utf-8?B?WWU2ZTRlYmJNU1EvYmIrMTRJOTltaW9GRGNJb0Ridy9JMlBiSzR4dkxQVzcv?=
- =?utf-8?B?MTVBb1JpY2t2T2hMT1pzWitSMGp5ME51S2VRSzAwSHl4OUU2a3BHTkRFalVj?=
- =?utf-8?B?bnBpS0JCYUNtbUlyRTd5RW9YVmhZeFU5Y3FZQXJ2Z2JBSm9MUmJTYXJTeWQr?=
- =?utf-8?B?dUFVVU1uYVVMTkNNM3BlbmxNUnVXZ2d5VlNYdWZiMHYrZTQ1WHJPVWc4L0V1?=
- =?utf-8?B?cFhBb2tSRXNhZFNnUHpkWVBJY0E2K1VIODZMb09JbnVSRFp2MEExK2dFVVJu?=
- =?utf-8?B?V3NyU0xobjBzTFByUGx4dGxXTHhFNHY4ZW0xT0lMek5JdXU0MVV0ZjN5WTI5?=
- =?utf-8?B?bytoS2VEcWErZGdORjRrVEdVTkMvbGIyTW4zckphSUZ6aUhQL3BCMlJBcG1i?=
- =?utf-8?B?SDZrM3ltOTRWOWFYMUQrR0NJZGZYVFc2UlE0Ylk4dnVhM1o0KzdhcGJ3MEQ5?=
- =?utf-8?B?blRvNEY1ODcxcm5NZHA5L3NEaCtiUVB3eXBOMlpLeXVVQUp3WHFwNnZXeWtD?=
- =?utf-8?B?NW9ENjNsMVgzNkp0a0xvRWNqQjh2MDltME5Uckp4aDlTUzl4U2Vpa1RWdytn?=
- =?utf-8?B?NjFUQlM3NDNNUUJWVzFldjVrYzlUVkFnR2FsV294Sm52SzExYTZLL01IYjlX?=
- =?utf-8?B?RnVoVUF5RENqY0ltTzZOMm1MSXdhWWhKSmF3ODlMYkhndzJiUmhuTEQ4VDFU?=
- =?utf-8?B?MkpkU0IwT0orSUJlWlpSVndEZzM4RGFTNytzY0pneUtmdDM0dVJMSEdkQkFP?=
- =?utf-8?B?L09nSFdaK2E3clJ2NnpFMmROemtwa0RabzhNNDBPV3FoZmltclV4Z0lpdS9w?=
- =?utf-8?B?bjA4ZFpCUVRZZ3dPVWY4b092NDJubzlhSlh6UnVuMVdNMmhwaEVIOW8rVUNW?=
- =?utf-8?B?b1VxbFZ1TXpWdFFBcjVmQXduWTBFS0N1ckJubzkwL0pBZTI0R0RFbTRsWGVT?=
- =?utf-8?B?TVc2YWFxSzkzaW8wSU5UZ2RlTnhZY1RISFAzZ0p1MEFEZ0p0VEN3ekNxODBq?=
- =?utf-8?B?cWw2dE9RY04rYmVkelMrekhtb3JCL0l0RkxtcS9vSEsrRVJFZmgxUU1jMXBr?=
- =?utf-8?B?NCtjWklkRWRQdW9RSzMyTmlackJucnFXVFlBWlJRNlJIL1h4TkcraDFIblZV?=
- =?utf-8?B?Y242eTFLRWw0clg1T0hNRmorZk1UR256cWdIemdQMmpLUWFSbkMrSzJVSWpu?=
- =?utf-8?B?by9PVnF6VkloUmtMK3ZocmFIVXY3Um1pRDFIL05GRC9iWHlmZ2JQUjJtNzdU?=
- =?utf-8?B?ZlpCTG9qbzFnRWZ2QW1ZR25vRUUyWW8xeUViNjhtdStGODNXbi82RGptQUdr?=
- =?utf-8?B?MDEzQTZDa3Fsd2pUKzhUaFpnLzJ0U1RiLzk2eHV5b25Qd3RJMkZaZW9ubWVQ?=
- =?utf-8?B?ZzhEelQ3OU9xdSszVFpvb2FkdjJ6eDhmWjVyRGdUSkFrOUlJMlJicml0NFBR?=
- =?utf-8?B?MngxVm9idk91M250ZTY5MzFlNExUVVZNdDZGdzNvVjlVdEgycEV3K2UyZ2JY?=
- =?utf-8?B?cGJEN1BqK0UyZUk3aGVEcVJBbGV2NUVGeXdNSGRzeitTWlphdnRZM2w3MmVI?=
- =?utf-8?B?ZFpmZ2FRb3BPTWVqNzBwT2RxRTNBcHFKTlhIUzJOYStTL044OW54K1lrc1c5?=
- =?utf-8?B?aXU1djJRdStkWko3blJ1eGlQaWc3a0pCTElETHlhTmU2bXBoL3Y0ZHI4K3pU?=
- =?utf-8?B?UThrRDZYZE96RUJya3F0RnByWnlLc3MySVo4dG5zQ1ZkUkhIWDJtRThZc0RM?=
- =?utf-8?B?RnlTeXBUUHF1cTdETVExandHY2lpNGw2OG5VdmhMd0theTVDTUdPOXBaVC9B?=
- =?utf-8?B?N0c5SE80R01pSjZjS3lqUVRCY3ozSWdDWFdpQjF0eUJMZnU2V25Lamc0SE44?=
- =?utf-8?B?azV0ZzJtb3I3TktEeWZTUk83TVpucWFtWUxzYStHeXVwKzh0NVA2dkU3RDY4?=
- =?utf-8?B?UzVHYXRJNlozWEF3NU5hWkoyeFkwMVZ3emZlZ3JmdmtQUW5KQm1lZ28rQlBJ?=
- =?utf-8?Q?EYEsz9AnloIK2AEY=3D?=
+	=?utf-8?B?aHM0c01VVUdLSHpVV3hRdGhJNXc5a2xWc1FoK3BQQURtZmEyaWkvWjRIc2Q4?=
+ =?utf-8?B?N2VzN2hNa251TDdYd3cvcEk2ckJXR1dKbk5tYXVla1YrdHBCZkdYR2VKRXJ4?=
+ =?utf-8?B?QWZGMm1XeEZ0ZFZhU3V2SU5nMWZFdGJlYURXdUhRc0E2Y0hyVmp0V09MaUU2?=
+ =?utf-8?B?UXBvLzF0ckx0L1Y0ekdxWVRBNnpEd2pGL0xpQXZXVTRoRStZN3l4SjVwTDNX?=
+ =?utf-8?B?am1WK1dJeHlMTER4bXp6NmNFUE5Wd1hZQURWc1hVUzk3NnBwU2RjOEpKUW9q?=
+ =?utf-8?B?THorc3ZpS1ZGbWpCdmJQOENyRldEVytBRFNiN0pFSVpnL1R6aUJ4NnFhcU5u?=
+ =?utf-8?B?VnFPY3lCNXlkbTl6VHJXMjBZb1JId3B1M0JBM3pJeVNhNkVMdE9Iak1GYnRN?=
+ =?utf-8?B?eElLSDZtUEtMOE5IV2laL1JISGk0TDllRXBHRmFiMTFnNVZyVk9uVmRLWkZl?=
+ =?utf-8?B?TEJNVXhNaTcxSGRtSDFEQ3dvcHpwZGFCOFBsUDVhVHAwZG1GRWJwVDFjSU1W?=
+ =?utf-8?B?eUMyYTJ1YjlMRGs3TXJPSW9iRnU0TURoZ1FnUFVkZG5GZkNrQituOWN1QjdS?=
+ =?utf-8?B?WHRDVCtya1VXcTZtUGhpTFlGVWw2MkdHemE2azArL0hYTkFVV2tlUldBRldy?=
+ =?utf-8?B?enNSY0dQNWM3YnovcDlVUklOUVpubGNTcmt4U0RFaWZHclFWa0FTd1E1bHFs?=
+ =?utf-8?B?eGpKek9XbGVMaC95ZC9iY2FQemVyQjF0a21aZ1MrdnRjMDcyNU5DQllCWi9s?=
+ =?utf-8?B?ZUNMclVaTHNXQUlpVVUrUXBVL1lQN0UrNTd2NXN3ZGpoSlpxb1lnREY2c1V0?=
+ =?utf-8?B?cERuUWtPdG9NYjRLbUhWYy9mYmpSY1Z4UHB5NkxjcTExWWtYSXlHVEFPdEZx?=
+ =?utf-8?B?SDltWis3WVMwanZzZVBYcXFRZnpsempjT1dNY1dMWndFSjJINitDTkY1YVg0?=
+ =?utf-8?B?SDhGN0Q5My9TSmNMa3B0VUcyYWc0WG8rK0hhQW5tVngxSmdJcm9PaldmUnRH?=
+ =?utf-8?B?ZC9NVVlmRitFVXBmWnBnNU9hYjZkTnBNMEpaZ2Q5c243RFE1cHFrckZuaUZ5?=
+ =?utf-8?B?ekt4TjR6cG1JNEhkZWNTMDlZcnBPTjJIZVc2bUZsZmd5VkIzakhkZ3gzY3hj?=
+ =?utf-8?B?RDUyaHBaWWZOcU4zYzkrQXIwVUdKeVd3N1A3VmNWUVc4UHhlekZvdHYrbmZX?=
+ =?utf-8?B?VkNDbldhektUN29pZGFkU3ZQSzdlek15Szd2VllOU1p3V2RMelVwS3pCNFpK?=
+ =?utf-8?B?YS9NdFA0OTZ6UlloNlpkWkU3dVp1eG1vV3hVSDdXTlBtbTBIZHQrakVNcjNO?=
+ =?utf-8?B?R2ZHU1pCbHA4a2oydXVNOGlyMzVORUdETkROUmdmdGNjcWZaUWZOdU1BTlQv?=
+ =?utf-8?B?TDRFNDdvTkY0WXROOGtmY3pJUjQ0d3VRMml6OGpQL2p4elh3T3hPRXJWWk1t?=
+ =?utf-8?B?bEhTd0hrSXp5RlhUY0xFK1JMbzQyT3Q3R24rbXM0VC9pd3VMdko5REM2WWJi?=
+ =?utf-8?B?T3EzSkF5VlhQZ2FSYnNXZVZRV0h5cVdNVk1tVjZIQWZkVEgyem9NaW9VOEc4?=
+ =?utf-8?B?OXA2V1BVLzBwc09DSzYrd29Ub1BsV0R1bGVaWDhTK2U1YnZUMmpKcGFSbGVv?=
+ =?utf-8?B?OGxteDE4emxqZ1RObENyQ296bkRlcFlXc0JYb2dCSVowVE9TR2JYc1EydzUw?=
+ =?utf-8?B?akNyR0hmbE5uRGRoalVNUmc5K256WFlVWS8wa0RxYk1Lb2F2LzBQa25EZi9X?=
+ =?utf-8?B?RDNQMVlJTE5Rdm54S3lTS1YyK24zWEVLTjJIZlJ0cWVlNjRzMEdRNzZ1NllZ?=
+ =?utf-8?B?T1FiTTdwLzBWK3ZZM2wxUTdma2krRjBrM1BRU04wUFlLd2RSZjJXZ2lQV2hx?=
+ =?utf-8?B?SkQ3ekJNQnVSNjRtc3lYeVFWOVI1ME1MZ2RmcTJBazVVckh1VGh3Q3RNeUIy?=
+ =?utf-8?B?YnNxQWl2MDI1N0tpbWtQbGNaTE1mNmR3eTJtRU5pSlp4YWxhaWUvM21VK3dt?=
+ =?utf-8?B?Sm9HcDhQR0U1QzFTcDZ1bHd3MHpOOTBTa2FiTWowNllMZDJYMHN6bEFUVTZ6?=
+ =?utf-8?B?S3BaaWpiQzFzdnkzaHM4YWtRQ0I3VzQxZjRNV1dXbCtFTmNKOUg2RW1WZm50?=
+ =?utf-8?B?Q05wV0pWQVp0c2JhYjVIMk9NUmdRaTNscFBzalAyYkZZamJtOUUzOUN4QTVv?=
+ =?utf-8?B?L1VPYXllRG85bEZ0ZXpXOWVpY2d2S3J3bVZEOFAwSG1Hc0s5cEV1R01uNllK?=
+ =?utf-8?B?K1BRbVRYOVVXelFWZjZmTFlHQTgrWVYwWXhSZ2RIbTRXamhJUDhIREM2UUNM?=
+ =?utf-8?B?VU5wTnZqYVRyb1p0SktYL3F1aGUwZkFqOWhXbnFncGg0MFFpWHBTQ2I3WkZ3?=
+ =?utf-8?Q?ofjMjyiwMF9CbKAs=3D?=
 X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 927549c7-2078-4073-4dd8-08decab43efe
+X-MS-Exchange-CrossTenant-Network-Message-Id: 916bc158-0aef-47b4-fcf1-08decab453f0
 X-MS-Exchange-CrossTenant-AuthSource: GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Jun 2026 08:01:03.5653
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Jun 2026 08:01:38.6645
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: BKGEONhV7UtJnfWMpr7j7Hr5oUjBoIU1yJgWLAMfiPX0S3hfIkIDwtNIUzujTX/M1RjA5anxntZopTytFRaO80b/7t+7VzoKG2HAjdSlu1s=
+X-MS-Exchange-CrossTenant-UserPrincipalName: OwSJdPKNlJpAkUfaRvhS6c7tLYXu1RssYrtrD66LPWCeQhGUfm3p/C++tItF54gui+7ULt9kuilt6zoQ7bJ3wFScPsSXeHwKkSZD3ePuxZw=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVYP280MB2063
 
-On 2026-06-12 20:15, Rosen Penev wrote:
-> Clang emits calls to mcount for -pg on sparc64, while the
-> existing ftrace support only exports the _mcount name. With
-> FUNCTION_TRACER enabled, modules can therefore keep relocations
-> against mcount and fail during modpost:
+On 2026-06-15 07:58, Pengpeng Hou wrote:
+> led_proc_write() duplicates up to LED_MAX_LENGTH bytes with
+> memdup_user_nul() and then unconditionally inspects buf[count - 1] to
+> strip a trailing newline. A zero-length write therefore reads one byte
+> before the duplicated buffer.
 > 
->   ERROR: modpost: "mcount" [arch/sparc/kernel/chmc.ko] undefined!
+> The previous version rejected empty writes, but empty input already falls
+> through to the existing default case and turns the LED off like any other
+> unrecognized string. Preserve that behavior and only skip the newline
+> trim when there is no input byte to inspect.
 > 
-> _mcount and mcount are aliases in arch/sparc/lib/mcount.S. Export
-> the plain mcount alias as well so Clang-built modules can resolve
-> their profiling call target.
-> 
-> Assisted-by: Codex:GPT-5
-> Signed-off-by: Rosen Penev <rosenp@gmail.com>
+> Fixes: ee1858d3122d ("[SPARC]: Add sun4m LED driver.")
+> Suggested-by: Andreas Larsson <andreas@gaisler.com>
+> Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 > ---
->  v2: add declaration in asm-prototypes.h
->  arch/sparc/include/asm/asm-prototypes.h | 1 +
->  arch/sparc/lib/mcount.S                 | 1 +
->  2 files changed, 2 insertions(+)
+> Changes since v1:
+> - Preserve the existing empty-write/default LED-off behavior instead of
+>   returning -EINVAL, as suggested by Andreas.
+> - Guard only the trailing-newline trim.
 > 
-> diff --git a/arch/sparc/include/asm/asm-prototypes.h b/arch/sparc/include/asm/asm-prototypes.h
-> index 270c51017212..a39a24c53216 100644
-> --- a/arch/sparc/include/asm/asm-prototypes.h
-> +++ b/arch/sparc/include/asm/asm-prototypes.h
-> @@ -26,6 +26,7 @@ void *memset(void *s, int c, size_t n);
->  typedef int TItype __attribute__((mode(TI)));
->  TItype __multi3(TItype a, TItype b);
->  void _mcount(void);
-> +void mcount(void);
+>  arch/sparc/kernel/led.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
->  s64 __ashldi3(s64, int);
->  s64 __lshrdi3(s64, int);
-> diff --git a/arch/sparc/lib/mcount.S b/arch/sparc/lib/mcount.S
-> index f7f7910eb41e..0309ba2c4712 100644
-> --- a/arch/sparc/lib/mcount.S
-> +++ b/arch/sparc/lib/mcount.S
-> @@ -21,6 +21,7 @@
->  	EXPORT_SYMBOL(_mcount)
->  	.globl		mcount
->  	.type		mcount,#function
-> +	EXPORT_SYMBOL(mcount)
->  _mcount:
->  mcount:
->  #ifdef CONFIG_FUNCTION_TRACER
-> --
-> 2.54.0
-> 
-
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+> diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
+> index f4fb82b019bb..9b53ac1fe533 100644
+> --- a/arch/sparc/kernel/led.c
+> +++ b/arch/sparc/kernel/led.c
+> @@ -78,7 +78,7 @@ static ssize_t led_proc_write(struct file *file, const char __user *buffer,
+>  		return PTR_ERR(buf);
+>  
+>  	/* work around \n when echo'ing into proc */
+> -	if (buf[count - 1] == '\n')
+> +	if (count > 0 && buf[count - 1] == '\n')
+>  		buf[count - 1] = '\0';
+>  
+>  	/* before we change anything we want to stop any running timers,
 
 Picking this up to my for-next.
 
