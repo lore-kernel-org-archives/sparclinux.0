@@ -1,106 +1,67 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from MM0P280CU009.outbound.protection.outlook.com (mail-swedensouthazon11021097.outbound.protection.outlook.com [52.101.76.97])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6F0C1A6803;
-	Tue, 16 Jun 2026 01:34:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.165.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D2F51946DA;
+	Tue, 16 Jun 2026 14:18:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.76.97
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781573676; cv=fail; b=XiyH+GFbvH004RV1re0FAmx+7pbnQcjMD1x18W/WoiMmWQRvWY8BqZ7wx5J2RJkWdb+6IxX27WN/r+pMgLV9QuJBg5TL8DzBLFjSEIgulguO5jlbDTQN5bsWk93EMiY4YWFyCjcsq8Hi9j7jZ9Wcp4SI3fw1D+/5iD/CVAcb/9o=
+	t=1781619524; cv=fail; b=mjfNmoOlHDAAtMvBARDMH+ZjyoWbBhbesqshxHuSeNemyQQwHyfmDsPY9u7mJyjNRVALWLiSgODQlzMzaJ1JPFS0PdpuDY1cAArtSDBGoUC3XBn8FbuUhLKCL4xoR7nrxpt610f6ZIud00Ptlz6t6sxIdGQONOWFxErt7+YWzNM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781573676; c=relaxed/simple;
-	bh=DTzYAJ9pstMc0/DqHjpquKXQ3QIaeWynWNE4PfqyI8w=;
-	h=To:Cc:Subject:From:In-Reply-To:Message-ID:References:Date:
-	 Content-Type:MIME-Version; b=Dx/rtQaEm7tHlYGolesIrGC6ZOJGqvPgH+4l683mOUya5GdMBVp6SLrL8FMwnaXKnYbHn34VyxA7MsvFAosiDS98NzJiJ28qmQ3v1maNj17WpfygxWbO65vilMasEik1vtTVxtbXAd1ZD/NizyCzZ88Lr+nFKzjnnfbamaWxunc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=VOajPdiM; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=0S/LytQR; arc=fail smtp.client-ip=205.220.165.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	s=arc-20240116; t=1781619524; c=relaxed/simple;
+	bh=KjvNEVf9Z5BXddugvv0Fsq+zxk3WI6MiPy0neDiX4Sw=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=t0LDQQF9zlVJHJKMNCGIpfOX4hOY394SJYya0ZMoQzqZ1ff8gx0Lywdlgpil2PiY+bvQsgonbrHKXbZGrojzK8jXJuPoO9sEYKT8CeK7N6TEdlklNFzJQyBkOddRKpd0PYTlJ0bC2yfeMDqI64LNaVdBMGUdVunMpMHa+oat6ak=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=GcaXWsMp; arc=fail smtp.client-ip=52.101.76.97
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="VOajPdiM";
-	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="0S/LytQR"
-Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65FKSHWp1382880;
-	Tue, 16 Jun 2026 01:33:59 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=corp-2025-04-25; bh=sN9Z9Kgm8GLCX/2Swq
-	o9IPnxvLJq3pIlDJ++7d2mtbI=; b=VOajPdiM1Tp2MHAYSYvcwgzUNv8vFUKtH/
-	rvdNm8C7BvV9cMfhGInswg5yhX4rqFnCQ2rT6PEDA/sEeD8KkummCDj/bsGXmkV2
-	qYY4YrznS6jVzujwRuVyOgf6erjylCmsi5oYH7NIog5xRt3fLFqWTvINVpE7Wm62
-	NXR1RoOIzigxmYdNBT3SRbceKW1e2DY3gmniP77qZNmlKlQo0s2h+dyxyAMURsDQ
-	STPkAbVwfW3jZRT2ztQMaHHPz9QdcVFdUYgUjV/7ZXqHjf7xPORwHDYBKPdwnoO5
-	h4pmSgUwtIG57NgaNkrIIL5Rt5i71I068Aws1Hd3w4nj3PqAkWhA==
-Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.appoci.oracle.com [147.154.114.232])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4es1ay3mj3-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 16 Jun 2026 01:33:58 +0000 (GMT)
-Received: from pps.filterd (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.7/8.18.1.7) with ESMTP id 65G1Wuff031974;
-	Tue, 16 Jun 2026 01:33:57 GMT
-Received: from ch5pr02cu005.outbound.protection.outlook.com (mail-northcentralusazon11012061.outbound.protection.outlook.com [40.107.200.61])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 4etg72mfqt-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 16 Jun 2026 01:33:57 +0000 (GMT)
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="GcaXWsMp"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Sks9fxfYsKsXb50atbvi9eR8ShufWGABrEvLcB61mvzdleotZ/cxtuP0W/WlZgLJ2WKEj1+CqM433gNb9TJdEESDdLN/w2lf6fWFY2eBOXaDBFlEU0HQGEat+iJFHhb6gbcjtlrpqVC/sukxlZa3Du1IJdqjuueBuYaANBUwGVjjmFX//cWevwrzpDHsqq2jSGgFifte5KZs1mH/svoYCBqsk4OIxYd9rn2F38FSnK8sb3ldoGG+OZeP8IGajXWgFPtdpCIIBnPQeUUsQMDW2dBr9nCfilParpyV2wWH72QwivXmfMHNKXkRXlmgqTmy/+d3SJkARx50JJQ5zHpx7Q==
+ b=uwhWlre+94HRjkwe67U31HPtEGimP4MOHdgj7Oj9RXS7iLXySn37eUDzorQ4MSbpwRBFvu0QA8uHaZGk0IknDECywXOlZHH66khIOqnLZlF3Ld/MNQGXNqEn3Y4DW15ys1BpeGjFOXa9wh+aYdNvHKlJtxsxERGjkFIncZZRSmUyd3flJSVx2sIYXMtB7h9j8sGVfEfY+azyEvX85TD+bF4TIU7J8Y1A+9BS6wagsZFlODzlImM1tSZJTvzkUw4w+RhqYzIAfq38+dFnh4xgzlzDikzwGiJWFLejQ2LtdXneve5YQPf5PETGP3mHWHqVZ/nvrIN/Vmx5FU04OP3IeA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sN9Z9Kgm8GLCX/2Swqo9IPnxvLJq3pIlDJ++7d2mtbI=;
- b=EwTXMegj7+7n3m7FwvQVjctKv9RLZWMTT4etIkfjtLPO0RfF38d2cxE6A3hd3994FPRFiOp3nGa4Bf2HMy+qVIJKQyRr+HvR/KpoIcXz9YIrHeyUDJfswS109wXUl716pBUKZXC/KJkJtO3LSNG+XVJLSZzplrWC56l3mPYRjAkBuIB3LmqlKg/wecHzlbxRWTE5VTYffR3gnokdBN2PJ9UAscDBX5nl4aoarDiXLplNT1KyE6iIowfGPJDdFf+Ew7l1VJ04qZ0OQjtIvxriqf7KQgw2rzu1qnZeLCeo5L2Ll0RDUIwDGIZVgh/tmPUBkJCeAYbSUbkhmV829pHx/w==
+ bh=461xVZcqRhC28Rb5EpMtSH1D0RrjjoNwuoVTlBFJTtY=;
+ b=o84IuTTIWQJCOrwVxvQFPFslGG1ZHeOK2B4NUrccM6+wIndrPSJ5aVao2jSIkaaAEHZcnAiROtVskYys8hJJ0Pftvm8TDSX7z6BRvfh02aChecmLrJRYZUwfS9TPXlRLpFwTBxlYWWj40UCGl8WmLBbSb5wwcSIvSxuPkkHZqPknOeJlC84A7VcdxbmXlNRJPf0J1Mq6sCPo2qt8pGi2ba1y6B3Ohmeh72Wupgg6l1Sq6mzFlzR0SV2ZvoffFV9hPablaevT1MZT/X+Mj37gbaF1kMuE21U2xL7lgJkQ3S51K9YD0e5nSf3EIv3cIri2t9pnkbwzeSsNauZPD+YuhA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
+ dkim=pass header.d=gaisler.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+ s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sN9Z9Kgm8GLCX/2Swqo9IPnxvLJq3pIlDJ++7d2mtbI=;
- b=0S/LytQRN5K5FNM8P0Zizmc9a/BDfO+yQIGw/bDhg0XTu4EuukNhlTSaWUip1CE7vsRv8HKkGptUZgEpzPlF+MYbgIuNPBrvJY/YQpoTbFjn6iQTkoWZdkwxyghTFDT9JblJR8+v+ooCjTsr1gdxtpFn+4hlT4oWyiV32NBEAsk=
-Received: from CH0PR10MB5338.namprd10.prod.outlook.com (2603:10b6:610:cb::8)
- by CY8PR10MB7380.namprd10.prod.outlook.com (2603:10b6:930:97::17) with
+ bh=461xVZcqRhC28Rb5EpMtSH1D0RrjjoNwuoVTlBFJTtY=;
+ b=GcaXWsMp18Ee2i17zR+7ssfrFWKDK5a/O6aPiGjVrY2bq7VzurO/pu8OJ2od4qsvQ/RJI8QbeAG92rCepWSs5RR6vMEnlGSIFmPgHfiB7fJTRJ+mCfE28QYHkkOZIuQfkeHcunIlNZpkJU6gToPxJiBxm0OflfWbYAM7x8uUUm7w4AMuzoa7amMoWgxztS620WkPA2GySDkPt7+0DYCameeoL812ITn9/1A2Dmdzc44oezo09FHGKjTQQ0yFRYqA4V4d5QNqDCJhN+2pIsKkc6h8c1YUv7QcMWpussIQBAj2nHYqPCkTV3pLSR/S150siI9a8AhichUDwXts8ONZhg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=gaisler.com;
+Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:195::18)
+ by GVYP280MB1132.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:19b::12) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.113.18; Tue, 16 Jun
- 2026 01:33:53 +0000
-Received: from CH0PR10MB5338.namprd10.prod.outlook.com
- ([fe80::e525:dd71:b002:6ad5]) by CH0PR10MB5338.namprd10.prod.outlook.com
- ([fe80::e525:dd71:b002:6ad5%6]) with mapi id 15.21.0113.015; Tue, 16 Jun 2026
- 01:33:53 +0000
-To: Catalin Iacob <iacobcatalin@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Madhavan Srinivasan
- <maddy@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas
- Piggin <npiggin@gmail.com>,
-        "Christophe Leroy (CS GROUP)"
- <chleroy@kernel.org>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian
- Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller"
- <davem@davemloft.net>,
-        Andreas Larsson <andreas@gaisler.com>,
-        "James
- E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        "Martin K.
- Petersen" <martin.petersen@oracle.com>,
-        Jens Axboe <axboe@kernel.dk>, linux-mips@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-scsi@vger.kernel.org
-Subject: Re: [PATCH v4 1/5] scsi: core: Remove export for
- scsi_device_from_queue()
-From: "Martin K. Petersen" <martin.petersen@oracle.com>
-In-Reply-To: <20260608-remove-pktcdvd-references-v4-1-72f88b04cc87@gmail.com>
-	(Catalin Iacob's message of "Mon, 08 Jun 2026 17:29:16 +0300")
-Organization: Oracle
-Message-ID: <yq1y0gfuv4e.fsf@ca-mkp.ca.oracle.com>
-References: <20260608-remove-pktcdvd-references-v4-0-72f88b04cc87@gmail.com>
-	<20260608-remove-pktcdvd-references-v4-1-72f88b04cc87@gmail.com>
-Date: Mon, 15 Jun 2026 21:33:51 -0400
-Content-Type: text/plain
-X-ClientProxiedBy: YQZPR01CA0120.CANPRD01.PROD.OUTLOOK.COM
- (2603:10b6:c01:83::26) To CH0PR10MB5338.namprd10.prod.outlook.com
- (2603:10b6:610:cb::8)
+ 2026 14:18:34 +0000
+Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::be76:7636:f4ac:6773]) by GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::be76:7636:f4ac:6773%6]) with mapi id 15.21.0113.015; Tue, 16 Jun 2026
+ 14:18:34 +0000
+Message-ID: <03111ac5-0055-425f-a7f2-54d4f2bb4988@gaisler.com>
+Date: Tue, 16 Jun 2026 16:18:33 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/1] sparc64: unify thread stack sizing and add explicit
+ 32KB stack
+To: Tony Rodriguez <unixpro1970@gmail.com>, davem@davemloft.net,
+ sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, andreas@gaisler.com, thuth@redhat.com,
+ regressions@lists.linux.dev, glaubitz@physik.fu-berlin.de,
+ David Laight <david.laight.linux@gmail.com>
+References: <20260519075809.8993-1-unixpro1970@gmail.com>
+ <20260519075809.8993-2-unixpro1970@gmail.com>
+Content-Language: en-US
+From: Andreas Larsson <andreas.larsson@gaisler.com>
+In-Reply-To: <20260519075809.8993-2-unixpro1970@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: GVX0EPF0005F688.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:158:400::3a4) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:150:195::18)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -108,99 +69,185 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH0PR10MB5338:EE_|CY8PR10MB7380:EE_
-X-MS-Office365-Filtering-Correlation-Id: 23979d5b-ef51-457c-7e05-08decb475306
+X-MS-TrafficTypeDiagnostic: GVYP280MB1290:EE_|GVYP280MB1132:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3ba88f8a-e283-4376-38b5-08decbb2264a
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|7416014|376014|23010399003|18002099003|22082099003|4143699003|56012099006;
+	BCL:0;ARA:13230040|1800799024|366016|376014|23010399003|22082099003|18002099003|4143699003|56012099006|6133799003;
 X-Microsoft-Antispam-Message-Info:
-	1C9L6CAF+oFezSA/TTjweWPHYoeyZEU1hE3pHhLDzQxP3NBQeW1tbGpbLR+Dzv3eDrQ7ntAReAXWXADwkPi2SinWpn9/XJEjqazHT9M3TTAQoBS8qUOoZ7BiyNrp+kRnXf5G2BS/WRTwNBMj/CIPUA/IjTKDB79R+YAmaW+PNE4CMYyDf4yJAYuf16+7PBcq6UWgen0XGxwHc5Hce5qA6KWrzReP0wgp0LWvM6bJ94b9phmdURYjdrn+S8fxCRBSJLeSStMJ8ceZmXU3XjI1rvTyQbm4qsJF3BdbVHZgh+DN3/3cCc/gTbgWN0drOETjzZLafS9lkGnEgDhpTkQIu1zqvQJJiVnfeIDth03oPj94+DID5NOm2VBoaJaKtGA+4Ur6hX1QLcjXF8NEhCSnf/gplSgYVSozbBBx/mN5ViXAJvYhuf871qJSCBzvYacCfhdTysh+H6l+xSU9rHGRrZJrCX9eMBWH1DjGg77V31b9h5G3q9qLFoF9g59O8B6JvNMLwm68fx7xtcsv2JSihdYfVsiP4NO8hNTwkwu4t4Vo71x8ghIjdXXaUgcU+CCSps38Q/EXJNVfeTtJvfY37TSAu8bD9vbtZq/LB8ms3jEBCeEFFzyIg520tP6vl7jocJVIPclIy1qfRJyDwpIydHbCO9TFSYNjuH7midQfW41eWoR98unmXZUdj/8AQDXJ
+	QyUnLBHG4N7Rg25aBAi0gp17nuJTTtwJkWEdOVqBOKkOXypreMKF6vwhHD/wuT2B7GBG4vBv1nQiJ9Qf77QB4a/IRVCwAAwL5fpl1ovvHrKe9DzW7KhM6RfRmX61UOvVq+kmKX+UMxE9Zgs9vktbTAZons8ZpLN4tpp3tNxtqoImxqzB4p4XzZIgyZGtE/eEwApOHb4QBCQR1FziR7cVKfYghTASJf3WE2SMJM4ofmNP1AuNRxMh9avPUXet5E6dPOXB2ZT1UCpBnluzJ0d9gtAhCdksKjgdX/M25cSU2/He7GGF7btdeIE7APGyuSVZHsavbz/kzqPm/pTD9NKepBtNBXZuw8PsXdcw1/QLZ9jJih7qX3Fdv+nnwtuuECCslqARULRdnM9LcmXfR52xaujZIelloZ0UDI/nbw0OoQwWrhDLjzxBGxHMOGL74j5DyUqWt/3PUpL2e3k+2xxmUMnS9aJdEJ6LMfksi+JEiQikrb//9HG529Ly/abk8e50goh4wn3K0jdOkEfA/Mc5zDVGfoPOkMD/eWVuHokcGS9c3yDilQCsTlS2kEiqHp5a4+WRMuqCW/RzSKFF8qpZ+lUl/sgfRIsQ0ySfoQ9VxbFc3KrPklT8rmMzbY9omW4UFl9iASz2MLxFS7nnW1rVERbqKy5qnKEPq+e1mUfKxoL1fGJ2dv+BZ8Twp67UEWG1
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH0PR10MB5338.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014)(23010399003)(18002099003)(22082099003)(4143699003)(56012099006);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(23010399003)(22082099003)(18002099003)(4143699003)(56012099006)(6133799003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?pwWYcSInYwvT8pkTVL65G6zLxD+NfFO6UqF5wyP278NA7pJ3x/GHZL3PTZRv?=
- =?us-ascii?Q?FoSBzsg0Skcb2hAYz99oWFJROQN42bIveL5OF0wCA5nklGgfT0PPCw3dagJ4?=
- =?us-ascii?Q?0o17wNF14NURlua0qhA9KBAxfuSG6uJ8Cv/ryHmZcK/WpF+crODUnIaiGFAK?=
- =?us-ascii?Q?cIIRHcsYLTo5YrT2BJ+zw6j45lDfN85OdlsMaOj1EaGDBlok6MTqXSLmxMJw?=
- =?us-ascii?Q?kIOsZuHxuqBTrwYhPaoSOPs4asNKMA/fOPsR1ytWOtSVaaJFLqHLFvPerC6E?=
- =?us-ascii?Q?xMFv8F67HOyb8BvOHq3P9WXmrgWYTgRpxA2PR85pni9AZuayn8y+z/W1v5gU?=
- =?us-ascii?Q?xxUuYnn/IRmkjZPrjHsUVuKwvi73NL1IPMLIzMY4cVMsNppp32vbMcL6efcU?=
- =?us-ascii?Q?G3OeNPHesG8hIk/AfFTTMAXwqUL+8Gg5o769HhLOnLXpAxL5uG4kbKwV6UVg?=
- =?us-ascii?Q?O3+Wy6iHg5B37gnB0StAKho2pofhenJZ0OApw5EPB9ecjgWsRyNNrVjQQGtL?=
- =?us-ascii?Q?g26UgAkgXjFMtdAE8vMlOHViL3UmsPf5LCFOLqiZPiyc/ZrAm4WnDpeJRefb?=
- =?us-ascii?Q?vHKKM2T/X6drBXsuaAjqJx6l8osQcrLL9GF0vUTo41t0q+wVbouzTBe3o/xV?=
- =?us-ascii?Q?mH8It/qP6InsZ1uhLpAzZEFDlXGTJTsiWghFKhp85Y7cACuP1eD+FkIxFveS?=
- =?us-ascii?Q?R084AmeCR0PaSIWOQ0CVeIKwWB3+JCkp1eFV7/b9XPKQQRkJU6DuvRsdt0v2?=
- =?us-ascii?Q?Dgxek0xbFJwPkQ3pshU5/cQxfwuvaUxbIbRtzWs8troGQ2bUtiX8cxwmk1cq?=
- =?us-ascii?Q?xzVw7m7/PG34bEm+d8sfF9sLK1Oe2Jvcx12OcbUHZzpx9Pad8SiAGfApAub5?=
- =?us-ascii?Q?9PlSp36mM5NyBB8c5d3qRZtHxGOCCbVoV2J4+oaEy8fVGo0UQCWj9gxaidvf?=
- =?us-ascii?Q?PYflFyMfJdqns7dKI3i3n8wvYAAgxGw1H2B8jPgOKfc3Tr87wqs9QfAzQ3P9?=
- =?us-ascii?Q?p75UYYIVjilXpC0NqOcNzTWSNEM+HwGmJypax342XGTQKFhFCeFc53v4QrJH?=
- =?us-ascii?Q?hT17hJYZebsSnf8js8QQVdhqmq0JdHCQOYPbxij+OX4vZcZGBjvkKuPkxxRe?=
- =?us-ascii?Q?/gGmaCtefoWXWHWscrKknlJisWDCiE+5l/nTcepxjmO5KFn7bpOO97+kAaOI?=
- =?us-ascii?Q?jRuuefugBZnOnM8wpcbG1N8IJwoUSDtd0Zxg9gSwHchb2hdKqkl4ogKg1Jl2?=
- =?us-ascii?Q?yMPTM7D7TYkho5XRJJMYJn83kABB+cKbiftfwqwArbuFF0+4YyYLXysJXp/G?=
- =?us-ascii?Q?cjgkHnHp/GMyU5AHNQJ5LGvjVk1MAxR0nkhNZcHwK0/pmkLRB3zvXoIbKJMI?=
- =?us-ascii?Q?ipjU7S+o+AEpyJWZNsYYWJfBVuof3XRVGC3w0wYHJH5vuhTjyNUloT6uzE7G?=
- =?us-ascii?Q?a35PlxpqfT55CNRfDRm3o4jMz7njGJfqoE9uj1iA6k6LK94SqiSFRxK7o74a?=
- =?us-ascii?Q?CiForxKEmFp5YFYU17GpozQ2e1Cxn/zNg4wyDpvodv4/0u+svkZnV9Wkg7za?=
- =?us-ascii?Q?aa4sU8Y5chN/DuroYY5RR4v64dhvLTx4aw+5XH+5nfGfHFWx1LN0oVsGf5K3?=
- =?us-ascii?Q?59N8+z+eM5CY64kExZSxoaPQRiY9alxstgczgykbg/IhB47Y4oZyc0kwstIA?=
- =?us-ascii?Q?7ijbevBFR/na2mipRc5agQFyRootzM0qbKKG695xNEb3h76gvpnlxP8u0OIY?=
- =?us-ascii?Q?QLAZi98m8ETfTcJAAJcoMFemm+jrrzI=3D?=
-X-Exchange-RoutingPolicyChecked:
-	MLj/gXAHJjXxCghCej0UPa8i4d8GGdPO/EkOKa9VdfMYpgqKyuTIWJXTrWYlHinBcpznV53/ygI+8U+8t433poTG20jFonJTgFDVPqFV/eSB9A81Erpug38zHre3FTSwBnvOA2uP1hYPTI9dhJxei9vu2G2xg2b2IKfIxKKsBzstbxN6bxmrV1gq/JzvjNSWPnaBVyZ/vfzUnffSOWvFQMgwcwGE3IUagK6I7lL22GK3+U2HZrokC/FyK0/HOSkGeHF97ItnuK84iSXt3AknwcD7ukFExR+Jop53bjQOCyEecHCUqdCD/f/QGSExUiGPzQEyJ9PGd2Rk+Rjry+x+6w==
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	VEpwx90WgcKHeLGDye2OC42F7Mwe7TBlzMk6rYY+aOzrdKNH7pPl+G/HlXXNuqPjqMp2pERBa8RITMb77IZzhQYYEddm6ZuGP8Gosva5FGZJSR/jWQ25jj0yBE+6pMUZmIGTldrwPzJwoLpzlP2aRj6jidocmjo1hLXINgAX2eIsVETd5Q5Q+8+PhsSazZoRASjU1MCRwXDTCbTzltncNkEuCQ1wifVTdv+HZl27gFrIp/vDNSft3ax9vctrw6i6QEQZbVqH9z2gHPjzte8FlZQ0Ps8PNely3kiuqqndJp8/hBPCDGdwyVGKSrLPXblcja7kY8+/om0HfB4fLnOz+Shfsvd1VqdU452q/UaOhOzXE4HlFsTXHjZa93fddzV4vFBpFS/5L4b6YFkR5p5E9ApIzG9WZhVug2oc2ofZd6TgLMNZKcoOVfHGCDbwj3Ro2LSKm2ZY/O7q0K24xL+if9Lu9an+rw+8Z8BhrF9Z0OYXT+xNf3YZY336Crgq12qH+pur+/MYZF/qQvq7zR/rqGeaS2eV/gW1S/GYD2yBRegtKE35DfRubJES6/lsP2FhyEvcAekYTHax2lZsF6llPy7FO2yfshROiWDywS0zJZ0=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 23979d5b-ef51-457c-7e05-08decb475306
-X-MS-Exchange-CrossTenant-AuthSource: CH0PR10MB5338.namprd10.prod.outlook.com
+	=?utf-8?B?amVtMnpBWG9nMzBnYUJXZmdDZ3pBbE9ZQVI0S2pOdmovVU50VnRvWVFVOWRK?=
+ =?utf-8?B?NzQxU0Z4TXdMNmNPKzJ6eWRZZXBtaXlVZmFCbVJ6a3I5Ynd2a3BlbHRDQnFZ?=
+ =?utf-8?B?VTJIMUlSYlhiT2VVTTVnOE9ZcWRRNDNyR0YyODRDNkVNVExYdXcyUll6WUs2?=
+ =?utf-8?B?d3Y5TU1KUGNxOE9Jd2x6U05xMWxJM0cwYTR1SXpoSzJ0cDNRcitHTFF2MnZW?=
+ =?utf-8?B?dEZrekJOaytYV2REcUVDM3lrTXVHNUFtNUhVOTVSK0F5MjkySXIrNlMzWmI0?=
+ =?utf-8?B?cWsxMTlRaGh2OUQ1Tk9kb216aGtUV1JyRlN6cW1sRE5LMmROOWxYTURsWmgr?=
+ =?utf-8?B?UkR3NDFCMUYzZzhnaVYxd0h6ZFh3UVM3S2Z5OS90RHJRMjg5aDJaWWFVeTZ3?=
+ =?utf-8?B?ZDIvaXRJU3dvZkorMzBJbXpLOWtvaGVjaTZOaDZoQjBVamdjNUhrQ1ZNcnNo?=
+ =?utf-8?B?SUhzU0FHQU9MVGovUkd0MXBXMElDMHRiNEpMQWRJNUtERW9RNjNGVU02QzFh?=
+ =?utf-8?B?RUxtNjFFL1QvczVhRTgxZXVsQVlBM2F2YThaNUthVzhhRm9KdnRrakFjbkYz?=
+ =?utf-8?B?MnIyV2hEcC9WSCtwNytyc29UaUovemtXYm9TbkNQbWJTSElWamhpdDBQNUpG?=
+ =?utf-8?B?TUsvWHlCVjltSmJoeVFjYVhibVZiZGVEbHMyaHBYWWxFRXRpK3hhcTJsVjVP?=
+ =?utf-8?B?bk5MZ3JuRnZCNWpHYUpZQ0hsMTk2TEFIeXJaUUxLeGhNb3dvZTlPUmtGbmdT?=
+ =?utf-8?B?ckJhRkJwenpTcFUwMWJmZFR0bnk0RUNNTzliMzU1d05xcDE1MC9GMGlDd3Fi?=
+ =?utf-8?B?UlhpUldIams4OFU3alFPLzYvb3d3TWlBR0R5Wm92UlJlUWtuYUc4cEw4anE3?=
+ =?utf-8?B?L2xKWXZ1eEdYZzJKTlBabHI0WU14SndVWkY5T1N3SVo5RnlNeDRvd1R1bEMx?=
+ =?utf-8?B?RWtLNlBXeUQwaEJ2ZW1YdzlKTmZZMGw1NEcxUHNhMFY3OVJLak90eDZhZnRr?=
+ =?utf-8?B?N0xTTDhxZFB4VVA1MXBKc3B5b0xvZEdISWx0YzZ2WTRZYzZueFk3bmRUQ3Jj?=
+ =?utf-8?B?ZHRTQ2RKYk1Ua0ZrUEJyK3QrSDJpMjZ6Lzd0TTJWN2V6YS9ObUZPaTdGNzBv?=
+ =?utf-8?B?YWFYU2dVZExiYnV3aUpvNWZsUFV0WjR4aDlSL3FPV1JlUXZGTm1zY2xLcUx1?=
+ =?utf-8?B?cFBFWW5LVjU4MDIwMjFWZVJXcGNGUnk1U3VhckxzNnZkeE54NmlLN3J3L3NX?=
+ =?utf-8?B?Q2FXVjI1dDlFZ2hNZlFDVm81d09WdGs1UHlvZFc2S29nYlE3VW81Z204cXhk?=
+ =?utf-8?B?UHlVMjVuSGpjZUZGRGR6UzRJSVV4dmo4Mk5RT2JqMDB0bHRBeGwxaEMyRDVk?=
+ =?utf-8?B?NnZxejdMNnNyNHNjTHBYeW9wdGZXY0UyMTJ4QXFKN3hMSlM4QTRiRGhDZ2JV?=
+ =?utf-8?B?VGxKZ0NsM1VEZzI0a1FoNkJmMC9MQkZxbk90WmNwSUdZUUh5RjdETXBEMjFr?=
+ =?utf-8?B?M0E1Sk1Bb254UVViMncxU3VZWDQvWjRkNzg3SXMvS3hBZEZNNi9OSm82Skl1?=
+ =?utf-8?B?ZEFRb1pMUWVhSmRBL3VPUkFaYnM2K0Rxb0grV0txRTNpWlhKdEh3NlMzZ1A3?=
+ =?utf-8?B?MmtOZFQwUFk3UGp5SGtGbTUyb0FGQnRWcjhmZ01tNmZOVzNqMnFVc3pOT1dn?=
+ =?utf-8?B?WVdBdEFpbGo0ZmNzN21tVVpidVQyOExiN3c4U1JhVDFGVDc5cUZQTXIrSzA4?=
+ =?utf-8?B?QjU5blFNVWJidmY4d1MwZWxtaTBONzVkSC82NEJ5S1NsN1I1aVo2c1YrQTFH?=
+ =?utf-8?B?Sk9LUHR1NzN2N21nNTE0ZnhuU0JlSFNLVEpPRjZvcmxPbHhpRjRMb2hNcHBO?=
+ =?utf-8?B?VUJmdjNNM1ZmekdXbFdZaHQyNGlrMmpaNStMSTNUWThjUHo4dFdTUlU1VEtG?=
+ =?utf-8?B?TjFqOVhCZ3cxVGlxVEt1SndQS3ZFS21CQU50WVBtY2kwVkFsZUNlaXp0citE?=
+ =?utf-8?B?bmRsenpvdDZFNHNMOG1jTkNTMDZSb2Ziby9XZ2oycEFIQURlZ05QUGpxTThJ?=
+ =?utf-8?B?Ry8xMk9TVTFjSCttMzI3UzRuQ2xDNUc2TC9Vckk0bUZyL2lDYUtaVmZkVG1I?=
+ =?utf-8?B?YlplN01DbmxQRWppdGo5WXdQRERXazRNZFk1ZEdwS3pES0VwcXlvSlBMQ0J4?=
+ =?utf-8?B?Vk5DcDVYZzZpQUQ4dFN4WG9naWVmbkw4K1hxdVJlbVRST1EzOEVoaEUxLzg0?=
+ =?utf-8?B?MHZOWW5EbFRjOGl2REViZU0wWW9DTFVCQlJkeUNuQlFlbEk2ZEZrcHdYbFhv?=
+ =?utf-8?B?RWVvYXM2T2VBRUswRGFzV2ZTRk0vd3dVMmJLdUdDTytYTXNaRStjalVhYSt5?=
+ =?utf-8?Q?LQXyzzs7Ne/K1oLg=3D?=
+X-OriginatorOrg: gaisler.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3ba88f8a-e283-4376-38b5-08decbb2264a
+X-MS-Exchange-CrossTenant-AuthSource: GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jun 2026 01:33:53.0396
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jun 2026 14:18:34.1957
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: xxMo9XNs22b9lPz81jUvc1jb64YtuXcop9q6AmYFfdsnM9rtMqy8nZrPU6WK+M6+Hmw3yl2ZAA0lRHnRAY233chwOrqGVPBxiBPEEegeYvE=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR10MB7380
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
- definitions=2026-06-16_01,2026-06-15_04,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0
- phishscore=0 lowpriorityscore=0 mlxscore=0 malwarescore=0 spamscore=0
- suspectscore=0 adultscore=0 mlxlogscore=999 classifier=spam adjust=0
- reason=mlx scancount=1 engine=8.19.0-2606040000 definitions=main-2606160012
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNjE2MDAxMiBTYWx0ZWRfXxQwbJjnaaS1t
- okVrdoELLoRvCAI9fI4Rxl64kP4kR2wvfGdkwGYaTqWgDQBJVnoDtrqJqI+F8sxwcYZLBMaky9c
- wDjdl1JdFZ3MQTmI053b/LC9NyXPCW+lQ9Oq9kt5UqKvkexb+TTX
-X-Proofpoint-GUID: bOtL-ZSYJrDaZurQSfxY0D3GK9SUF2hl
-X-Proofpoint-ORIG-GUID: bOtL-ZSYJrDaZurQSfxY0D3GK9SUF2hl
-X-Authority-Analysis: v=2.4 cv=PazPQChd c=1 sm=1 tr=0 ts=6a30a806 cx=c_pps
- a=OOZaFjgC48PWsiFpTAqLcw==:117 a=OOZaFjgC48PWsiFpTAqLcw==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
- a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=xqWC_Br6kY4A:10 a=FelO9ux0wxsA:10
- a=GoEa3M9JfhUA:10 a=VkNPw1HP01LnGYTKEx00:22 a=jiCTI4zE5U7BLdzWsZGv:22
- a=x0eKOSpe3m1H3M0S9YoZ:22 a=Y04Z9SnEqkNsQ35l4CEA:9
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjE2MDAxMiBTYWx0ZWRfX6y4H/h2Psnlc
- 2RVRzSD4FaHm49kzvGj4bV1Px64LK9RDlSIm5YvrU2qWeNt9tke/rQDnXgtx48/rjp7jOn4/RWw
- PXXTur3gKj6yL2IMitqbnmFud28K3bfYHi36VCbHAd59Ej9Y1yO3rlvA/B4/c9p2P0FgO2o/W/5
- QZSFNC1hDOWDuwxRb0XcCo7vhfjyWU23rrMkZd3NnZzU4Kp3avsD149WKDffBz88bSlld1wUu4T
- IJLCkZYffg5Hr4UVyVKO4Aavn/rfkSePHapXIghYKxXGv4aagkk8VP7RVUZ/2LOKUJU1grrcHnO
- pq363GP6BlAeEJNCKAURiF4e4oAG+diROr4hzoVeHF/WDHKNSrMUejgyMZ8MBp/oSskKZUP7Cz7
- g2EgvQJANb/KqtRb/FkgDXUSlDekm0i/SQxr4hl2ueQk7lmhGvWV17x9GSS/sX34Re0wvIwWK6+
- eM6oM0WAyPRJ4IbkrrA==
+X-MS-Exchange-CrossTenant-UserPrincipalName: mEz0nX9ddHqderuO7ycAn6ap0NpmwA7kNqwTwOYe71yF6KYDkbuK2jurh63uFpXyVhxczM8bu5zbG/KYSATaKTMPKeA1memXlpMlqloztxo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVYP280MB1132
 
+On 2026-05-19 09:57, Tony Rodriguez wrote:
+> This patch restructures the thread‑stack sizing logic into a single
+> if / elif / else chain and introduces an explicit 32KB kernel stack
+> for SPARC64. The previous implementation relied on nested conditionals
+> and PAGE_SHIFT‑dependent behavior, which produced 8KB or 16KB stacks
+> depending on configuration. SPARC64 requires a larger,
+> architecture‑specific stack due to its trapframe size, register‑window
+> behavior, and deeper call paths.
+> 
+> A reproducible failure case occurs when usbcore is enabled: USB hub
+> enumeration (usb_new_device(), hub_port_connect(), PM/QoS helpers)
+> allocates large on‑stack structures and recurses through several
+> layers of device‑model code. Combined with SPARC64’s trapframe and
+> register‑window overhead, this reliably exhausts a 16KB stack and
+> results in early‑boot panics.  A 32KB stack eliminates these failures.
+> 
+> The new logic is:
+>     SPARC64:
+>         THREAD_SIZE = 4 * PAGE_SIZE (32KB)
+>         THREAD_SHIFT = PAGE_SHIFT + 2 (log₂(32KB))
+>         THREAD_SIZE_ORDER = 2 (4 contiguous pages)
 
-Catalin,
+Yes
 
-> Commit 1cea5180f2f8 ("block: remove pktcdvd driver") left behind an
-> export that is now dead code. Remove it and move the declaration of
-> scsi_device_from_queue() to drivers/scsi/scsi_priv.h.
+>     Non‑SPARC64 with PAGE_SHIFT == 13:
+>         Retains the existing 16KB stack behavior
+>     Fallback:
+>         Retains the existing 8KB stack behavior
 
-Applied to 7.2/scsi-staging, thanks!
+No, not to my understanding, see comments below.
 
--- 
-Martin K. Petersen
+> 
+> Signed-off-by: Tony Rodriguez <unixpro1970@gmail.com>
+> ---
+>  arch/sparc/include/asm/thread_info_64.h | 28 ++++++++++++-------------
+>  1 file changed, 14 insertions(+), 14 deletions(-)
+> 
+> diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
+> index c8a73dff27f8..6b12a2b66385 100644
+> --- a/arch/sparc/include/asm/thread_info_64.h
+> +++ b/arch/sparc/include/asm/thread_info_64.h
+> @@ -99,13 +99,20 @@ struct thread_info {
+>  #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
+>  #define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
+> 
+> -#if PAGE_SHIFT == 13
+> -#define THREAD_SIZE (2*PAGE_SIZE)
+> -#define THREAD_SHIFT (PAGE_SHIFT + 1)
+> -#else /* PAGE_SHIFT == 13 */
+> -#define THREAD_SIZE PAGE_SIZE
+> -#define THREAD_SHIFT PAGE_SHIFT
+> -#endif /* PAGE_SHIFT == 13 */
+> +/* thread information allocation */
+> +#ifdef CONFIG_SPARC64
+> +	#define THREAD_SIZE (4 * PAGE_SIZE)
+> +	#define THREAD_SHIFT (PAGE_SHIFT + 2)
+> +	#define THREAD_SIZE_ORDER 2
+
+As far as I can see, given that this header is included by
+
+#if defined(__sparc__) && defined(__arch64__)
+#include <asm/thread_info_64.h>
+#else
+#include <asm/thread_info_32.h>
+#endif
+
+the code above is the only code that will ever be compiled, while leaving...
+
+> +#elif PAGE_SHIFT == 13
+> +	#define THREAD_SIZE (2 * PAGE_SIZE)
+> +	#define THREAD_SHIFT (PAGE_SHIFT + 1)
+> +	#define THREAD_SIZE_ORDER 1
+> +#else
+> +	#define THREAD_SIZE PAGE_SIZE
+> +	#define THREAD_SHIFT PAGE_SHIFT
+> +	#define THREAD_SIZE_ORDER 0
+> +#endif
+
+...this code dead, where the else branch code already was dead (but then
+in two separate else braches).
+
+I'd rather see the else branch here and the else branch below cleaned up
+by a separate patch with a fixup tag for commit 15b9350a177b ("sparc64:
+Only support 4MB huge pages and 8KB base pages.") that as far as I can
+see should have removed the else branch. The else branches was to use
+only one page when the page size was _larger_ than 8 KiB when that was
+an option.
+
+> 
+>  /*
+>   * macros/functions for gaining access to the thread information structure
+> @@ -127,13 +134,6 @@ register struct thread_info *current_thread_info_reg asm("g6");
+>  extern struct thread_info *current_thread_info(void);
+>  #endif
+> 
+> -/* thread information allocation */
+> -#if PAGE_SHIFT == 13
+> -#define THREAD_SIZE_ORDER	1
+> -#else /* PAGE_SHIFT == 13 */
+> -#define THREAD_SIZE_ORDER	0
+> -#endif /* PAGE_SHIFT == 13 */
+> -
+>  #define __thread_flag_byte_ptr(ti)	\
+>  	((unsigned char *)(&((ti)->flags)))
+>  #define __cur_thread_flag_byte_ptr	__thread_flag_byte_ptr(current_thread_info())
+> --
+> 2.53.0
+> 
+
+Apart from the above I agree with David Laight that more investigation
+of the situation that leads to this problem would be good. Granted,
+sparc and sparc64 in particular is a bit special with its stack frames,
+but among other arches it seems to be uncommon with 32 KiB of thread
+stack unless KASAN is enabled.
+
+Cheers,
+Andreas
+
