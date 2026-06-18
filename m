@@ -1,110 +1,109 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.thinkmo.de (s3.thinkmo.de [162.55.237.202])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D3D3EB80D
-	for <sparclinux@vger.kernel.org>; Thu, 18 Jun 2026 10:32:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97E92343D75;
+	Thu, 18 Jun 2026 16:12:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.55.237.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781778756; cv=none; b=tXYbK8YugYGGtLf9bR3aTarmaSlSl+LGatsSWg9JYe+Du3pp27aw9mqa4fxZX0Y8kky2raKF9/4S7B3MAeq9nrV0SaswUZpQVyzsx4PrH6N9XzVwG4L/rqUOYePdekTrX3MvYVGM7FUKc22rYrCN7t/q4WD8+R4tQQRRX7Q+Rcs=
+	t=1781799176; cv=none; b=pSlc94pDftIh2DgnsETMekMlzgWuSw8zLEcYuOPa5bcZjii9V1iV9z5opzpXvu0vHdR2/hw8//T4Ts5nrwHnP9EQDeKF/ilXFiOmn7l3zQ0f5c5h/MZAk34Nkj62arzhNabfrl+w5TXmVhOF/yRwazjYT7FQfR4Cr1G0hhBbuXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781778756; c=relaxed/simple;
-	bh=vwsitVN7ozdKpgBSF4h9WVQoKxMhPysr7paPs2RYr+E=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jQ6jJ9m1weh3wjjM8LNgdR+pm/9c659Mk4tM7zLo9N25kXh/gy0kKNnchxDoFrXhkGOMLjxbTtuW4JtvmMj/EM+TrRkoaVxOMJAGKn5HfSCuhm7c2Qeaf9V6e1fnChIOIsmHONpo+JyqByqU8dZEXhXoeAZ90J4AZiS7PLVtUlM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h+DDYPXd; arc=none smtp.client-ip=209.85.128.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1781799176; c=relaxed/simple;
+	bh=PJgPpwJ8RhmzTcUzdpmAVjXMWbWyBAG7PflHkzhwRYE=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=rkQviTFo9/J1gYC+OTTkAatI/C4DfV3zwhEtoOBXpzo8JEs4oeOPKYn0JmrFbNIB4lusTYPMOXhu0R1WE1V2dxz+w4isgt/sih8OfeQT4GRLo2p13Qedo3xwISW8bzKNhCAxdQ55kWM5+84Bh/cbAKnisSy6sBPf/6UXdeKBfs0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=fail smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=YtmX/J7o; arc=none smtp.client-ip=162.55.237.202
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h+DDYPXd"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-490ace40f4bso7637795e9.3
-        for <sparclinux@vger.kernel.org>; Thu, 18 Jun 2026 03:32:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1781778752; x=1782383552; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=inqN7YwVEl5wZ+Codcae/bocVL29CD4f5KlLdUvEZRU=;
-        b=h+DDYPXdELq4WUnUUb6ifz6APZOpo8FXcIml8fZ9HUcx9JY3BXSqKNSCN4kfnmGMPG
-         S2Z+sPI3OukOFOqXO/E7Jb00lBG3BJmOJJnnRo/ML1KstJ4Msnh+LN6l1CdyG4OGxlAR
-         kMbog3ALjm5/uD8vjQhcrxEkuG3RmiUcckafjcjG+K76RbXpeh0cHaJ/6xXUHFs2tWIg
-         +U0o7JAOvUTKMTEmmygbAOtJ5uHgMeiyjVvwUdphLBefn/ZT/c/hKtRsoslbP/VkG5E7
-         KuQ6v9yEz3+o+9RpqiOlIbTq3aCG7NQ/u49WNeTVIc7ZQBfkk8KufC/V56nIB00i2Inc
-         IqYA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781778752; x=1782383552;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=inqN7YwVEl5wZ+Codcae/bocVL29CD4f5KlLdUvEZRU=;
-        b=JK/8pdYSmnViioeOoC0tvyWDKOP+GIOf+HjQNjSZKK4I4LeQFDPqz1lYwp/edzSKdv
-         rKBW0zTu4veG5rAwmKA/9clXfUXz5nU1ZLzjcnEJnJfDwsr+DkkzLgjO+1WD1jvDP+mx
-         9WCCtTqJODF7zBZX0LItzdy3dQhBVHO5NIIngBpmwP4WfgnwaHBAl4B6+4Y5imkoEpoz
-         ta29dJNwaoFvgyQ1Ew/RqerJvOuFLlYjnSiz8CUGqudrRiEqzgZv4BUOb8wRIdDgRpqx
-         JQrXSrdhvGJ6hjVKxDjsdxHDi05Yl+Vuh7A2zPKuymgHRJqhdyAqxXlkf6JOZ9uBY1k6
-         wHiw==
-X-Forwarded-Encrypted: i=1; AFNElJ8iSeX9wUhyGPi6cCvvBTHfLowEPhqzPxJC30bQaoV/Xt7BukBO4UfzDf1lRm9CO8ZHCif/WYtBVbXK@vger.kernel.org
-X-Gm-Message-State: AOJu0YwRFt4x7AjzzgYJg72x1dUGJzF5LFNtBBjMc79JPM7fbc1yNgLJ
-	2BQ6y5fVfwkgX0r8mwLhVLxTZnk18ydFphfs0lpf0XnhW7STPPBkX3Ur
-X-Gm-Gg: AfdE7cnxJtCWRhKW4zlzr3KFlZ+IOoAPfrczLnI1ttGCdaTtw0AsRfITyMN0VXJuK7K
-	iaIx4w8ckZTCGg1E24N0yk6o4lxRyXZnhRPw0t2MllDnjqPL29hIKFR3iurGio+K9gaNcoPWGIx
-	jr7/A/hQu6DhRr94lBDWlEjVv+0Ra6AEllCCbLZGbcuYxSRCq1zLTyGeBGL8+b4Zl9cIvpKN769
-	zzZJ18zPSqb0urt47X0jfqIPsC3LN1srtmNzu7mqiPF3tsxTgvTOA4sMs/Wm4dqpCvbDcqzCKwl
-	kt//Y14U0jA8OfYs3uO6UUPakTgtKTf3ejWnoj1fs5MNnrQ16RSv6aOxcqVuyBkQ2108dMqdYy1
-	x0UTtx0ddv4iXJIySqimcQcZU1qegjrBJKgyq0DvSZ1lKZmY0+Aq4q6SZIcsO7VHAw+kdQYHPYt
-	bnjklszaoQkXHRELtdBDy3ihsoq2YPHSN376PswAL1/MLRpp+ciluao5ui40yW
-X-Received: by 2002:a05:600c:e547:20b0:490:3c15:7146 with SMTP id 5b1f17b1804b1-49238226380mr33567315e9.19.1781778751719;
-        Thu, 18 Jun 2026 03:32:31 -0700 (PDT)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4922fa3a4easm266778845e9.3.2026.06.18.03.32.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Jun 2026 03:32:31 -0700 (PDT)
-Date: Thu, 18 Jun 2026 11:32:29 +0100
-From: David Laight <david.laight.linux@gmail.com>
-To: Andreas Larsson <andreas@gaisler.com>
-Cc: Andreas Larsson <andreas.larsson@gaisler.com>, Tony Rodriguez
- <unixpro1970@gmail.com>, davem@davemloft.net, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org, thuth@redhat.com,
- regressions@lists.linux.dev, glaubitz@physik.fu-berlin.de
-Subject: Re: [PATCH 1/1] sparc64: unify thread stack sizing and add explicit
- 32KB stack
-Message-ID: <20260618113229.7f1e51b3@pumpkin>
-In-Reply-To: <d634e2f2-daf0-4328-bf16-7f5bff6fe851@gaisler.com>
-References: <20260519075809.8993-1-unixpro1970@gmail.com>
-	<20260519075809.8993-2-unixpro1970@gmail.com>
-	<03111ac5-0055-425f-a7f2-54d4f2bb4988@gaisler.com>
-	<20260616205851.428ca70c@pumpkin>
-	<d634e2f2-daf0-4328-bf16-7f5bff6fe851@gaisler.com>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="YtmX/J7o"
+Received: from localhost (localhost [127.0.0.1])
+	by mail.thinkmo.de (Postfix) with ESMTP id 4gh5Nh6hzkz10BB;
+	Thu, 18 Jun 2026 16:12:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=debian.org; h=
+	content-disposition:content-type:content-type:mime-version
+	:message-id:subject:subject:from:from:date:date:received
+	:received; s=mail202007.waldi.user; t=1781799172; bh=/knFi6cXS3E
+	4FCwMwrW3cLzetoO+AAwxBXtNd8xlssU=; b=YtmX/J7onvnU5Razu9S7faXP//H
+	lvNedVfsvyN921gHaSn2cvWPt41cZdU21yxTbY/7K0KKX+z2qsNvXg9WXDROKDHI
+	BcMARXdPE3JqyeZ7PZTu/9m5SAzZKkuG4+UU2BC5k4rLpJpeyHhlw9dWfGx3JCOz
+	NlWpgqIOkOIdbGbtoqwwKKRUkI6MEq9/19zkHv9Cp/gT+k8YJUjaWLxjbX7u8j7e
+	Ws3S+qNbCi5syFJGPVCyiAx1uDi+mpIwqDhbi+56AS7kdjCMfIPH5FqhxiQtpIWY
+	ajG2YqTAN5s5piWjpPxeNLgLrIvyx7CYAQ3HV8Wa38IZEz08CVONeivqIqg==
+X-Virus-Scanned: Debian amavis at 
+Received: from mail.thinkmo.de ([127.0.0.1])
+ by localhost (mail.thinkmo.de [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id A2uw52EC26lq; Thu, 18 Jun 2026 16:12:52 +0000 (UTC)
+Received: from steamhammer.waldi.eu.org (unknown [IPv6:2a02:8071:5af1:6518:ad11:fa76:980a:620e])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (secp384r1) server-digest SHA384)
+	(No client certificate requested)
+	by mail.thinkmo.de (Postfix) with ESMTPSA id 4gh5Nh5PRqzyqB;
+	Thu, 18 Jun 2026 16:12:52 +0000 (UTC)
+Date: Thu, 18 Jun 2026 18:12:51 +0200
+From: Bastian Blank <waldi@debian.org>
+To: "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] sparc: Add build salt to the vDSO
+Message-ID: <ajQZA3HSaOxvDHy1@steamhammer.waldi.eu.org>
+Mail-Followup-To: Bastian Blank <waldi@debian.org>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-On Thu, 18 Jun 2026 07:53:02 +0200
-Andreas Larsson <andreas@gaisler.com> wrote:
+The vDSO needs to have a unique build id in a similar manner
+to the kernel and modules. Use the build salt macro.
 
-> On 2026-06-16 21:58, David Laight wrote:
-...
-> > That whole logic is impenetrable.
-> > Why not set the 'desired thread size' in kB, then work out how many
-> > pages that ends up being based on the page size, and finally get the actual
-> > stack size.
-> > I'm not sure, but with vmalloc()ed stacks and 8k pages can't you have 24kB?  
-> 
-> No, the next step up is 32 KiB as the stack allocation is sized by
-> THREAD_SIZE_ORDER.
+Signed-off-by: Bastian Blank <waldi@debian.org>
+---
+I was not able to properly test this change, due to unavailable
+toolchain.
 
-Maybe, but there is probably no reason why that has to be the case.
-I'm sure I've seem other architectures increasing the stack size by 4k.
+ arch/sparc/vdso/vdso-note.S        | 3 +++
+ arch/sparc/vdso/vdso32/vdso-note.S | 3 +++
+ 2 files changed, 6 insertions(+)
 
-	David
-
-> 
-> Cheers,
-> Andreas
-> 
-
+diff --git a/arch/sparc/vdso/vdso-note.S b/arch/sparc/vdso/vdso-note.S
+index 79a071e4357e..79423170118f 100644
+--- a/arch/sparc/vdso/vdso-note.S
++++ b/arch/sparc/vdso/vdso-note.S
+@@ -3,6 +3,7 @@
+  * Here we can supply some information useful to userland.
+  */
+ 
++#include <linux/build-salt.h>
+ #include <linux/uts.h>
+ #include <linux/version.h>
+ #include <linux/elfnote.h>
+@@ -10,3 +11,5 @@
+ ELFNOTE_START(Linux, 0, "a")
+ 	.long LINUX_VERSION_CODE
+ ELFNOTE_END
++
++BUILD_SALT
+diff --git a/arch/sparc/vdso/vdso32/vdso-note.S b/arch/sparc/vdso/vdso32/vdso-note.S
+index e234983cf0d8..ac0ac0d13e4f 100644
+--- a/arch/sparc/vdso/vdso32/vdso-note.S
++++ b/arch/sparc/vdso/vdso32/vdso-note.S
+@@ -3,6 +3,7 @@
+  * text. Here we can supply some information useful to userland.
+  */
+ 
++#include <linux/build-salt.h>
+ #include <linux/uts.h>
+ #include <linux/version.h>
+ #include <linux/elfnote.h>
+@@ -10,3 +11,5 @@
+ ELFNOTE_START(Linux, 0, "a")
+ 	.long	LINUX_VERSION_CODE
+ ELFNOTE_END
++
++BUILD_SALT
+-- 
+2.53.0
