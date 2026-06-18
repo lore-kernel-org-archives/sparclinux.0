@@ -1,241 +1,245 @@
-Received: from GV3P280CU013.outbound.protection.outlook.com (mail-swedencentralazon11020081.outbound.protection.outlook.com [52.101.75.81])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D421F30BB;
-	Thu, 18 Jun 2026 05:53:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.75.81
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781761992; cv=fail; b=OoAt+Ku8e28QhBQgTHhRLO24E9TMVNQcs7D4Hd/YzNAxLv1PZ+CReASIq4YkeceLq9ysEUGZS70HbLsrqm0rhjJvFLyAZqvHGdB5clOZlJ04AD1aTYN5EMiW1q4haCfLGaKptBmM+Sm7dsz7etzSENSuZuM9aNVqsUwNRNC8csg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781761992; c=relaxed/simple;
-	bh=YRgYwQFF/+TmaTB5QUEw4ckivpDhzWDdkqQ5Ic+SUXs=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=FVtVpGmEc42gLiTt6ONVYWe27Z7uJlHDf0sxZHvU1EdM1U9A9QLrNpwPPIt31d/POVY+8hY76/75ia2jtq71uL8DWFhtzEi4Ga6PCqGVdQ5ZiqP/i3hmMxLTFWjBVtN05BtDOlbOi1lc5OW+XPgGVuTgOssutcugmcIh6au4YD8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=VgLyQyQi; arc=fail smtp.client-ip=52.101.75.81
-Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 058793CB2FD
+	for <sparclinux@vger.kernel.org>; Thu, 18 Jun 2026 07:30:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.170
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781767806; cv=none; b=dA3/coiNKKJnJCxKhRpk3eLKSRlEo0hcIhlUy+nApuTe1T2ViGP0f2Sr4T79eQwODCXyUrMdnTcnkr1iBxKxfo2OMlSjVoBd+DhtAwQkUmOiK2AUNKE/dT5+GKWwcOZUQtAsZrtVinpSM0r2B/il4TIiE1fN8ofVST4y+40kU7Y=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781767806; c=relaxed/simple;
+	bh=JEnKD1wFAoz9j9E5jUkwUH3p254IwBGXQXfzzoIk2VM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lHSiMJSMfuT3YT4Uyp6mjSVlFCotUeS38wlIybIwHfOjug/J/bPPLuEwyxriUZwEW6Q8+K6DHbAqXyh1nkf04HwWGa59uS2qWrogHWqbanez80cMN96PdFpaCl1Tuzm2N9Ump6N+MdhEwLXBZf737rsvuE+6zBZXIzJGPbri350=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NIxRQhiN; arc=none smtp.client-ip=74.125.82.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="VgLyQyQi"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Uva+FmGUkGSnEeZTvKIn/QjZBnCnpcWiMSOVkqpJ7ODiFnKONAD+J4ieqnSw+NXjOd9TyezdYk98JZnxr+eR5SVF9XrOsEhneU5xE6ZtIFDsrW2DH00LWgQ3Kn2IwQLgg6a0gO3VzCdzdVE1RNn1Xpa/iZJVp5QeTrqoiojMn+arzxu1CJy6/sMkgdj7tS+KfuWmLTAF9yKzxBMHSwJJW830HCi5bVmcoggmmHpr3tVN0ibHBDXgtBVoSo55yiNgnAs/uHLfd0WRdEeyoU5wyGqK+H33zuweDb4Pe6WliUwwts55fXGIg+wCtDT0rBm1hXZ9DKkGe9jJ9O6k2cFoew==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=lnBDNH/xxIRicVJO2jx3URmKg1AbvQFoMohQvwQrVYo=;
- b=kcQ7mWTFVd1ziHzuHK/qAeqqFayHM3+4OAFMZWiFKLsCBLf59EcUUuQEb8U3qH5pp36eclTijpiYo6e4eT7vXvoAekWNrfJAmqVDYyaSNp110HDQ5m9GvXoqh1McSLzMwX+deF3JF+rrGWYkeVyjTVichh7Zk3pukTRhR4hH0Pdew4ELGiKjYXoZOckPEMQ2+gqLfnmooTTZb6NVNGk9oZgz1AGMy+hEdsvJbRFRyYeuEFuEG+SKQN3NvgczuGH5IDsQViy2h4+t3uyEhozZD7MGORGVyfj6drEfmUrVLfHhMWwUc+9NQRfJM+MvzzPMZGZVur1QeKsTOpmI5zUOgQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
- dkim=pass header.d=gaisler.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=lnBDNH/xxIRicVJO2jx3URmKg1AbvQFoMohQvwQrVYo=;
- b=VgLyQyQiQ011rb5Qt9x41VAwWFt+AM3oHtamOfHjsrRYphRtQZ0Dj8CD9yYxwJSVWlNUff19aN3RdHhwtwMEO+p6xuJo74UwKWuWi+TwriZup+7sHYDzKh8f2+39z9Y7mltS8K6JKT3pcAxrYd//3YhBNl6hjHD4pa1CHtGluPfKhqkNlfCMbQaKPVrGgGzkcrP4FUGf16q9DwhLPcJjrpsT3ItRCWGUUmJcOJWA1dhj0GZcjKARir+sfRhQp+jWQJG5laJ3SCPOmoTI/R9LUUpXKBR5DI0wUYr/VN7Mao1cUidxDMAm8SVk3e5cVGHd1NHD+CHYGX/7NwZDiCLSCA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=gaisler.com;
-Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:195::18)
- by GVZP280MB1657.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:234::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.139.14; Thu, 18 Jun
- 2026 05:53:03 +0000
-Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
- ([fe80::be76:7636:f4ac:6773]) by GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
- ([fe80::be76:7636:f4ac:6773%6]) with mapi id 15.21.0139.009; Thu, 18 Jun 2026
- 05:53:03 +0000
-Message-ID: <d634e2f2-daf0-4328-bf16-7f5bff6fe851@gaisler.com>
-Date: Thu, 18 Jun 2026 07:53:02 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/1] sparc64: unify thread stack sizing and add explicit
- 32KB stack
-To: David Laight <david.laight.linux@gmail.com>,
- Andreas Larsson <andreas.larsson@gaisler.com>
-Cc: Tony Rodriguez <unixpro1970@gmail.com>, davem@davemloft.net,
- sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, thuth@redhat.com,
- regressions@lists.linux.dev, glaubitz@physik.fu-berlin.de
-References: <20260519075809.8993-1-unixpro1970@gmail.com>
- <20260519075809.8993-2-unixpro1970@gmail.com>
- <03111ac5-0055-425f-a7f2-54d4f2bb4988@gaisler.com>
- <20260616205851.428ca70c@pumpkin>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20260616205851.428ca70c@pumpkin>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: GVZP280CA0096.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:150:275::14) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:150:195::18)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NIxRQhiN"
+Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-30bf854d5feso397150eec.0
+        for <sparclinux@vger.kernel.org>; Thu, 18 Jun 2026 00:30:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781767803; x=1782372603; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=VKjXhnSsBnhZ4F08z0E4PlAmKDbxADWEf7nB5X3WBlw=;
+        b=NIxRQhiNKCI+p/FhCWgxGH6DmZ/B0c/rS3b0UYLul48ol5L53JFmcgz2nvJHkv0qSC
+         vGxqZrqk76dcfBJKnlqzj/rPyxjw0DHYJuN54LtFJCSPj7goGSyVYmc8pQ2xchmP98/A
+         cd9z5v4vzxhAGKEprTkhIO8JGPmOVgihR4CXcEl7/85OxcMXeqcsKHKznpulQmaePleu
+         mqraatjsgxWcesPAKbsQ2gHGACWtVPux1IXTszA4LBopqSWMHQ2pVAVx33iTVB9ocgrA
+         27oG1+8cwKz5UsWW0YG+2JaVFKL/dXXx9AfWbg5O9PJGEEoeLyjlK1FvyIfTRhWE9VmP
+         YXOw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781767803; x=1782372603;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=VKjXhnSsBnhZ4F08z0E4PlAmKDbxADWEf7nB5X3WBlw=;
+        b=mAwKneEJhDLELWluvh7fX5Opa89eIRAknMAsyFWisZaeEkwbHn+mdNX/y7RfCb4FrT
+         Mfm5En8llNgoifQjdSwAESFbJVZuiOXh67ofBBaVOGVGHCQTiLVWp4S8ZgN1JCo1hilx
+         /rzGZs0tg3fap2wJANbgn/WlV9lZJ8psAbiJ8tepIjbb2UPXNtLb2UZsPSsHVedlnr3U
+         6PRZ9PhumDS2SSVse4vtRCR5sWmvuJAgBkUtdzGaGI5P/UqlGB1uqff3tzpB9nAGmUrr
+         xmSJnKrubCvjr354uQy7w/g1zLT4mD0HsR0o/lj8FHG9kzFPHTmLVhyB1FbaIZnz3YW3
+         2i1Q==
+X-Forwarded-Encrypted: i=1; AFNElJ9+Tm5XGnCXKweB3HbmYwQcS7hrc0gvSByFjKdUjmXs97Mvo3BzIxGd/7oYdwrElmwAzhbPVGwydzEY@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx1ETuYTQE6X9K9Vb2kkCyw52BHk/s23e+kaSSSVahYCMJ+0vMA
+	WxWe21ulbXAetD2ck4RiTHpdj+ojDo3YvZwgg5SBDPWlouOXGhzvq0Lc
+X-Gm-Gg: AfdE7ckM3RI8vAsFQ8fLtHlTkQYqHnTkw/SVxMNbFipAuvWxMBmtN2kybyFViESXy2z
+	abjhkHpuGU2kvFUwjh6AF4lQtTNDKa7g1A9f9HOA4DH1adf/4/VsVt7gF4vNU3fPuwOLUDxc+CX
+	uylXzEYQ55WoWi16bpcR36TCavMwXvVgR6kpHzieHyBmRIBdREFvgJK9ssOd0JiS7vBAcNKMUqU
+	aJAED1/8kVbUacAsDvzc0GL1lpQVVI969bHuR8zmb0p4mvnAgCOYSCwrOHRoeIR7jIxc6TBdqLX
+	tHDOvsG3YBk1T1ts0iP5D3v0mFOFGlniwliqknHactFNlnu3iks+C7La8S9WnG2yOnaDGpx4EgH
+	p1EqnvXNMo0lpDAeSWsOH/FmrrOkbWL0ZwoBKRh6Eh2GA7OGMcq8YvmGKHr0r7YX56cu5NbWFRw
+	zgEY5lE58x45sD9HGY
+X-Received: by 2002:a05:7300:e68b:b0:30b:e540:4260 with SMTP id 5a478bee46e88-30bf0948038mr1654274eec.19.1781767802774;
+        Thu, 18 Jun 2026 00:30:02 -0700 (PDT)
+Received: from [192.168.21.192] ([24.18.106.4])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30bcbb684absm5195050eec.1.2026.06.18.00.30.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 18 Jun 2026 00:30:02 -0700 (PDT)
+Message-ID: <d58e1648-65b9-479e-97f4-1bbe4cf44799@gmail.com>
+Date: Thu, 18 Jun 2026 00:29:59 -0700
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: GVYP280MB1290:EE_|GVZP280MB1657:EE_
-X-MS-Office365-Filtering-Correlation-Id: c58da915-7d3a-4420-6ec0-08deccfddc80
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|23010399003|366016|4143699003|56012099006|6133799003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	eICLzA+DxrkUJ20y4t/IJZ5uQ1Bo87WHhiGlrYVxCNl2zZZsw7egleDMyuc3ZYAslCCFQkkkEyJZ0XcEZYWXXmFaHPLS36MB1Yc8oNOKNZxMGbw4E6YEFv3j7p1ibFhwKbilpXkVx1Bqh+S+J+vG9G9E5wRkqVUmwIBvvio6aUgdQuWAgf3uIq82Nd+1aGdv3b8aOkRJ+4XXASWvxWSVUNaXfaAD+2BlQHT/K3aDQrnOGCHtnOe1l79bA8S4PMSate8zMYFllvdJeD/ffS1L1sfM73GQ3a7J4wD6y50lS79Jm7htIPh5mgeptkPFVhN3kWFaCoFRYM7ZwFP8HonpgO6IaLPuvOkh+dq4GBzCGRh5y2o13dzgtk60TPBB46sc52zG+4mwsAXvckM03DUg3PCFYCEEVXlO5ZtaUDpQruQfJB6rX0RDEAcs9AUazayWtTuArpjtxWImo+/DffwhrHwpuIlPAIQR0ZvptqVRjVD4ibPp46x/J6PcL0d1U6kbJoYznWreHy7pyRPOSDbRA54MW5rTgeaGEwnFt8cMII2fjUqkNzpDBNgx8yGWlHzcFav2v3yDwcA33t5JeoA6DwbkqtahEk2oxPjTXNpJE3zJNazkW/85PigklLlPUC8uNRDzvstBQp+MjFBSjSfWC0C5HoGqtgEDiMS9EIPH3pLA55dwuz+G20ZHdS7h/WrN
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(23010399003)(366016)(4143699003)(56012099006)(6133799003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?QUdrN3NJYW9ITWdsQnBXaVRwWFJud0YrOWt0Sk9jM21nclIrTXU3aFBQNG9h?=
- =?utf-8?B?WmRGNUswOU94dGlOZmxyaEdqY0thS21GUElrMGFpV3kvbkNLUkpXSjZMRklI?=
- =?utf-8?B?MEZ6b1VGcCtld1R3MDhLUEUwcFozVDJRMzY5RVkyVlRiQi9pQTArWGZNa0VE?=
- =?utf-8?B?dTB4VE50R1BQem5mWWo1bk9tcHNSYVlmcm1zeUNmQm1KdkJXaTF1WEVLZFp6?=
- =?utf-8?B?WVBUQm9RL1E1bG0reHlDYlJlVEZLTGFpL1FhL0haRnptdDlrUHQ5d2FHbWha?=
- =?utf-8?B?NXcrMzNvd0wwYUpndG94MzZNYnBPVVFBMWJ3V0xlTEplOEMxL2wrbHFMVlFR?=
- =?utf-8?B?ZElMYWpWazBQUnFWSHV1dUpiNWdHSUZBM2FMU1JrdGVmTHYvelVpWG9XZG5v?=
- =?utf-8?B?dGkvQnJLcjdSd3JxcTR4MU4wdEhvc2RmdXVvSUgyakNjNEM2b1JCaGdqTFlP?=
- =?utf-8?B?OGhsMVNzQ3BiRnZHSDArV0RVVTFWRkdpeXJKckJCNFYwYUJhVXo3cWMvNmho?=
- =?utf-8?B?QjB2TDZlNTRBdTlCN1lWYk80NTMxUHliaWNPVnBWVE5iamZaeVh1ZE44SE1r?=
- =?utf-8?B?NjZMWFU3NjhWQUgyU0tKdGRkcWRjdjVZYnJwUVhLcEFHZ0g3Q3BucHIrYmJw?=
- =?utf-8?B?NEQyTDR4UUVRbEpaVGM2WWZ0aEdQWHBuemFtUXVrZ3NLZTl6NzJQN0NBa2E1?=
- =?utf-8?B?UXNJc0NETGloU3lBazRWL01uN0k2Z1VjNCtQWXNIOGVnck1UMW1vVzhHaEVT?=
- =?utf-8?B?WnY4ZHh1SE0zV3VUaDAyU3lrWTVGZFRxNEswdjMxS2RYN1Z1b29rSGt2a2kz?=
- =?utf-8?B?M1VNbmhDUHZYcWtIaXkrWkRucXY4Z1UyWmtNMHB3M1V1b0lXNkJVQWtDUWpP?=
- =?utf-8?B?QUFtcHVkZ0wvQVVmWHdjdVQ5cGJWNUFBMGd4UEo1SkJscVVLaU1GZmM3VTFS?=
- =?utf-8?B?dUd2ajFUY0NDL3VwMG1MWXcwQmJGUnNaQXQwSm9vaTI0QjUxUjFHblVKaUh3?=
- =?utf-8?B?cjdDUlFiVUgyUHBJL1l5eTBxcWRlbFo1KzhMUzBBNXhmNU83MlFYeEpEcW9D?=
- =?utf-8?B?bnpOaE8vTGtCYW5PSzh3R0tCaHRsNkF5NUdDbGZLSXMrUHN4M0dsUm5hL3p0?=
- =?utf-8?B?eDJGMml0U0RkU0RkNzBQeVhmOUdkbzBERm5zVUFLdHR0Q0dEZHVvbmFjMU1J?=
- =?utf-8?B?NDlMK2RyaUR1TWU2UW1KSy80TS9sSVpUVDNPOWV2RnAyRUM5TFQ3SFFWMzdJ?=
- =?utf-8?B?MWszUllZS0V2MlRsOVBNd2NJbHE1K2ExWnhaTlRwVmlkM3ROeVBMWUFjVEhW?=
- =?utf-8?B?UzVWRFFzbHphclIyaVlBU1o5RzJ2eUVlQXZHQ3Y0VTFDd0E2bVVRMG1EQW5s?=
- =?utf-8?B?ZTlQV0pQL2psWFordHdDaTBFeVIyVFhUQ0hhalYzbVdYQ05tNGhZNXpLOEZv?=
- =?utf-8?B?T25iaStodkl0YUlDYnduNWtQcUQ3bWlnUFEvbW5tdUNWTTVtYVZET244c3Fa?=
- =?utf-8?B?T3BCZTZmZ2k4SkdhVTI1RkRlZjJvdFBRNngxajBIZ1E2L0R2dmNOWWludEdK?=
- =?utf-8?B?YllLRlFWQlduVHY5dW5pSTh6RHJGL3BMRE5zcGd2Q0RTcXVGOUVRQXhaMzBX?=
- =?utf-8?B?cm1xeG0ra0ZadDRJdnBlZjIvbWlqOEUzaUxZUWN1dWxJQVZJNHc1OG40RWR0?=
- =?utf-8?B?UDRUenJsMmRWWXRXMTZMdi9Ld21paXBHOXJYcXUyM2p6RkZ4RWkrREZ3cVZF?=
- =?utf-8?B?c2s1b2VKNTQ3dzhaMjBpeURmNXd1OFlrVHJFcW5xWDVFSGxRZ0w0RGdhMWNr?=
- =?utf-8?B?bHF1ZGxlV3YyUlhsbGp4ZUFRd2ZDNkozVnkzbkZsOGdqZEtpYkY0OTNRZjcw?=
- =?utf-8?B?d0JaN1RHRExnRzNTL3ZtYXRqdUJPazl2aDF2MHVzT01YT2tlRnU0Q0J6SW5z?=
- =?utf-8?B?djlQVUtTd2ZEbDA3Q3B5a0RBSnM3OUNHQUdWWVBOWVk0ZHVnYnlaZ2dlc09z?=
- =?utf-8?B?c1MrMkNEQnpzRkFMOUd3OTlBR1JSV01NZ0xYR0tJNjZGVnZVYTFFL0ZJKzM4?=
- =?utf-8?B?TXhJOUlRUkJqSDdYakdxcFJBM1IyMkx4ZVZSRXFoSS9vcEpxM29pNmNKQ0Vx?=
- =?utf-8?B?YnRwRWd5WHVzN0pjTHhtNE9iNnhMNk1BMlVKUGh4WjlFTW1ncWlXOHhyZzRI?=
- =?utf-8?B?Y3doTTBNUFpuZU5RZWlGclUxeEhVZU1VdHNRWnFNYVplWHlLR2pMaHRhZFNW?=
- =?utf-8?B?R05yNVBsYjk1WjExZDBZU3dqdG5EUm9HeXVZSkt3NTVCT3RkQ1c2NkxVQzVX?=
- =?utf-8?B?NWhmQzNsZTdlaUhmSlhmVGR4YVNnbDFhV29CSTdPZXZXL2JtWEp6cVIyOGVz?=
- =?utf-8?Q?iuWFl5xQt4GGYmoE=3D?=
-X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c58da915-7d3a-4420-6ec0-08deccfddc80
-X-MS-Exchange-CrossTenant-AuthSource: GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Jun 2026 05:53:03.2667
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: x6Y9EDbyHIzTKCxBVADW6/Kn+X6DiAjVHsSVzAv2ZSgChYXpwXyVluiddmfAHrga4qMRH3s6AoH/3xNh5yd4LGQcvuYctLXiWVL+jRtO8VU=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVZP280MB1657
+User-Agent: Betterbird (Linux)
+Subject: Re: [PATCH 1/1] sparc64: unify thread stack sizing and add explicit
+ 32KB stack
+Content-Language: en-US
+To: Andreas Larsson <andreas@gaisler.com>,
+ David Laight <david.laight.linux@gmail.com>,
+ Andreas Larsson <andreas.larsson@gaisler.com>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org,
+ linux-kernel@vger.kernel.org, thuth@redhat.com, regressions@lists.linux.dev,
+ glaubitz@physik.fu-berlin.de
+References: <20260519075809.8993-1-unixpro1970@gmail.com>
+ <20260519075809.8993-2-unixpro1970@gmail.com>
+ <03111ac5-0055-425f-a7f2-54d4f2bb4988@gaisler.com>
+ <20260616205851.428ca70c@pumpkin>
+ <d634e2f2-daf0-4328-bf16-7f5bff6fe851@gaisler.com>
+From: Tony Rodriguez <unixpro1970@gmail.com>
+In-Reply-To: <d634e2f2-daf0-4328-bf16-7f5bff6fe851@gaisler.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On 2026-06-16 21:58, David Laight wrote:
-> On Tue, 16 Jun 2026 16:18:33 +0200
-> Andreas Larsson <andreas.larsson@gaisler.com> wrote:
-> 
->> On 2026-05-19 09:57, Tony Rodriguez wrote:
->>> This patch restructures the thread‑stack sizing logic into a single
->>> if / elif / else chain and introduces an explicit 32KB kernel stack
->>> for SPARC64. The previous implementation relied on nested conditionals
->>> and PAGE_SHIFT‑dependent behavior, which produced 8KB or 16KB stacks
->>> depending on configuration. SPARC64 requires a larger,
->>> architecture‑specific stack due to its trapframe size, register‑window
->>> behavior, and deeper call paths.
->>>
->>> A reproducible failure case occurs when usbcore is enabled: USB hub
->>> enumeration (usb_new_device(), hub_port_connect(), PM/QoS helpers)
->>> allocates large on‑stack structures and recurses through several
->>> layers of device‑model code. Combined with SPARC64’s trapframe and
->>> register‑window overhead, this reliably exhausts a 16KB stack and
->>> results in early‑boot panics.  A 32KB stack eliminates these failures.
->>>
->>> The new logic is:
->>>     SPARC64:
->>>         THREAD_SIZE = 4 * PAGE_SIZE (32KB)
->>>         THREAD_SHIFT = PAGE_SHIFT + 2 (log₂(32KB))
->>>         THREAD_SIZE_ORDER = 2 (4 contiguous pages)  
->>
->> Yes
->>
->>>     Non‑SPARC64 with PAGE_SHIFT == 13:
->>>         Retains the existing 16KB stack behavior
->>>     Fallback:
->>>         Retains the existing 8KB stack behavior  
->>
->> No, not to my understanding, see comments below.
->>
->>>
->>> Signed-off-by: Tony Rodriguez <unixpro1970@gmail.com>
->>> ---
->>>  arch/sparc/include/asm/thread_info_64.h | 28 ++++++++++++-------------
->>>  1 file changed, 14 insertions(+), 14 deletions(-)
->>>
->>> diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
->>> index c8a73dff27f8..6b12a2b66385 100644
->>> --- a/arch/sparc/include/asm/thread_info_64.h
->>> +++ b/arch/sparc/include/asm/thread_info_64.h
->>> @@ -99,13 +99,20 @@ struct thread_info {
->>>  #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
->>>  #define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
->>>
->>> -#if PAGE_SHIFT == 13
->>> -#define THREAD_SIZE (2*PAGE_SIZE)
->>> -#define THREAD_SHIFT (PAGE_SHIFT + 1)
->>> -#else /* PAGE_SHIFT == 13 */
->>> -#define THREAD_SIZE PAGE_SIZE
->>> -#define THREAD_SHIFT PAGE_SHIFT
->>> -#endif /* PAGE_SHIFT == 13 */
->>> +/* thread information allocation */
->>> +#ifdef CONFIG_SPARC64
->>> +	#define THREAD_SIZE (4 * PAGE_SIZE)
->>> +	#define THREAD_SHIFT (PAGE_SHIFT + 2)
->>> +	#define THREAD_SIZE_ORDER 2  
->>
->> As far as I can see, given that this header is included by
->>
->> #if defined(__sparc__) && defined(__arch64__)
->> #include <asm/thread_info_64.h>
->> #else
->> #include <asm/thread_info_32.h>
->> #endif
->>
->> the code above is the only code that will ever be compiled, while leaving...
->>
->>> +#elif PAGE_SHIFT == 13
->>> +	#define THREAD_SIZE (2 * PAGE_SIZE)
->>> +	#define THREAD_SHIFT (PAGE_SHIFT + 1)
->>> +	#define THREAD_SIZE_ORDER 1
->>> +#else
->>> +	#define THREAD_SIZE PAGE_SIZE
->>> +	#define THREAD_SHIFT PAGE_SHIFT
->>> +	#define THREAD_SIZE_ORDER 0
->>> +#endif  
->>
->> ...this code dead, where the else branch code already was dead (but then
->> in two separate else braches).
->>
->> I'd rather see the else branch here and the else branch below cleaned up
->> by a separate patch with a fixup tag for commit 15b9350a177b ("sparc64:
->> Only support 4MB huge pages and 8KB base pages.") that as far as I can
->> see should have removed the else branch. The else branches was to use
->> only one page when the page size was _larger_ than 8 KiB when that was
->> an option.
-> 
-> That whole logic is impenetrable.
-> Why not set the 'desired thread size' in kB, then work out how many
-> pages that ends up being based on the page size, and finally get the actual
-> stack size.
-> I'm not sure, but with vmalloc()ed stacks and 8k pages can't you have 24kB?
 
-No, the next step up is 32 KiB as the stack allocation is sized by
-THREAD_SIZE_ORDER.
+On 6/17/26 10:53 PM, Andreas Larsson wrote:
+> On 2026-06-16 21:58, David Laight wrote:
+>> On Tue, 16 Jun 2026 16:18:33 +0200
+>> Andreas Larsson <andreas.larsson@gaisler.com> wrote:
+>>
+>>> On 2026-05-19 09:57, Tony Rodriguez wrote:
+>>>> This patch restructures the thread‑stack sizing logic into a single
+>>>> if / elif / else chain and introduces an explicit 32KB kernel stack
+>>>> for SPARC64. The previous implementation relied on nested conditionals
+>>>> and PAGE_SHIFT‑dependent behavior, which produced 8KB or 16KB stacks
+>>>> depending on configuration. SPARC64 requires a larger,
+>>>> architecture‑specific stack due to its trapframe size, register‑window
+>>>> behavior, and deeper call paths.
+>>>>
+>>>> A reproducible failure case occurs when usbcore is enabled: USB hub
+>>>> enumeration (usb_new_device(), hub_port_connect(), PM/QoS helpers)
+>>>> allocates large on‑stack structures and recurses through several
+>>>> layers of device‑model code. Combined with SPARC64’s trapframe and
+>>>> register‑window overhead, this reliably exhausts a 16KB stack and
+>>>> results in early‑boot panics.  A 32KB stack eliminates these failures.
+>>>>
+>>>> The new logic is:
+>>>>      SPARC64:
+>>>>          THREAD_SIZE = 4 * PAGE_SIZE (32KB)
+>>>>          THREAD_SHIFT = PAGE_SHIFT + 2 (log₂(32KB))
+>>>>          THREAD_SIZE_ORDER = 2 (4 contiguous pages)
+>>> Yes
+>>>
+>>>>      Non‑SPARC64 with PAGE_SHIFT == 13:
+>>>>          Retains the existing 16KB stack behavior
+>>>>      Fallback:
+>>>>          Retains the existing 8KB stack behavior
+>>> No, not to my understanding, see comments below.
+>>>
+>>>> Signed-off-by: Tony Rodriguez <unixpro1970@gmail.com>
+>>>> ---
+>>>>   arch/sparc/include/asm/thread_info_64.h | 28 ++++++++++++-------------
+>>>>   1 file changed, 14 insertions(+), 14 deletions(-)
+>>>>
+>>>> diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
+>>>> index c8a73dff27f8..6b12a2b66385 100644
+>>>> --- a/arch/sparc/include/asm/thread_info_64.h
+>>>> +++ b/arch/sparc/include/asm/thread_info_64.h
+>>>> @@ -99,13 +99,20 @@ struct thread_info {
+>>>>   #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
+>>>>   #define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
+>>>>
+>>>> -#if PAGE_SHIFT == 13
+>>>> -#define THREAD_SIZE (2*PAGE_SIZE)
+>>>> -#define THREAD_SHIFT (PAGE_SHIFT + 1)
+>>>> -#else /* PAGE_SHIFT == 13 */
+>>>> -#define THREAD_SIZE PAGE_SIZE
+>>>> -#define THREAD_SHIFT PAGE_SHIFT
+>>>> -#endif /* PAGE_SHIFT == 13 */
+>>>> +/* thread information allocation */
+>>>> +#ifdef CONFIG_SPARC64
+>>>> +	#define THREAD_SIZE (4 * PAGE_SIZE)
+>>>> +	#define THREAD_SHIFT (PAGE_SHIFT + 2)
+>>>> +	#define THREAD_SIZE_ORDER 2
+>>> As far as I can see, given that this header is included by
+>>>
+>>> #if defined(__sparc__) && defined(__arch64__)
+>>> #include <asm/thread_info_64.h>
+>>> #else
+>>> #include <asm/thread_info_32.h>
+>>> #endif
+>>>
+>>> the code above is the only code that will ever be compiled, while leaving...
+>>>
+>>>> +#elif PAGE_SHIFT == 13
+>>>> +	#define THREAD_SIZE (2 * PAGE_SIZE)
+>>>> +	#define THREAD_SHIFT (PAGE_SHIFT + 1)
+>>>> +	#define THREAD_SIZE_ORDER 1
+>>>> +#else
+>>>> +	#define THREAD_SIZE PAGE_SIZE
+>>>> +	#define THREAD_SHIFT PAGE_SHIFT
+>>>> +	#define THREAD_SIZE_ORDER 0
+>>>> +#endif
+>>> ...this code dead, where the else branch code already was dead (but then
+>>> in two separate else braches).
+>>>
+>>> I'd rather see the else branch here and the else branch below cleaned up
+>>> by a separate patch with a fixup tag for commit 15b9350a177b ("sparc64:
+>>> Only support 4MB huge pages and 8KB base pages.") that as far as I can
+>>> see should have removed the else branch. The else branches was to use
+>>> only one page when the page size was _larger_ than 8 KiB when that was
+>>> an option.
+>> That whole logic is impenetrable.
+>> Why not set the 'desired thread size' in kB, then work out how many
+>> pages that ends up being based on the page size, and finally get the actual
+>> stack size.
+>> I'm not sure, but with vmalloc()ed stacks and 8k pages can't you have 24kB?
+> No, the next step up is 32 KiB as the stack allocation is sized by
+> THREAD_SIZE_ORDER.
+>
+> Cheers,
+> Andreas
+>
 
-Cheers,
-Andreas
+After additional testing and debugging on a SPARC64 S7-2 system running 
+kernel v7.1-mainline, I've made several important observations regarding 
+the USB core stack overflow issue.
+
+1. The Stack Overflow is Real and Consistent
+
+My initial patch (increasing kernel stack to 32KB) appears to work with 
+v7.1-mainline as well. However, the underlying problem remains: the USB 
+core's stack usage consistently exceeds the default 16KB limit during 
+hub enumeration.
+
+2. The "Static Analysis vs. Runtime Reality" Contradiction
+
+When I compile the kernel with -fstack-usage to generate .su files, the 
+static analysis shows small stack frames for all USB core functions.
+
+  For example:
+
+hub_event:      2457 bytes  (static)
+hub_activate:   1892 bytes  (static)
+usb_control_msg: 1248 bytes (static)
+
+However, my runtime stack tracing shows a dramatically different picture:
+
+STACKTRACE: hub_event():entry: 31856 bytes used
+STACKTRACE: hub_activate():entry: 31680 bytes used
+STACKTRACE: usb_control_msg():entry: 30768 bytes used
+
+Please see:
+
+https://github.com/unixpro1970/Sparc64-Kernel-Debugging-Dumps/blob/main/usbcore-stacktrace.txt
+
+Perhaps the issue is the accumulation of register window spills across 
+multiple nested function calls?
+
+3. The 32KB Limit is Also at Risk
+
+I've observed that stack usage can approach the 32K limit as well.
+
+4. Testing:
+
+TO DO: I will try adding a stack flush at the entry and exit of 
+hub_event() .  Hopefully it will prevent the accumulation of register 
+windows. The theory is that flushing register windows between work items 
+may prevent the stack growth from carrying over from one event to the next.
+
+If the flush helps, I may also look into "stack_trace_flush" David 
+Miller's stack_trace_flush() implementation. Unsure if stack_trace_flush 
+is supported with v7.1.
+
+
+Regards,
+
+Tony
+
 
