@@ -1,63 +1,92 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C739217DFE7;
-	Wed, 24 Jun 2026 22:17:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F11493E63B7;
+	Fri, 26 Jun 2026 08:21:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782339474; cv=none; b=BlWnMoxmOqJxjn+BreYR8S1tFRxmO7wF8uh4c6W+jDs3uwoU+jrWNesEJqlFCwNNEt1ey0Vf6h96U0B7cVlZiQeRLvKL82LTqj+brv0Dns+IdMk3zLCygyG6E9CNZd6LvoGdiMx/xA8jTcTY2ooBv6PshkN38JFzaqkTsiay8bs=
+	t=1782462089; cv=none; b=X9ajK4f5TsE3Q6sinJQV5NJrhhW/fkau7LFiEWLz2LK0NpVIFPFEBSMCYKEurlrXiXl0oJWGjKJwHT9LFsj/zHY4KIeUqNn3o9zGJV5eIHVTFRpk3KFAbFMwwB6VwalP0Z7bha+j9vTc5JTxFvNC4x7LqgiePKOYze2N93StIZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782339474; c=relaxed/simple;
-	bh=KSPMwZQRtsxEMJIgiezvCmvb/UDFNf34mKuXkPVeEm4=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=M++xc9WSkKYB59yoOJlX6pcGGW0gmpMT11jqRfwfH9cDgjzur2BayJnNRXxDr7w03Zr7JWBR+ZAhgjsgEO6GpS3fN/AMdIJ6qYfJmeMHE7/up+PyR42040R9TomJmJ+aOF0W05l+XanTV2NzMKdeQ6/qWPWsx5OpQyi5idFaOCs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SvE9YUag; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782462089; c=relaxed/simple;
+	bh=FhxzUr3xSIqVmKLvLbWazz7YlCkIyFnNgG5krqvMrm0=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=nlFJBv/IfCoJULEApBddUwXA3QqpSAmtN53M8M3f/dEXSQB3W3sDP5XpiRdHhdLun5lzU1pxfsn3mVK7iWyWq6+RLNdgBsryA1O3OqCyqme2yP1s0VoZGj/ClLWPcGnnJN7rlJsxRpq/tJ/a5S0SH5hMX5+6AFs8ueXyAGXZP9w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P2rMods2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SvE9YUag"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEEE31F000E9;
-	Wed, 24 Jun 2026 22:17:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P2rMods2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1A8B1F00A3A;
+	Fri, 26 Jun 2026 08:21:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782339473;
-	bh=0tayy8BGOC5W0YdI9tXr++H7bq1BPBFofOCyIWZNyfw=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc;
-	b=SvE9YUag9H/L7wgDjYid/Ziz3/CqwIEpqjPPUFAyz4bWkljntXnjV4D7eUlzV07Bd
-	 idUdwRJ6i7em0Ox8qXJnC/8MU7RRhifXeS6KTv7+0WCMdEROV+EmihLB5MPO0IDDIN
-	 TmQo6MkL0AkYxVXIXw9+hlim0pBsL5NZogO8Apcq4b1rlTx2VdhankJeXkyYD9l3LR
-	 xoEynY3+9cBXqSYzowhg2rY6NspQV/7Nv5BTp1cJ1+GrO9kTCUhtteb8VVMiF5kZex
-	 Z26wQKvYpxzM9J7AKewJkj3TMAnDkonOgM6PX+L6pHbt6pD7JkojXuZ/3sSl9qP1ja
-	 U2xwNpQzDVdXw==
+	s=k20260515; t=1782462087;
+	bh=8Gh35kQAbF9NJda9I6lHvwWhKBgWUfcBmP3w8KkXOio=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=P2rMods2RZJ2WUH9fceMLGk+MpRiyzpYQRjH4L1pJ6AqR61HFQvucLW938qDFyqSa
+	 FrkrECMukEjHEVzuIjf3V5yv1Q9p5xzHWGE+6HTZgD9e8Q+Z7nOezHkV6X/Sw+wiEW
+	 UPxEJFogBt7IvXPhQEsLsvxrjA2ZUZ+sJUU/SjGsUQqENcjHgmsRWXaKB8JJOigNrD
+	 z/e7SPqqHF1NDBLkiCfywon1PNKm2pb6Q3QrCHZx2g16/jVLKpx0YZhOf14SdseVff
+	 79jb5rym05v6a+Y09V7n67Wwd7zqoPAjo6ZU1rDj2vUgGPcpWRf3ejlG4/+MASOcl2
+	 CdcLmqI3QOqjA==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 56BFE3AA6A7A;
-	Wed, 24 Jun 2026 22:17:43 +0000 (UTC)
-Subject: Re: [GIT PULL] sparc updates for v7.2
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <09df8a7f-758f-47cf-9720-0de31e4dee36@gaisler.com>
-References: <09df8a7f-758f-47cf-9720-0de31e4dee36@gaisler.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <09df8a7f-758f-47cf-9720-0de31e4dee36@gaisler.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/alarsson/linux-sparc.git tags/sparc-for-7.2-tag1
-X-PR-Tracked-Commit-Id: 5b2a3b1a98fb47c593144c2770e012d463952b70
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 05874021158ae80f6c3d867a784318f7cda41df6
-Message-Id: <178233946207.3002918.5805823640178053717.pr-tracker-bot@kernel.org>
-Date: Wed, 24 Jun 2026 22:17:42 +0000
-To: Andreas Larsson <andreas@gaisler.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 199D739389E8;
+	Fri, 26 Jun 2026 08:21:16 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 0/5] mm/sparse-vmemmap: provide generic vmemmap_set_pmd()
+ and
+ vmemmap_check_pmd()
+From: patchwork-bot+linux-riscv@kernel.org
+Message-Id: 
+ <178246207479.3816447.9419541647213093704.git-patchwork-notify@kernel.org>
+Date: Fri, 26 Jun 2026 08:21:14 +0000
+References: <20260404071720.3577290-1-songmuchun@bytedance.com>
+In-Reply-To: <20260404071720.3577290-1-songmuchun@bytedance.com>
+To: Muchun Song <songmuchun@bytedance.com>
+Cc: linux-riscv@lists.infradead.org, catalin.marinas@arm.com, will@kernel.org,
+ chenhuacai@kernel.org, pjw@kernel.org, palmer@dabbelt.com,
+ aou@eecs.berkeley.edu, davem@davemloft.net, andreas@gaisler.com,
+ akpm@linux-foundation.org, david@kernel.org, muchun.song@linux.dev,
+ kernel@xen0n.name, alex@ghiti.fr, ljs@kernel.org, Liam.Howlett@oracle.com,
+ vbabka@kernel.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+ ryan.roberts@arm.com, kevin.brodsky@arm.com, dev.jain@arm.com,
+ anshuman.khandual@arm.com, yang@os.amperecomputing.com,
+ chaitanyas.prakash@arm.com, wangyuquan1236@phytium.com.cn, ptesarik@suse.com,
+ austin.kim@lge.com, vishal.moola@gmail.com, junhui.liu@pigmoral.tech,
+ willy@infradead.org, alexs@kernel.org, chengkaitao@kylinos.cn,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ loongarch@lists.linux.dev, sparclinux@vger.kernel.org, linux-mm@kvack.org
 
-The pull request you sent on Wed, 24 Jun 2026 09:31:22 +0200:
+Hello:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/alarsson/linux-sparc.git tags/sparc-for-7.2-tag1
+This series was applied to riscv/linux.git (fixes)
+by Andrew Morton <akpm@linux-foundation.org>:
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/05874021158ae80f6c3d867a784318f7cda41df6
+On Sat,  4 Apr 2026 15:17:04 +0800 you wrote:
+> The two weak functions vmemmap_set_pmd() and vmemmap_check_pmd() are
+> currently no-ops on every architecture, forcing each platform that needs
+> them to duplicate the same handful of lines. Provide a generic implementation:
+> 
+> - vmemmap_set_pmd() simply sets a huge PMD with PAGE_KERNEL protection.
+> 
+> - vmemmap_check_pmd() verifies that the PMD is present and leaf,
+>   then calls the existing vmemmap_verify() helper.
+> 
+> [...]
 
-Thank you!
+Here is the summary with links:
+  - [2/4] riscv/mm: drop vmemmap_pmd helpers and use generic code
+    https://git.kernel.org/riscv/c/abff0ecf7602
+  - [3/5] riscv/mm: drop vmemmap_pmd helpers and use generic code
+    https://git.kernel.org/riscv/c/abff0ecf7602
 
+You are awesome, thank you!
 -- 
 Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
