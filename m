@@ -1,32 +1,32 @@
-Received: from out-172.mta0.migadu.com (out-172.mta0.migadu.com [91.218.175.172])
+Received: from out-180.mta1.migadu.com (out-180.mta1.migadu.com [95.215.58.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56F113ACF0B
-	for <sparclinux@vger.kernel.org>; Tue, 30 Jun 2026 12:04:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1814F3FD12A
+	for <sparclinux@vger.kernel.org>; Tue, 30 Jun 2026 12:38:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782821042; cv=none; b=KR+/Ae8qqebetTEZJ5pTqzjsawBgOWyZlEUAg6eTVao/+HNHokuhCL+H5duqjqwG12UYWlSdL6X6FYyPJW1tDtSE9Jyr/s9o11QgSL+nWWRD4hZUoiNT0O4ppkSITCoy1ti6LbHgIArRGYrdjAYSF+UBL7YWv5Na1r1ZkTNysSI=
+	t=1782823112; cv=none; b=URRfhyXtofAd5W1cVcEjrh2tGLVtCfvJ34VzvA6oGbjXUSsWMTE/Ovzey8081TaAA6T+2X5m0nukUWSm4rjKyI38hlkvFQVAiqk3SGtOjlrmIp9gvWO2MtMH5qRvFt6UON+PY3UnYtz32RCCYyUrakV6Oeg5o7qfeFPIWgSXBdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782821042; c=relaxed/simple;
-	bh=V/DMUiQ1VPaw+ocwoQ3oyh/3Cnm4EySYJMIokcHus7g=;
+	s=arc-20240116; t=1782823112; c=relaxed/simple;
+	bh=wwukuDKbyljD7hId+oIoTVO7P14eUg01P4v4+Ftn7VA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=k16G3LYVE50L0EnqAn2L2koVKbiU7QJYeAzBPUuMDdyIchNOWgSkdTkJA1sFzdxMvmkPCklH2J19k7J6m3rc024yF+O71PMo6oDHMbGsoyV88WdEstMODJEnojyvYoEhl2PxhoGyiAvXmWWNq+s/n3HfNSWVph/vfsVPMCIsKRA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=afnIokYB; arc=none smtp.client-ip=91.218.175.172
+	 MIME-Version:Content-Type; b=Rnhu7bgsWdhA/f/imHZN2iXzz3zqVgTANqqNRAdRZxKV23C9dXJ0yPkm7KV4rpH7qy3DIVOJJKdZjhvfjW5R55RqGDHuOv2UTlFnQFBmMjBNNtzReA6fY5x2VzGqY/sa9UF5AN4Cl+Nyr/Jp8n8VqunbCYzVgEdBNso+qogm1t0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=jgSEgznx; arc=none smtp.client-ip=95.215.58.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="afnIokYB"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="jgSEgznx"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1782821039;
+	t=1782823109;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=V/DMUiQ1VPaw+ocwoQ3oyh/3Cnm4EySYJMIokcHus7g=;
-	b=afnIokYBOW1Nsyw5v2FMpAPhzWDSn8Xmhm8lmi4QXXJYhfCyHTu/UVshzew1eNimj7yZJl
-	5tPyYbPjrpHXa0TJ2MYRl71Qf/B0aW970KDwwl91kx9ODE/LlDdCTkLiwA5pgrxNr3s57T
-	Dh0Z1m+HITnk4VjZz8g8g/Gx9nDfeSE=
+	bh=wwukuDKbyljD7hId+oIoTVO7P14eUg01P4v4+Ftn7VA=;
+	b=jgSEgznxBiHGQaexqZhJkecqo2BuwDaiUFnh5YpQFZ9C/GoUdN7hdqIrEOAZ5aNblcamMw
+	iv6u9XKMGSbVfvZf1nt+cwmRBML8NyeguYi/xGsDFnS3FC2QqntjZ20gltPoXsMtN+lduw
+	QjDRfgzcPuAoUoCiHCPJEf6RyCceCXA=
 From: Lance Yang <lance.yang@linux.dev>
 To: david@kernel.org
 Cc: davem@davemloft.net,
@@ -45,11 +45,11 @@ Cc: davem@davemloft.net,
 	linux-kernel@vger.kernel.org,
 	linux-mm@kvack.org,
 	Lance Yang <lance.yang@linux.dev>
-Subject: Re: [PATCH v2 1/3] sparc/mm: drop custom pte_clear_not_present_full()
-Date: Tue, 30 Jun 2026 20:03:44 +0800
-Message-Id: <20260630120344.81142-1-lance.yang@linux.dev>
-In-Reply-To: <20260629-clear_not_present_full_ptes-v2-1-96089871a1e7@kernel.org>
-References: <20260629-clear_not_present_full_ptes-v2-1-96089871a1e7@kernel.org>
+Subject: Re: [PATCH v2 2/3] mm: drop pte_clear_not_present_full()
+Date: Tue, 30 Jun 2026 20:38:04 +0800
+Message-Id: <20260630123804.10313-1-lance.yang@linux.dev>
+In-Reply-To: <20260629-clear_not_present_full_ptes-v2-2-96089871a1e7@kernel.org>
+References: <20260629-clear_not_present_full_ptes-v2-2-96089871a1e7@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -61,31 +61,26 @@ Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
 
-On Mon, Jun 29, 2026 at 03:49:47PM +0200, David Hildenbrand (Arm) wrote:
->On sparc64, pte_clear_not_present_full() nowadays does a simple
->__set_pte_at(). In __set_pte_at() -> maybe_tlb_batch_add(), we check
->pte_accessible() to see whether to call tlb_batch_add().
+On Mon, Jun 29, 2026 at 03:49:48PM +0200, David Hildenbrand (Arm) wrote:
+>In general, there is no good reason to do anything special when clearing
+>non-present PTEs.
 >
->However, non-present PTEs are surely not accessible, so tlb_batch_add()
->is never called and the "full" parameter is irrelevant.
+>In theory, HW that does have to invalidate TLBs for non-present PTEs could
+>benefit from a "full" parameter, but fortunately
+>pte_clear_not_present_full() is not wired up anymore ... and there would
+>have to be something very convincing for us to care about that to re-add
+>it.
 >
->Let's drop the helper and just let common code do a pte_clear().
+>So, let's just use pte_clear() directly now. To avoid the compiler
+>complaining on some configs about unused "addr" parameter, silence that
+>here.
 >
->pte_clear() on sparc64 maps to set_pte_at()->set_ptes()->__set_pte_at()
->... so it ends up calling the same function, just with "full=0".
->
->Given that "full" is irrelevant, there is no change.
->
->We added pte_clear_not_present_full() for sparc64 in commit 90f08e399d05
->("sparc: mmu_gather rework"), and I suspect that it was already not
->required back then.
->
->Cc: Peter Zijlstra <peterz@infradead.org>
+>Reviewed-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
 >Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 >---
 
-fullmm only matters if an old non-present PTE can pass pte_accessible().
-IIUC, that doesn't happen on sparc64 :)
+With the sparc64 override gone, pte_clear_not_present_full() is just
+pte_clear() :)
 
 LGTM. Feel free to add:
 
