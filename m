@@ -1,167 +1,143 @@
-Received: from fhigh-b1-smtp.messagingengine.com (fhigh-b1-smtp.messagingengine.com [202.12.124.152])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A86E348B386;
-	Wed,  1 Jul 2026 13:12:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.152
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC2FF37C92D
+	for <sparclinux@vger.kernel.org>; Wed,  1 Jul 2026 17:19:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782911562; cv=none; b=WdRxqj1OHEchXBL4P02NQvZy06FBFeS/jWMCEIfs1St7kC1p7DZP/vfRZXnWj8wRLVR54lihWBxm8/SGouLa834uUYDl6cKyknYUQ2fu7u/bEPltc10SLT/6lthldla5GGMZZ/2yMTQExZpI6yw5AQhtDyeI/tG1WneogviJGZg=
+	t=1782926347; cv=none; b=fAeIr43oYGEqlwB3PxjI6eLeuSh2hhl8gAGNSuj3fmnu+79Je1yQlgrBpvqIhMQunpFEoIrgAOBfm72SWcxQa4btuxVhFxlU29ndGEWQx7queC/ED1dIIiuYHLfjbV6LEspJEyPlT6FkzMr1gADfFHsB1jnFYSZSSX8PAiVulr4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782911562; c=relaxed/simple;
-	bh=XqEEA6N5CwGJ6IA3lZOQ+4Ik7bEoUp9hnbB4/W/Zwik=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=hE3mu/58wv9A5j32qXcFjKGnHN2+Bp7D0CfNdN/WxBfybCTRITsv/8aRwtNZ7e4MhsvIkC2+TlPXoKEMtl9+H15AA91o4ITUIgV2khBoSb88bZag9MMvNNST3Y8n8ghrWcpe1BSF4/zaAvOg5TcudZjLNKtPEjlrBILYgBgW0hA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=sQSfLOue; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=O8HXW5UO; arc=none smtp.client-ip=202.12.124.152
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1782926347; c=relaxed/simple;
+	bh=MaidzqW4SYY2w5nPLJFXk4d1eOTnnMSprzH6YDrQ5RI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pm161j3kujgM6cf1jBdDQ8pyTv8gS7p52jWQzYdDGuyF1nkASGZomwXFmzIolwXZAKoO/MvwUV5GZ0tzaBwImOAqpyhp+rJ28pwWOkZSi6GG3fd4y96tAyTvYUTrIFtGZNrc4UzGhOs/3KQip3J3XCRqcucmgGyv8Yy5kVCFlZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EdG0kIlk; arc=none smtp.client-ip=209.85.210.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="sQSfLOue";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="O8HXW5UO"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 4658D7A009D;
-	Wed,  1 Jul 2026 09:12:39 -0400 (EDT)
-Received: from phl-imap-05 ([10.202.2.95])
-  by phl-compute-04.internal (MEProxy); Wed, 01 Jul 2026 09:12:39 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1782911559;
-	 x=1782997959; bh=XqEEA6N5CwGJ6IA3lZOQ+4Ik7bEoUp9hnbB4/W/Zwik=; b=
-	sQSfLOueyGINlkU+m6V2rhx9l6c7DSh4peFKT2GDZON3Z0C4LcbV4ctXku49JLkN
-	g+HFYP+lati0duVqQNupgWCUMLIDFQb3u5OhrYunrii8zZnVegxb4bXG1TicAdTZ
-	1J6fEVDY8WkbUy5NVTaQZHbsMQqul3Z67raQ5Nzixux9IEaGnMSqdnlolXzBfyzT
-	1kpbhhyClY1m74WD8UisTPPxiNBiHUK1gsKQyOz/Cllu1TQyh5Cgyl797knGzYpL
-	s7dHJXo95drQLrIeVLutdn2sJJ7bSvCI+vVMLkubPKL1jYBySDDrpEnCUKSb1FpA
-	H1/6b8NJRdzlwIK1yB4dwQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1782911559; x=
-	1782997959; bh=XqEEA6N5CwGJ6IA3lZOQ+4Ik7bEoUp9hnbB4/W/Zwik=; b=O
-	8HXW5UO+aYHUGl4LikMybwFP5BR8Y0BseQRJoQ7MMtQtRJUW7dx0z8kecrkKp6vE
-	f8gRSqm+yzPUDG4VjaFkAv1+JLHl6ByRd2Nf8FazoyogYQkRl1dvBfFjZTfQSKk8
-	VyfIiwjLPmwpzhOpCtWlTevYqBX8eA9E4N4h3nnP5TwUxyn6oD0Ms4mAgBntjB+r
-	wSTbF3lQ5DcPe5gBp/7W0cOrfSMl8r/ZhRyWoVzntnmXr6AlgZ8B9Ylr2+j0d2d+
-	HKycxjwa4Nz/b+UGNnW2aCoD4/MAS5C6pCPkk0ZH4p5+k2Pd89IwyHTMevvk/7Ze
-	tUOd+Xhn/Bgdmdpcb/8fw==
-X-ME-Sender: <xms:RRJFajJNuY7Ea447a624_w6t7wruejv0IM83V3g7A6KL8oggeAQA2A>
-    <xme:RRJFah-e56FYyd82CwMxPWeJjpQRTsQnlwKSbLFSNlao1NsAE5Wp-CdM4hyLbkXQE
-    _DlzPAfMzoE-whGqeOAnblKj8Oai3gyJlPqRfIoY39qPxdSMlnPpfI>
-X-ME-Proxy-Cause: dmFkZTGla2qQNlSZKlIqara0zN5koG4KqHg1bkjXpggyAWCLJNg2kfVgLI8lLCbuU2lk8S
-    kRgH252hH9LXdkXzSDSjqALczLdLPKlEPR5SaACUkXhDXWZtx+GoScADM9yWf1unDYqP8Q
-    2WSsB+yxUTjScO4bMrLoRiVJEsOVtHKynDYkTDSNlV/FlVOr++ZZbwgmEhkG986gVx8K+K
-    aifgVAxvA4y5ZVbSgxsda+zcFEbK/18X5WWflJ/ywdGPJlyZMoKT8cNBLhbRk76vDXjwpw
-    QLo2apXc7MtJeiGpsVVyKxyOA/SHS/M5eq8vxnr8WZeLKtuTYlVXwaw/JxEnplkTQrl3Pd
-    B7NJkf2pxDtojfaBQtKKBZV/obBu6aw/ly8+Aq5oikyGZRbLPSYuUz30ITeiZegu7GL1IY
-    BH+bpbU2FYzgYNvuW0kYqCdaBa94ExMmldk/xGt6dBhZaPieoYjNF9biNBBc3rgUbgmFbj
-    62LsHEdx24hoFQqVnJ9a9mVEjsfGg3qOJ5+MN46JlrX9eUQauDWHHEy0Awb0Lne6WNgaUO
-    4yVurEkxq/P/EbUXu4DrDTid9azOO9+oXTmhGP+PV4UklaisM4awcqFWxNagTgrY4T7xHu
-    8B7GWHRFLuVtfbbi9R9DHc8ER2iJp174rEfUAKSD/WUZBfVxKq+AH24iHCTA
-X-ME-Proxy: <xmx:RRJFalJN2aoA8kDFMua_h-i5Chn-r0wU-KwqgCI_zyQFyJxETPlNhw>
-    <xmx:RRJFajzXivGAASdZ72Is3bie1NpvnftEdIUPxmclVvZbBh4i5pzhmg>
-    <xmx:RRJFatM652J4WnFqkRON4WLzi44_c61ZybTn0ej-5qq9fbWYJQjNfA>
-    <xmx:RRJFanuRV787OOoAY7DQlxvI-5sNjEiRW1y01nGxGmEYB1CpRRmLyA>
-    <xmx:RxJFavp-QxIqJqyh2AhOILa9hNEeIKNUBd7uz-YJn9OT8avMOzD2XKsB>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 537641820082; Wed,  1 Jul 2026 09:12:37 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EdG0kIlk"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-845b6d9bf39so582027b3a.1
+        for <sparclinux@vger.kernel.org>; Wed, 01 Jul 2026 10:19:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782926345; x=1783531145; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=OVZjtpTrxXxAVguXYAz4E7mi5sWPqKxrHjlHEoMDU8Q=;
+        b=EdG0kIlkhGC8EnTihdJY2Nj93DPMO66F0YuNlRDNppazDleeOZnyE0SLqeby21Dt/i
+         Z88JImxGPI4JLM0h5XGQkcc9SitodWpyPwF1+cs6OAhFvWcF84qYs/Iiqi8m41CxDH5f
+         biUljY2YWie0PtsXucfRTBpv/3na4DP4bqWrttTUgf7E+S9midmaHc+DJTaOTUDA7nGw
+         9gqzMM3Gt6gXma7OuoepFsL9xrMuZZEDSr+GvQwX+GBzojRU0+yJ+VBBX9lP2JXUnlHd
+         x/qQseJwLUH7D89BaFBxsqon5aF01NndG7Cy/Srp7wmu+CeV4IkjELHcABS+NbdZEfox
+         FHMg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782926345; x=1783531145;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OVZjtpTrxXxAVguXYAz4E7mi5sWPqKxrHjlHEoMDU8Q=;
+        b=JNm27uqUi/Wf82+DK6tT1OzrldNsD09N3ArzCWDaQUXChEikQAJSnSvK2PuiT7ilaA
+         yDkppfJhheG1z7BRdi19hj66VtqIYrtZXwohuEPTUJtsEDJDJgqbZpDZ6Kf0lWptXS+4
+         +7+ItbRYmYNLNkgfNKGAnymuWn0pZXtBS+LXM6b87kVrrC/Hty2S1BVD/hOGIDfT7Qr+
+         nTEHVrE6jOMZC+NpxzVzQJFs8roGWJfnFwsm+IygvrebgEDyq+Gg1krEfC3IK72Kdbt+
+         /qp2SB5tAi/QMfvwyD+ubDNHHGh9EoW0UJnrZMut8liPwMQ0VrZ16hrYaMOWIPzzANJx
+         FGmg==
+X-Forwarded-Encrypted: i=1; AHgh+Rr6CAdrQ/IISgIk4xuE1kqrom/FO3bbkLIm5FYVb3Vhy/Hskie6cI5BGIc13IX+JDvsFk5GLsypLUoQ@vger.kernel.org
+X-Gm-Message-State: AOJu0YyZLcyyDOTqcuu1UsZtSV5VWiVdUWtlwHTpUimsZP3nJ4VSiPwZ
+	5/4mScRgYGLxLoiQlfJtA4aPA5JVUJ7Qgh3vqS1e5uPfBRVkgwLmJnRk
+X-Gm-Gg: AfdE7cnWsURLQg7g5ZjzCkxOU3ZMr51F5xt4flNvw5LidUfTWAh9GwP97wJXLVDqwY4
+	nBJsu+1pFiCWSSL/ZXox1j2BO1FwGoFe4/enJCcbvmFvcfnbaMQ45m1DkruG5Bl/6rA7NNQxXRu
+	uJfutd9BtuG/yg0tihNDwC+YZphhdXB8szQfap2VhQ74Hu9A2hNTkFEwffgX4iZG7kHRDnuA4Mm
+	8NyLuYGwrOpZWI9WDXW+6MbZCVtQYEBZI/V2H/cTJddIiGQFAk8g5KGcaAiyr/LAUgxh38m+kDs
+	wuhrS1XRiTC6OIgt5my+sjjjnNmczZ2YruLXy2A3RZm4MJQ9M/o9L/HaRv5/WkfFPmZ8D1+SCoE
+	kwhyUHjNFaPU/3VbEzBIfa8iW1xQjGe9BCOuuZDb8A0218/LiXHyPbGlsOgPwhY3SOk+4e/ejlH
+	oLwTmM0rA=
+X-Received: by 2002:a05:6a00:948e:b0:846:a04:acdc with SMTP id d2e1a72fcca58-847a831fb33mr4758788b3a.26.1782926345049;
+        Wed, 01 Jul 2026 10:19:05 -0700 (PDT)
+Received: from ubuntu.. ([110.9.142.4])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-847cb94ab79sm105719b3a.31.2026.07.01.10.19.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 01 Jul 2026 10:19:04 -0700 (PDT)
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+To: akpm@linux-foundation.org,
+	Andreas Larsson <andreas@gaisler.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Rich Felker <dalias@libc.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	Yury Norov <yury.norov@gmail.com>
+Cc: linux-mm@kvack.org,
+	Sang-Heon Jeon <ekffu200098@gmail.com>,
+	Brendan Jackman <jackmanb@google.com>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-sh@vger.kernel.org,
+	Michal Hocko <mhocko@suse.com>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	sparclinux@vger.kernel.org,
+	Suren Baghdasaryan <surenb@google.com>,
+	Zi Yan <ziy@nvidia.com>
+Subject: [PATCH 0/4] treewide, mm: initialize node_possible_map like the other node maps
+Date: Thu,  2 Jul 2026 02:18:47 +0900
+Message-ID: <20260701171851.2447626-1-ekffu200098@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AE-5y0c3-Pto
-Date: Wed, 01 Jul 2026 15:11:56 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-Cc: "Andy Lutomirski" <luto@kernel.org>, "Thomas Gleixner" <tglx@kernel.org>,
- "Ingo Molnar" <mingo@redhat.com>, "Borislav Petkov" <bp@alien8.de>,
- "Dave Hansen" <dave.hansen@linux.intel.com>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, "Russell King" <linux@armlinux.org.uk>,
- "Catalin Marinas" <catalin.marinas@arm.com>, "Will Deacon" <will@kernel.org>,
- "Madhavan Srinivasan" <maddy@linux.ibm.com>,
- "Michael Ellerman" <mpe@ellerman.id.au>,
- "Nicholas Piggin" <npiggin@gmail.com>,
- "Christophe Leroy" <chleroy@kernel.org>,
- "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
- "Vincenzo Frascino" <vincenzo.frascino@arm.com>,
- "John Stultz" <jstultz@google.com>, "Stephen Boyd" <sboyd@kernel.org>,
- "David S . Miller" <davem@davemloft.net>,
- "Andreas Larsson" <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- linux-mips@vger.kernel.org, linux-api@vger.kernel.org,
- sparclinux@vger.kernel.org
-Message-Id: <a512dc5f-0734-4bd0-838c-61c8820e5f6d@app.fastmail.com>
-In-Reply-To: 
- <20260701102912-ea8f3291-7bba-407b-9a7d-7c367a4c9398@linutronix.de>
-References: <20260630-vdso-compat_32bit_time-v2-0-520d194640dd@linutronix.de>
- <20260630-vdso-compat_32bit_time-v2-1-520d194640dd@linutronix.de>
- <0cda7366-2eb9-4ecb-b76a-b3b68ee10043@app.fastmail.com>
- <20260701102912-ea8f3291-7bba-407b-9a7d-7c367a4c9398@linutronix.de>
-Subject: Re: [PATCH v2 1/9] time: Respect COMPAT_32BIT_TIME for old time type functions
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Wed, Jul 1, 2026, at 10:40, Thomas Wei=C3=9Fschuh wrote:
-> On Tue, Jun 30, 2026 at 03:00:37PM +0200, Arnd Bergmann wrote:
->> On Tue, Jun 30, 2026, at 09:38, Thomas Wei=C3=9Fschuh wrote:
->> > The "old" time types use 32-bit seconds which are not y2038-safe.
->> > Respect COMPAT_32BIT_TIME for functions using those types.
->> > time(), stime() and gettimeofday() are disabled completely.
->>=20
->> Looks good, yes
->
-> Sashiko found an issue [0], which I think is valid. I'll change that f=
-or v3.
+While reviewing an earlier series [1], Andrew asked why we carefully
+initialize node_possible_map at compile time, then zero it within __init
+code anyway.
 
-Ok
+node_possible_map, aliased by node_states[N_POSSIBLE], is initialized to
+NODE_MASK_ALL at compile time, unlike the other entries, which are
+initialized with only node 0 set.
 
->> > settimeofday() is kept as it is required to do the initial timewarp=
-ing
->> > after boot. However the 'tv' argument will be rejected.
->>=20
->> Not sure about this part, did we already discuss this last time?
->
-> This is my interpretation of [1].
+Architectures that use numa_memblks set node_possible_map from
+numa_nodes_parsed, so the compile-time value is meaningless for them.
 
-Indeed, we did.
+However, a few architectures that do not use numa_memblks do not set
+node_possible_map on their own. Once these architectures set
+node_possible_map to match their own topology, the NODE_MASK_ALL
+initialization can be removed.
 
->> I can see how keeping the timewarping functionality is the easy way
->> out, but completely disabling the settimeofday syscall the same
->> way we do on new architectures seems so much more consistent.
->
-> Shouldn't we then do this completely? Irrespective of COMPAT_32BIT_TIM=
-E?
-> And then remove all of the timewarping and kernel timezone bits.
+Patches 1-2 handle sparc64 and sh, which do not set node_possible_map
+themselves. Both set node_online_map from their topology, so set
+node_possible_map from node_online_map.
 
-I don't think we can simply kill the timewarping code since that
-likely has users on architectures including on x86-64.
+Patch 3 handles powerpc, which sets node_possible_map by intersecting it
+with node_online_map. Nothing sets node_possible_map before this, so it is
+still NODE_MASK_ALL and the intersection is just node_online_map. Once
+patch 4 changes that initial value, the intersection would no longer be
+node_online_map, so assign node_online_map directly.
 
-COMPAT_32BIT_TIME=3Dn is somewhat special because this is an
-intentional (and optional) ABI break already and requires
-updated userspace that avoids the time32 syscalls. Having the
-timewarp still in settimeofday() or dropping it entirely is not
-that different for userspace.
+Patch 4 initializes node_possible_map with only node 0 set, like the other
+node_states[] entries. NODE_MASK_ALL is then no longer used, so remove it
+and its only helper NODE_MASK_LAST_WORD.
 
-I was slightly worried about whether returning -EINVAL or -ENOSYS
-is the better option here, but I think your choice is the correct
-one after seeing that this is what glibc does other invalid
-cases, and that in all of codesearch.debian.net, I could not
-find a single caller that would care about the difference.
+[1] https://lore.kernel.org/all/20260624204030.3c8baa67713b6ca1d537baba@linux-foundation.org/
 
-> It would be nice however if this series, and my other ones blocked beh=
-ind it,
-> are not blocked on that larger rework.
+Sang-Heon Jeon (4):
+  sparc64: set node_possible_map in bootmem_init_numa()
+  sh: set node_possible_map in do_init_bootmem()
+  powerpc/numa: set node_possible_map from node_online_map
+  mm/page_alloc: initialize node_possible_map like the other node maps
 
-Sure.
+ arch/powerpc/mm/numa.c   |  2 +-
+ arch/sh/mm/init.c        |  2 ++
+ arch/sparc/mm/init_64.c  |  2 ++
+ include/linux/nodemask.h | 20 --------------------
+ mm/page_alloc.c          |  2 +-
+ 5 files changed, 6 insertions(+), 22 deletions(-)
 
-I think you can go ahead with this version. I would prefer
-to not have any settimeofday() for the COMPAT_32BIT_TIME=3Dn
-case, but if nobody else has a strong opinion on the matter,
-let's do it your way.
+-- 
+2.43.0
 
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
