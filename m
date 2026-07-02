@@ -1,114 +1,179 @@
-Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 757DE38D406
-	for <sparclinux@vger.kernel.org>; Wed,  1 Jul 2026 17:19:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 092121EFFA1;
+	Thu,  2 Jul 2026 08:21:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782926351; cv=none; b=ToJA6BsaaEBkMlXQF3+RqVna04DaP8o3O6+ZeH1Br3EGZocd/qNUbrxUsEouG+2UTClHkDwFckerNdO8V/xqzVy9hfHmYFQK49WWT32YPSdX6qA1AuYsKw8ha9Th320bDauja4TNkNafkFAVUP5PCII/WZckO5hlbYEkjmy4DE4=
+	t=1782980493; cv=none; b=b4AP0nWKtWVkmxcdCHQSl6pkoBzXEOicofN7Zd5fxlSaeLzpiqLjh8mQzfJx/Hv7JVu2dUmjdId1exYUB5zIA6Mk7f0aG/KaZvPJ5qn8Lw6Jv1BkrjKqVJfC7AOJM1z4pubYkWxvNVkEWDxz8FmIZuO6RsYVhhYCFn4cpH4GyX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782926351; c=relaxed/simple;
-	bh=ahyPZsMst/9tfuL+16OnxAWbslN1zw6+ly9UaAsXotk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PeVNBVhH3jCjFLBWNfE8oyaQ9Py4AM+bIEkflgIATSZZPDbSr1oIph8OVXgQF4BcoIyTQtEh7jUDExRm9sXkRxB/RhV4h/Z8LOJMgtZ/ctaqWeU4VysbW0BkWUyOlRD3nmIfsNG5ipknLtwnGrI9yTtpU2BJT5jNtp+PuVynB20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UttZ3Pir; arc=none smtp.client-ip=209.85.210.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1782980493; c=relaxed/simple;
+	bh=MR/1oQsubIswpQ1T7czms/mRrVaRqITHlz2n6JTUpl4=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=O26hkKSvBhee3op0Vgxnlqb0671KZjNZJcn6hw7EQ8KAAsd7dIrG3ATvYOO5K3a1QfZJggAtOB/Qvsl76hO7Ve4EtX9/1fxwFE04jrSQOYu1ZYcx/3L/+9fTEaDJJ2AxZKqFsCnK3t0zWRM+W9nw1xe0ajBfZWBBX3mNTxAZ+S8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=of+N59Ha; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=uN9Hdc83; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UttZ3Pir"
-Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-845ea8924a2so473741b3a.1
-        for <sparclinux@vger.kernel.org>; Wed, 01 Jul 2026 10:19:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782926350; x=1783531150; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=MDuqDP6jfkHa+poyWLUCQVCh41lLbreNnwDZhuoCFhY=;
-        b=UttZ3Pirz8UKOtZ9jt4H1hh7RcuzBlJmrbqs6HdphTiWqUOoLiS0R9APtt0p2j96b6
-         bj3pnJeT7c7FADuJ4t8gPl0IltjwSWbSbi6MlcaQ3WaAJMUaj9wLRhGEptcroSUN98XF
-         sSGLqpnmUxUZd9ebxwElIHzDOHY8mG8znfEK6sSdetgtZ421Pk53RgSojud7L/HL8yKR
-         sepz+LinsG8RN5flwQzfkFNHTRmxeeHInIIAqe8qMmF1mg0AuTVP74JGcNCIV4TGF+vq
-         5X3DTPLGif2coJ2G9rE4GjY3+VqZXOQwU30Sfeho1j5QFymzOEMkX9EwLtfK8tjx8Foc
-         D0VA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782926350; x=1783531150;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=MDuqDP6jfkHa+poyWLUCQVCh41lLbreNnwDZhuoCFhY=;
-        b=ZOJqSp1oU5YONjnXnPWifWNUJaVi/ImetCmIh3raOWSENvXO5LXCXtgCWfWXPJKX+d
-         t2E27pd3MuwwGmg/j1H20+iAHCjXlRHMcK1KKImRbwAET2aS0wzNRWPxBy3dnDyY3283
-         MGOHoqD3cbtMw8e2gUh5rhj+TUVv/IAPCnGXlmXvi40SutGn9YjBA1+g0vHJ/xFes5w0
-         f1lmJwEqT7Eep7nJL0QV4F/BpHspbstM6/dK5EAXvtnu+wf5lzcFkuGy0BoftSJhhHzz
-         hMXI8cu2ihfe8kMtxOjVeyXd6SfXqhJVAedIj8js8Lc2g62wlM1d/13WXTe1cj9MhIkr
-         rVPQ==
-X-Forwarded-Encrypted: i=1; AFNElJ+iFAyt3wGWjgDT5ivqtFMBccrGWOmiG30wjNsblQGtahc4n0s0qRyCDHIMym0UEbZbHc5dpWJ4oByH@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywr0rTNlKoHH5BbTz3ERaDMjR1UDABJuuDslGRLjOCsF1Cnc4PG
-	guGeMHgcw3AkfFhLqEI2agYZbtJ2o0hrYWAvUJ8Rzalu1ayXX3YPvjar
-X-Gm-Gg: AfdE7clrme352svGL4KsQ9PVlEbWxZK1NHDaYEoBerYbWGN6VBjZTWeBx309ioBcfSl
-	47qmPH/ppKQKpldeWSbUlTQFwoBGtQJjPh7gownszc7qgHRkPwGymaBh1Yqtjw27X8Xzq7HvWju
-	4WTRhJnIjITxZAI6zcMyy8Vbc6tDLJUxwS9g3DJSXDGUfI6ZxegaFsEXHS4semyuW7LMYMLz3lq
-	90/j6tQFotQCEiJ85tcFKBrKZ3M4TPDqTXBgz3ky9pzlhdJbVVN8C/6f8ZCYe3Cxk/CZwiwVPVz
-	mSIc7JtNt3OdY/lsHpOiy4yxf7wnyynrISGi6SAzBx051URNvv1RQz3ViWTGrGxEPh3KD0nuV8m
-	mRBMC7+dyts2W6ZrCWQGV+Jeclcq07PJQgrLPZ8gyDyANmkAkA6od1zLKTSrtmvV/g54vAmKBaR
-	oxqbe4+uE=
-X-Received: by 2002:a05:6a00:4b04:b0:845:e97d:447e with SMTP id d2e1a72fcca58-847c07449a7mr2509329b3a.26.1782926349508;
-        Wed, 01 Jul 2026 10:19:09 -0700 (PDT)
-Received: from ubuntu.. ([110.9.142.4])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-847cb94ab79sm105719b3a.31.2026.07.01.10.19.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 01 Jul 2026 10:19:09 -0700 (PDT)
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-To: akpm@linux-foundation.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: linux-mm@kvack.org,
-	Sang-Heon Jeon <ekffu200098@gmail.com>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	linux-kernel@vger.kernel.org,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Rich Felker <dalias@libc.org>,
-	sparclinux@vger.kernel.org,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Yury Norov <yury.norov@gmail.com>
-Subject: [PATCH 1/4] sparc64: set node_possible_map in bootmem_init_numa()
-Date: Thu,  2 Jul 2026 02:18:48 +0900
-Message-ID: <20260701171851.2447626-2-ekffu200098@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260701171851.2447626-1-ekffu200098@gmail.com>
-References: <20260701171851.2447626-1-ekffu200098@gmail.com>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="of+N59Ha";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="uN9Hdc83"
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1782980489;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=mJSzPYcuu70d1v2EawqMn7TqthwcQ1ssQg57IVhDWI4=;
+	b=of+N59HaFTcbezAeOk+/17hY+A9dAUMSL0R9JbFEMZlA+nby5ylWi5WlxMj2cbxVgqtoX6
+	3ROYEFfYafIQYkmKGJb3YKKBa8oT7It8ES1jGDuDnHZJg6BLs8TOAxVlYtOUje+4JN5zUh
+	6rlS5LGUaV411jwX0tZLB2y1sqG3lcNLRh+9913Yt+jc2oHHKtciVLG5TH2EiEqdQyI9iT
+	uGULIJoJUlBFYcyCwNWA0mQgbR8IdI8+L8xAOlesgBKm/lm+v/HWEO9qNkt66NrD7OTPU7
+	VsVL0vpxTO7Xh55obb8zzMh8t1KQ+g4ycfp6un1P5BGtR3J5X8ButatRWQK55w==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1782980489;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=mJSzPYcuu70d1v2EawqMn7TqthwcQ1ssQg57IVhDWI4=;
+	b=uN9Hdc83IPYWMSKfkIs/YtSKjNdtWXYIe8rXO0da85TsqVeJfAaNeJbY+tm0TW1LYRA9+j
+	B/4b13cGjW5KHSCQ==
+Subject: [PATCH v3 0/9] vDSO: Respect COMPAT_32BIT_TIME
+Date: Thu, 02 Jul 2026 10:21:24 +0200
+Message-Id: <20260702-vdso-compat_32bit_time-v3-0-db9f36d8d432@linutronix.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/3XNwQoCIRDG8VcJzxk6lm6deo+IcNepBkoXNdmIf
+ ffc7RAEHf8fzG9eLGEkTGy3eLGIhRIFX0MtF6y7Wn9BTq42AwFaSKl4cSnwLtx7m08KWsqnTHf
+ k2IjGaIVboy2rx33EMw0zfDjWvlLKIT7nP0VO64cEMP/IIrng6iyg0da0tlP7G/lHjsHTsHLIJ
+ rbAl9JK/KWgUhsQTm7Xei2c+6XGcXwD1i+6ywsBAAA=
+X-Change-ID: 20260113-vdso-compat_32bit_time-e808763e976a
+To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+ "H. Peter Anvin" <hpa@zytor.com>, Russell King <linux@armlinux.org.uk>, 
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+ Madhavan Srinivasan <maddy@linux.ibm.com>, 
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+ Vincenzo Frascino <vincenzo.frascino@arm.com>, 
+ John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>
+Cc: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>, 
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org, 
+ Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, 
+ sparclinux@vger.kernel.org, 
+ =?utf-8?q?Philippe_Mathieu-Daud=C3=A9?= <philmd@oss.qualcomm.com>
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1782980489; l=4251;
+ i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
+ bh=MR/1oQsubIswpQ1T7czms/mRrVaRqITHlz2n6JTUpl4=;
+ b=IAPP7P7TT/qjpqsC8+BNXtHg/cnx42xojUXsQ9R2Hz9jbgOm2ACYHF+sMsfHVfS0U/4lV37Yl
+ zsUyVwUeFmFBYzA4OF5fifGvug2xcpYakRt7qN14FxkhZlDROdgH2hq
+X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
+ pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-Unlike other NUMA architectures, sparc64 never sets node_possible_map.
-bootmem_init_numa() marks all nodes online and node_online_map does not
-change afterwards, so set node_possible_map from node_online_map.
+If CONFIG_COMPAT_32BIT_TIME is disabled then the vDSO should not
+provide any 32-bit time related functionality. This is the intended
+effect of the kconfig option and also the fallback system calls would
+also not be implemented.
 
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+I also tried to introduce some helpers to avoid much of the ifdeffery,
+but due to the high variance in the architecture-specific glue code
+these would need to handle, they ended up being worse than the current
+proposal.
+
+As a side-effect this will make the self-tests more reliable,
+as there is now always a matching syscall available for each vDSO function.
+
+clock_getres_time64() was only introduced in v6.19, so libc implementations
+are likely not using it yet.
+
+Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
- arch/sparc/mm/init_64.c | 2 ++
- 1 file changed, 2 insertions(+)
+Changes in v3:
+- Pick up tags.
+- Fix incorrect references gettimeofday() in per-arch commit messages.
+- Test for CONFIG_COMPAT_32BIT_TIME over __WANT_OLD_TIME_TYPE_SYSCALL in compat_settimeofday()
+- Link to v2: https://patch.msgid.link/20260630-vdso-compat_32bit_time-v2-0-520d194640dd@linutronix.de
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 103db4683b16..a749f63568b7 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1559,6 +1559,8 @@ static int __init bootmem_init_numa(void)
- 		else
- 			err = numa_parse_sun4u();
- 	}
-+	if (!err)
-+		node_possible_map = node_online_map;
- 	return err;
- }
- 
--- 
-2.43.0
+Changes in v2:
+- Also handle SPARC.
+- Drop MIPS cleanup patches.
+- Also handle gettimeofday().
+- Add more static validations.
+- Rebase on v7.2-rc1.
+- Link to v1: https://lore.kernel.org/r/20260227-vdso-compat_32bit_time-v1-0-3f0286a7bac3@linutronix.de
+
+To: Andy Lutomirski <luto@kernel.org>
+To: Thomas Gleixner <tglx@kernel.org>
+To: Ingo Molnar <mingo@redhat.com>
+To: Borislav Petkov <bp@alien8.de>
+To: Dave Hansen <dave.hansen@linux.intel.com>
+To: x86@kernel.org
+To: H. Peter Anvin <hpa@zytor.com>
+To: Russell King <linux@armlinux.org.uk>
+To: Catalin Marinas <catalin.marinas@arm.com>
+To: Will Deacon <will@kernel.org>
+To: Madhavan Srinivasan <maddy@linux.ibm.com>
+To: Michael Ellerman <mpe@ellerman.id.au>
+To: Nicholas Piggin <npiggin@gmail.com>
+To: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
+To: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+To: Vincenzo Frascino <vincenzo.frascino@arm.com>
+To: John Stultz <jstultz@google.com>
+To: Stephen Boyd <sboyd@kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
+To: Andreas Larsson <andreas@gaisler.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-mips@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-api@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: Philippe Mathieu-Daudé <philmd@oss.qualcomm.com>
+
+---
+Thomas Weißschuh (9):
+      time: Respect COMPAT_32BIT_TIME for old time type functions
+      vdso/gettimeofday: Validate system call existence for time() and gettimeofday()
+      x86/vdso: Respect COMPAT_32BIT_TIME
+      arm64: vdso32: Respect COMPAT_32BIT_TIME
+      ARM: VDSO: Respect COMPAT_32BIT_TIME
+      powerpc/vdso: Respect COMPAT_32BIT_TIME
+      MIPS: VDSO: Respect COMPAT_32BIT_TIME
+      sparc: vdso: Respect COMPAT_32BIT_TIME
+      vdso/gettimeofday: Verify COMPAT_32BIT_TIME interactions
+
+ arch/arm/vdso/vdso.lds.S                    |  2 ++
+ arch/arm/vdso/vgettimeofday.c               | 14 ++++++++------
+ arch/arm64/kernel/vdso32/vdso.lds.S         |  2 ++
+ arch/arm64/kernel/vdso32/vgettimeofday.c    | 14 ++++++++------
+ arch/mips/vdso/vdso.lds.S                   |  2 ++
+ arch/mips/vdso/vgettimeofday.c              |  3 +++
+ arch/powerpc/kernel/vdso/gettimeofday.S     |  8 ++++++++
+ arch/powerpc/kernel/vdso/vdso32.lds.S       |  8 +++++---
+ arch/powerpc/kernel/vdso/vgettimeofday.c    | 16 ++++++++++------
+ arch/sparc/vdso/vclock_gettime.c            |  4 ++++
+ arch/sparc/vdso/vdso32/vdso32.lds.S         |  6 ++++--
+ arch/x86/entry/vdso/common/vclock_gettime.c | 20 ++++++++++++--------
+ arch/x86/entry/vdso/vdso32/vdso32.lds.S     |  2 ++
+ kernel/sys_ni.c                             |  4 ++++
+ kernel/time/time.c                          | 24 ++++++++++++++++++++----
+ lib/vdso/gettimeofday.c                     | 20 ++++++++++++++++++++
+ 16 files changed, 114 insertions(+), 35 deletions(-)
+---
+base-commit: e6da2429169af9b33f3629b69905d89bb5ee9e64
+change-id: 20260113-vdso-compat_32bit_time-e808763e976a
+
+Best regards,
+--  
+Thomas Weißschuh (Schneider Electric) <thomas.weissschuh@linutronix.de>
 
