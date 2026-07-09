@@ -1,95 +1,93 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45D98353EF7
-	for <sparclinux@vger.kernel.org>; Thu,  9 Jul 2026 19:10:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD5BB449985
+	for <sparclinux@vger.kernel.org>; Thu,  9 Jul 2026 19:23:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783624240; cv=none; b=k08gR9VHAgUohN9C0Vn2jn/XjqLLRIwUojg8C8GHA18RdRvBgu4S8axhRqlsqMaCbQ84vHrjQZWR1CJX+oqP1PrkaldhWdrG2sizPD5kkxpJbpTZfFpfHg3rPrZhaheLiK3l2s8hO5damWsAenGoL5lTPBDFOSDoCAFQ8fKlAns=
+	t=1783624989; cv=none; b=dOE8lwMaLYK+FDObFbdnSSe/E8KcdiaWNf2OnB4SdBzdE/KyS/Ap/ZJrJb0pfGEuxXLGECZw+27QBYRHbchL53Zf0ZmGI0yyAWiAmoW8J/hFEyH3sPLs1uFqWori4M96/Wql8aID9PUcgfTv5hZVcsUMXdDl+5GAA/tUiBdzP1Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783624240; c=relaxed/simple;
-	bh=r/QQlmrJdbGDvO500PKX/NU2Q7BMk0sP6jnQ5CxvlzU=;
+	s=arc-20240116; t=1783624989; c=relaxed/simple;
+	bh=pbtl6l4SC9HiVOGfOcHRXhA3k1Vdk2xBr4FG7cem0i4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XwNoFSz2Hu2X7ivKMRDU94ZyiSDuoBQ6X51RHpJVC1LvKTJGoPDpJrVoXWcGsCss3aCbYdIv3fhljl0gTxN2x3y+/2nzI/rMscHNiBZkr9Kx0cCvE7g01+L9zk5vDgGw+N5UQ8raPkc+YyvdtvxSom2ZqiRVDER64ouAqMNvyYY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FJEzWz3C; arc=none smtp.client-ip=209.85.216.50
+	 Content-Type:Content-Disposition:In-Reply-To; b=QLeTKOTku3/NOHVSI0m/Azx8PPn0J7ZpWjF6SyXwk/F16ZeTxxuMIRCaLSYSU8maNfrIXH0hDGfeEmHS4wVBoLbES5c2u6/vvCE0vOL3330P2PeKzaniq+NvcxEGA4bM8bMSQoiig0l0SLpbRCsLtxwVhB690XxALwY3LJG/bvk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kMtsPO+b; arc=none smtp.client-ip=209.85.214.176
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FJEzWz3C"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-381216921aaso325992a91.1
-        for <sparclinux@vger.kernel.org>; Thu, 09 Jul 2026 12:10:36 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kMtsPO+b"
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2cad8076b01so1232625ad.2
+        for <sparclinux@vger.kernel.org>; Thu, 09 Jul 2026 12:23:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783624236; x=1784229036; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1783624986; x=1784229786; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=4WLiLUcdHKcbdohnfRqoOLrBkSnwixIbkHxH0bk89UM=;
-        b=FJEzWz3CLaShLbMo7Iq3aX6axNOngzcR3SPJrD/IoGCT+ZdBeYgdpK9pjRPlnczjBv
-         DMvxSQqv7Tu8IyW93N+9mJG5F2rW04DmcQaHpt7OrP2Jo1EnTa4kx1TPH1eGnlL9edCS
-         ZuwHwLCbxsTnYBHG3wn+xt+BNarRmMWpY44B+m1d+2nlEy9s5uBAlJdiu5wgohYSabEJ
-         gUD5zxFRKxYISiunn4o0rwqcH8dWqyHGDxpkzOAXMy1kiEkWay9Rg6ACVVP+Xs+0CChF
-         b8zmI+q6PXw/t6Pg15nmqT3nodi7Zo1V0Sxdd8j+X0JAaGNkYu2l46kC8vwOrhS0n0He
-         7j7w==
+        bh=bVq923fN3xICcTFI/CD38blZ0rxbZHjRTcEK6CjQmAw=;
+        b=kMtsPO+bVnA8eUHu0DTgQBV5sqIDS3vr8VWCFBGbbAHm2Ca4VAq8Oy0ILXmPn/4lJg
+         1vAPI3MusgeRX0kclfcMEEjzZU7s2XE7+X+U4VMc/DOGS1Kg+fuxEGsZ6OFhtkjd7k8z
+         to6tLLFYZ0+PrX5fAK3Sek/JGmksy5VzPLsxHUDTo7TgwM3nODkwkYETRoIPMmNNVfM3
+         tzvn4mXZwzZYaADG1YDKhxJ43WB6KIGPq/hkDHItolkfEq+xA4UP5JhHbSEkLipRmiPG
+         oN/pJznQBddOXRZxoJvLuAzxzjaR1HToGTrNImCE4XRSOF7OnCXgRbKtVuzv+zpCo8F3
+         r5bg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783624236; x=1784229036;
+        d=1e100.net; s=20251104; t=1783624986; x=1784229786;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=4WLiLUcdHKcbdohnfRqoOLrBkSnwixIbkHxH0bk89UM=;
-        b=QTKB5sYN5KhNc+IMvEUa7yAuYe32ReCK+hH5Ge+M9KSZCjvqCX0ND3Gel3daJcxFpm
-         6RabpQpa3T4ZvByAKeAmLw+Wn0QJJWhFyp0dfmOmdeJ5dNsgfdWnycwJNzmRIq4QZdEz
-         PP0nnVzz74nsZG+ofFjvR0096fnwZxYm9MRLVhH4TaGi37+ryTei+Cn0LVxvEdryFK06
-         IyRI2xHqiipD0OdYOqA7TObWqNccCqPbmV4dlg4YXt08QsIA/c3au80IwH+ZVoT+Ae80
-         evgzTYE0kqVs0zmKg8MvL8bfZHZCFlHFm3nF1c+++IfmT7Ja7LsnuU56vCzoQRIToCDx
-         vyXw==
-X-Forwarded-Encrypted: i=1; AHgh+RpSpA91rT3Xo44ZoeCzIKD8eNeTuOYvExAWI0HXIHuY9aqYgIUh8+nwscpxK3qMYpIuGoLfkeKLYFSo@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxiaa0xDHZ9uKOJjgVDZ29eB+W4/ux9B9P36rMpKd6S3ELoiYE6
-	hOL9ApgoxpSAx2aIZrQ7WXK2DBHXt29vp06cQTxVxKKz35CieaY0tdxV
-X-Gm-Gg: AfdE7ckMBVGZYdkI2q1AwlR3xdPWULPwWlb+1zs/h5Jo2i+i/kMtDT2RA94YvowAD83
-	8BPzpJPGMFm2by1eJS+jBCp1potW1bCHUCbpdZEfIxHY6BrpEmhh+8PYU8Frg4G208tanXCJoc8
-	QURTs/q4u+JI8l/YOohXaGn09gj9kZ7GmXnvqSPpRmIO2OeHRIM5ui3ME+eCGOciQPBbznbyqZx
-	qIhelLS5ZF9a2w/EsWl23+8ZGyBRsi+bJhA2MqHUYwdUs6lnnF5I1F4N1otDwQHP/tUrEhs+oAg
-	3Uh9pHRW4vtkYxfGkbowhWBdkoSP8WiyHsyejr9JUuaU0iTfAbVSOCPXfromZzMbffTWO+xovr2
-	iPUhbPfJQq0TbPC2gg+/YZKUNiPdTR28KitqAa0XUjBRB9WyfWWrCx6k7iSAN83vvD9jXDkZTD5
-	AwP3kew49m49mvlbO5/5iWkUQsShNJfIUo6AArFoH9XddgqmKPyRwu+Lp5yDHv
-X-Received: by 2002:a17:90a:c2d0:b0:381:dc88:7c09 with SMTP id 98e67ed59e1d1-38941ebc22dmr8070366a91.33.1783624236407;
-        Thu, 09 Jul 2026 12:10:36 -0700 (PDT)
+        bh=bVq923fN3xICcTFI/CD38blZ0rxbZHjRTcEK6CjQmAw=;
+        b=C8XER7WkApah4mK3pG9cOI6qrdsqUc7gFQoMw6nWY7fflVfX2CYnd4aST9QXuDYjZA
+         iixrB9Pd0QCwN94ds61VNqlPP4teErs2WyMYoYmLnxVGzdCcLf6sHQzLBxWQEqqpOGRx
+         IMRFPcrzT2jpAX27MzFyEarRMvoVh1doJ3xZ4n4hIJtIm7+NZ32kqzE3vndOj4buEfLF
+         JRytC0bUyUy6F7uwvhwxctRM56iVrt7UVbXUiJXzdKq/cCwhg0akoahZP3u7iSUcqSw/
+         PNs0NEmJ62uPPzKSLL6PFiXHyd3e2VAfkWNhYn/wmzOouDpl0KqKWumogMofXaQHPb+j
+         ftpg==
+X-Forwarded-Encrypted: i=1; AHgh+RqbyrkKIwDSqXbRzrKJd7vgHXtJdYSdCkOABcUuz3MMk4hgIUhy496jk8+Xo5hkuHDZajonShWqgEpB@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzp/IX7N2708rrjacRlYv6Dy/erKaLOf5kfyuu6WOvxo1l4zRtS
+	CPWy2/IrvSteA1JyGEY9rVZxexh87GxFCbN3FBGwtr4x62FRzGbgRkZ3
+X-Gm-Gg: AfdE7cmpDOlQhEpBLzS7eDXEIOcasBTPsQReXSwcYkUzZ7oteVt6He93bpRRbsgDKLd
+	r+ZVtQkFO8OOSVhNltA70hhOxO179p1OPgQnT6I+wVHmjDxkCCI86YY+XKw88S6mCz4SA15sjL/
+	1KU9DHCEqYGBvRWI6WpzYp4j/DYCgfpoBlUiwoGAV08ulffYhYdevTB6aPw60i/+wtt22BQQQ7p
+	QiFwTzdgb9nO9JoR5ZrH6YCMjxJpmHdAGTDQy1RbdUXWb9kjpynuOueRbsREiXeJt0mA2foSyRb
+	g+FQHlSpZKesbPMd6mTsDCdgEscEj7Eo45DF421nwwZBMCs1xCdXgQIVNsRxU5YOs/cPypuURXb
+	RC/BG1r/3S8OPqCOSriAVXnhXPR4UqELa2yeAPut1S4U6LT2ZyrO9ub2oNHfT9e0dv5xuyyjLTJ
+	79wXSxJ0m7a/OBTZ/V3WMdYNoeHdDvrLfj6WDzQEtYHSFXTZxGDPL9LgzzVis/
+X-Received: by 2002:a05:6a21:6e8f:b0:3b3:1951:489b with SMTP id adf61e73a8af0-3c0bcbc046bmr10368851637.45.1783624986079;
+        Thu, 09 Jul 2026 12:23:06 -0700 (PDT)
 Received: from li-1a3e774c-28e4-11b2-a85c-acc9f2883e29.ibm.com ([106.51.160.236])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-31174a92eccsm30700023eec.23.2026.07.09.12.10.03
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3118ee6091dsm29005934eec.14.2026.07.09.12.22.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Jul 2026 12:10:35 -0700 (PDT)
-Date: Fri, 10 Jul 2026 00:40:00 +0530
+        Thu, 09 Jul 2026 12:23:04 -0700 (PDT)
+Date: Fri, 10 Jul 2026 00:52:35 +0530
 From: Mukesh Kumar Chaurasiya <mkchauras@gmail.com>
 To: Thomas Gleixner <tglx@kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, 
-	Peter Zijlstra <peterz@infradead.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Jinjie Ruan <ruanjinjie@huawei.com>, Kees Cook <kees@kernel.org>, Andy Lutomirski <luto@kernel.org>, 
-	Oleg Nesterov <oleg@redhat.com>, Richard Henderson <richard.henderson@linaro.org>, 
+	Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Oleg Nesterov <oleg@redhat.com>, 
+	Richard Henderson <richard.henderson@linaro.org>, Vineet Gupta <vgupta@kernel.org>, 
 	Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Guo Ren <guoren@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Helge Deller <deller@gmx.de>, 
-	Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, 
-	Chris Zankel <chris@zankel.net>, linux-arm-kernel@lists.infradead.org, 
-	linux-alpha@vger.kernel.org, linux-csky@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, 
-	linux-um@lists.infradead.org, Michael Ellerman <mpe@ellerman.id.au>, 
-	Shrikanth Hegde <sshegde@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, 
-	Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev, Paul Walmsley <pjw@kernel.org>, 
+	Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>, Brian Cain <bcain@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Dinh Nguyen <dinguyen@kernel.org>, Helge Deller <deller@gmx.de>, 
+	Yoshinori Sato <ysato@users.sourceforge.jp>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Chris Zankel <chris@zankel.net>, linux-alpha@vger.kernel.org, 
+	linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, 
+	linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-um@lists.infradead.org, linux-arch@vger.kernel.org, 
+	Michael Ellerman <mpe@ellerman.id.au>, Shrikanth Hegde <sshegde@linux.ibm.com>, 
+	linuxppc-dev@lists.ozlabs.org, Kees Cook <kees@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, 
+	loongarch@lists.linux.dev, Paul Walmsley <pjw@kernel.org>, 
 	Palmer Dabbelt <palmer@dabbelt.com>, linux-riscv@lists.infradead.org, 
 	Sven Schnelle <svens@linux.ibm.com>, linux-s390@vger.kernel.org, x86@kernel.org, 
-	Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>, 
-	Brian Cain <bcain@kernel.org>, Michal Simek <monstr@monstr.eu>, 
-	Dinh Nguyen <dinguyen@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, linux-snps-arc@lists.infradead.org, 
-	linux-hexagon@vger.kernel.org, linux-openrisc@vger.kernel.org, sparclinux@vger.kernel.org, 
-	linux-arch@vger.kernel.org, Michal =?utf-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>, 
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: Re: [patch 11/18] seccomp, treewide: Rename and convert
- __secure_computing() to return boolean
-Message-ID: <ak_x_ndzTNX2hfSG@li-1a3e774c-28e4-11b2-a85c-acc9f2883e29.ibm.com>
+	Mark Rutland <mark.rutland@arm.com>, Jinjie Ruan <ruanjinjie@huawei.com>, 
+	Andy Lutomirski <luto@kernel.org>, Richard Weinberger <richard@nod.at>, 
+	Michal =?utf-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>, Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [patch 12/18] ptrace, treewide: Rename
+ ptrace_report_syscall_entry() to ptrace_report_syscall_permit_entry()
+Message-ID: <ak_0g7JaD9Z_ApYe@li-1a3e774c-28e4-11b2-a85c-acc9f2883e29.ibm.com>
 References: <20260707181957.433213175@kernel.org>
- <20260707190254.230735780@kernel.org>
+ <20260707190254.280015701@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -98,413 +96,101 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260707190254.230735780@kernel.org>
+In-Reply-To: <20260707190254.280015701@kernel.org>
 
-On Tue, Jul 07, 2026 at 09:06:40PM +0200, Thomas Gleixner wrote:
-> From: Jinjie Ruan <ruanjinjie@huawei.com>
+On Tue, Jul 07, 2026 at 09:06:44PM +0200, Thomas Gleixner wrote:
+> The return value of that function is boolean and tells the caller whether
+> to permit the syscall processing or not.
 > 
-> The return value of __secure_computing() currently uses 0 to indicate
-> that a system call should be allowed, and -1 to indicate that it should
-> be blocked/killed. This 0/-1 pattern is non-intuitive for a security
-> check function and makes the control flow at the call sites less readable.
+> Rename the function so the purpose is clear and make the return type bool.
 > 
-> Furthermore, any potential future changes to these return values would
-> require a high-risk, error-prone audit of all its users across different
-> architectures.
-> 
-> Sanitize this logic by converting the return type of __secure_computing()
-> to a proper boolean, where 'true' explicitly means 'allow' and 'false'
-> means 'fail/deny'.
-> 
-> Update all the two dozen or so call sites across the tree to align with
-> this new boolean semantic. No functional changes are intended, as the
-> callers still return -1 to the lower-level assembly entry code upon
-> seccomp denial.
-> 
-> Rename the function to __seccomp_permit_syscall() so that the purpose is
-> entirely clear.
-> 
-> [ tglx: Rename the function ]
-> 
-> Suggested-by: Thomas Gleixner <tglx@kernel.org>
-> Suggested-by: Mark Rutland <mark.rutland@arm.com>
-> Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
 > Signed-off-by: Thomas Gleixner <tglx@kernel.org>
-> Cc: Kees Cook <kees@kernel.org>
-> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Arnd Bergmann <arnd@arndb.de>
 > Cc: Oleg Nesterov <oleg@redhat.com>
 > Cc: Richard Henderson <richard.henderson@linaro.org>
+> Cc: Vineet Gupta <vgupta@kernel.org>
 > Cc: Russell King <linux@armlinux.org.uk>
 > Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will@kernel.org>
 > Cc: Guo Ren <guoren@kernel.org>
+> Cc: Brian Cain <bcain@kernel.org>
 > Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Michal Simek <monstr@monstr.eu>
 > Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+> Cc: Dinh Nguyen <dinguyen@kernel.org>
 > Cc: Helge Deller <deller@gmx.de>
 > Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-> Cc: Richard Weinberger <richard@nod.at>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Andreas Larsson <andreas@gaisler.com>
 > Cc: Chris Zankel <chris@zankel.net>
-> Cc: linux-arm-kernel@lists.infradead.org
 > Cc: linux-alpha@vger.kernel.org
+> Cc: linux-snps-arc@lists.infradead.org
+> Cc: linux-arm-kernel@lists.infradead.org
 > Cc: linux-csky@vger.kernel.org
+> Cc: linux-hexagon@vger.kernel.org
 > Cc: linux-m68k@lists.linux-m68k.org
 > Cc: linux-mips@vger.kernel.org
+> Cc: linux-openrisc@vger.kernel.org
 > Cc: linux-parisc@vger.kernel.org
 > Cc: linux-sh@vger.kernel.org
+> Cc: sparclinux@vger.kernel.org
 > Cc: linux-um@lists.infradead.org
+> Cc: linux-arch@vger.kernel.org
 > ---
->  arch/alpha/kernel/ptrace.c            |    2 -
->  arch/arm/kernel/ptrace.c              |    2 -
->  arch/arm64/kernel/ptrace.c            |    2 -
->  arch/csky/kernel/ptrace.c             |    2 -
->  arch/m68k/kernel/ptrace.c             |    2 -
->  arch/mips/kernel/ptrace.c             |    2 -
->  arch/parisc/kernel/ptrace.c           |    2 -
->  arch/sh/kernel/ptrace_32.c            |    2 -
->  arch/um/kernel/skas/syscall.c         |    2 -
->  arch/x86/entry/vsyscall/vsyscall_64.c |   14 ++++++-------
->  arch/xtensa/kernel/ptrace.c           |    3 --
->  include/linux/entry-common.h          |    9 +++-----
->  include/linux/seccomp.h               |   12 +++++------
->  kernel/seccomp.c                      |   35 +++++++++++++++++-----------------
->  14 files changed, 45 insertions(+), 46 deletions(-)
-> --- a/arch/alpha/kernel/ptrace.c
-> +++ b/arch/alpha/kernel/ptrace.c
-> @@ -387,7 +387,7 @@ asmlinkage unsigned long syscall_trace_e
->  	 * If this fails, seccomp may already have set up the return value
->  	 * (e.g. SECCOMP_RET_ERRNO / TRACE).
->  	 */
-> -	if (secure_computing() == -1) {
-> +	if (!seccomp_permit_syscall()) {
->  		if (regs->r19 == 0 && regs->r0 == (unsigned long)-1)
->  			syscall_set_return_value(current, regs, -ENOSYS, 0);
->  		syscall_set_nr(current, regs, -1);
-> --- a/arch/arm/kernel/ptrace.c
-> +++ b/arch/arm/kernel/ptrace.c
-> @@ -855,7 +855,7 @@ asmlinkage int syscall_trace_enter(struc
->  
->  	/* Do seccomp after ptrace; syscall may have changed. */
->  #ifdef CONFIG_HAVE_ARCH_SECCOMP_FILTER
-> -	if (secure_computing() == -1)
-> +	if (!seccomp_permit_syscall())
->  		return -1;
->  #else
->  	/* XXX: remove this once OABI gets fixed */
-> --- a/arch/arm64/kernel/ptrace.c
-> +++ b/arch/arm64/kernel/ptrace.c
-> @@ -2420,7 +2420,7 @@ int syscall_trace_enter(struct pt_regs *
->  	}
->  
->  	/* Do the secure computing after ptrace; failures should be fast. */
-> -	if (secure_computing() == -1)
-> +	if (!seccomp_permit_syscall())
->  		return NO_SYSCALL;
->  
->  	if (test_thread_flag(TIF_SYSCALL_TRACEPOINT))
-> --- a/arch/csky/kernel/ptrace.c
-> +++ b/arch/csky/kernel/ptrace.c
-> @@ -323,7 +323,7 @@ asmlinkage int syscall_trace_enter(struc
->  		if (ptrace_report_syscall_entry(regs))
->  			return -1;
->  
-> -	if (secure_computing() == -1)
-> +	if (!seccomp_permit_syscall())
->  		return -1;
->  
->  	if (test_thread_flag(TIF_SYSCALL_TRACEPOINT))
-> --- a/arch/m68k/kernel/ptrace.c
-> +++ b/arch/m68k/kernel/ptrace.c
-> @@ -281,7 +281,7 @@ asmlinkage int syscall_trace_enter(void)
->  	if (test_thread_flag(TIF_SYSCALL_TRACE))
->  		ret = ptrace_report_syscall_entry(task_pt_regs(current));
->  
-> -	if (secure_computing() == -1)
-> +	if (!seccomp_permit_syscall())
->  		return -1;
->  
->  	return ret;
-> --- a/arch/mips/kernel/ptrace.c
-> +++ b/arch/mips/kernel/ptrace.c
-> @@ -1328,7 +1328,7 @@ asmlinkage long syscall_trace_enter(stru
->  			return -1;
->  	}
->  
-> -	if (secure_computing())
-> +	if (!seccomp_permit_syscall())
->  		return -1;
->  
->  	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
+>  arch/alpha/kernel/ptrace.c      |    2 +-
+>  arch/arc/kernel/ptrace.c        |    2 +-
+>  arch/arm/kernel/ptrace.c        |    2 +-
+>  arch/arm64/kernel/ptrace.c      |    2 +-
+>  arch/csky/kernel/ptrace.c       |    2 +-
+>  arch/hexagon/kernel/traps.c     |    2 +-
+>  arch/m68k/kernel/ptrace.c       |    2 +-
+>  arch/microblaze/kernel/ptrace.c |    2 +-
+>  arch/mips/kernel/ptrace.c       |    2 +-
+>  arch/nios2/kernel/ptrace.c      |    2 +-
+>  arch/openrisc/kernel/ptrace.c   |    2 +-
+>  arch/parisc/kernel/ptrace.c     |   10 ++++------
+>  arch/sh/kernel/ptrace_32.c      |    2 +-
+>  arch/sparc/kernel/ptrace_32.c   |    2 +-
+>  arch/sparc/kernel/ptrace_64.c   |    2 +-
+>  arch/um/kernel/ptrace.c         |    2 +-
+>  arch/xtensa/kernel/ptrace.c     |    2 +-
+>  include/asm-generic/syscall.h   |    4 ++--
+>  include/linux/entry-common.h    |   25 ++++++++++++-------------
+>  include/linux/ptrace.h          |   13 ++++++-------
+>  20 files changed, 40 insertions(+), 44 deletions(-)
+> 
+[...]
 > --- a/arch/parisc/kernel/ptrace.c
 > +++ b/arch/parisc/kernel/ptrace.c
-> @@ -351,7 +351,7 @@ long do_syscall_trace_enter(struct pt_re
->  	}
->  
->  	/* Do the secure computing check after ptrace. */
-> -	if (secure_computing() == -1)
-> +	if (!seccomp_permit_syscall())
->  		return -1;
->  
->  #ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
-> --- a/arch/sh/kernel/ptrace_32.c
-> +++ b/arch/sh/kernel/ptrace_32.c
-> @@ -460,7 +460,7 @@ asmlinkage long do_syscall_trace_enter(s
->  		return -1;
->  	}
->  
-> -	if (secure_computing() == -1)
-> +	if (!seccomp_permit_syscall())
->  		return -1;
->  
->  	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
-> --- a/arch/um/kernel/skas/syscall.c
-> +++ b/arch/um/kernel/skas/syscall.c
-> @@ -27,7 +27,7 @@ void handle_syscall(struct uml_pt_regs *
->  		goto out;
->  
->  	/* Do the seccomp check after ptrace; failures should be fast. */
-> -	if (secure_computing() == -1)
-> +	if (!seccomp_permit_syscall())
->  		goto out;
->  
->  	syscall = UPT_SYSCALL_NR(r);
-> --- a/arch/x86/entry/vsyscall/vsyscall_64.c
-> +++ b/arch/x86/entry/vsyscall/vsyscall_64.c
-> @@ -118,10 +118,10 @@ static bool write_ok_or_segv(unsigned lo
->  
->  static bool __emulate_vsyscall(struct pt_regs *regs, unsigned long address)
+> @@ -326,7 +326,7 @@ long compat_arch_ptrace(struct task_stru
+>  long do_syscall_trace_enter(struct pt_regs *regs)
 >  {
-> -	unsigned long caller;
-> -	int vsyscall_nr, syscall_nr, tmp;
-> +	unsigned long caller, orig_dx;
-> +	int vsyscall_nr, syscall_nr;
-> +	bool skip;
->  	long ret;
-> -	unsigned long orig_dx;
+>  	if (test_thread_flag(TIF_SYSCALL_TRACE)) {
+> -		int rc = ptrace_report_syscall_entry(regs);
+> +		bool permit = ptrace_report_syscall_permit_entry(regs);
 >  
->  	/* Confirm that the fault happened in 64-bit user mode */
->  	if (!user_64bit_mode(regs))
-> @@ -197,16 +197,16 @@ static bool __emulate_vsyscall(struct pt
->  	 */
->  	regs->orig_ax = syscall_nr;
->  	regs->ax = -ENOSYS;
-> -	tmp = secure_computing();
-> -	if ((!tmp && regs->orig_ax != syscall_nr) || regs->ip != address) {
-> +	skip = !seccomp_permit_syscall();
-> +	if ((!skip && regs->orig_ax != syscall_nr) || regs->ip != address) {
->  		warn_bad_vsyscall(KERN_DEBUG, regs,
->  				  "seccomp tried to change syscall nr or ip");
->  		force_exit_sig(SIGSYS);
->  		return true;
->  	}
->  	regs->orig_ax = -1;
-> -	if (tmp)
-> -		goto do_ret;  /* skip requested */
-> +	if (skip)
-> +		goto do_ret;
->  
->  	/*
->  	 * With a real vsyscall, page faults cause SIGSEGV.
-> --- a/arch/xtensa/kernel/ptrace.c
-> +++ b/arch/xtensa/kernel/ptrace.c
-> @@ -553,8 +553,7 @@ int do_syscall_trace_enter(struct pt_reg
->  		return 0;
->  	}
->  
-> -	if (regs->syscall == NO_SYSCALL ||
-> -	    secure_computing() == -1) {
-> +	if (regs->syscall == NO_SYSCALL || !seccomp_permit_syscall()) {
->  		do_syscall_trace_leave(regs);
->  		return 0;
->  	}
-> --- a/include/linux/entry-common.h
-> +++ b/include/linux/entry-common.h
-> @@ -102,9 +102,8 @@ static __always_inline long syscall_trac
->  
->  	/* Do seccomp after ptrace, to catch any tracer changes. */
->  	if (work & SYSCALL_WORK_SECCOMP) {
-> -		ret = __secure_computing();
-> -		if (ret == -1L)
-> -			return ret;
-> +		if (!__seccomp_permit_syscall())
-> +			return -1L;
->  	}
->  
->  	/* Either of the above might have changed the syscall number */
-> @@ -115,7 +114,7 @@ static __always_inline long syscall_trac
->  
->  	syscall_enter_audit(regs, syscall);
->  
-> -	return ret ? : syscall;
-> +	return syscall;
->  }
->  
->  /**
-> @@ -138,7 +137,7 @@ static __always_inline long syscall_trac
->   * It handles the following work items:
->   *
->   *  1) syscall_work flag dependent invocations of
-> - *     ptrace_report_syscall_entry(), __secure_computing(), trace_sys_enter()
-> + *     ptrace_report_syscall_entry(), __seccomp_permit_syscall(), trace_sys_enter()
->   *  2) Invocation of audit_syscall_entry()
->   */
->  static __always_inline long syscall_enter_from_user_mode_work(struct pt_regs *regs, long syscall)
-> --- a/include/linux/seccomp.h
-> +++ b/include/linux/seccomp.h
-> @@ -22,14 +22,14 @@
->  #include <linux/atomic.h>
->  #include <asm/seccomp.h>
->  
-> -extern int __secure_computing(void);
-> +extern bool __seccomp_permit_syscall(void);
->  
->  #ifdef CONFIG_HAVE_ARCH_SECCOMP_FILTER
-> -static inline int secure_computing(void)
-> +static __always_inline bool seccomp_permit_syscall(void)
->  {
->  	if (unlikely(test_syscall_work(SECCOMP)))
-> -		return  __secure_computing();
-> -	return 0;
-> +		return  __seccomp_permit_syscall();
-> +	return true;
->  }
->  #else
->  extern void secure_computing_strict(int this_syscall);
-> @@ -50,11 +50,11 @@ static inline int seccomp_mode(struct se
->  struct seccomp_data;
->  
->  #ifdef CONFIG_HAVE_ARCH_SECCOMP_FILTER
-> -static inline int secure_computing(void) { return 0; }
-> +static inline bool seccomp_permit_syscall(void) { return true; }
->  #else
->  static inline void secure_computing_strict(int this_syscall) { return; }
->  #endif
-> -static inline int __secure_computing(void) { return 0; }
-> +static inline bool __seccomp_permit_syscall(void) { return true; }
->  
->  static inline long prctl_get_seccomp(void)
->  {
-> --- a/kernel/seccomp.c
-> +++ b/kernel/seccomp.c
-> @@ -1100,12 +1100,13 @@ void secure_computing_strict(int this_sy
->  	else
->  		BUG();
->  }
-> -int __secure_computing(void)
-> +
-> +bool __seccomp_permit_syscall(void)
->  {
->  	int this_syscall = syscall_get_nr(current, current_pt_regs());
->  
->  	secure_computing_strict(this_syscall);
-> -	return 0;
-> +	return true;
->  }
->  #else
->  
-> @@ -1256,7 +1257,7 @@ static int seccomp_do_user_notification(
->  	return -1;
->  }
->  
-> -static int __seccomp_filter(int this_syscall, const bool recheck_after_trace)
-> +static bool __seccomp_filter(int this_syscall, const bool recheck_after_trace)
->  {
->  	u32 filter_ret, action;
->  	struct seccomp_data sd;
-> @@ -1294,7 +1295,7 @@ static int __seccomp_filter(int this_sys
->  	case SECCOMP_RET_TRACE:
->  		/* We've been put in this state by the ptracer already. */
->  		if (recheck_after_trace)
-> -			return 0;
-> +			return true;
->  
->  		/* ENOSYS these calls if there is no tracer attached. */
->  		if (!ptrace_event_enabled(current, PTRACE_EVENT_SECCOMP)) {
-> @@ -1330,19 +1331,19 @@ static int __seccomp_filter(int this_sys
->  		 * a skip would have already been reported.
->  		 */
->  		if (__seccomp_filter(this_syscall, true))
-> -			return -1;
-> +			return false;
->  
-> -		return 0;
-> +		return true;
->  
->  	case SECCOMP_RET_USER_NOTIF:
->  		if (seccomp_do_user_notification(this_syscall, match, &sd))
->  			goto skip;
->  
-> -		return 0;
-> +		return true;
->  
->  	case SECCOMP_RET_LOG:
->  		seccomp_log(this_syscall, 0, action, true);
-> -		return 0;
-> +		return true;
->  
->  	case SECCOMP_RET_ALLOW:
 >  		/*
-> @@ -1350,7 +1351,7 @@ static int __seccomp_filter(int this_sys
->  		 * this action since SECCOMP_RET_ALLOW is the starting
->  		 * state in seccomp_run_filters().
+>  		 * As tracesys_next does not set %r28 to -ENOSYS
+> @@ -334,12 +334,10 @@ long do_syscall_trace_enter(struct pt_re
 >  		 */
-> -		return 0;
-> +		return true;
+>  		regs->gr[28] = -ENOSYS;
 >  
->  	case SECCOMP_RET_KILL_THREAD:
->  	case SECCOMP_RET_KILL_PROCESS:
-> @@ -1367,46 +1368,46 @@ static int __seccomp_filter(int this_sys
->  		} else {
->  			do_exit(SIGSYS);
->  		}
-> -		return -1; /* skip the syscall go directly to signal handling */
-> +		return false; /* skip the syscall go directly to signal handling */
->  	}
->  
->  	unreachable();
->  
->  skip:
->  	seccomp_log(this_syscall, 0, action, match ? match->log : false);
-> -	return -1;
-> +	return false;
->  }
->  #else
-> -static int __seccomp_filter(int this_syscall, const bool recheck_after_trace)
-> +static bool __seccomp_filter(int this_syscall, const bool recheck_after_trace)
->  {
->  	BUG();
->  
-> -	return -1;
-> +	return false;
->  }
->  #endif
->  
-> -int __secure_computing(void)
-> +bool __seccomp_permit_syscall(void)
->  {
->  	int mode = current->seccomp.mode;
->  	int this_syscall;
->  
->  	if (IS_ENABLED(CONFIG_CHECKPOINT_RESTORE) &&
->  	    unlikely(current->ptrace & PT_SUSPEND_SECCOMP))
-> -		return 0;
-> +		return true;
->  
->  	this_syscall = syscall_get_nr(current, current_pt_regs());
->  
->  	switch (mode) {
->  	case SECCOMP_MODE_STRICT:
->  		__secure_computing_strict(this_syscall);  /* may call do_exit */
-> -		return 0;
-> +		return true;
->  	case SECCOMP_MODE_FILTER:
->  		return __seccomp_filter(this_syscall, false);
->  	/* Surviving SECCOMP_RET_KILL_* must be proactively impossible. */
->  	case SECCOMP_MODE_DEAD:
->  		WARN_ON_ONCE(1);
->  		do_exit(SIGKILL);
-> -		return -1;
-> +		return false;
->  	default:
->  		BUG();
->  	}
-> 
+> -		if (rc) {
+> +		if (!permit) {
+>  			/*
+> -			 * A nonzero return code from
+> -			 * ptrace_report_syscall_entry() tells us
+> -			 * to prevent the syscall execution.  Skip
+> -			 * the syscall call and the syscall restart handling.
+> +			 * Skip the syscall call and the syscall restart
+> +			 * handling.
+Hey Thomas,
+
+This comment `syscall call` sounds a bit weird.
+
+Apart from this, Everything looks good.
+
+Regards,
+Mukesh
+
 Reviewed-by: Mukesh Kumar Chaurasiya (IBM) <mkchauras@gmail.com>
