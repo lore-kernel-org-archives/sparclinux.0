@@ -1,162 +1,204 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC5DB3C4B83
-	for <sparclinux@vger.kernel.org>; Sat, 11 Jul 2026 12:29:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.52
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783772968; cv=pass; b=Eu26prDu6hFeMlcDPcxR4PiHJ0hmJDcInE6GcL/+u3J+v2kB7NszzmCDYxCt5vzj1V/j+y+Tns0z8MFr5mm6upnenPI+lInG3Yr9R8g6Jfg7A1u/z/6CBg1ywgtFR3OYpc5zFN1ojiU5NR/mj3NU2PSX8NWgNiWoXlVoux4bSnU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783772968; c=relaxed/simple;
-	bh=lgplXt8OmmYK0O5s0vGlPCfavq5E5GB8C7ljQ3QichI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PfjSMY4/cKeMDZ44GcXdaCdKqUAu2L6XiLewWQJHJhwGvRDmr39z7eqSc69sE6YIXOL/jO9SZrQAt7HaOM1zkKR8WxPBY/jzaSI3VZAydZvYvdkj6pXMSvN3JIu1zliH/M/wV6ViNxmLM/5/Y4tTzbbeWX+tKB1waXVnfzf1vyE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KhVAsJnP; arc=pass smtp.client-ip=209.85.208.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3350149DF1;
+	Sat, 11 Jul 2026 20:33:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783802001; cv=none; b=Db52uknWG2094spMaZXVnHhgF2oO1dCSetBFfbn3s2mAIQ/ieM7qy2cWtPa1aKtwbcY4dFw430klibh1rWyCyxDjqazEB5kMAvovQ0+SL6QPx+8OFEuxzHAjTTs7/xzpujQbKdvqoeCdBmVz620+l7QWv9bba+VTrwGP40MYPBU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783802001; c=relaxed/simple;
+	bh=f4WDAwb3qO/KWOBB6gOahvRfdXJNvVppVvPoOxm1wS8=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=U9n5tUzh7GoVpiXFIhC73OMVE8Zqe1psdv7lWrbzqvFN6VMej4+QqZzYlxNNsx4KfFN3+ng3AlDIUDBQxXKJowN1nj2vrYceOvaETmoHzIAcHI75Z+yP568ncg2r7cHdM4FPoiNDuJLVCorMlwn01eN3DXXam6wsZ6isjru4Xxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f6nPQIDW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KhVAsJnP"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-69a5ecbbfb2so2734949a12.2
-        for <sparclinux@vger.kernel.org>; Sat, 11 Jul 2026 05:29:25 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1783772964; cv=none;
-        d=google.com; s=arc-20260327;
-        b=R40DoMOJ/AtN6JYQAzM729J6CvVQ2UvfT+bXswVTST7HSlPsZbCBBWN31RcnzT1eGL
-         8B4AnRlaG4txJhtuBRreEMFhGwXVxwmhg/pZ4WSGLTWiED2hE2Fq7tLDQk2SGoKh5PTa
-         j4rQmPRQgYDaj+coYK2thFLDwL/9pIKQ1U5MkOiXl/et86ag9cdOJsQIzNTogzRZwOsI
-         rdlGVCP0ipev+lN+xhdBkbjabp1scmkeWBmlOZKx2r+v/qY3JlWZxtBgZxl3XUhBUSQa
-         g25r8yq8l3YEWhKHGh+wmaRCMud5sNFATN/eKARIuzqX7yOvHMOSWuVzDD9G+T0W2c00
-         Rqyg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=83oOaaTreHaoFIhiDoHcddDWSjKDujW9xu9zE75la/o=;
-        fh=EP2V7u8LUf/3dX7d491d5zBwzzN0w2vhTyfUTo/lfHo=;
-        b=nl2ymhhYtlUfMcltnz9woJf7WdZCNEcLFyG3hyZI0naS94I56JYMYCTZb3gWMeK6IQ
-         nTl0SAaIYvNZW7ucyiwqTxo6/RR5YeCgyTDd90VRFoz3kP4d9NuFAThhkXUsW1qp+sBe
-         DQz+gZ3gvIYO1WLCuOTjzCg0QuQD9s+Do7VN/DMGZE2j3hyxf8VBjRp7W5KneVzHsMjB
-         X9IpkHv47et+ji/X4Z0PJtxuHcYvXKnkp9qToTw9CAP9vM85uIQIZk3TWxE07xf9DqkA
-         QDDIhFFFXHueDBdnFCQ7Xa8uZY7DYROF9NmUCDOzezqPsFYL04Mr+su3NyuFBVCbN3Kv
-         vvDQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783772964; x=1784377764; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=83oOaaTreHaoFIhiDoHcddDWSjKDujW9xu9zE75la/o=;
-        b=KhVAsJnPccLQtlT6BW0pZOI6M33Kq5peNIi+brKc9mXt9N7FYBNxZiwumx0gXF4fIo
-         sAO6rzobNlVEoIHs9Nr5Ud7Pqw06Wde6xz1P1K2kPK3YZyfFF/QcLy13zXrkpb8v6zCE
-         wa1FryKea8CiALQ/FW+b66R5gxrKvaJKvQ5Z1BuPJv6JghHzUORCw6XB09TKL/k9s/1r
-         i0N8avEwa/AHjCgBU1q0AZKoEW1/H84E5Jz1kEDp/nKMXzLRh+UDioLCoc7tRKEjgsZq
-         3/2AvXjdSUp8fEKFVNQm320lqiCV3PxeKpLmb2suZXyxqugmSpsqzHjcuuYpicZfDTox
-         leNw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783772964; x=1784377764;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=83oOaaTreHaoFIhiDoHcddDWSjKDujW9xu9zE75la/o=;
-        b=cAoBfdtBgl1xRhSj34CcWOUk56Z7NOZAyHMmPTPrkVqKB8M7UMI+wc6ug55oJkSwn9
-         Q+bUTZjCF44KMxXevlLCqfXtT3Gc2Hi+F16rijYGpXMjU6862CPNL1WEO0vxnG1MvMnZ
-         ZwOfy1xFXFpxvQy3W+T4+1JEVsMvgjHhP3LaIPdfFEYyXS/JlnngPxB0c9/aqmn+Y2gM
-         MIIo8We5RdsWpfIuep7b5t2S3V5T0yoyrkDVd1UOQNefTrNWuxHI4bqMiNGDP2FW51oH
-         QMnhhGu8Dnt1YewojvEdrfJPjQ14lObHfPQEq+lNV3cbmy5iMlYHf3T3vTUT3mHfWeMb
-         jlXQ==
-X-Forwarded-Encrypted: i=1; AHgh+Ro4JXkMg5o52yrpu4BoQSeeLky7YPabiMhxKvzxm2ssHl2Mdp9m8L+MToCQWIfmjjun7xXc6uOYmUKm@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyw5hJaHkKG+AjbX1OrPmcVmZd7wVz/W0nONZ1fLokRgGAwKdiw
-	LGWxAkSQH+++6MQHCuP39KDRywYXrfnb7Wpl89iUlmsJTRL1x5KQwKqr79RrUBPnwF5e7UfDgI3
-	6tgsUyezmtkcds8iizkZCrIxo9PwGNAw=
-X-Gm-Gg: AfdE7ckORHckPeeJWndhXh9u8xm4i4g4j5GB6CFC1BxCBUiKd7ra3Ea7CMyALKvYWP6
-	V4DMTD0zh7w0pm8wQRoXdrZpdnyWx0hu00snLxSrqgeUwrzc0aovqiawQD8c9T0SKqpYKswV5jx
-	Plrs9OthSPvnxfufCBpxJQiVDJ+3CNiTrK1jaL17ono1I+yMm2LEtN61vvErcVMQm61cV1vZCM5
-	h3iOketQyoRc6YeBiCS3pngZ1JshMTnZJWms0KH86PgrcVIHzpDyJS2CUpbsvLV4ocC0upAJ/Sq
-	J37app2CHShlJQ6n998wmQy9bGw1ffdQUf4y2xMaI8In8xjjWjvQTsaj7MqsQv4=
-X-Received: by 2002:a05:6402:3512:b0:699:728e:48b9 with SMTP id
- 4fb4d7f45d1cf-69c5edb9cb3mr1210325a12.0.1783772963919; Sat, 11 Jul 2026
- 05:29:23 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f6nPQIDW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C74601F000E9;
+	Sat, 11 Jul 2026 20:33:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783801999;
+	bh=vf0x/sVLTVCL/PCgyuZ8JagPvunPhYIkJoaxGkdlgsg=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date;
+	b=f6nPQIDWb921zxEmTCJayCTDOfYZdi0+7zYrhf0upuiSWI9j5AZ2jA4rhsOs29HYT
+	 WC65M3P5E0Ndczi1cDcuiv7hGhsQJHbzIeCfUAQhsb3BAmdz9sIRmrV3HJM1BFxfHh
+	 Aux4CNd9IAvECdD+RCjW44j4iuQp1Him2INHy0sHP/oX42qlbB/BPDPlYwuwpyf330
+	 fm02VsUCvmZUjjgJlLWziVrF+imgTjTEQzqm6tpMlL+GLiRFtJSumKDpDKIPCbMwb6
+	 NV1PwwP0Vo7BFl96u+JrYXmWPko75piPEvZ0MdoWxo/dPZ46b1HjcordjvvVp5/9ci
+	 U6Hw/ms11EcEw==
+From: Thomas Gleixner <tglx@kernel.org>
+To: Michal =?utf-8?Q?Such=C3=A1nek?= <msuchanek@suse.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra
+ <peterz@infradead.org>, Michael Ellerman <mpe@ellerman.id.au>, Shrikanth
+ Hegde <sshegde@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, Kees Cook
+ <kees@kernel.org>, Huacai Chen <chenhuacai@kernel.org>,
+ loongarch@lists.linux.dev, Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt
+ <palmer@dabbelt.com>, linux-riscv@lists.infradead.org, Sven Schnelle
+ <svens@linux.ibm.com>, linux-s390@vger.kernel.org, x86@kernel.org, Mark
+ Rutland <mark.rutland@arm.com>, Jinjie Ruan <ruanjinjie@huawei.com>, Andy
+ Lutomirski <luto@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Richard
+ Henderson <richard.henderson@linaro.org>, Russell King
+ <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Guo
+ Ren <guoren@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Thomas
+ Bogendoerfer <tsbogend@alpha.franken.de>, Helge Deller <deller@gmx.de>,
+ Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger
+ <richard@nod.at>, Chris Zankel <chris@zankel.net>,
+ linux-arm-kernel@lists.infradead.org, linux-alpha@vger.kernel.org,
+ linux-csky@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+ linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+ linux-sh@vger.kernel.org, linux-um@lists.infradead.org, Arnd Bergmann
+ <arnd@arndb.de>, Vineet Gupta <vgupta@kernel.org>, Will Deacon
+ <will@kernel.org>, Brian Cain <bcain@kernel.org>, Michal Simek
+ <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>, "David S. Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
+ linux-snps-arc@lists.infradead.org, linux-hexagon@vger.kernel.org,
+ linux-openrisc@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-arch@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+ linux-doc@vger.kernel.org
+Subject: Re: [patch 13/18] entry: Make trace_syscall_enter() return type bool
+In-Reply-To: <alDQ7isUKJFl8Va4@kunlun.suse.cz>
+References: <20260707181957.433213175@kernel.org>
+ <20260707190254.338083894@kernel.org> <ak5ySpil83TNWxeq@kunlun.suse.cz>
+ <87se5tqkyp.ffs@fw13> <alDQ7isUKJFl8Va4@kunlun.suse.cz>
+Date: Sat, 11 Jul 2026 22:33:16 +0200
+Message-ID: <87a4rxqnar.ffs@fw13>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260707181957.433213175@kernel.org>
-In-Reply-To: <20260707181957.433213175@kernel.org>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sat, 11 Jul 2026 14:29:12 +0200
-X-Gm-Features: AUfX_mzOlRB8ana7x7qPQc4frMU9J060tNH0Z2GPCNvL1LYqDKQBjM-XzHbrvno
-Message-ID: <CA+=Fv5RpgQ-UeGAT+VcLufte2gAp0H=J5GqZEFR_SuQsmnzy=A@mail.gmail.com>
-Subject: Re: [patch 00/18] entry: Consolidate and rework syscall entry handling
-To: Thomas Gleixner <tglx@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Shrikanth Hegde <sshegde@linux.ibm.com>, 
-	linuxppc-dev@lists.ozlabs.org, Kees Cook <kees@kernel.org>, 
-	Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev, 
-	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, linux-riscv@lists.infradead.org, 
-	Sven Schnelle <svens@linux.ibm.com>, linux-s390@vger.kernel.org, x86@kernel.org, 
-	Mark Rutland <mark.rutland@arm.com>, Jinjie Ruan <ruanjinjie@huawei.com>, 
-	Andy Lutomirski <luto@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Richard Henderson <richard.henderson@linaro.org>, Russell King <linux@armlinux.org.uk>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	Helge Deller <deller@gmx.de>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
-	Richard Weinberger <richard@nod.at>, Chris Zankel <chris@zankel.net>, linux-arm-kernel@lists.infradead.org, 
-	linux-alpha@vger.kernel.org, linux-csky@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, 
-	linux-um@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, 
-	Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>, Brian Cain <bcain@kernel.org>, 
-	Michal Simek <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>, 
-	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	linux-snps-arc@lists.infradead.org, linux-hexagon@vger.kernel.org, 
-	linux-openrisc@vger.kernel.org, sparclinux@vger.kernel.org, 
-	linux-arch@vger.kernel.org, =?UTF-8?Q?Michal_Such=C3=A1nek?= <msuchanek@suse.de>, 
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
+Michal!
+
+On Fri, Jul 10 2026 at 13:01, Michal Such=C3=A1nek wrote:
+> On Wed, Jul 08, 2026 at 10:34:38PM +0200, Thomas Gleixner wrote:
+>> does not make #2 magically go away. It's still the same problem whether
+>> you like it or not.
 >
-> With that all architectures using the generic syscall entry code follow the
-> same scheme, apply stack randomization at the correct and earliest possible
-> place and skip syscall processing depending on the boolean return value of
-> syscall_enter_from_user_mode[_work]().
->
-> There should be no functional changes, at least there are none intended.
->
-> The resulting text size for the syscall entry code on x8664 is slightly
-> smaller than before these changes.
->
-> Testing syscall heavy workloads and micro benchmarks shows a small
-> performance gain for the general rework, but the last patch, which changes
-> the logic to be more understandable has no measurable impact in either
-> direction.
->
-> The series applies on Linus tree and is also available from git:
->
->         git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel.git entry-rework-v1
->
+> However, reading the syscall number from pt_regs only after
+> syscall_enter_from_user_mode exits does.
 
+That does not solve anything at all.
 
-Hi Thomas,
+TBH, your communication style is annoying as hell. You fail to provide
+any useful arguments and explanations despite me giving you a proper
+analysis. And I'm absolutely tired of this.
 
-Thanks for the series.
+So let me try again for _ONE_ last time to explain you why your ppc/s390
+world view is broken and let's look at the current code (irrelevant
+portions omitted).
 
-I have an Alpha GENERIC_ENTRY series posted and planned for the next
-merge window:
+static __always_inline long syscall_trace_enter(struct pt_regs *regs, unsig=
+ned long work)
+{
+	if (work & SYSCALL_WORK_SYSCALL_USER_DISPATCH) {
+#1		if (syscall_user_dispatch(regs))
+			return -1L;
+	}
+=20=20=20=20=20=20=20=20
+	if (work & (SYSCALL_WORK_SYSCALL_TRACE | SYSCALL_WORK_SYSCALL_EMU)) {
+#2		ret =3D arch_ptrace_report_syscall_entry(regs);
+		if (ret || (work & SYSCALL_WORK_SYSCALL_EMU))
+			return -1L;
+	}
 
-https://lore.kernel.org/linux-alpha/20260706170019.2941459-1-linmag7@gmail.com/T/#t
+	/* Do seccomp after ptrace, to catch any tracer changes. */
+	if (work & SYSCALL_WORK_SECCOMP) {
+#3		ret =3D __secure_computing();
+		if (ret =3D=3D -1L)
+			return ret;
+	}
 
-Only its final patch intersects with this work.
+	/* Either of the above might have changed the syscall number */
+#4	syscall =3D syscall_get_nr(current, regs);
 
-That patch removes Alpha's architecture-specific syscall_trace_enter()
-and syscall_trace_leave() implementations, so the Alpha changes in
-patches 11 and 12 will disappear once the GENERIC_ENTRY conversion is
-applied.
+	if (unlikely(work & SYSCALL_WORK_SYSCALL_TRACEPOINT))
+#5		syscall =3D trace_syscall_enter(regs, syscall);
 
-It also currently uses syscall_enter_from_user_mode(), so I will need to
-rebase it onto the new entry interface introduced by this series. I
-expect the integration to be confined to the final GENERIC_ENTRY patch.
+        return syscall;
+}
 
-The Alpha-specific changes in patches 11 and 12 look correct to me.
+#1) The user dispatch mechanism does not modify the syscall return
+    value, but it can rollback the syscall and tell the call site to
+    skip the invocation.
 
-Acked-by: Magnus Lindholm <linmag7@gmail.com>
+    The mechanism used in upstream today is to return -1L as the syscall
+    number which makes the architecture specific entry code skip the
+    syscall and refrain from touching the return value.
+
+#2) ptrace
+
+    ptrace can poke whatever it wants into the syscall number storage
+    via ptrace_set_syscall_info_entry() -> syscall_set_nr()
+
+    It does not set the return code.
+
+    It does not abort the syscall when the poked syscall number is -1L.
+
+    It only aborts when a fatal signal is pending.
+
+#3) seccomp
+
+    seccomp reads the syscall number, which might have been modified by
+    ptrace and acts upon it.
+
+    It can rewrite the syscall number even if it is -1 to begin with.
+
+    It can rewrite the return code if it decides to refuse the syscall
+    to be executed.
+
+    If it refuses the syscall to be executed it returns -1L.
+
+#4) Rereading the syscall number after ptrace/seccomp
+
+    That's required to give the eventually modified number to the
+    tracer.
+
+    Obviously the tracer could do that on it's own, but with the current
+    implementation it expects the eventually modified syscall number
+
+    Changing that to make the tracer do it, is possible but does not
+    change any of the actual expectations. That's just cosmetic wankery.
+
+#5) tracing
+
+    tracing can have a probe or bpf attached, which in turn can
+
+      - rewrite the syscall number
+
+      - set the return code in case that it sets the syscall number to
+        -1L
+
+        It can even set it in case it sets it to some other value, but
+        the architecture code has to be resilent against that no matter
+        what.
+
+      - if it does not set the return code when it sets the syscall
+        number to -1L then it has a historical expectation that the
+        syscall returns -ENOSYS
+
+        That's how it is and you can argue in circles and it's not going
+        away unless you have a great argument why you can break existing
+        user space probes/bpf scripts.
+
+So now please provide in coherent sentences the argument why this solves
+anything:
+
+> However, reading the syscall number from pt_regs only after
+> syscall_enter_from_user_mode exits does.
+
+If you can, which I doubt, then please send a patch [series] against:
+
+   git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel.git entry/rework
+
+with proper change logs explaining the superiour solution.
+
+If not, please spare us the next set of incoherent "I wan't a pony"
+mails.
+
+Thanks,
+
+        tglx
