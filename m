@@ -1,267 +1,179 @@
-Received: from mail-qv1-f43.google.com (mail-qv1-f43.google.com [209.85.219.43])
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29D5242BE92
-	for <sparclinux@vger.kernel.org>; Thu, 16 Jul 2026 15:11:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.43
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784214689; cv=none; b=lA6u4mk+PQAFrcTxTrtoFyyF8A9qgq0fig7nv95VBF4YwwHKwRcQuJJBX4H7DiCVp27Ktwn9S+VbcqaTsIP41cz+4+SKaBZ+z/Ja3Ty745yM3Nkp0eBr5ldZK+FdZpf9yD43BYC0pUxIYXJC/jD3tz8gdGaS9FCbkxSCmdrNue8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784214689; c=relaxed/simple;
-	bh=psHxBjl481gjYQhTwo0qzwWBgo7H74fRjJSrZGRHig8=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Xx06v1FiR3CZ7SlFTudKv7du0YeJEZFK30Ev1zxXMyELVvDPCKMuU6TgfkrrzYwP1Gl91K6wilh5d4NRSr2PXb/PqPr08egqxqVKxIZmLS3Dag7hO0EbfZQFndMhnN3U7zTO3eXUtQAzVJhA4omeJorFhNhXGLAo+58DD9Ui3XQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TZ+EExFV; arc=none smtp.client-ip=209.85.219.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A77E03815D9
+	for <sparclinux@vger.kernel.org>; Sun, 19 Jul 2026 11:25:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.54
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784460349; cv=pass; b=fDT6xfoPswQt/jmOvFNhzncqNONJuDLJ6u3xa+xwA1mBKX9OVlfb3FHEMCMZUVO95NM32mNHhw31WlEyf9fzajF9kUC+5FV4+qUrAHf3KRnMwSPm/DW16Cjfv12KZObr62eqpe7h5FlabbvDQd6/S5HORNAbujraCZ3/ES6hwzU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784460349; c=relaxed/simple;
+	bh=rgcqbxa6lEmJgPeR85dLIKFK2p9ERX+2iKovNt7jIVY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ldTmxO2Tnm0vw9s99LXrUAOzGajGh3ETPx+50N6yNlkjsEJ+9h+4/q+NSdgIcQ3GdLBiBt70cUHuN8ZwjFffo1st/Dmtql4cBRdnHZ6La7NvpTJywmfNOyabNECT+SRWWE8mXo5VbPMsAGjBA/X/cGl1tOdE7b2n6lDjNxRpZ2A=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=D9Eg2uDU; arc=pass smtp.client-ip=209.85.208.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TZ+EExFV"
-Received: by mail-qv1-f43.google.com with SMTP id 6a1803df08f44-8f0e5e36912so55381396d6.2
-        for <sparclinux@vger.kernel.org>; Thu, 16 Jul 2026 08:11:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="D9Eg2uDU"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-69c600f76ccso9261068a12.0
+        for <sparclinux@vger.kernel.org>; Sun, 19 Jul 2026 04:25:46 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784460345; cv=none;
+        d=google.com; s=arc-20260327;
+        b=QgR81y2lFPZ88TVKEyU4SPpmajWIJQnhr/qQHGXrj3PDMQAYvsHkReNjaOBxY0lx4h
+         CdDy1dfzrFWHnzSGOx/CYSs458GhwFfxz86waMXkP6h3d4lzfRiijeSVnuP9nNF+DPpl
+         i1gicbZSb4qZmGHJkf9WEjTIGCUGn8ZjnxTi3b3RkPWHUJWmgzZIhM7o40zrdJHtB0H9
+         QZDNkjN6Y4WwUm6PzaApgrnkhiE7AcTiU+wbr4sjpS8TA0IiUd1uscs6aNVm/zHGSTrw
+         JCBZFh0G0rQh2i0RykDjJZuQa4GErzLDvkMA+/HB1V7bUEcl8kHD2nEVcvvTtwK3e/3k
+         ZYmw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=HjwBEg56Cr9vHNVIU01sUWrlM5gmQ+vCUXpN04JdIto=;
+        fh=cGtTDgRmEIl0RBhLKDcq7jQmWwHndYkiH1e/n0DKx4Q=;
+        b=Vf9J1e9M5dIjjO5PNdGtaXuNJsfaQ6lq5C39El4UMyvLlbDSkP+27ObDV1QYjZEwQG
+         v0jn5qXmhJ+UB9uOgPieNtFTGbSs9j1reBISUxsORu+Z/+aPx5eMWXs7FjULimzX8sCo
+         A7bVrjBbnflDd+l0UZXA+nATKTWaz2TCE/r1chxMb4AgtwlSP/79NLTjveLMD9Orb80d
+         O8p8YR3bHkewFFVVPApYltYE4vO+j/nBeiRzUmpUl4ubJF/9G92j3SZdW2yqW0dD2d6d
+         ehY6L8vqaFgEO5F2th+BQ5mvPgvDKC3Q8yOwH2Vy7LBjuTQ85cm59Kq3vvYtZ5x0sRff
+         7Mkg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784214687; x=1784819487; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=BSYGiZH98e8TFqFguafqMMr46lLxQiNCXi6OZDZdQ5Y=;
-        b=TZ+EExFVObcdbV8vK6hdbejC/IMMyJnAFWdyPG3Nm8o4Oi9Q0Coe+kUaDhNMJ2h4uR
-         z91wqujxK515LZ4Cvdh4YbKEgiTvYRaJL/uHix3Tt238G8Lxqm7HhlGSaVb24HH2mAqf
-         +WyompAtUMizoq3HQdN0SoE/Wq6Wnn919vVxMERUI4TeUxW6VUxSrgxe9DHVGo/mQEKl
-         zfEfiCqJmpAxAvDZmYEpl8MbPop+9rQjfj4OjPic6L4rP9eMfKDE0CklbtH+GUApK8An
-         bOud0O4OyNpX4tlFUj62wwIHoGBw7LsZo9MtWLgmmPw9TsdKxKVDhZXz1CtFa3U7tHjX
-         DUzw==
+        d=gmail.com; s=20251104; t=1784460345; x=1785065145; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=HjwBEg56Cr9vHNVIU01sUWrlM5gmQ+vCUXpN04JdIto=;
+        b=D9Eg2uDUSi1x0Y0zg7fYRwtO/ea3ND5A/4nTPUeApKtSEYiUynlMiE59GblVd3IOrl
+         oWFLcCJp25Ys4PA6xy84FzRAl40+EnzjzRCpSvwGo7RHBsGsYMluu61eRFOFojQND+uf
+         lNJOO3g5JejU7GJi6tHzDEvpZzKFqs8qHKpdvXxbKlewQ6qiZ+CA5RKcpH/KLcFJLheA
+         g2ExVRjhJfMz7jIq0+v0kblCXJOFmPxGPhyEutQjLJ+4HNvh68qQ5hZaqeUXlD5xjERu
+         lUwCLdeswboAyC7uRJFB1Xc36fvUf6TDNx+P0LVWtrX9LSsJKKKRbJx1t2fLrOwcBBgd
+         7OEw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784214687; x=1784819487;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=BSYGiZH98e8TFqFguafqMMr46lLxQiNCXi6OZDZdQ5Y=;
-        b=X+l+e4q7KSyvyQGwx1GjVu/wCOZ0vX2wgevTDmyxL0rPVSZs8UDNvUvK8PB1wCSn5H
-         0A2hK1pDKqVmF4dG5dgQX0XJn7yNYkm2JMRYFDHfkG9o9b+a5+PMc+vqBJ7cKd53n8ux
-         sdF/D6dOsAwn/VNHMP82VRuUSz1/JuR6lQvqk93OsB9xaN6/ku2JcWz6UVGL7Z3i/HhC
-         DZixL2/DgL3j8UI1LcDIcY4e09NsZYzKRpJo8z1UbhuBrn7/yv36n09kpqRbV9BgjWZa
-         to5rvsKChTe89/NiXpoK1LXasFSY4aRBVxIuwbclCFjb338eHzs+LFSqEcX4XD8fwYPn
-         K+Zw==
-X-Forwarded-Encrypted: i=1; AHgh+Ro01Yk6AFc4bEo/q6UOjyyAOlXXhtSzcEc4JTGsXywTQ801mz7FL19e8bn7wwE5qp74TXij6oaVgNZB@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw1xhnKTTjgJjqjiMzcMc0Onk0+CquBsCwdSC3r1vXNgzVArWcm
-	9ldPMukUe3n0RHx5egbGUMXlJoLUF0enIsVwUGVUmj34n31KNfuLMA1k
-X-Gm-Gg: AfdE7ck/3cJXihxYc/bHhgbacxsVl+atVbiOwogamTHPZ2goas/aJcS6FhnxMf6j3fn
-	oNYCZCyB1Dv7OO9BftbLjVuWz8ODnaiduG7x2XpFN/Z4cHgSAi5JbSvmpSXNE3r+NcqJJBpDXB2
-	hUUzkC9nVS+Gow0u7WBdhb8cc5Qss641EDSMQO/UVz2sybvBNWMm38sWWWUXNRp1hrTUjyFsCSy
-	S7BchxKAOSv+A4p56t0FQDXvXdbOk3H9ho8tzWCl+MuwPFPwSOOx5HLhmxnHu/Dcr649H1HO23z
-	GFu72OW0dmPkGb3EkOVVrx9AjDEuFxK0kgAW8t0J53eMYFumGflGtAry/Tjm/sBspekmUJOXCTp
-	qJE0ujETqn8PdhLZn+CQCOMWQcFe3MhPfiXtHE0aCDn916ga07adKd6dARhh2+ftdKm0tr12UPX
-	7RBiEpmDyR
-X-Received: by 2002:a05:6214:3385:b0:8fd:6e12:9710 with SMTP id 6a1803df08f44-90747d1cbf4mr139771886d6.62.1784214686754;
-        Thu, 16 Jul 2026 08:11:26 -0700 (PDT)
-Received: from TurinLinux.. ([184.144.109.221])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8ffd56c4b78sm220031906d6.18.2026.07.16.08.11.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jul 2026 08:11:25 -0700 (PDT)
-From: Nicholas Dudar <main.kalliope@gmail.com>
-To: ast@kernel.org,
-	daniel@iogearbox.net,
-	andrii@kernel.org,
-	eddyz87@gmail.com,
-	memxor@gmail.com,
-	davem@davemloft.net,
-	andreas@gaisler.com
-Cc: bpf@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	visitorckw@gmail.com
-Subject: [PATCH bpf-next] bpf, sparc: Add support for BPF_SDIV and BPF_SMOD in the sparc64 JIT
-Date: Thu, 16 Jul 2026 11:11:10 -0400
-Message-Id: <20260716151110.1716607-1-main.kalliope@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        d=1e100.net; s=20251104; t=1784460345; x=1785065145;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=HjwBEg56Cr9vHNVIU01sUWrlM5gmQ+vCUXpN04JdIto=;
+        b=SHAwRhd0uxGMrbAx+qgytelVzO9cSoeAity0N7EsroWiVBhgTU3/HgawEY7aHSRM8p
+         8O7clOGK+siccg8uPdPjjGG9McQ/AQgHbygPFhkPv5hvQLKL/J3VnRwtSnkYqI5BbdK4
+         ZUv5+C64Zld+svOUAKHSUKdII32FrJh7MTdXuX+UWItaCbZmSDRQXXYA2hojpdEJqMm4
+         1PFagOWHkMvai4t/MVB2YZ8zf7w85rcV68olrcpE819GbkiRpAAvfZZl4KuUf4nq9OGg
+         7l6nRY5bO+l6+6MAA5Bo9dE0NkxBhrfJmWxZ5LqRnq1nU0ulZUJSi/t30rAnWa2lyLcH
+         YLrQ==
+X-Forwarded-Encrypted: i=1; AHgh+Rp4LVgT9h5aAgQd0xfBGCLQz7rjemF/e+4kP89lacPr2Co4of9fWHqXZN4FgTx0u6EiVa0WZRWNH08J@vger.kernel.org
+X-Gm-Message-State: AOJu0YyPzFTYouU/YrS/Fet7qSNR26bI4h0etb0jEGpOkX3Yf+W7v9vW
+	WTcjHZmOgf6//wh5JN6q1P1lFLTQhRCcvjNkgWG/2sd6OZppJtAPIAGCzpn8+jyIz/M3DZ/8Ygf
+	pOHYk9IorO+AAs0zsqMcKuos3GE6hkrQ=
+X-Gm-Gg: AfdE7cn6o0VAeLvd859skbEMGQheggroRePkJAD0+HwN5PhELUlw2Cu6tFqhq0KsaK5
+	69NGZOkC0LlE7GbaAdZN04KD3OITPor/vm1FkDEAgX7vxDYufDfaj+OYZx0hzsbuVe+V/66WBFr
+	jxunUgK+6HC6IzuHZHW6SvnshZ+JPk7MBK4Sex+ziYXV6tdbi+Ab1vFvC3ig20WAPabTRx6yebW
+	aO2BAqpfCggMfq5ozEC+aUbHNnSDVT//GvQe4JdMeQeY5aqCKLXS8SwFJ+P9vRr59rw0MY0OOEF
+	EmZbKXPTsdtme6GuDnpnHRQklk4jRftwvAEVQcXIKA==
+X-Received: by 2002:a05:6402:34d5:b0:698:3b7b:e48a with SMTP id
+ 4fb4d7f45d1cf-69e652f908dmr3652615a12.32.1784460344585; Sun, 19 Jul 2026
+ 04:25:44 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260707181957.433213175@kernel.org>
+In-Reply-To: <20260707181957.433213175@kernel.org>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Sun, 19 Jul 2026 13:25:32 +0200
+X-Gm-Features: AUfX_mzTzrHRlu_CZJHA0P1GUw_Z2tfq0CbfsG-DFTqsEJDFIQx7LWbdfB3YWqk
+Message-ID: <CA+=Fv5TDNH8+JAojV9_W36kUkEE68uiA00FQ7i0vJunebqs1sA@mail.gmail.com>
+Subject: Re: [patch 00/18] entry: Consolidate and rework syscall entry handling
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Shrikanth Hegde <sshegde@linux.ibm.com>, 
+	linuxppc-dev@lists.ozlabs.org, Kees Cook <kees@kernel.org>, 
+	Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev, 
+	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, linux-riscv@lists.infradead.org, 
+	Sven Schnelle <svens@linux.ibm.com>, linux-s390@vger.kernel.org, x86@kernel.org, 
+	Mark Rutland <mark.rutland@arm.com>, Jinjie Ruan <ruanjinjie@huawei.com>, 
+	Andy Lutomirski <luto@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Richard Henderson <richard.henderson@linaro.org>, Russell King <linux@armlinux.org.uk>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Helge Deller <deller@gmx.de>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	Richard Weinberger <richard@nod.at>, Chris Zankel <chris@zankel.net>, linux-arm-kernel@lists.infradead.org, 
+	linux-alpha@vger.kernel.org, linux-csky@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-um@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, 
+	Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>, Brian Cain <bcain@kernel.org>, 
+	Michal Simek <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	linux-snps-arc@lists.infradead.org, linux-hexagon@vger.kernel.org, 
+	linux-openrisc@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-arch@vger.kernel.org, =?UTF-8?Q?Michal_Such=C3=A1nek?= <msuchanek@suse.de>, 
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-build_insn()'s div/mod emit sites pick DIV/UDIVX by ALU width only,
-never by insn->off, so the sparc64 JIT does not implement signed
-BPF_SDIV and BPF_SMOD (off == 1). Signed ALU32 and ALU64 div/mod get
-an unsigned quotient and remainder rather than the verifier's and the
-interpreter's signed result for negative operands.
+>
+> With that all architectures using the generic syscall entry code follow the
+> same scheme, apply stack randomization at the correct and earliest possible
+> place and skip syscall processing depending on the boolean return value of
+> syscall_enter_from_user_mode[_work]().
+>
+> There should be no functional changes, at least there are none intended.
+>
+> The resulting text size for the syscall entry code on x8664 is slightly
+> smaller than before these changes.
+>
+> Testing syscall heavy workloads and micro benchmarks shows a small
+> performance gain for the general rework, but the last patch, which changes
+> the logic to be more understandable has no measurable impact in either
+> direction.
+>
+> The series applies on Linus tree and is also available from git:
+>
+>         git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel.git entry-rework-v1
+>
 
-Emit SDIV/SDIVX on the signed path across the ALU32 and ALU64, X-form
-and K-form div/mod sites. The 32-bit signed divide takes a 64-bit
-dividend from %y:dst, so sign-fill %y from dst before SDIV where the
-unsigned path zeroes it; the 64-bit SDIVX skips the %y write. Route the
-signed ALU32 result through do_alu32_trunc, since SDIV does not leave
-bits 63:32 clear the way unsigned DIV does.
+Hi Thomas,
 
-The verifier and bpf_do_misc_fixups() remove the zero divisor and
-INT_MIN / -1 cases before the JIT runs.
+I did another round of testing of this series on Alpha, this time with my
+Alpha GENERIC_ENTRY conversion rebased on top of this series.
 
-Signed-off-by: Nicholas Dudar <main.kalliope@gmail.com>
-Assisted-by: Claude:claude-opus-4-8
----
- arch/sparc/net/bpf_jit_comp_64.c | 92 +++++++++++++++++++++++++++-----
- 1 file changed, 80 insertions(+), 12 deletions(-)
+For this test I also manually applied the seccomp fixup discussed earlier in
+this thread, i.e. fixing the recheck-after-trace logic in
+__seccomp_filter() along the lines suggested by Jinjie/Oleg.
 
-diff --git a/arch/sparc/net/bpf_jit_comp_64.c b/arch/sparc/net/bpf_jit_comp_64.c
-index 2fa0e9375127..6de9fb29944c 100644
---- a/arch/sparc/net/bpf_jit_comp_64.c
-+++ b/arch/sparc/net/bpf_jit_comp_64.c
-@@ -149,6 +149,8 @@ static u32 WDISP10(u32 off)
- #define MULX		F3(2, 0x09)
- #define UDIVX		F3(2, 0x0d)
- #define DIV		F3(2, 0x0e)
-+#define SDIV		F3(2, 0x0f)
-+#define SDIVX		F3(2, 0x2d)
- #define SLL		F3(2, 0x25)
- #define SLLX		(F3(2, 0x25)|(1<<12))
- #define SRA		F3(2, 0x27)
-@@ -941,32 +943,69 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx)
- 	case BPF_ALU64 | BPF_MUL | BPF_X:
- 		emit_alu(MULX, src, dst, ctx);
- 		break;
--	case BPF_ALU | BPF_DIV | BPF_X:
-+	case BPF_ALU | BPF_DIV | BPF_X: {
-+		const bool is_signed = (off == 1);
-+
-+		if (is_signed) {
-+			const u8 tmp = bpf2sparc[TMP_REG_1];
-+
-+			ctx->tmp_1_used = true;
-+
-+			/* Sign-extend dst into %y for 32-bit sdiv. */
-+			emit_alu3_K(SRA, dst, 31, tmp, ctx);
-+			emit_write_y(tmp, ctx);
-+			emit_alu(SDIV, src, dst, ctx);
-+			/*
-+			 * SDIV does not guarantee the zero-extension that
-+			 * the unsigned DIV path relies on, so clear bits
-+			 * 63:32 through the shared truncation instead of
-+			 * consuming the verifier's zext marker, as the
-+			 * other ALU32 ops do.
-+			 */
-+			goto do_alu32_trunc;
-+		}
- 		emit_write_y(G0, ctx);
- 		emit_alu(DIV, src, dst, ctx);
- 		if (insn_is_zext(&insn[1]))
- 			return 1;
- 		break;
-+	}
- 	case BPF_ALU64 | BPF_DIV | BPF_X:
--		emit_alu(UDIVX, src, dst, ctx);
-+		if (off == 1)
-+			emit_alu(SDIVX, src, dst, ctx);
-+		else
-+			emit_alu(UDIVX, src, dst, ctx);
- 		break;
- 	case BPF_ALU | BPF_MOD | BPF_X: {
- 		const u8 tmp = bpf2sparc[TMP_REG_1];
-+		const bool is_signed = (off == 1);
- 
- 		ctx->tmp_1_used = true;
- 
--		emit_write_y(G0, ctx);
--		emit_alu3(DIV, dst, src, tmp, ctx);
-+		if (is_signed) {
-+			const u8 tmp2 = bpf2sparc[TMP_REG_2];
-+
-+			ctx->tmp_2_used = true;
-+
-+			/* Sign-extend dst into %y for 32-bit sdiv. */
-+			emit_alu3_K(SRA, dst, 31, tmp2, ctx);
-+			emit_write_y(tmp2, ctx);
-+			emit_alu3(SDIV, dst, src, tmp, ctx);
-+		} else {
-+			emit_write_y(G0, ctx);
-+			emit_alu3(DIV, dst, src, tmp, ctx);
-+		}
- 		emit_alu3(MULX, tmp, src, tmp, ctx);
- 		emit_alu3(SUB, dst, tmp, dst, ctx);
- 		goto do_alu32_trunc;
- 	}
- 	case BPF_ALU64 | BPF_MOD | BPF_X: {
- 		const u8 tmp = bpf2sparc[TMP_REG_1];
-+		const unsigned int mod = (off == 1) ? SDIVX : UDIVX;
- 
- 		ctx->tmp_1_used = true;
- 
--		emit_alu3(UDIVX, dst, src, tmp, ctx);
-+		emit_alu3(mod, dst, src, tmp, ctx);
- 		emit_alu3(MULX, tmp, src, tmp, ctx);
- 		emit_alu3(SUB, dst, tmp, dst, ctx);
- 		break;
-@@ -1096,33 +1135,62 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx)
- 	case BPF_ALU64 | BPF_MUL | BPF_K:
- 		emit_alu_K(MULX, dst, imm, ctx);
- 		break;
--	case BPF_ALU | BPF_DIV | BPF_K:
-+	case BPF_ALU | BPF_DIV | BPF_K: {
-+		const bool is_signed = (off == 1);
-+
- 		if (imm == 0)
- 			return -EINVAL;
- 
--		emit_write_y(G0, ctx);
--		emit_alu_K(DIV, dst, imm, ctx);
-+		if (is_signed) {
-+			const u8 tmp = bpf2sparc[TMP_REG_2];
-+
-+			ctx->tmp_2_used = true;
-+
-+			/* Sign-extend dst into %y for 32-bit sdiv. */
-+			emit_alu3_K(SRA, dst, 31, tmp, ctx);
-+			emit_write_y(tmp, ctx);
-+			emit_alu_K(SDIV, dst, imm, ctx);
-+		} else {
-+			emit_write_y(G0, ctx);
-+			emit_alu_K(DIV, dst, imm, ctx);
-+		}
- 		goto do_alu32_trunc;
-+	}
- 	case BPF_ALU64 | BPF_DIV | BPF_K:
- 		if (imm == 0)
- 			return -EINVAL;
- 
--		emit_alu_K(UDIVX, dst, imm, ctx);
-+		emit_alu_K((off == 1) ? SDIVX : UDIVX, dst, imm, ctx);
- 		break;
- 	case BPF_ALU64 | BPF_MOD | BPF_K:
- 	case BPF_ALU | BPF_MOD | BPF_K: {
- 		const u8 tmp = bpf2sparc[TMP_REG_2];
-+		const bool is_signed = (off == 1);
- 		unsigned int div;
- 
- 		if (imm == 0)
- 			return -EINVAL;
- 
--		div = (BPF_CLASS(code) == BPF_ALU64) ? UDIVX : DIV;
-+		if (BPF_CLASS(code) == BPF_ALU64)
-+			div = is_signed ? SDIVX : UDIVX;
-+		else
-+			div = is_signed ? SDIV : DIV;
- 
- 		ctx->tmp_2_used = true;
- 
--		if (BPF_CLASS(code) != BPF_ALU64)
--			emit_write_y(G0, ctx);
-+		if (BPF_CLASS(code) != BPF_ALU64) {
-+			if (is_signed) {
-+				const u8 tmp3 = bpf2sparc[TMP_REG_3];
-+
-+				ctx->tmp_3_used = true;
-+
-+				/* Sign-extend dst into %y for 32-bit sdiv. */
-+				emit_alu3_K(SRA, dst, 31, tmp3, ctx);
-+				emit_write_y(tmp3, ctx);
-+			} else {
-+				emit_write_y(G0, ctx);
-+			}
-+		}
- 		if (is_simm13(imm)) {
- 			emit(div | IMMED | RS1(dst) | S13(imm) | RD(tmp), ctx);
- 			emit(MULX | IMMED | RS1(tmp) | S13(imm) | RD(tmp), ctx);
+With that in place, the kernel boots on Alpha and I do not see any
+regressions in the seccomp_bpf kernel selftest or in the strace testsuite.
 
-base-commit: d1f4b56417a3dc1a0600f960b14f46bd25eda89d
--- 
-2.34.1
+One note: the seccomp_bpf selftest run on Alpha uses this not-yet-upstream
+Alpha selftest enablement patch:
 
+https://lore.kernel.org/linux-alpha/20260203063357.14320-1-linmag7@gmail.com/
+
+One Alpha-specific wrinkle I hit while rebasing the GENERIC_ENTRY patch is
+that Alpha cannot unconditionally pre-seed the normal -ENOSYS return state
+before calling into the generic entry code: syscall_set_return_value() also
+updates r19/a3, which is still syscall argument 4 on the normal entry path.
+Doing that too early broke early userspace mmap() during boot.
+
+The Alpha conversion therefore handles this on the no-dispatch path instead:
+after the generic entry helper returns, if the syscall is not to be invoked
+or the resulting syscall number is invalid, Alpha skips the call, preserves
+any ptrace/seccomp/BPF-provided return value, and only synthesizes -ENOSYS if
+the return state was otherwise unchanged. That was needed for the
+TRACE_syscall.ptrace.syscall_faked and syscall_errno seccomp_bpf cases to
+pass.
+
+So from the Alpha side, with the seccomp fixup applied:
+
+Tested-by: Magnus Lindholm linmag7@gmail.com
+
+Are you planning to send a v2 with the seccomp recheck fix and any other
+review fixups folded in? Is the intention to route this upstream
+during the next merge window?
+
+Thanks,
+Magnus
