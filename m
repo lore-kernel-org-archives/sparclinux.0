@@ -1,60 +1,60 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D40A41E6C4;
-	Tue, 28 Jul 2026 10:13:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 976853655D8;
+	Tue, 28 Jul 2026 10:43:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785233635; cv=none; b=hVj1YfjwOJHfENM9h/ELsT80Ja/rQqyaommH8RUAqd/GiyJkki9opLGjeiMzFr/zHXrOOJApCVDQ1FGI7swvolTgO6/29+V+9qxuRqEqeW62UDCKccJgqCtkIcUzzzWZ4iuESR1KUbwEq+fA1+mCouw6xcDk5ASE6dCnOL1zoqE=
+	t=1785235419; cv=none; b=k3JJ+vhl4Co57LHNFpzQvr4bas7K7Vihn3Ckp9+9BE/n8LRHTqoO1eT9JpBQF1Xp7p38OPI4Tm7nibo9u4EhZKEiIm+r+WqK8D+QQ+rQgk29t53eqESEmMlDLAFy0Mf0gQOR3/uh5LOQe6WHZ/nPC3a8Ymjr2IjVYRFCF7Covw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785233635; c=relaxed/simple;
-	bh=roihhmV/KuXAPFGLQkWJEIMky73WYz72A0NtvpF5Nfk=;
+	s=arc-20240116; t=1785235419; c=relaxed/simple;
+	bh=BVSL3zMO7wh9+iRJzNBbE8Cg85ys++giyQcFV+E/8ks=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=as0y3tJOKxooYwO3SEj6cXJiHXSK9aR5rwm9mKTgJcM19Aygfahhm1T+07RX0dMC1uZPNsplMdBuiTbG1Q/VfA3wcySil0EDa8cbq9lIRHLAyuei2Pmo12JiWfWtiYOZPzEKWTUuwlKyO/d5lo/7bVsttH1Zqhr4Uv8lE8g+m+I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=GpRQpOWU; arc=none smtp.client-ip=148.163.158.5
+	 In-Reply-To:Content-Type; b=XxYc1dZrO3tiGNM992j/HYvjFm/jnP16gBGDg4l4EjRIHLlsSWSCpvYPxS/ZhxWBZeXG3b0T/CqVnM3RTiyy8Hpb7HxH5P/ASzqCArTjkxjAliXABTzXMCeDB/eMt3OUfp7lEmo3lZI3mvvxJbaDlpXolAa1uflCK7YwvalPtgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=HF6Nhe3D; arc=none smtp.client-ip=148.163.156.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="GpRQpOWU"
-Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66S8HkQJ404897;
-	Tue, 28 Jul 2026 10:13:39 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="HF6Nhe3D"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66S8IB4b512395;
+	Tue, 28 Jul 2026 10:43:22 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=8XpQTG
-	4/JT6HenoyfhiMZVRbm5cs7MuTDf0QErL059Y=; b=GpRQpOWUp4+2oZv7lYAuTY
-	B8K49o5mdBt3JsCQfiCBlu7aICZbHLpSvwZSJuH6tpcXLT7c56vsCF4OG/eFvWgR
-	Fa0qQG63qsPyJPPD15f3Z5dbY1ew6kADOyUha4dEEVRB5YaITh5+QZlcYiIaP71F
-	qAOWtVGDBchLMXCtJn89dtEklf36KRgCKq01EJECTtKUJXJsaD9ZBboZ5RbaQXe+
-	6OUAvMg3jw5oTyRGns7psgNe3R5BXcwKwzTlMNrZg6EIBqH652zC/kDODmNkKiMr
-	nzeiIajfrr5pKXw6Sv5XAvgD2XZlA0xoe6Q2Fa1coQc1GedhsJD8At70BqPpH0DQ
+	:message-id:mime-version:references:subject:to; s=pp1; bh=BYc0Yo
+	EVS9WQvvde3hdU7aS103pG7UlxyZo0yPccAr4=; b=HF6Nhe3DfgjwNoqJ3dlnsX
+	cb91Jmr6hWeaxNJlROPFTIgkywWuaINE370bHj+plmanIJdfOIhM/b37/XzfSFcB
+	v/Lhw6rNgDXRQkfn4GyOaAnVIuD1gW7rCfQEI2E64lu6duS71zbpdXGoCzgZDZza
+	t29rDk0YAUE8fBexF9XGDlUNX+xEMm6WcpORPVL0BNinLIDWRoXIaW60/AeoPFVg
+	hEkKT4HH9s1IoCH/+1AEoqr6dg9H3GalOySLyo7uVaiYzuQLay7AtuQKPZmeRP2L
+	3gq7JTM8TT/OEQSqnpx3GPjgwy9S/BpF8T+PaHYbZmOfhVFfhAwORYazbY7/7usQ
 	==
-Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fmv0nm0w3-1
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fmv0xmqp5-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 28 Jul 2026 10:13:38 +0000 (GMT)
-Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66SABF0e007110;
-	Tue, 28 Jul 2026 10:13:38 GMT
-Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4fn8fk1akj-1
+	Tue, 28 Jul 2026 10:43:22 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66SAg2aV029392;
+	Tue, 28 Jul 2026 10:43:21 GMT
+Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4fn9pg96m2-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 28 Jul 2026 10:13:38 +0000 (GMT)
+	Tue, 28 Jul 2026 10:43:21 +0000 (GMT)
 Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
-	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66SADYwp31719854
+	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66SAhHi626673654
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 28 Jul 2026 10:13:34 GMT
+	Tue, 28 Jul 2026 10:43:17 GMT
 Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0540220043;
-	Tue, 28 Jul 2026 10:13:34 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id C752220043;
+	Tue, 28 Jul 2026 10:43:17 +0000 (GMT)
 Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id A467220040;
-	Tue, 28 Jul 2026 10:13:33 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 70F0620040;
+	Tue, 28 Jul 2026 10:43:17 +0000 (GMT)
 Received: from [9.224.76.67] (unknown [9.224.76.67])
 	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Tue, 28 Jul 2026 10:13:33 +0000 (GMT)
-Message-ID: <6b856add-646e-4e44-a0f8-98670fd6d663@linux.ibm.com>
-Date: Tue, 28 Jul 2026 12:13:33 +0200
+	Tue, 28 Jul 2026 10:43:17 +0000 (GMT)
+Message-ID: <5b9f08f0-4412-4841-b7c1-21de21557fe4@linux.ibm.com>
+Date: Tue, 28 Jul 2026 12:43:17 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -62,83 +62,94 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/3] panic: Introduce arch_do_panic
+Subject: Re: [PATCH v2 2/3] s390: Implement arch_do_panic
 To: Bradley Morgan <include@grrlz.net>
 Cc: agordeev@linux.ibm.com, akpm@linux-foundation.org, andreas@gaisler.com,
         borntraeger@linux.ibm.com, davem@davemloft.net, gor@linux.ibm.com,
         hca@linux.ibm.com, linux-kernel@vger.kernel.org,
         linux-s390@vger.kernel.org, pmladek@suse.com,
         sparclinux@vger.kernel.org, svens@linux.ibm.com
-References: <FF4C0015-29DD-480C-8905-E9594659521E@grrlz.net>
+References: <8E5EEFE6-C655-4319-B659-E3817DD24954@grrlz.net>
 Content-Language: en-US
 From: Mete Durlu <meted@linux.ibm.com>
-In-Reply-To: <FF4C0015-29DD-480C-8905-E9594659521E@grrlz.net>
+In-Reply-To: <8E5EEFE6-C655-4319-B659-E3817DD24954@grrlz.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI4MDA4NSBTYWx0ZWRfXy2EMj1vTDv6L
- Hg6rlkZHIwRssRY49CVlt9CZKjhAiWUwiZowwJl1ZBb1v6fhmbd9wOEafXSlJG0o8n4JjtBUC9N
- Z4qQAgsbN+SgHgeO8Rwv0+dAKZYdKJc=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI4MDA4NSBTYWx0ZWRfX4XhAOb1sJ9Ej
- K7yrl7Kkte0mGY/1gC68MMbpvWfCCqb4A1UrwPbwBYyE9oTNyTK9q4qwWxTER2SqKumwr7z/PPv
- jHPE2zVuo9lzX4IlXZ7zi1dAb/Biy5GV4cYSyOlHrf6Q6/3AMzHzptE33qnht9tvB57vNw5SM7r
- 8emOGN/66SUc9bi5wQAgDt0zSJXsKZ/wgdqWavXwdUsSBG43cApnK0jwti98kByuH9hcWPX+NBR
- lfsxecLROqGygAPBSf4B3PAQ232wY8cerKytLFQJeQwLBpb6+FTDhZFd+C4zuuNdf2DQu8KZsZ6
- ucZEPtGbw4CGsBt5ZlJL6DvAxT2OunA6+SrUD/KLQY26+FVzSHqFFB4LK4QJF752IBSxxt9YpL3
- ReT9eGnWLa0YFBdP0kCIKzfpS5HKXSJ9rxVLXnYkubqfdxquejdBc6uajDixAEjoaHf2Nuznh/2
- 8iyIIuGlD4zeSH9+5Vw==
-X-Authority-Analysis: v=2.4 cv=b5WCJNGx c=1 sm=1 tr=0 ts=6a6880d2 cx=c_pps
- a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
+X-Proofpoint-GUID: AzCsHLvmTIx-IUhh874i6A8fYheMLl_C
+X-Proofpoint-ORIG-GUID: AzCsHLvmTIx-IUhh874i6A8fYheMLl_C
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI4MDA5MCBTYWx0ZWRfX4IgzPpFcKjBL
+ iHCFUDQog44ErDqewXETDhx9zwX9zeNLq8EK30UU2foMGZx7Nd/VG2B0n2ZSHDQjXiFlRtzLf9I
+ Vi9h86zC2uN+4u6t59nKJTQNcoUyOng=
+X-Authority-Analysis: v=2.4 cv=dYuwG3Xe c=1 sm=1 tr=0 ts=6a6887ca cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
  a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=V8glGbnc2Ofi9Qvn3v5h:22 a=e9N-MU80HfMvdWsBPgEA:9
+ a=RnoormkPH1_aCDwRdu11:22 a=U7nrCbtTmkRpXpFmAIza:22 a=pu_0fIP_DWjBY3u_oFMA:9
  a=QEXdDO2ut3YA:10
-X-Proofpoint-GUID: 1I5N1iDypNOqUmFAxfshBltYuO6bnT0c
-X-Proofpoint-ORIG-GUID: 1I5N1iDypNOqUmFAxfshBltYuO6bnT0c
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI4MDA5MCBTYWx0ZWRfX1Fs/pHPx/tke
+ Y32k7uvFFE5jDM7LEQ3xYxtnjOj0Ry4iB+o3hIFPkT049iakRyfCHCZRGmkcenB3g64vAoaQ1Gm
+ 6Bg3Qxn9/Xy6r685HrQ1WNCU6vGOX5b4RuT4e4YUn4+olOuWW7bsyn8dRUhDW0YfV1bY64wLitx
+ 6tlGze3VWkmfnMbVx7F+ptXmI3avTcMwb5hAXXoTS7n3EhUQUCYR8raL6esE+9JBlb8PgOlnJzb
+ ehEnRAq+3Gzhy7/oYgcjgvznTvGhPPMCE6bKMSkdypdYJXZnzKlLNBCm/pkAlmHdHEPEe3AIops
+ g4ZpPUBx6A0pCxsEvW8IWdQTCD73hpiJW/z6a9rIY1txqvwNSR1L2Sih88UAD2BnRMfe6iM01w+
+ HSYeGa22w0LCTKDelR/XnJhupvdOS2YMwCSZSdWaTGknV8ABiB9RIQgzJyQIzJaJAiQM9Gx2ZFB
+ V6eIWWZ0G0u79mk4Q7w==
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-07-28_02,2026-07-27_01,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 spamscore=0 adultscore=0 malwarescore=0 impostorscore=0
- bulkscore=0 phishscore=0 suspectscore=0 clxscore=1011 lowpriorityscore=0
+ priorityscore=1501 impostorscore=0 clxscore=1015 phishscore=0 malwarescore=0
+ spamscore=0 lowpriorityscore=0 bulkscore=0 suspectscore=0 adultscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607280085
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607280090
 
-On 27/07/2026 14:59, Bradley Morgan wrote:
-> Hi Mete,
+On 27/07/2026 15:01, Bradley Morgan wrote:
 
 Hi Bradley,
 
->> +#ifndef arch_do_panic
->> +#define arch_do_panic arch_do_panic
->> +static inline void arch_do_panic(void) {}
->> +#endif
+>> This now means that the panic_timeout value takes precedence over user
+>> defined on_panic behavior.
 > 
-> this is fragile. the arch override only kicks in if whatever header
-> defines the macro happens to be in panic.c's include chain. if it ever
-> falls out, the empty stub wins silently, the arch version still
-> compiles as a global nobody calls, and the hook is just dead. no build
-> break, no warning, nothing.
+> this is the part i want to poke at. distros routinely ship panic=N on
+> the cmdline. with this change, anyone who configured on_panic=dump on
+> such a system silently stops getting dumps, because
+> emergency_restart() runs first and never returns. a reboot instead of
+> the dump you explicitly asked for is strictly worse. if you and Sven
+> want that semantic, fine, but spell it out properly and give the s390
+> docs for on_panic a line about the new precedence.
+
+FWICT, there is no mention of shutdown actions in kernel documentation.
+s390's user documentation is a different story. I agree it should be
+documented on Linux on IBM systems documentation.
+
+I'd argue that specifying both on_panic=dump and panic=N (N>0) is
+a configuration error, but maybe a pr_warn() could be added to the
+when on_panic=dump is configured with panic=N is set. That could
+hint what is wrong if anyone investigating dmesg and trying to
+figure out why system didn't dump.
+
+On another note, dumping via shutdown actions serves as a backup
+and kdump is the main dump mechanism nowadays. Kdump always takes
+precedence over panic=N.
+
+> also worth saying in the changelog what this actually wins: today the
+> INT_MIN notifier never returns, so sys_info, kmsg_dump, the post
+> notifier crash_kexec path, the console flushes and the end banner
+> never execute on s390 once on_panic fires. after this patch they all
+> do. thats the headline and the changelog undersells it.
 > 
-> use a weak function instead.
 
-While I acknowledge the benefits you just listed, I got the
-notion that maintainers don't prefer __weak implementations
-and instead opt for arch specific override via ifndef guards.
-Therefore I wanted to start with this approach.
+Right, I will add that part to the commit message too.
 
-However I am willing to switch if the maintainers would favor
-that approach.
+>> Fixes: ff6b8ea68f4b ("[S390] ipl/dump on panic.")
 > 
-> one more thing on the call site: arch code now runs (and prints, on
-> sparc) after the "end Kernel panic" marker, which until now was the
-> last line anyone would ever see. tools grep for that as a terminal
-> marker. probably fine, but say so in the changelog instead of leaving
-> it implicit.
+> What's broken? What's buggy? 
 
-Right, I'll mention that. And by changelog I take it that you mean
-the commit message, right?
+I can put a couple of sentences on how and why panic=
+kernel command line argument was broken for s390.
+> s/now allow/now allows/ in the changelog..
 
-> s/already has/already have/ in the changelog while your at it.
+Will fix in next version!
 
-Thanks, I'll fix the typo in the next version.
+Thank you
 
