@@ -1,115 +1,154 @@
-Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC6242417D1
-	for <sparclinux@vger.kernel.org>; Wed, 29 Jul 2026 01:36:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.54
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785288978; cv=pass; b=L1HCvJjk8RYRFszSrHtULMzP2h7hdPfLSTObW0sjULXK3S/LsJuFYFQlcTNlGYcmUbE5bcwy8X02rdS64IRU8NILx+aIFgkGI8NBD/JnSCL+6ZQK9Fmxgymf9GdX5PWTPKpj93/TIR5j3FYZP4wiqrYdAJhmzge4GjUaF76XB5A=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785288978; c=relaxed/simple;
-	bh=smrSPmbFPzzbUQc1cVkn2G0XxLhpKiHLkqRA7mUmAXk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fhkmKs9tMynyuSkbVL+ptHNT2vNdvrFyDGR7ZFD+YIK6oOLAJZ/Dngdgu5k/Pq874twyfq/vKYkszNHuAkUBcF76Hb1TM1ZUaafv9KKnYIk9sOb65eYpQeSsl7Nr17rfxhBSM2xpI9D7vf4UT5QKt+ZUk8vYFYrCDBzpJDxs8T0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XaX5e/le; arc=pass smtp.client-ip=209.85.208.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2AE843E9F9;
+	Wed, 29 Jul 2026 08:57:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785315431; cv=none; b=ZpbwmqqsnrgvRMR4M1pZHbMOQ2LVdfYBHRsfsneifCAABH734RiesEPwpQaE/dgxVGuVK8Tpwj+Qe+apxKUNHA/Za+Lh/2VJwIE9romiC1Pc8nVXPyLScouy4oxeTP/+kRrwE8l98r/vnk/hHnJtp082QAhiEu/eVLWpgC+0dsM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785315431; c=relaxed/simple;
+	bh=ptDf5THOHnQ1gkk9zQAoG1xYEFM5CN0bQrZlHvSVZjw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TaY/uIehI7zmIooGeWMnqUOnlYmu5Uob4xeenZqSdUBI3ZquNMXGbT3Hdz/YGvmE1kJBqi9VlBgH+GK057BOhCHN2LkGHG/VHHHGEzTzHuE6DhW1y9nAV7SZfh/KgCPNfQWa9M1a+mtDAAJ7gCJgU+YOrv/OfbophEsuPkc47O4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=iGuy6lJf; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XaX5e/le"
-Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-697bd21fdc2so609613a12.1
-        for <sparclinux@vger.kernel.org>; Tue, 28 Jul 2026 18:36:16 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785288975; cv=none;
-        d=google.com; s=arc-20260327;
-        b=KujAbKkUQmwsPcnjb1jDikvmnRQwf3gScozWzpPoCEGMg3d7akvATWdv3mWEx5P2vy
-         QTkL2qmhMBdX+cxsuzSLm5r1vKPoTkAmx7n1qwgnkU/DHpVzoQ7lwGhT/ysYyS6FcGL8
-         QstxMsCn7mFXqxDYt9lId5f4v26A1iDWq3Umrc+YTHp/JNuPTDD+GRR7A5Du2LyVFHAW
-         d7OpQh8635q3NhhjtEihDCoz4GvKulRlldJb1e8wf8v3uvc30s7KeNbsUwSRe6Rd1JQo
-         0VXsBrwZIKIVGN78PzuB4nZqXLPdSoG/q9jF5PBmDdBlNLZ2lz0umdChAJo9QK0I53uE
-         fPfw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=smrSPmbFPzzbUQc1cVkn2G0XxLhpKiHLkqRA7mUmAXk=;
-        fh=/vV2knl49+CfRwWzO5tWCueptJLZ8WzJwUPICL4wtbA=;
-        b=Sh0xOJL5EQ3g+35ecxpj28nCH22wA1uqkAq92NgiTqHxIIcce5Q/vX1xb3xOfujcmP
-         ng177rXk6jD97I6eOi0fpyTknAeAM/3vKFAQfJDt+BdLBz/ZMLS4JVLksEH6CI2u5tr7
-         cCk7lSoYfiRj+XaQr2gsIOfkcVdluGnP5U+u1/HgGDtnAOjZnifumoeWbLxfiQFHemCw
-         dsfjrD20hIIfshx0HtW7neEml77RKXV+2cV71kN0nBXmg53qHDo1WWBe0k0H2ZAtMaUb
-         GVOG/Mj9JQ5jLemGVlZJnZUyh9XBSB786FJ5d3yhDSkSrv4UKAuLvxZMiQSxMU5qyvWa
-         J/SQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785288975; x=1785893775; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=smrSPmbFPzzbUQc1cVkn2G0XxLhpKiHLkqRA7mUmAXk=;
-        b=XaX5e/lejryy8eBRGEfWv3wq0Nz03uOLR6EOPg7jcQSDfPT4aduSfAxqV2JjR/t889
-         OP/QRQqZZyZ22Msw/Ik0B+5g2C45LclHQk/ssSQ9/4ve09nPj1n5wWr4yxqgTpLz0oyF
-         LSwPP9rdEqXZ1nWIOmytddm76gQYOBWJPl7dD4BP3KJrOLqAZRK0k5XREgDVKcnLYc5k
-         HulNUiGJofUTH0AJRarynzE8/MjUicQ0SNYWPzy4Ls52W0U1RQIQkwcE6KFCqHMdOPBE
-         px8JECy7b9DsnMuSCDFH8QpuHGvdJuyCJ8jcfHuxrcgxtJfEOrvMgcms+0Cv0pD07arC
-         /wrA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785288975; x=1785893775;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=smrSPmbFPzzbUQc1cVkn2G0XxLhpKiHLkqRA7mUmAXk=;
-        b=Y6ML4ZVT5mU1FpaFgZsBnA7Zoem6LWFf1+uc0xTgI+xkIcXpQ7pqM2K5bWLWC+E+52
-         meLCyJHWO04tLqO7lUuwCYloe8NLpyLGAQehjEnU3ujChzUTMcTrnoK3Wll73XofHhXv
-         +tlDydpwMFfXy/SCaT46mwylinZYxPYmxdW5f4ZqY+C1RgExVZ+ai4ppPzEFnADZQcZZ
-         +KNkz+wozw/TxEGM0tdQuqpbSd4kwZ8apgZ6trnA/M4QuNpkd4QRhfadbnzWo1La3KEB
-         dVzCr7DIWju7QIk0pwi/cLIsmSuy4eb0+Hi3Brd0B0+uryYvNtDTO7dtLD67FMI8o/fo
-         SAWQ==
-X-Forwarded-Encrypted: i=1; AHgh+Rra/+JCTENTnBnshQm5XdNRwvKMC/MZ9RJak+Okl4p9uxr1CGO+vimORM5tp6yHdikddm0p8FETBnSA@vger.kernel.org
-X-Gm-Message-State: AOJu0YxhIQQDy8rcQq0W0Opm6X1bEjVyLtUhkzJlGoyrF+gj3ujoqvhf
-	Tb/Xr+bq/75SyFgmf+jXT4/61asHc2055naXeoUFBAXMTJIY5UULcJuPmD5OweJh2zn1cVgka0/
-	z6ZQ5psnxsvOLcwXWaa2zAXydPqL1Ddo=
-X-Gm-Gg: AR+sD12r7dOMDta0IJ/GD30/LKcyS5geE0l3F4zbhOt36V1Df2DPP70hnI7U7DqSKQq
-	xYoQweqiy7CrRDVDIGbruw2CZZDLk8g+3jVAQ0zKPJojoCnmDZqrGY1W1yKPCAVrSSjirUZpXqE
-	NcOTp7ZMv4zimT4T59GxQ2F89tVZlRAxPWkdimJNdXQmHuoD6JPve/RfBn51WfxAq3kV222xETu
-	COvBBSzvdNJCDPdAO89IhMKF/5qhRWC753ag0Sc+hH9uPjRA/ejO7uG/jUvSwZ1m+GiXZ1xXKt2
-	wZ2lmCV7FzZoABYo812bQsYvZ4jGGpB8XqEQ7JR08b/86Gg=
-X-Received: by 2002:a17:907:7b81:b0:c15:c658:dc0d with SMTP id
- a640c23a62f3a-c1f7212f768mr251959466b.39.1785288974858; Tue, 28 Jul 2026
- 18:36:14 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="iGuy6lJf"
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66T7lnAk3507888;
+	Wed, 29 Jul 2026 08:57:02 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=0UfgQ5AWIbpDnI2W0rfe1jhelPa7d6
+	NOD8rzf7H2i9A=; b=iGuy6lJf+8ASrigczWCaJA+PdLxv8QTZNYsp9aCz1GsiRR
+	S37v7pMQiuYuy96YJ2E4D9URxQh32L5VKxUD49rv77bx0dO0uPswk7QJG3zkGE/I
+	yjNOS/gl19gEyPqlbt8TEjoKzdioiCBQR3/lVrcIaevruufH7jLoCYZc/cpqmqcW
+	AFBOWIvPdQXIyghyk34qJ8H7lE7CEdaaHKJoA5y0dRry547U3zmIZrzPoczc9dyS
+	Sd819ljbt0m6LBCiA7TNcZxb/WJxIJG7QVn38GPPwv0tGncpuFP4G5fSqO/WKbxz
+	SlCc6TXmgRz9EdfgVTrKMmBggVn9/5tRMTXUkOjQ==
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fmv0ns135-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 29 Jul 2026 08:57:01 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66T8uIhb028853;
+	Wed, 29 Jul 2026 08:57:01 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4fn9pgdrm1-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 29 Jul 2026 08:57:00 +0000 (GMT)
+Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66T8uvu246596438
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 29 Jul 2026 08:56:57 GMT
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1544F2004D;
+	Wed, 29 Jul 2026 08:56:57 +0000 (GMT)
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id A149020040;
+	Wed, 29 Jul 2026 08:56:56 +0000 (GMT)
+Received: from osiris (unknown [9.111.35.133])
+	by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Wed, 29 Jul 2026 08:56:56 +0000 (GMT)
+Date: Wed, 29 Jul 2026 10:56:55 +0200
+From: Heiko Carstens <hca@linux.ibm.com>
+To: Mete Durlu <meted@linux.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Petr Mladek <pmladek@suse.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH v2 0/3] Introduce arch_do_panic
+Message-ID: <20260729085655.17504C1f-hca@linux.ibm.com>
+References: <20260727-arch_do_panic-v2-0-4e25ceb05075@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260716151110.1716607-1-main.kalliope@gmail.com> <amlKS9s1YYh5mOEi@google.com>
-In-Reply-To: <amlKS9s1YYh5mOEi@google.com>
-From: Nicholas Dudar <main.kalliope@gmail.com>
-Date: Tue, 28 Jul 2026 21:36:03 -0400
-X-Gm-Features: AUfX_my0gUeQYf1nnJh4m9pf7naN6uxhrPjSsEWTnFIn1kxBlXCU6U98WoIrpbY
-Message-ID: <CAJZwKkhoVSuHqeNaC=3CK07UVLfCTAM0MNFRoi=hZ=X=t=nVNQ@mail.gmail.com>
-Subject: Re: [PATCH bpf-next] bpf, sparc: Add support for BPF_SDIV and
- BPF_SMOD in the sparc64 JIT
-To: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org, eddyz87@gmail.com, 
-	memxor@gmail.com, davem@davemloft.net, andreas@gaisler.com, 
-	bpf@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260727-arch_do_panic-v2-0-4e25ceb05075@linux.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI5MDA3MSBTYWx0ZWRfX5agoRB9FLJm1
+ G8DXVwCTFHOba4MAF6ltzHGkRCTWKfAY+X5oC2ox46Xkj6gQ7/mXBOduSQHCEWJeVMttW8tzhJe
+ Y6aqFTgo7IZzlZNqqIRKqzxFT8c/sEk=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI5MDA3MSBTYWx0ZWRfX533Lz86FGQ3h
+ mfYawr+Lty2G5nDAPabsTcLd7/Gkshf8m3V9iUW7ctUyerkKf2wBtReQxoHrTnrgchVSsdLGRi/
+ 5qPbENLfavZFKgIvoUsN3OPmY9FufWRuN1/arkKdAqY4L6cTjhsqRltqUdh7ZEZDoqH+fhU7U74
+ 6OKHRqf2vzzc8PxgND4uaJah780RGoYlFwcuP77MUKtTq9khOriIn776dT01kNQ+OAWnlw0Pxpa
+ r7Q4xtOQoevWVJeD3lBVlQWruO4mL/uIHts66W118iBPzEtlfKoke4Aij/AyM/2Rn0BNh2kfJAc
+ G5I7oZN7NP4iH6uin87N5qMcjknxkADNUNby+vf/BMEtMBl5VO5rDLWeHqqHwzsFZHs89jRQJ4+
+ T+ewYk4KBrEtTmqBMFlNG1tpyqEZHz0G71xCvVMayq86xLkRkioYv8j0l6TK//oqODtl6w6q4Kq
+ wW1TnABRLL2WwmX5/1Q==
+X-Authority-Analysis: v=2.4 cv=b5WCJNGx c=1 sm=1 tr=0 ts=6a69c05d cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
+ a=kj9zAlcOel0A:10 a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=V8glGbnc2Ofi9Qvn3v5h:22 a=VnNF1IyMAAAA:8
+ a=cfSSHWZ1uO1NlKpTrO4A:9 a=CjuIK1q_8ugA:10
+X-Proofpoint-GUID: tGs2XFaAc5gfbU0gUwnL13djRWFEBs7o
+X-Proofpoint-ORIG-GUID: tGs2XFaAc5gfbU0gUwnL13djRWFEBs7o
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-07-29_03,2026-07-28_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 spamscore=0 adultscore=0 malwarescore=0 impostorscore=0
+ bulkscore=0 phishscore=0 suspectscore=0 clxscore=1011 lowpriorityscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607290071
 
-On Wed, Jul 29, 2026 at 08:33:15AM +0800, Kuan-Wei Chiu wrote:
-> I saw that your bpf jit patches span multiple architectures.
-> Assuming you don't have access to all these different hardware platforms.
-> Just out of curiosity how were these patches tested?
+On Mon, Jul 27, 2026 at 12:36:19PM +0200, Mete Durlu wrote:
+> Changes in v2 - Address Sashiko findings;
+> - Patch 2: Remove unused leftover code
+> - Patch 2: Mention panic_timeout and shutdown_actions relationship for
+>   s390 in commit message
+> - Patch 3: Use bug.h instead of setup.h to pass around arch_do_panic
+>   implementation of sparc
+> 
+> Replace architecture-specific ifdef sections in vpanic() with a clean
+> arch_do_panic() hook. Currently s390 and sparc embed their panic
+> handlers directly in vpanic() using preprocessor conditionals, making
+> the common code path harder to maintain.
+> 
+> Introduce arch_do_panic() as an architecture extension point called at
+> the end of vpanic(). Architectures can use this hook to implement their
+> specific panic handling without polluting the generic panic code.
+> 
+> Move s390 panic handling from the panic_notifier chain to
+> arch_do_panic(). This corrects the execution order so that the
+> panic_timeout is properly evaluated before architecture-specific
+> actions. The previous notifier-based approach executed too early in the
+> panic sequence. 
+> 
+> Move sparc panic handling from ifdef blocks to arch_do_panic(). Remove
+> the preprocessor conditionals from vpanic() and place the Stop-A
+> enablement code in architecture-specific files where it belongs.
+> 
+> The cleanup reduces vpanic() complexity and establishes a pattern for other
+> architectures needing custom panic behavior.
+> 
+> Signed-off-by: Mete Durlu <meted@linux.ibm.com>
+> ---
+> Mete Durlu (3):
+>       panic: Introduce arch_do_panic
+>       s390: Implement arch_do_panic
+>       sparc: Implement arch_do_panic
+> 
+>  arch/s390/include/asm/setup.h  |  3 +++
+>  arch/s390/kernel/ipl.c         | 15 +--------------
+>  arch/sparc/include/asm/bug.h   |  3 +++
+>  arch/sparc/include/asm/setup.h |  1 -
+>  arch/sparc/kernel/setup.c      |  8 ++++++++
+>  kernel/panic.c                 | 18 ++++++------------
+>  6 files changed, 21 insertions(+), 27 deletions(-)
 
-Correct, I used QEMU for my local testing. For sparc64 I cross-compiled
-bpf-next 520d7d794202 with sparc64-linux-gnu-gcc 11.4.0, then compared
-complete lib/test_bpf runs from stock and patched kernels under
-qemu-system-sparc64 -M sun4u. Ten tests changed from FAIL to PASS.
-
-I also compared stock and patched runs for x86_32, parisc32/64 and
-MIPS32/64, including MIPS R6.
-
-For LoongArch I reproduced the issue under QEMU and Tiezhu Yang later
-ran test_bpf with the patch and supplied Tested-by.
-
-Thanks,
-Nicholas
+Putting the define in a different header file per architecture doesn't
+seem to be a good idea. There is no guarantee that this will work. So
+either you find a common header file, where it is known that is (and
+will be) included in panic.c, or you go with a weak function.
