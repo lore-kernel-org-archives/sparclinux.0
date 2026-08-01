@@ -1,104 +1,82 @@
-Received: from mail2-relais-roc.national.inria.fr (mail2-relais-roc.national.inria.fr [192.134.164.83])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D132F3C4544;
-	Sat,  1 Aug 2026 19:10:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.134.164.83
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2542C29D291;
+	Sat,  1 Aug 2026 19:44:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785611453; cv=none; b=uz4tY4HLJMGTcmmMzrBfMlFesweMqCUlENzVDMslV/brsgsQfoTQvKMMUEIi0JnDeGMO3YZApkuzsERbit6OpUzK4pCwbiQJSlUZ6UR9K7qYk0zuiAK9SRi35V/W3wJ/zw8fB6NbDi4TcZS8DPOeLaO3VA9wBZtSenJPbJRIOK0=
+	t=1785613499; cv=none; b=QqeKgOP9dLM/LIwc/15jCCJ5vIAdXIqincmyZdUuLSbY9+9bLCQubT9/82CPDItR8drob2sb/cbiw8LdU5dRSO5Usqxy/vVY60M7GxAVU6eBoNmwyCR9YR91IOpyNTB8anUE8Kwy03Lp9dy0lWOdcJiMzluN9qBRP5iPNMtaFtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785611453; c=relaxed/simple;
-	bh=NWFT+Ag/ZHwA1ayllRYI+8H7laTtSZil0XgSxtsiIxA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=H76z+FBVnnCRh0rbl8bADO1aTmCMomL8LvlDfaO9o83ZjTCDkL5+N98ifBiY+CrI+dTL/qRNIgsL+qPzIh8YuCdCpqEtO6Tnn5bDuPvTnCIGTy6rRFLGe2o8im4JWcOHwOX3/EYGmY3/uuzQ6wvTP+S7d64WzlJ4BhBZNWfFtpc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=inria.fr; spf=pass smtp.mailfrom=inria.fr; dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b=JS6mohkW; arc=none smtp.client-ip=192.134.164.83
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=inria.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inria.fr
+	s=arc-20240116; t=1785613499; c=relaxed/simple;
+	bh=MI5cmv+xw6xhCrOdsemZfa40yg0eBzYxV8uJU1Vh9W0=;
+	h=Content-Type:MIME-Version:Message-Id:In-Reply-To:References:
+	 Subject:From:To:Cc:Date; b=YsA2/U0DN2Qu/ioYpsv4PRxf5OQGQwk9YXCJ+ENoJSneR3wt2sYvlG45+MXRfbEzQFITXvdL9e3GiyFGwDcBZdf2lf5qVM+PYDzC8DymsiQShyKkP+rY23Nc3GB7TkwhtL+6VUmS0iakdn8gh5+V8NTdzgjWejlFgp/EZaCEGVI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GiUBA1jX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b="JS6mohkW"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=inria.fr; s=dc;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=zndR+/IrwYAnFwh8an3Nuw7RqNmw3xtqNyrLVv7BjFg=;
-  b=JS6mohkWgErOAmgo8cz89ZffrqmMkkao7c/xjFD8LwXUCymv8plNiVbM
-   nvOPoXUE0vViNsJiYd+85l8grdWSDZ5hdujEnmhAnDsPf6nEtkERpolTp
-   hTl4MnGParA34/CM17E8wK5wIVuCCd6wnVraUG3/MwRZx/SYDrsO1+zyh
-   I=;
-X-CSE-ConnectionGUID: FGBl7buPQ1WZgKz5H+Avdg==
-X-CSE-MsgGUID: r2N096gdTVCI3xAFyCjjrQ==
-Authentication-Results: mail2-relais-roc.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=Julia.Lawall@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
-X-IronPort-AV: E=Sophos;i="6.25,198,1779141600"; 
-   d="scan'208";a="288769015"
-Received: from i80.paris.inria.fr (HELO i80.paris.inria.fr.) ([128.93.102.196])
-  by mail2-relais-roc.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Aug 2026 21:10:09 +0200
-From: Julia Lawall <Julia.Lawall@inria.fr>
-To: Alexei Starovoitov <ast@kernel.org>
-Cc: kernel-janitors@vger.kernel.org,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	John Fastabend <john.fastabend@gmail.com>,
-	KP Singh <kpsingh@kernel.org>,
-	Stanislav Fomichev <sdf@fomichev.me>,
-	Hao Luo <haoluo@google.com>,
-	Jiri Olsa <jolsa@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	bpf@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] net/bpf_jit: SPARC: drop unneeded semicolon
-Date: Sat,  1 Aug 2026 21:09:59 +0200
-Message-Id: <20260801191002.1383835-13-Julia.Lawall@inria.fr>
-X-Mailer: git-send-email 2.39.5
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GiUBA1jX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BAEA1F00AC4;
+	Sat,  1 Aug 2026 19:44:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785613497;
+	bh=94vY6Y9FNFnjRzpmeE+IeX/dP3jar8aRF6KuNxVGOWY=;
+	h=In-Reply-To:References:Subject:From:To:Cc:Date;
+	b=GiUBA1jXCIUNx8SI7BPAJgFObQyYhZHKr6nCsbZtWSS5cRC47FwcjEo1/HrBKZMTn
+	 92I/P262mueUg+Lj/km1ma+CjUbc46C8ayIDZh1k1Vqb1YvdOVn9MTzL/DduPL6/3+
+	 n8dMdmFedrv7zJquEhZR3iA1zxfpDtrEdZnvr5b9OyI81hYFZmpSgCxdJkShWGnVqb
+	 nnbhFwSNHJ+dfwnPbCNAaLny7+SMkWpsbKXki+kvvdhrtxBcJ5nbNPww31155sCx6Y
+	 IwWwIn2bUkmHk0GU/q9z+DrfIl5tNYVWbDjDJ9yo6OhUVhObXJpBYnSFE9+WylgpZw
+	 1Rngv9Lc+4K+Q==
+Content-Type: multipart/mixed; boundary="===============7729938306852420091=="
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Message-Id: <bf0ce87a4c9b050b1e438612e78517d5c321624fd09303341cc07bd172d2c627@mail.kernel.org>
+In-Reply-To: <20260801191002.1383835-13-Julia.Lawall@inria.fr>
+References: <20260801191002.1383835-13-Julia.Lawall@inria.fr>
+Subject: Re: [PATCH] net/bpf_jit: SPARC: drop unneeded semicolon
+From: bot+bpf-ci@kernel.org
+To: Julia.Lawall@inria.fr,ast@kernel.org
+Cc: kernel-janitors@vger.kernel.org,daniel@iogearbox.net,andrii@kernel.org,martin.lau@linux.dev,eddyz87@gmail.com,song@kernel.org,yonghong.song@linux.dev,john.fastabend@gmail.com,kpsingh@kernel.org,sdf@fomichev.me,haoluo@google.com,jolsa@kernel.org,davem@davemloft.net,andreas@gaisler.com,bpf@vger.kernel.org,sparclinux@vger.kernel.org,linux-kernel@vger.kernel.org,ast@kernel.org,andrii@kernel.org,daniel@iogearbox.net,martin.lau@kernel.org,eddyz87@gmail.com,yonghong.song@linux.dev,clm@meta.com,ihor.solodrai@linux.dev
+Date: Sat,  1 Aug 2026 19:44:56 +0000 (UTC)
 
-When a function-like macro expands to an expression, that expression
-doesn't need a semicolon after it.  All uses have been verified to
-have their own semicolons.
+--===============7729938306852420091==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 
-This was found using the following Coccinelle semantic patch:
+> net/bpf_jit: SPARC: drop unneeded semicolon
+>
+>     When a function-like macro expands to an expression, that expression
+>     doesn't need a semicolon after it.  All uses have been verified to
+>     have their own semicolons.
+>
+>     This was found using the following Coccinelle semantic patch:
+>
+>     @r@
+>     identifier i : script:ocaml() { String.lowercase_ascii i = i };
+>     expression e;
+>     @@
+>
+>     *#define i(...) e;
+>
+>     Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
 
-@r@
-identifier i : script:ocaml() { String.lowercase_ascii i = i };
-expression e;
-@@
+The change itself looks right.  Both emit_cmpi() and emit_btsti() are
+only used from bpf_jit_compile(), and every one of those six call sites
+already ends in its own semicolon, so the expansions stay well formed.
 
-*#define i(...) e;
+This isn't a bug, but would a prefix like "bpf, sparc:" fit better here?
+The changed file is arch/sparc/net/bpf_jit_comp_32.c rather than anything
+under net/, and earlier patches touching this file used prefixes along
+the lines of "bpf, sparc:", "bpf, sparc64:" or "sparc: bpf:".
 
-Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
 
 ---
- arch/sparc/net/bpf_jit_comp_32.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+AI reviewed your patch. Please fix the bug or email reply why it's not a bug.
+See: https://github.com/kernel-patches/vmtest/blob/master/ci/claude/README.md
 
-diff --git a/arch/sparc/net/bpf_jit_comp_32.c b/arch/sparc/net/bpf_jit_comp_32.c
-index bda2dbd3f..632002681 100644
---- a/arch/sparc/net/bpf_jit_comp_32.c
-+++ b/arch/sparc/net/bpf_jit_comp_32.c
-@@ -262,13 +262,13 @@ do {	*prog++ = BR_OPC | WDISP22(OFF);		\
- 	*prog++ = (SUBCC | RS1(R1) | RS2(R2) | RD(G0))
- 
- #define emit_cmpi(R1, IMM) \
--	*prog++ = (SUBCC | IMMED | RS1(R1) | S13(IMM) | RD(G0));
-+	*prog++ = (SUBCC | IMMED | RS1(R1) | S13(IMM) | RD(G0))
- 
- #define emit_btst(R1, R2) \
- 	*prog++ = (ANDCC | RS1(R1) | RS2(R2) | RD(G0))
- 
- #define emit_btsti(R1, IMM) \
--	*prog++ = (ANDCC | IMMED | RS1(R1) | S13(IMM) | RD(G0));
-+	*prog++ = (ANDCC | IMMED | RS1(R1) | S13(IMM) | RD(G0))
- 
- #define emit_sub(R1, R2, R3) \
- 	*prog++ = (SUB | RS1(R1) | RS2(R2) | RD(R3))
-
+CI run summary: https://github.com/kernel-patches/bpf/actions/runs/30714427730
+--===============7729938306852420091==--
