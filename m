@@ -1,199 +1,112 @@
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F6B396D03
-	for <sparclinux@vger.kernel.org>; Mon,  3 Aug 2026 23:40:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACDD63090D7;
+	Tue,  4 Aug 2026 05:12:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785800455; cv=none; b=WAGUjyKZL/yFuY6VsC0fg5FW8HlOyPxlErah7/SL+vXkuArwn5Ku6sxrhdC/XQut9KsPdJDkOR4jBUcAlWqb4ryf/7Jt1dGqM6BE80QgWByiI28uj96jgCPex8rwgk64wGgQP3BvzD1ZVfWRB59iuSYOwlduvD6EhEx4dkjwkxk=
+	t=1785820377; cv=none; b=fjAFohw5EnXDF4/ZdP+PLK+GZiZKUP9dgk0Lb+LqHASVCcNEgtJIq0tn7bkdJZmH53F5QPAbt54kn5rEtSKJkp9IQdWY2nbvRzWXT5hkKZgp5F7716JyT8+D7xnnwOkpUucmfbjxMk3m1caDljxSzUdjBNwCJsrAyAXPCmEkeyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785800455; c=relaxed/simple;
-	bh=wvu0uj6TEyjFZkFm/MbHPEdtVkNq6aaBrvr0yXB4eJ0=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=G7qRy4G/VVPrNUM3PsDBLjhdTLVDllzW9hxhN0ps/hLLMsfw+w1YCFr0FDT7gLbIjfmHVCS/Ddjhf1GMCRIJtf0Juht/uYPcnxMtYI/DByPHiyFvxzYR6LtePhXnQGEDZaaT5XXzQfc9C+I1zrH6Qkc9eG/0RCsg1Pd/1DhAyd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=c85sAWlT; arc=none smtp.client-ip=209.85.128.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785820377; c=relaxed/simple;
+	bh=b8Zz6sFckpEXHqkZjcnal6h2/CIhgBcmivmVrY6XbZc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=cesWXS9at9mXo+mNMmRVGhE125spueOXOL6gmFTYQFOwTI5pC+0RqgjdYwJ1UiNeCz+elDlDRddCOIYGUxdymsgll/nZiJApLOwzQ59QxbnXy6MPjvpAN/KRBX2sxpFnuI+QMAlzmFqHdVJJeHAnxqjklua8H1exfJ1roztgbCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MoKju+wR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="c85sAWlT"
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-81e8fa1b8d6so51756137b3.1
-        for <sparclinux@vger.kernel.org>; Mon, 03 Aug 2026 16:40:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785800452; x=1786405252; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=5Jv9folb9jOklDdXuGWBrNQv0WmbSuUwS788YmUFoOM=;
-        b=c85sAWlTEkWzRa9zoVMY3/0oeKRUVNF78t9ZDw36JqbdBa7+ObsHpT6hZ1BFV2o5VZ
-         uZe8hqrE/rwIL8+gWt0308XOasXDtW75MG09m/6537WUZzYGt8Wl7l4ElYM/yTPuYhhA
-         ECs5jND4NFMV0bN66wB1jsls/Z0JOHPFmMzroKHypMUPg6VXMjvkJ5EvBS+BXU1m7YT/
-         RsxT8UpJfjuDmMo0v6C+yP2HLtwJw9r8BbtzxqMl1nDAZ1hnlDAF+tkAr0N9JOooDu3L
-         aq5r/hG3WcqOsW28Z674iOQpcd7s0aEbACI3UgymtmQc5GJNTO8xDCSMQbKr3xmKOcuZ
-         A1XA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785800452; x=1786405252;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5Jv9folb9jOklDdXuGWBrNQv0WmbSuUwS788YmUFoOM=;
-        b=DOsS8SHX/1oRO4Hi5GWKi6bSeBsjddGVaE/iJ8DBZHCD+imaM9gCIHrLu0H1+8Ku4R
-         48BaVkH0+8UMXo1te8D74iNHFtrjfIrNu4fA3JYXdee3AFr3rct0ILucJfPl2e47wSz8
-         PO4X37JQYS6R0bhhBPYxgzaqP1ipEv9039yP1ear5zJUMGROJNsukIiIo9zbfEdBfV+j
-         1pqnr/+yddxs2hnRK0TFmtgx2NSKE3QsvDPVpbxxTZ+7fOowBi+qe+HBrwlV7G+SKPEy
-         lZRg21YlMw7Po4xFK7j1RT5gTDUDUKXbCmJs5cq7ePzciOoCrSCBwRu2tNFRp86kFk3c
-         RUMg==
-X-Forwarded-Encrypted: i=1; AHgh+RrArtnzfZme9qtAaKO3bBm2IWps1wlamY/1+6ILSLDiRMPVd7Hnu3h5u6fh6H7qNOvwCavCrkEMKs1U@vger.kernel.org
-X-Gm-Message-State: AOJu0YzsskyLDLkR5Qo/gWRV7jcQJPXSelO1ZPDb9aYFXD+iddpVJWXG
-	FP6b1cMbJvGELctXNzV0DEvfoVT1MRrxwCpJj50G+3PwCyfWHqbS8HUq
-X-Gm-Gg: AR+sD12IG/qIj6qr94H8kTCW1b87+tPPcYO/0O6+aoMr57DviQAW2U9h5MkbOgE8ZrM
-	Iajix40AE3RlwnJlhnHI+p8URKZZ7kBMLUBlFBoWPxU+g8wjwurvEvlxgZJfvkoXpUuS62o+2Cb
-	ymm3NYMQSVKD9s1LDuF+3h2vBMCFdnigUfe9u3R+6BvzEi8ptkJCccYfujneS+e8JOb981NWxha
-	C/HOUlJZSxqofnBbxZQtn42n6rQSG3Q4rQ0KZW8k/633TmWWL57Gh6yZc/cdiP4Iv7F1f6tSpou
-	vFnoE+ULG7BIfYQnZgvXsVsZ6nCSg+JTaT2PGzYklrwCSLvEDoq9ZpR24lA72y1Z2Hdz4oMTJTk
-	6p4pLMiDcYXZWznd4iAGqxJ0GxW565xPoogJejLhBZu2AfMWEbAJ4IIwcsc+Hr7a05qpzcK9PuG
-	3mkiVuhTTcKdsybvwqcHDKnQ6A1hUfmILp41RXDUgiLSSI9x1gL/wLASWavbhMrT8MisZ0ZXg=
-X-Received: by 2002:a05:690c:ecf:b0:814:7a54:3a93 with SMTP id 00721157ae682-81fd4b372d9mr163845447b3.23.1785800452413;
-        Mon, 03 Aug 2026 16:40:52 -0700 (PDT)
-Received: from localhost ([2600:1702:7a90:6f9f:8bc4:8aec:108d:7a04])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-81fcd0d68b0sm65571757b3.28.2026.08.03.16.40.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Aug 2026 16:40:51 -0700 (PDT)
-From: Matt Turner <mattst88@gmail.com>
-Date: Mon, 03 Aug 2026 19:40:47 -0400
-Subject: [PATCH 3/3] alpha: determine tininess after rounding in the FP
- emulation
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MoKju+wR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C464E1F000E9;
+	Tue,  4 Aug 2026 05:12:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785820376;
+	bh=cqwgCKIgosJdkM5B1XfmbPhyJ3udd3gbBJgx37iGREg=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=MoKju+wR7J18SPYmLQ7ZiJrFXZtWkIWeq4xJSCWD3y4KXq1BMCXJ1GhHlPo2201OS
+	 gl5phSIbU0OwuX26FaMUNVNBkH76a7mcVbZ971qgBYgcL6JPtCip9YTlEXEZ2mBChD
+	 YuGeT191kTrjj2onWdfm34uiTp0ftU7k2wRi41rCGkw8PpfjCSzF4b8309kNHUABcv
+	 SgoN6dlmAerjvbx2SxtN6xqG7gwBRPz5Y1OJw9nty5a2AZzaQ/klvXAUyMTrRn8eeH
+	 ymRJPew5eOT5oCK08FAmEJ2q79yfObvLVJjGHNvMmd/yu2dglvx04s0AItZXW/IRk6
+	 cC1oIa/d2ojqQ==
+Message-ID: <3322aff6-bc28-4787-a7f1-ab46f0a636f9@kernel.org>
+Date: Tue, 4 Aug 2026 07:12:53 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 1/2] tty: vcc: zero-initialize control packet in
+ vcc_send_ctl()
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Joshua Rogers <linux@joshua.hu>,
+ linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
+ stable <stable@kernel.org>
+References: <20260803-aisle-tty-vcc-v2-0-a50bc9b15193@linuxfoundation.org>
+ <20260803-aisle-tty-vcc-v2-1-a50bc9b15193@linuxfoundation.org>
+Content-Language: en-US
+From: Jiri Slaby <jirislaby@kernel.org>
+Autocrypt: addr=jirislaby@kernel.org; keydata=
+ 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
+In-Reply-To: <20260803-aisle-tty-vcc-v2-1-a50bc9b15193@linuxfoundation.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260803-alpha-fp-exceptions-v1-3-c99d75608e60@gmail.com>
-References: <20260803-alpha-fp-exceptions-v1-0-c99d75608e60@gmail.com>
-In-Reply-To: <20260803-alpha-fp-exceptions-v1-0-c99d75608e60@gmail.com>
-To: Richard Henderson <richard.henderson@linaro.org>, 
- Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>
-Cc: linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, 
- sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
- linux-sh@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>, stable@vger.kernel.org
-X-Mailer: b4 0.14.3
 
-IEEE 754 lets an architecture determine tininess of a floating-point
-result either before or after rounding, but requires the same choice for
-every operation.  Alpha determines it after rounding, and stdlib's
-tst-tininess confirms the hardware does so for the results it produces
-itself.
+On 03. 08. 26, 16:10, Greg Kroah-Hartman wrote:
+> From: Joshua Rogers <linux@joshua.hu>
+> 
+> The stack-allocated struct vio_vcc pkt was partially initialized,
+> leaving the tag.stype_env field uninitialized before being sent via
+> ldc_write(), potentially leaking kernel stack data to the LDC peer.
+> 
+> Assisted-by: AISLE:Snapshot
+> Cc: stable <stable@kernel.org>
+> Signed-off-by: Joshua Rogers <linux@joshua.hu>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-The soft-fp emulation has no notion of the distinction and always
-determines tininess before rounding, so a result that the hardware would
-not consider tiny is reported as underflowing whenever the instruction
-happens to trap for software completion.  The two paths then disagree on
-the same machine.  A multiply of the largest subnormal double by
-1 + 2^-52 rounds up to the smallest normal and raises no underflow when
-the operands are normal, but raises it when an operand is subnormal and
-the instruction traps:
+Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
 
-  glibc math testsuite, test-float32x-float64-mul:
-    Failure: mul_double (0x3.ffffffffffffcp-1024, 0x1.0000000000001p+0):
-    Exception "Underflow" set
-
-Add _FP_TININESS_AFTER_ROUNDING, as glibc's copy of soft-fp has, and set
-it for alpha.  It determines tininess by rounding a copy of the result as
-if the exponent range were unbounded, which is what the definition asks
-for; a plain check of whether the rounded result came out normal is not
-equivalent and would be wrong for values that stay tiny under an
-unbounded exponent range but round up to the smallest normal in the
-subnormal grid.  The macro defaults to zero, so powerpc, sh and sparc
-keep determining tininess before rounding as they do now.
-
-Cc: stable@vger.kernel.org # 5.15+
-Signed-off-by: Matt Turner <mattst88@gmail.com>
----
- arch/alpha/include/asm/sfp-machine.h |  4 ++++
- include/math-emu/op-common.h         | 23 +++++++++++++++++++++--
- include/math-emu/soft-fp.h           |  8 ++++++++
- 3 files changed, 33 insertions(+), 2 deletions(-)
-
-diff --git a/arch/alpha/include/asm/sfp-machine.h b/arch/alpha/include/asm/sfp-machine.h
-index 5fe63afbd474..bff1ad963c68 100644
---- a/arch/alpha/include/asm/sfp-machine.h
-+++ b/arch/alpha/include/asm/sfp-machine.h
-@@ -59,6 +59,10 @@
-     R##_c = FP_CLS_NAN;						\
-   } while (0)
- 
-+/* Alpha determines tininess after rounding, so the emulation must do the
-+   same as the hardware does for the results it produces itself.  */
-+#define _FP_TININESS_AFTER_ROUNDING	1
-+
- /* Obtain the current rounding mode. */
- #define FP_ROUNDMODE	mode
- #define FP_RND_NEAREST	(FPCR_DYN_NORMAL >> FPCR_DYN_SHIFT)
-diff --git a/include/math-emu/op-common.h b/include/math-emu/op-common.h
-index 8ce066c035cf..1d1ce5c08efc 100644
---- a/include/math-emu/op-common.h
-+++ b/include/math-emu/op-common.h
-@@ -135,6 +135,24 @@ do {								\
-     else							\
-       {								\
- 	/* we've got a denormalized number */			\
-+	int _FP_PACK_CANONICAL_is_tiny = 1;			\
-+	if (_FP_TININESS_AFTER_ROUNDING && X##_e == 0)		\
-+	  {							\
-+	    /* Architectures that detect tininess after rounding	\
-+	       only signal underflow if the result is still		\
-+	       subnormal once rounded as if the exponent range	\
-+	       were unbounded.  Round a copy to find out.  */	\
-+	    FP_DECL_##fs(_FP_PACK_CANONICAL_T);			\
-+	    /* The class field is not used by the rounding below,	\
-+	       and is unused entirely where this block is dead.  */	\
-+	    (void)_FP_PACK_CANONICAL_T##_c;			\
-+	    _FP_FRAC_COPY_##wc(_FP_PACK_CANONICAL_T, X);	\
-+	    _FP_PACK_CANONICAL_T##_s = X##_s;			\
-+	    _FP_PACK_CANONICAL_T##_e = X##_e;			\
-+	    _FP_ROUND(wc, _FP_PACK_CANONICAL_T);		\
-+	    if (_FP_FRAC_OVERP_##wc(fs, _FP_PACK_CANONICAL_T))	\
-+	      _FP_PACK_CANONICAL_is_tiny = 0;			\
-+	  }							\
- 	X##_e = -X##_e + 1;					\
- 	if (X##_e <= _FP_WFRACBITS_##fs)			\
- 	  {							\
-@@ -161,8 +179,9 @@ do {								\
- 		    _FP_FRAC_SRL_##wc(X, _FP_WORKBITS);		\
- 		  }						\
- 	      }							\
--	    if ((FP_CUR_EXCEPTIONS & FP_EX_INEXACT) ||		\
--		(FP_TRAPPING_EXCEPTIONS & FP_EX_UNDERFLOW))	\
-+	    if (_FP_PACK_CANONICAL_is_tiny			\
-+		&& ((FP_CUR_EXCEPTIONS & FP_EX_INEXACT) ||	\
-+		    (FP_TRAPPING_EXCEPTIONS & FP_EX_UNDERFLOW)))	\
- 		FP_SET_EXCEPTION(FP_EX_UNDERFLOW);		\
- 	  }							\
- 	else							\
-diff --git a/include/math-emu/soft-fp.h b/include/math-emu/soft-fp.h
-index 5650c1628383..02ada0a9fca1 100644
---- a/include/math-emu/soft-fp.h
-+++ b/include/math-emu/soft-fp.h
-@@ -31,6 +31,14 @@
- #include <endian.h>
- #endif
- 
-+/* Whether the architecture determines tininess of a floating-point
-+   result after rounding rather than before it.  IEEE 754 permits either
-+   but requires the same choice for every operation, so this has to agree
-+   with what the hardware does for the results it produces itself.  */
-+#ifndef _FP_TININESS_AFTER_ROUNDING
-+#define _FP_TININESS_AFTER_ROUNDING	0
-+#endif
-+
- #define _FP_WORKBITS		3
- #define _FP_WORK_LSB		((_FP_W_TYPE)1 << 3)
- #define _FP_WORK_ROUND		((_FP_W_TYPE)1 << 2)
-
+thanks,
 -- 
-2.54.0
-
+js
+suse labs
