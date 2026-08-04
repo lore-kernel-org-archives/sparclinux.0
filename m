@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACDD63090D7;
-	Tue,  4 Aug 2026 05:12:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6041133E345;
+	Tue,  4 Aug 2026 05:13:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785820377; cv=none; b=fjAFohw5EnXDF4/ZdP+PLK+GZiZKUP9dgk0Lb+LqHASVCcNEgtJIq0tn7bkdJZmH53F5QPAbt54kn5rEtSKJkp9IQdWY2nbvRzWXT5hkKZgp5F7716JyT8+D7xnnwOkpUucmfbjxMk3m1caDljxSzUdjBNwCJsrAyAXPCmEkeyc=
+	t=1785820393; cv=none; b=eJy2f36mBsbwADDOqdzzGHHQ5Mp76HeyZG3FwTjbuuOlzDgICbcJQL4OZV4pSDFKT50wX/mxbtSTut9tc9t/xX6Q2krL0KTCBmz2YqUpt3wtnf/G5+Ce8+JedKwHdwkMlrV0hNd1YihEx32f4TKpMiFthlZRb2N2tRDReMP3wBs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785820377; c=relaxed/simple;
-	bh=b8Zz6sFckpEXHqkZjcnal6h2/CIhgBcmivmVrY6XbZc=;
+	s=arc-20240116; t=1785820393; c=relaxed/simple;
+	bh=9muZlUnGHBxat7efNmFox8mgIg9olUDip8aih6rWNAE=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=cesWXS9at9mXo+mNMmRVGhE125spueOXOL6gmFTYQFOwTI5pC+0RqgjdYwJ1UiNeCz+elDlDRddCOIYGUxdymsgll/nZiJApLOwzQ59QxbnXy6MPjvpAN/KRBX2sxpFnuI+QMAlzmFqHdVJJeHAnxqjklua8H1exfJ1roztgbCk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MoKju+wR; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=bp+cM4SW8oHpu/c4MNJmR12JBHaDJnf3pm3hWHvjPp61sZ5dRYQyjURu4+cr9OW8KFqTHOSkMky4JXb8p7yYJT8TCRurMlAGoKTSeNMjzzgTWnZIoHyu9eKtEdLSBiYLyP5j2QRYe2IAvFqaPn9qY5U7y8P8bfAF+ALKxEqKZRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bxiIn/6j; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MoKju+wR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C464E1F000E9;
-	Tue,  4 Aug 2026 05:12:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bxiIn/6j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B1DC1F000E9;
+	Tue,  4 Aug 2026 05:13:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785820376;
-	bh=cqwgCKIgosJdkM5B1XfmbPhyJ3udd3gbBJgx37iGREg=;
+	s=k20260515; t=1785820392;
+	bh=uEuGyMcvPgYcdQSTXbln17D1d2pqK6hgAHNNUHIjd7A=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=MoKju+wR7J18SPYmLQ7ZiJrFXZtWkIWeq4xJSCWD3y4KXq1BMCXJ1GhHlPo2201OS
-	 gl5phSIbU0OwuX26FaMUNVNBkH76a7mcVbZ971qgBYgcL6JPtCip9YTlEXEZ2mBChD
-	 YuGeT191kTrjj2onWdfm34uiTp0ftU7k2wRi41rCGkw8PpfjCSzF4b8309kNHUABcv
-	 SgoN6dlmAerjvbx2SxtN6xqG7gwBRPz5Y1OJw9nty5a2AZzaQ/klvXAUyMTrRn8eeH
-	 ymRJPew5eOT5oCK08FAmEJ2q79yfObvLVJjGHNvMmd/yu2dglvx04s0AItZXW/IRk6
-	 cC1oIa/d2ojqQ==
-Message-ID: <3322aff6-bc28-4787-a7f1-ab46f0a636f9@kernel.org>
-Date: Tue, 4 Aug 2026 07:12:53 +0200
+	b=bxiIn/6jx9Btej1tm7sSVzOLfGLssY/1GdC3VqjNmhrt+cUpzQwQyO1QByEVcgWhx
+	 4yA1Wyt10LPEUxnjT59ESkZS9VR9Lgw/avsNk/2M5ZkVJsqnac4/t2ZQZQN4xHils2
+	 6fbTmujNgBHRypgYIdr+0zXmAami2M2LNdvi7wOsbnsEDep8W7abYIsBefYzFlHiHF
+	 eycVdcOmhqQNkVh3ULIaMsIwzon+1uWEJyP6a8qT32BOeB4xCWs+3RBZv9kiZSOrJz
+	 Qshf9JR91kscFObGP2ZPEnJ5GfOtTpMab5UcYFVEQkHVvXBTRI2kp8Ifb807FrJVRN
+	 pp1l1Z26Yn24g==
+Message-ID: <865de9c2-a22c-4d17-96e6-378a7d00730c@kernel.org>
+Date: Tue, 4 Aug 2026 07:13:08 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,15 +35,15 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/2] tty: vcc: zero-initialize control packet in
- vcc_send_ctl()
+Subject: Re: [PATCH v2 2/2] tty: vcc: hold port lock when clearing tty pointer
+ in vcc_cleanup
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
  sparclinux@vger.kernel.org
 Cc: "David S. Miller" <davem@davemloft.net>, Joshua Rogers <linux@joshua.hu>,
  linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
  stable <stable@kernel.org>
 References: <20260803-aisle-tty-vcc-v2-0-a50bc9b15193@linuxfoundation.org>
- <20260803-aisle-tty-vcc-v2-1-a50bc9b15193@linuxfoundation.org>
+ <20260803-aisle-tty-vcc-v2-2-a50bc9b15193@linuxfoundation.org>
 Content-Language: en-US
 From: Jiri Slaby <jirislaby@kernel.org>
 Autocrypt: addr=jirislaby@kernel.org; keydata=
@@ -88,16 +88,17 @@ Autocrypt: addr=jirislaby@kernel.org; keydata=
  f/bIWIr0cqQmqQ33FgRhrG1+Xml6UXyJ2jExmlO8JljuOGeXYh6ZkIEyzqzffzBLXZCujlYQ
  DFXpyMNVJ2ZwPmX2mWEoYuaBU0JN7wM+/zWgOf2zRwhEuD3A2cO2PxoiIfyUEfB9SSmffaK/
  S4xXoB6wvGENZ85Hg37C7WDNdaAt6Xh2uQIly5grkgvWppkNy4ZHxE+jeNsU7tg=
-In-Reply-To: <20260803-aisle-tty-vcc-v2-1-a50bc9b15193@linuxfoundation.org>
+In-Reply-To: <20260803-aisle-tty-vcc-v2-2-a50bc9b15193@linuxfoundation.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 03. 08. 26, 16:10, Greg Kroah-Hartman wrote:
 > From: Joshua Rogers <linux@joshua.hu>
 > 
-> The stack-allocated struct vio_vcc pkt was partially initialized,
-> leaving the tag.stype_env field uninitialized before being sent via
-> ldc_write(), potentially leaking kernel stack data to the LDC peer.
+> vcc_cleanup() sets port->tty to NULL without holding port->lock, racing
+> with vcc_event() LDC callbacks that read port->tty under port->lock and
+> then use tty->port. This can cause a use-after-free when the callback
+> dereferences tty->port after cleanup has already destroyed and freed it.
 > 
 > Assisted-by: AISLE:Snapshot
 > Cc: stable <stable@kernel.org>
