@@ -1,173 +1,188 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3C903FBED7
-	for <sparclinux@vger.kernel.org>; Wed,  5 Aug 2026 09:34:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785922451; cv=pass; b=hwxObg5ziPG2V5jthcATbKEdF+0Zt5ocT0Xv6x5AcLjYfIcCmFZg9CEOJNp6DRVxaQ9KbtkL/KWc57H6NtGK7UGqyxE31EZXvLFWNKhpjHSVgRvH8f5lv4wN1jh0KvOyZwIxPZZmktI0Up8S+f7foZHLzJX6HS+A/DhQldh1REI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785922451; c=relaxed/simple;
-	bh=9L0j/pbQAIxYms5cegM0F3PFL7ya32kRw+S7PCbwuZA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ClRcHxsM7I/Q9jvd23Scslr1yYU8kbsmsGtSdfrCVv/WekvkGcdil7Cdq1W0pifPuyMPdaW1i7GaBvF5F5SPGoRYuOIX/zpmm//dghT/AWnCpoPKSAqYc9g//BUzyFaOewMmjrkR21f9hZkdl0r78z4xalDgmpXSgUNpNKdUzNE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nxVB3W7T; arc=pass smtp.client-ip=209.85.208.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C5143F8EBE;
+	Wed,  5 Aug 2026 09:49:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785923359; cv=none; b=K2i7js1B+THsL2jVJH+5sTDML0YDj3knXNCt/RKcs4JRukNCEATVoRB7OcC5L5w/0FpMuka8DPdVmFS6nZyKkdQjOSb66llpRR9gtNC4dZlr+u6l3a6SIBB6tXE0TmSyplpzNVgYfWHL4mQLw0ZMl9AQIkc5xPI1ockZryavToc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785923359; c=relaxed/simple;
+	bh=jZx+jS6J+CCY+w5etfl6GMPWEoenmVH1AnuQqtbVXA8=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=od9ljr5lstrzbEGKcUwB8CG8sc4Knbm3yNJke333DEj3rKAg5teWzX/BjF5dRPThtve8VFnw+/QeNxfsM3QvIxboim6fdDV22b2gckzha54JMQFlkqfBulVL+qK4m1RCMgHE9YfmY4jx/JRKAS9ZwUopPIADMtZKZDAHvQgfnDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=i+lBY65M; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nxVB3W7T"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6a10d02ff43so1282637a12.0
-        for <sparclinux@vger.kernel.org>; Wed, 05 Aug 2026 02:34:09 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785922448; cv=none;
-        d=google.com; s=arc-20260327;
-        b=qVAWEtxWfVF+HIhQdguI88zsgBH3MnTm2rPaz8vjRMFN+Yxxg7egY903Mg4i5afPXd
-         J4v8l8FO+c5zgcgtfV9qGXl73Mc4CFQnT6aRDe/gB0u0SJEwr4S7wFJAlaOZiIQ/5OWp
-         m26YXhvLbQY9Rzqk1+wng5y7wPX3AGUKzUKlO7J6wLntJcCHOKhvbilyhjRVGYoCn/3x
-         7xEgUnO6y247uWCqXatfRxWgWJENAxzS7SiP2J+5gr5BwOK0+cIuZGzyJJC+vgDUIYzX
-         AGNgXV+l3PiQ0np4DySP0+blmnkYIZTZ+qK7CTQHDvcoHy0Pt2GVO+vhiZa+HvAadtvn
-         sq4Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=UaGNs+E1Ex6iz5T9/0x/HPxcs/WYGeua7JSZh/+RxWI=;
-        fh=z9M7dnNoCJB7xjkkGCrk5Ie90svl5BoLoqFH4yr31qU=;
-        b=iGbwjfO/BhaYg8KohEsTy9+4xvpExWKliZmbEBaRv3Kby4DqXEzBkMULEPdCYDik0Y
-         nNY6PnZeQzHSHDTu8Kpkj5C7K1kXQrRn8ny/xbywB+7IqXdw2PVOnsfgIhZBqdEJRIhZ
-         onWlolh/kJO/K8S7AFn7yn4fwM7Wqz34t3V8DEZx/a6AuYXHocS9wyxwW7nXsmAvjJiY
-         +n8vhtMk9LNLCv/Ekyj2E2ka+5BSAgg6Yze6rhsP12xWOXMSK5672wXC81fQEsCtchAp
-         rXbLSSNVoDi4fiwBCh4/ZOgFZQOsfByU0nm9lPkLfm586Kav6ukl2Iu9rOj/ULJBtLLm
-         BeHw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785922448; x=1786527248; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=UaGNs+E1Ex6iz5T9/0x/HPxcs/WYGeua7JSZh/+RxWI=;
-        b=nxVB3W7T5PzcgNakBP1/wZviKPIr0w6SG7+6Y/KxlFc3c6UOvBeK+7YYF7i1akkkBM
-         7UwQGPufJfSULubwn0MN7WYeOwvjEV4fZBUhVbCk60xIcr+afqqGymIW35nRcAYrjm6p
-         mjB78uXJT85+sRLdga3nn+YEy1MF2kl+sa/Zst5m6qP4gBB3/bJgeWf93hsGIaWuBcXq
-         PbRCoAk/5wMGqFMOftie51sXZexfx+hIyBrnuRGXdsgp7Y/yrLlRxjA6pVZ1XvohGmNv
-         zH/GTjk09mzaU0IJ7EGxmI/Rk0KclqUwffzjzzfw4hwmgnM3+lYoVTALr10KCuz+iEM6
-         h4Hg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785922448; x=1786527248;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=UaGNs+E1Ex6iz5T9/0x/HPxcs/WYGeua7JSZh/+RxWI=;
-        b=UO1QL6bQZhZ/mppUQ2oEN9G97PxvA2JMgeteY5gMTYCaJiSGVlIBIWrtM0Zj/8IrOI
-         CympDNp0dXrloNPImD0NxjTiF6c6Jf5IvXzvn6GBCHvHRNEQSr4j2WofOFRs394sf7Z6
-         SE9W48dlUHSMdCEcW6boHVuXCLTlVdejvs5bSz6CgcAg2jG9gJtQ4kqt1lYbw0KrlOvO
-         nZESGxAzG9/yUy8WmhAsLwsc+WL8knZ57Zqh153V21EHHyxCgHbM5FIdaM9PSVEPlv/y
-         e7oYtTLv2UA245L04InWvFx18fwkUZ5fS5+Kb6O6OuqqDypDfSaV5jWk7OLv5dRSFtej
-         4zrg==
-X-Forwarded-Encrypted: i=1; AHgh+Rp5pDe1c3aYiuaqi+k6S+4mCTE/C9l4ZfoyzotzL209nsNNmkvElNZ3rFplZP0z/E3X/7ny17U08ZsI@vger.kernel.org
-X-Gm-Message-State: AOJu0YyGiHG3H7/j9KjfvO+HXziKA79v4vclls+c4xA9peKF+dtd/pxr
-	rm64ik8bpTLs/8M6xrW32kOx0fb0xkUuYIPKxQ4RjjHpGw1IJVBfAhd//szIa8E3tQ0NhSezrnt
-	uBQQQ06P4oSwVjK6S6PS2i7DPFqumE2M=
-X-Gm-Gg: AR+sD12iaZyr7L1GVSEtf+jkSGjbO6Nz4e9DwNuVv0HJOXAHpVMaRGto98+89xe3BDz
-	OmCy3jzWMHnbpJ6eQOxxq2K1OAaan/HDr47j7+o0D28x1FLQ/zoaTtfRozzhgfWYNhpf2DnVQf/
-	fkr1DU1+cjgh7BDWgdr4jYtMJAvYrqFlB/9Uy9emX4EkdahBRZxxgAKe6prITb/kIssH2XiaCbF
-	cSkjJnK1Q09yQGX8Nx363ChGHjRuGvgFXfBTl+rYyeoyY4yjGC98c2XtWg008zd0Ctjf5MGk13k
-	Rs5WuW/JKNa3XFxpzktvIkY3tv0DgZKN23r/bprNhoW95eaJ3eMGgvub2niilmOgjKzUEY9pNxV
-	msldPD/tCZJbR0iLnUvWD8ZGXfFfsgWc=
-X-Received: by 2002:a05:6402:1f08:b0:6a1:b0b:ba6 with SMTP id
- 4fb4d7f45d1cf-6a14f13e482mr2509895a12.15.1785922446933; Wed, 05 Aug 2026
- 02:34:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="i+lBY65M"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6758m7Eq3438749;
+	Wed, 5 Aug 2026 09:49:04 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=pp1; bh=ZcF6ST5/KUs7EYUMeh4gDFQsoHT1
+	T57gK5fdEAfAix0=; b=i+lBY65MpjCTADEKBAIZ73vp9P29j1qn1EgkL/hKiVB5
+	laugEvGH2UQaX/D0ubu29hFCVRKUCjfQE0boaRt74jY/LrpTKi6ZIP7Td9i2HM/W
+	tY4rEJDSs7pFD94p1rPLdmZEGbfoCgUyohaFpw0VqggedVG/EH0pptBMBUgnQOID
+	ZH/PZTK9sztVa+4mNDZQSTMiwrB8iobLT7eROHG8mzdWiGxMvzzLeHoyqUbxf5rs
+	fK2NK50HzzbVBbQ5HPilwo6S20nNQYXFAubtTCgPajlVaXPNhjge4d5zqKir3aye
+	TBsnTK5cU1M7euMhaShR1rjik3m52tOKoFMM58kb9w==
+Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fs8euswap-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 05 Aug 2026 09:49:03 +0000 (GMT)
+Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma12.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 6759fH7U031787;
+	Wed, 5 Aug 2026 09:49:02 GMT
+Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
+	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4fsu4qp46n-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 05 Aug 2026 09:49:02 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
+	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6759mwIH28246490
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 5 Aug 2026 09:48:59 GMT
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CCBD12004D;
+	Wed,  5 Aug 2026 09:48:58 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 9B49A2004B;
+	Wed,  5 Aug 2026 09:48:58 +0000 (GMT)
+Received: from [9.224.76.67] (unknown [9.224.76.67])
+	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Wed,  5 Aug 2026 09:48:58 +0000 (GMT)
+From: Mete Durlu <meted@linux.ibm.com>
+Subject: [PATCH v4 0/3] Introduce arch_do_panic
+Date: Wed, 05 Aug 2026 11:48:35 +0200
+Message-Id: <20260805-arch_do_panic-v4-0-af4a36f99414@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260803-alpha-fp-exceptions-v1-0-c99d75608e60@gmail.com> <20260803-alpha-fp-exceptions-v1-2-c99d75608e60@gmail.com>
-In-Reply-To: <20260803-alpha-fp-exceptions-v1-2-c99d75608e60@gmail.com>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Wed, 5 Aug 2026 11:33:54 +0200
-X-Gm-Features: AUfX_mwnXqPqc_k9xGwWzJEiKBh4lXhngC_jeS43aqM9K90q-yJsxGFkXMu1yFY
-Message-ID: <CA+=Fv5Tgq7X6Tqt2s6OuoWUQirzYwwyrmwQR_tDXpHRrczK22A@mail.gmail.com>
-Subject: Re: [PATCH 2/3] alpha: don't leak hardware-fabricated FP exception
- bits to user space
-To: Matt Turner <mattst88@gmail.com>
-Cc: Richard Henderson <richard.henderson@linaro.org>, linux-alpha@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, 
-	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/33M3wqCMByG4VuJHTfZX6cddR8RMufMH+SUrYYh3
+ ntTCEKiw/eD75lRsB5sQKfDjLyNEGBwKcTxgEyn3c1iaFIjRlhOFBNYe9NVzVCN2oHBulRtXpZ
+ ac85Q+ozetjBt3uWauoPwGPxr4yNd14+kdlKkmGCjqVJKCmV4cb6De04Z1H1mhh6tWmR/BZYEY
+ Zk0tiaSKPlL4F8CJ3uBJ6GRglCbF9w09V5YluUNoNIV5zIBAAA=
+X-Change-ID: 20260724-arch_do_panic-a97f699aa332
+To: Andrew Morton <akpm@linux-foundation.org>, Petr Mladek <pmladek@suse.com>,
+        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>,
+        Bradley Morgan <include@grrlz.net>
+Cc: linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, Mete Durlu <meted@linux.ibm.com>
+X-Mailer: b4 0.14.3
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: e9B3PEXpTYVwMaFf7HwQiXYNX6nc5jUn
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODA1MDA3NyBTYWx0ZWRfX5pyw/2Fbg29v
+ znKAu3Grdokjaqu8huA+CyO8aoS7/FAI6GbBShp/guyWUEWHmvxK5hFT56xPAvDIWfMkDolvd5a
+ 177Fi7/N74HZ3HNS8oBv8uM0wsKJ/Lg=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODA1MDA3NyBTYWx0ZWRfX71xrOoR3b+A8
+ 94n6JJRY5MUtyHRJhNjVxr3SmCa8j+l02LaenLUfwFmZig3TGVQROM/QYtDTxJzXwz4bRWxYr8G
+ 7mWj6KlFVQaKORaNWDl1EvsedGGeZKFQGbMJj2fVyndEwxdEGRCU3P/PmDx1SiqNQBnGDx3JmYy
+ rSZOtMmypMN0Q7EId0xfkQzjfikqxz0bFNZx8KgCfmIqLvPYshPBhYqh4SycftLaO4o/G1QM50H
+ vdPRnxCmt9H79j+3H2t7aws9yUiaJxIIega7tL63fuwWQTxpyvx1SLThd6pHp3q7VyZCebAGNpS
+ mhJDz9DQqb7VJBeEXwGcRDXoPfEcU7tnP45nArK1QXZqG1QzrfVTtyIQHji0OsPxr0HcXxO68D+
+ Hp+0rzDi+1rXnjKRmG0XtBvjhqvKjVaW1XEFHRPHyklYLeuwud2JZN99N7ZzMOO7p/Ivf8p40rt
+ iJzR72bJortnNxCJWIg==
+X-Proofpoint-GUID: e9B3PEXpTYVwMaFf7HwQiXYNX6nc5jUn
+X-Authority-Analysis: v=2.4 cv=KfzidwYD c=1 sm=1 tr=0 ts=6a73070f cx=c_pps
+ a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
+ a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=RzCfie-kr_QcCd8fBx8p:22 a=VnNF1IyMAAAA:8
+ a=PTkAAPlY8eMuZ3RB2kkA:9 a=QEXdDO2ut3YA:10
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-05_03,2026-08-04_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ lowpriorityscore=0 bulkscore=0 impostorscore=0 suspectscore=0 malwarescore=0
+ adultscore=0 clxscore=1015 priorityscore=1501 phishscore=0 spamscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608050077
 
-On Tue, Aug 4, 2026 at 1:40=E2=80=AFAM Matt Turner <mattst88@gmail.com> wro=
-te:
->
-> On EV6 and later the hardware records exception status bits in the FPCR
-> before delivering a software completion trap, and those bits can be wrong
-> for the instruction that trapped.  Converting a double that is exactly
-> representable as a subnormal float sets FPCR_UNF even though the result
-> is exact, and an underflow trap additionally sets FPCR_INE even when the
-> emulated operation turns out to be exact.
->
-> alpha_fp_emul() only wrote the FPCR when soft-fp raised an exception, so
-> whenever it determined that the instruction was exact the fabricated bits
-> stayed in the FPCR and were reported to user space by fetestexcept().
->
-> Pass the exception summary register down from do_entArith() so the
-> handler can tell which exceptions the hardware attributed to the trapping
-> instruction, and always write the FPCR.  Clear the exceptions that the
-> trap reported but that soft-fp did not raise.  EXC_SUM reports only the
-> underflow or overflow when the hardware also set INE, so treat INE as a
-> candidate in that case, and treat a trap with no reported exception as a
-> denormal operand trap, for which the hardware can fabricate INE and UNF
-> as well.  Bits that software has already confirmed in ieee_state belong
-> to this or an earlier instruction and are never cleared.
->
-> The imprecise path passes no summary.  There the trap was taken somewhere
-> in the trap shadow, so EXC_SUM is not attribution for the instruction
-> being re-executed -- and only EV6, which traps precisely and so never
-> takes that path, has fabricated bits to clear.  For the same reason the
-> clearing is guarded by implver(), matching swcr_update_status().
->
-> On an UP1500 (EV68) this takes the glibc math testsuite from 831 failures
-> to 28, the remainder being unrelated to exception status.
->
-> This belongs with the preceding fix to ieee_swcr_to_fpcr(), and should
-> not be backported without it -- nor it without this.  That fix stops
-> FPCR_DNOD being set unconditionally, so denormal operand traps start
-> firing again.  Those traps very often find an exact result, which is
-> precisely the case where the old code left the FPCR unwritten and the
-> fabricated bits visible.  Applied alone it would make spurious exception
-> flags more common, not less.
->
-> One case cannot be resolved here: an inexact instruction without the
-> software completion suffix never traps, so its INE reaches the FPCR
-> without being recorded anywhere else.  Such a bit is indistinguishable
-> from an INE the hardware fabricated for a trapping instruction, and is
-> lost if an underflow or overflow trap with an exact result follows it.
-> The FPCR is the only record of those instructions and it carries no
-> attribution.
->
-> The bug predates the git history, so there is no commit to reference in a
-> Fixes tag.
->
-> Cc: stable@vger.kernel.org # 5.15+
-> Signed-off-by: Matt Turner <mattst88@gmail.com>
-> ---
->  arch/alpha/kernel/traps.c  |  6 ++--
->  arch/alpha/math-emu/math.c | 88 ++++++++++++++++++++++++++++++++++++++++=
-------
->  2 files changed, 80 insertions(+), 14 deletions(-)
->
-Hi,
+Changes in v4:
+- Remove s390 specific behavior changes and limit the series with
+  cosmetic clean ups and introduction of arch_do_panic()
+  (Heiko Carstens)
+- Include linux/panic.h on files where arch_do_panic() is implemented
+  (Sashiko)
+- Remove extern "stop_a_enabled" definition from sparc's arch_do_panic()
+  implementation as it is already visible by included asm/setup.h
+  (Sashiko)
+- Include "linux/printk.h" header on sparc/setup.c explicitly for
+  pr_emerg() (Sashiko)
 
-Passing EXC_SUM to the precise emulation path and always writing the
-corrected FPCR state back looks correct to me.
+Changes in v3:
+- Use __weak functions instead of symbol override via ifdef
+- Patch 2: Better explain what is fixed (Bradley Morgan)
+- Add statements about print order changes (Bradley Morgan)
+- Patch 2: Add a pr_warn() to notify user about on_panic and
+  panic_timeout relationship if they try to assign a trigger to
+  on_panic action while panic_timeout is set to a value other than 0
+  (Bradley Morgan)
 
-I tested the complete series with CONFIG_MATHEMU=3Dy on the same machine
-and using the same glibc build. The kernel boots normally, and the
-glibc math testsuite improves from 48 to 28 failing test programs, with
-no new failing tests. Tested on Alphaserver ES40.
+Changes in v2 - Address Sashiko findings;
+- Patch 2: Remove unused leftover code
+- Patch 2: Mention panic_timeout and shutdown_actions relationship for
+  s390 in commit message
+- Patch 3: Use bug.h instead of setup.h to pass around arch_do_panic
+  implementation of sparc
 
-Reviewed-by: Magnus Lindholm linmag7@gmail.com
-Tested-by: Magnus Lindholm linmag7@gmail.com
+A note before coverletter:
+On earlier versions I attempted to move s390s panic handler into
+arch_do_panic() but the interaction between panic handler and kernel's
+panic_timeout had become implicit and suboptimal. After reading Heiko's
+comments I have decided to tackle that in a separate series and keep
+this one limited to a smaller set of changes.
+-------
+
+Replace architecture-specific ifdef sections in vpanic() with a clean
+arch_do_panic() hook. Currently s390 and sparc embed their panic
+handlers directly in vpanic() using preprocessor conditionals, making
+the common code path harder to maintain.
+
+Introduce arch_do_panic() as an architecture extension point called at
+the end of vpanic(). Architectures can use this hook to implement their
+specific panic handling without polluting the generic panic code.
+
+Remove s390s ifdef block in vpanic() and move the corresponding code
+block to s390s own arch_do_panic() implementation in architecture
+specific code.
+
+Move sparc panic handling from ifdef blocks to arch_do_panic(). Remove
+the preprocessor conditionals from vpanic() and place the Stop-A
+enablement code in architecture-specific files where it belongs.
+Stop-A enablement markers are now printed after "end Kernel panic"
+line.
+
+The cleanup reduces vpanic() complexity and establishes a pattern for other
+architectures needing custom panic behavior.
+No functional changes.
+
+Signed-off-by: Mete Durlu <meted@linux.ibm.com>
+---
+Mete Durlu (3):
+      panic: Introduce arch_do_panic
+      s390: Implement arch_do_panic()
+      sparc: Implement arch_do_panic
+
+ arch/s390/kernel/ipl.c    |  6 ++++++
+ arch/sparc/kernel/setup.c |  9 +++++++++
+ include/linux/panic.h     |  2 ++
+ kernel/panic.c            | 15 +++------------
+ 4 files changed, 20 insertions(+), 12 deletions(-)
+---
+base-commit: 48a5a7ab8d6ab7090564339e039c421f315de912
+change-id: 20260724-arch_do_panic-a97f699aa332
+
+Best regards,
+-- 
+Mete Durlu <meted@linux.ibm.com>
+
