@@ -1,95 +1,96 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 937743EB11B
-	for <sparclinux@vger.kernel.org>; Wed,  5 Aug 2026 09:29:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3C903FBED7
+	for <sparclinux@vger.kernel.org>; Wed,  5 Aug 2026 09:34:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.41
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785922151; cv=pass; b=NvTewa3Hg7SD5wT60Nskv6xscsGmlx27Gavn9P2Nb57FiU9KoNdjtRQp73bvgqyI6qqNBXa0clXHE/KzKj+KDZ8QgunalB3nrFs7HiLT92aEzD4Pq537Gt5LmQZjSVteNU/ZO9D5bYD/K7DG/s6InekPxfhSt+xq0cqkuQuoB2A=
+	t=1785922451; cv=pass; b=hwxObg5ziPG2V5jthcATbKEdF+0Zt5ocT0Xv6x5AcLjYfIcCmFZg9CEOJNp6DRVxaQ9KbtkL/KWc57H6NtGK7UGqyxE31EZXvLFWNKhpjHSVgRvH8f5lv4wN1jh0KvOyZwIxPZZmktI0Up8S+f7foZHLzJX6HS+A/DhQldh1REI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785922151; c=relaxed/simple;
-	bh=2CYxhUN06atxgyD+NuqEfp0FHRHqnrmTcjPfadvW5lM=;
+	s=arc-20240116; t=1785922451; c=relaxed/simple;
+	bh=9L0j/pbQAIxYms5cegM0F3PFL7ya32kRw+S7PCbwuZA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RKkBxOsRfSLSyfVfyiyaT/y4LTxVa+NPNMZBjv0GUU4ExOKEmj/YPqcRGfYMm2Znr9AqiH5HuHDlq8+29amjcedtTo9NDTlpwEP1dzmUFYqYo+a4imXNOFyeIryld0vre+ED3eS2KoMqclmjbX7w/PIq7nufEWbqTQKdqbEJgkM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=oRaHTj72; arc=pass smtp.client-ip=209.85.208.44
+	 To:Cc:Content-Type; b=ClRcHxsM7I/Q9jvd23Scslr1yYU8kbsmsGtSdfrCVv/WekvkGcdil7Cdq1W0pifPuyMPdaW1i7GaBvF5F5SPGoRYuOIX/zpmm//dghT/AWnCpoPKSAqYc9g//BUzyFaOewMmjrkR21f9hZkdl0r78z4xalDgmpXSgUNpNKdUzNE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nxVB3W7T; arc=pass smtp.client-ip=209.85.208.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oRaHTj72"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6a0de062db5so1091588a12.1
-        for <sparclinux@vger.kernel.org>; Wed, 05 Aug 2026 02:29:09 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785922148; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nxVB3W7T"
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6a10d02ff43so1282637a12.0
+        for <sparclinux@vger.kernel.org>; Wed, 05 Aug 2026 02:34:09 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785922448; cv=none;
         d=google.com; s=arc-20260327;
-        b=mdlF47XKRfei1DVjJRL4wSmZFuTzCkoV3VNzpMTQXTHR/HCltjL/x7IAnQCAZc5ldZ
-         BG3dXf8ubTLJwgGYo91L1sYSCNyvvJPGj5/E9w7yM5ywnDj8z3uKy/PEbDnAx6WRAKaD
-         XubUc7p+k/DQ+0Hhlkz+f5g4kH2L054TJFXkU7IpSiTfbp7u/eb654lN69+tID7mIcN/
-         66mef95Hf3gXUL3ClRODbONRKeFawxCtU/ZAcxhEYLIyypR7VSI38O1pIFol38CPxR9y
-         Z0wWsRAppnTRIgpDlLNv8VvtXTduU5d2giAYIUnR4qXG5t4t0eRTbrnAVH7qXNwRHOIk
-         L3vA==
+        b=qVAWEtxWfVF+HIhQdguI88zsgBH3MnTm2rPaz8vjRMFN+Yxxg7egY903Mg4i5afPXd
+         J4v8l8FO+c5zgcgtfV9qGXl73Mc4CFQnT6aRDe/gB0u0SJEwr4S7wFJAlaOZiIQ/5OWp
+         m26YXhvLbQY9Rzqk1+wng5y7wPX3AGUKzUKlO7J6wLntJcCHOKhvbilyhjRVGYoCn/3x
+         7xEgUnO6y247uWCqXatfRxWgWJENAxzS7SiP2J+5gr5BwOK0+cIuZGzyJJC+vgDUIYzX
+         AGNgXV+l3PiQ0np4DySP0+blmnkYIZTZ+qK7CTQHDvcoHy0Pt2GVO+vhiZa+HvAadtvn
+         sq4Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=MyPWfyEFm2OExA3jphd/8vOHsrgk8sKB4KgKaoO1auA=;
-        fh=k7qSVRC4IIgi/MKEQ2WzruuAzYCJ8OdKyfnRw5dP+hs=;
-        b=AphvizAFIP5pJsisNjh3Axdf+iRhl/aL5jVIe5FT5XprGsOTFazJVFGb0TQg5zBELu
-         EWMOgzTDEeMjWeWdoh+QSTOmQfAz4/S+7O8s1iErrGYJKAf0fCsAyDUfg/4jgjf+hlG2
-         7cW0wDRmAeMSNK3Sdl6HmemeNHpYqNsPPH16aLoregB8Y2YBS2PQC3AW8X+ar4uSew8F
-         rT9n8deAJ7nYyCUj0J6fPeJKD4KDar6KxSyDJ5nkHXi6oYGQOI7P0h+XyIZbokHWmlpy
-         0TQQoRgYf5TaRlV5gQS4mHzRkHoFQDjt2akfMl+ZE6QhFZCkpTQgNws1Vc/BEsV5cDPc
-         QK3Q==;
+        bh=UaGNs+E1Ex6iz5T9/0x/HPxcs/WYGeua7JSZh/+RxWI=;
+        fh=z9M7dnNoCJB7xjkkGCrk5Ie90svl5BoLoqFH4yr31qU=;
+        b=iGbwjfO/BhaYg8KohEsTy9+4xvpExWKliZmbEBaRv3Kby4DqXEzBkMULEPdCYDik0Y
+         nNY6PnZeQzHSHDTu8Kpkj5C7K1kXQrRn8ny/xbywB+7IqXdw2PVOnsfgIhZBqdEJRIhZ
+         onWlolh/kJO/K8S7AFn7yn4fwM7Wqz34t3V8DEZx/a6AuYXHocS9wyxwW7nXsmAvjJiY
+         +n8vhtMk9LNLCv/Ekyj2E2ka+5BSAgg6Yze6rhsP12xWOXMSK5672wXC81fQEsCtchAp
+         rXbLSSNVoDi4fiwBCh4/ZOgFZQOsfByU0nm9lPkLfm586Kav6ukl2Iu9rOj/ULJBtLLm
+         BeHw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785922148; x=1786526948; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1785922448; x=1786527248; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=MyPWfyEFm2OExA3jphd/8vOHsrgk8sKB4KgKaoO1auA=;
-        b=oRaHTj72e/XrckuRkA497cnrlo9Fzk7mRBhBXJ1RaHvG+7+2R4vfQrOftchvPQCl/P
-         k38QsTQmHSL+o3EqszzoPmxowRxK5l6gqFLnPydloJ6xxUi5if5535ZIQAYitjcu0O1h
-         HPKlnfL3fOxxo5uv/mNQpNaK4C87gz3GvP03hg7viPShIQaEPK4/Va4yQSRtx4yN71sh
-         7xebecoFtAEsMGmUSloibOVe69FFBOnuJ2IZeqeYn9PUE0zUR3wALOwo4xTWieb6caEd
-         5yxFYxilUTzGGFmWNqfK11/uoPLsvyvM/a6IwhXO5V9wvTsI/+rs65fsWVeKLolF3nSn
-         NRCQ==
+        bh=UaGNs+E1Ex6iz5T9/0x/HPxcs/WYGeua7JSZh/+RxWI=;
+        b=nxVB3W7T5PzcgNakBP1/wZviKPIr0w6SG7+6Y/KxlFc3c6UOvBeK+7YYF7i1akkkBM
+         7UwQGPufJfSULubwn0MN7WYeOwvjEV4fZBUhVbCk60xIcr+afqqGymIW35nRcAYrjm6p
+         mjB78uXJT85+sRLdga3nn+YEy1MF2kl+sa/Zst5m6qP4gBB3/bJgeWf93hsGIaWuBcXq
+         PbRCoAk/5wMGqFMOftie51sXZexfx+hIyBrnuRGXdsgp7Y/yrLlRxjA6pVZ1XvohGmNv
+         zH/GTjk09mzaU0IJ7EGxmI/Rk0KclqUwffzjzzfw4hwmgnM3+lYoVTALr10KCuz+iEM6
+         h4Hg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785922148; x=1786526948;
+        d=1e100.net; s=20251104; t=1785922448; x=1786527248;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=MyPWfyEFm2OExA3jphd/8vOHsrgk8sKB4KgKaoO1auA=;
-        b=IXxQ3GnEXANLBhjlLrKgdSXdQIbV8XiHtXsxhVlzoPHhPTAUwfba6oph7cXqFEg32H
-         p/EXWp6ByAu4ntwLdmcvnjhzdPK5+H5+K61R/weckuY+/dg4IqdWBqnTopHbZiSe4OR8
-         Eyi3CeVu5A/lTaCdxUvD3pLSH8hLIkObqAXUU0F/R1xTacuXr4ab3ycJZzH1QqZg5/BA
-         n7LpSz8a0kESfuvyON8NGjzM3/1E0PzNIez70rSRROSjxLGoMd0J16+NLBSppub8rzKW
-         Qayd/9DCKm1avmrK3YjsojeX1pViTU5pMSl4+KcVtJaLqH8514bQMdox8hYh7Z6DEeZo
-         eOog==
-X-Forwarded-Encrypted: i=1; AHgh+RpEm3rEI4G78iwXzi+DK7Apb9jldpeMG/iroa1l8c7bWV6OrMzHnrfrjRzHTf9G16Ae3vld6pStu505@vger.kernel.org
-X-Gm-Message-State: AOJu0YyjSxaZRWRdRz5dLm+02x+yM9db6MTvy+8qzAZSBcgkpr4Pe7bf
-	H1u9an33lWqH9nHrD5uonbCE982PC84bDouyPvvtvtYIAHe0NUjUT7krnVwXXP86uXj9SUeKlYy
-	x7MFyT0NRQ465bKrHKfblpMIQ57NGkrY=
-X-Gm-Gg: AR+sD133WC8OPtSsUoaifUBMQ2mCokWS3ZAPJt2v+XRyNbgxJefShwz6bt+NzK3ZAms
-	fggGpxBWLavTeTn5D3JY+pE4SBHTgN64f4ehlgHo7B3mP5yl3lwOnzcQbYumksMfQr3YlCQKqWo
-	6A7HMi+MBa+dM2ytpOupGGGTAHJyM+uKXJZddE5pEiH8/dtvgBG7zlCPDVDojhRYQzubFIxsr56
-	ngZz37tE5Dv+6B3YsQhO6P2wEpjaZF7sr6q75iekP8J/baIPxfGIjeJrb0GJhioliDcGoNv9Cqx
-	wgDGmnLnmirskfjvvgtkpP5jr08MTi7Jd7J/jyzdHRKKzDu6GQBcLPkJAvdt7/BgEzKinokHC3S
-	hMQzF5snnhCGnJXip8/zMPD8bMN0xSJQ=
-X-Received: by 2002:a05:6402:4543:b0:69f:2c1d:d83c with SMTP id
- 4fb4d7f45d1cf-6a14f2893e6mr2121332a12.21.1785922147806; Wed, 05 Aug 2026
- 02:29:07 -0700 (PDT)
+        bh=UaGNs+E1Ex6iz5T9/0x/HPxcs/WYGeua7JSZh/+RxWI=;
+        b=UO1QL6bQZhZ/mppUQ2oEN9G97PxvA2JMgeteY5gMTYCaJiSGVlIBIWrtM0Zj/8IrOI
+         CympDNp0dXrloNPImD0NxjTiF6c6Jf5IvXzvn6GBCHvHRNEQSr4j2WofOFRs394sf7Z6
+         SE9W48dlUHSMdCEcW6boHVuXCLTlVdejvs5bSz6CgcAg2jG9gJtQ4kqt1lYbw0KrlOvO
+         nZESGxAzG9/yUy8WmhAsLwsc+WL8knZ57Zqh153V21EHHyxCgHbM5FIdaM9PSVEPlv/y
+         e7oYtTLv2UA245L04InWvFx18fwkUZ5fS5+Kb6O6OuqqDypDfSaV5jWk7OLv5dRSFtej
+         4zrg==
+X-Forwarded-Encrypted: i=1; AHgh+Rp5pDe1c3aYiuaqi+k6S+4mCTE/C9l4ZfoyzotzL209nsNNmkvElNZ3rFplZP0z/E3X/7ny17U08ZsI@vger.kernel.org
+X-Gm-Message-State: AOJu0YyGiHG3H7/j9KjfvO+HXziKA79v4vclls+c4xA9peKF+dtd/pxr
+	rm64ik8bpTLs/8M6xrW32kOx0fb0xkUuYIPKxQ4RjjHpGw1IJVBfAhd//szIa8E3tQ0NhSezrnt
+	uBQQQ06P4oSwVjK6S6PS2i7DPFqumE2M=
+X-Gm-Gg: AR+sD12iaZyr7L1GVSEtf+jkSGjbO6Nz4e9DwNuVv0HJOXAHpVMaRGto98+89xe3BDz
+	OmCy3jzWMHnbpJ6eQOxxq2K1OAaan/HDr47j7+o0D28x1FLQ/zoaTtfRozzhgfWYNhpf2DnVQf/
+	fkr1DU1+cjgh7BDWgdr4jYtMJAvYrqFlB/9Uy9emX4EkdahBRZxxgAKe6prITb/kIssH2XiaCbF
+	cSkjJnK1Q09yQGX8Nx363ChGHjRuGvgFXfBTl+rYyeoyY4yjGC98c2XtWg008zd0Ctjf5MGk13k
+	Rs5WuW/JKNa3XFxpzktvIkY3tv0DgZKN23r/bprNhoW95eaJ3eMGgvub2niilmOgjKzUEY9pNxV
+	msldPD/tCZJbR0iLnUvWD8ZGXfFfsgWc=
+X-Received: by 2002:a05:6402:1f08:b0:6a1:b0b:ba6 with SMTP id
+ 4fb4d7f45d1cf-6a14f13e482mr2509895a12.15.1785922446933; Wed, 05 Aug 2026
+ 02:34:06 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260803-alpha-fp-exceptions-v1-0-c99d75608e60@gmail.com> <20260803-alpha-fp-exceptions-v1-1-c99d75608e60@gmail.com>
-In-Reply-To: <20260803-alpha-fp-exceptions-v1-1-c99d75608e60@gmail.com>
+References: <20260803-alpha-fp-exceptions-v1-0-c99d75608e60@gmail.com> <20260803-alpha-fp-exceptions-v1-2-c99d75608e60@gmail.com>
+In-Reply-To: <20260803-alpha-fp-exceptions-v1-2-c99d75608e60@gmail.com>
 From: Magnus Lindholm <linmag7@gmail.com>
-Date: Wed, 5 Aug 2026 11:28:56 +0200
-X-Gm-Features: AUfX_mytZOAo7u-Z1H4SHvHV7AI6aSPHWr2nPnsXtr8HsGmlt0ibWkok5AeeFvA
-Message-ID: <CA+=Fv5RaZZeRvixhLYZVmNsWowBw7oWC5Z6AvbL8=c80CM6XLg@mail.gmail.com>
-Subject: Re: [PATCH 1/3] alpha: fix ieee_swcr_to_fpcr setting FPCR_DNOD unconditionally
+Date: Wed, 5 Aug 2026 11:33:54 +0200
+X-Gm-Features: AUfX_mwnXqPqc_k9xGwWzJEiKBh4lXhngC_jeS43aqM9K90q-yJsxGFkXMu1yFY
+Message-ID: <CA+=Fv5Tgq7X6Tqt2s6OuoWUQirzYwwyrmwQR_tDXpHRrczK22A@mail.gmail.com>
+Subject: Re: [PATCH 2/3] alpha: don't leak hardware-fabricated FP exception
+ bits to user space
 To: Matt Turner <mattst88@gmail.com>
 Cc: Richard Henderson <richard.henderson@linaro.org>, linux-alpha@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, 
@@ -101,41 +102,51 @@ Content-Transfer-Encoding: quoted-printable
 On Tue, Aug 4, 2026 at 1:40=E2=80=AFAM Matt Turner <mattst88@gmail.com> wro=
 te:
 >
-> ieee_swcr_to_fpcr() converts the software IEEE trap-enable and status
-> bits kept in thread_info.ieee_state into the hardware FPCR format.  It
-> contained:
+> On EV6 and later the hardware records exception status bits in the FPCR
+> before delivering a software completion trap, and those bits can be wrong
+> for the instruction that trapped.  Converting a double that is exactly
+> representable as a subnormal float sets FPCR_UNF even though the result
+> is exact, and an underflow trap additionally sets FPCR_INE even when the
+> emulated operation turns out to be exact.
 >
->         fp |=3D (~sw & IEEE_TRAP_ENABLE_DNO) << 41;
+> alpha_fp_emul() only wrote the FPCR when soft-fp raised an exception, so
+> whenever it determined that the instruction was exact the fabricated bits
+> stayed in the FPCR and were reported to user space by fetestexcept().
 >
-> FPCR_DNOD (bit 47) disables denormal operand traps: with it set the
-> hardware handles a denormal operand itself, treating it as zero, instead
-> of trapping for software completion.  The intent was to set DNOD when the
-> user has not asked for SIGFPE on denormal operands, but
-> IEEE_TRAP_ENABLE_DNO is clear by default, so ieee_swcr_to_fpcr(0) always
-> set DNOD.
+> Pass the exception summary register down from do_entArith() so the
+> handler can tell which exceptions the hardware attributed to the trapping
+> instruction, and always write the FPCR.  Clear the exceptions that the
+> trap reported but that soft-fp did not raise.  EXC_SUM reports only the
+> underflow or overflow when the hardware also set INE, so treat INE as a
+> candidate in that case, and treat a trap with no reported exception as a
+> denormal operand trap, for which the hardware can fabricate INE and UNF
+> as well.  Bits that software has already confirmed in ieee_state belong
+> to this or an earlier instruction and are never cleared.
 >
-> Instructions built with the software completion suffix therefore never
-> trapped on a denormal operand.  The hardware silently substituted zero
-> and produced wrong results, affecting every program compiled with -mieee
-> and default FPU settings, glibc included.
+> The imprecise path passes no summary.  There the trap was taken somewhere
+> in the trap shadow, so EXC_SUM is not attribution for the instruction
+> being re-executed -- and only EV6, which traps precisely and so never
+> takes that path, has fabricated bits to clear.  For the same reason the
+> clearing is guarded by implver(), matching swcr_update_status().
 >
-> Set FPCR_DNOD only when IEEE_MAP_DMZ is requested, which is exactly the
-> case where flushing denormal inputs to zero is what the user asked for.
-> DNOD then encodes MAP_DMZ, which ieee_fpcr_to_swcr() already recovers
-> from FPCR_DNZ, so drop its attempt to recover IEEE_TRAP_ENABLE_DNO from
-> DNOD; the DNO trap enable lives solely in ieee_state.
+> On an UP1500 (EV68) this takes the glibc math testsuite from 831 failures
+> to 28, the remainder being unrelated to exception status.
 >
-> Both functions are in a uapi header, so the encoding change is visible to
-> userspace, but nothing outside the kernel is known to depend on DNOD
-> carrying the DNO trap enable, and the kernel is the only writer of the
-> FPCR.
+> This belongs with the preceding fix to ieee_swcr_to_fpcr(), and should
+> not be backported without it -- nor it without this.  That fix stops
+> FPCR_DNOD being set unconditionally, so denormal operand traps start
+> firing again.  Those traps very often find an exact result, which is
+> precisely the case where the old code left the FPCR unwritten and the
+> fabricated bits visible.  Applied alone it would make spurious exception
+> flags more common, not less.
 >
-> This must not be backported on its own.  Re-enabling denormal operand
-> traps exposes a second bug, fixed in the following patch: those traps
-> usually find an exact result, and for an exact result the emulator did
-> not write the FPCR back, leaving hardware-fabricated exception bits
-> visible to user space.  Taken alone this change would make spurious
-> exception flags more common.
+> One case cannot be resolved here: an inexact instruction without the
+> software completion suffix never traps, so its INE reaches the FPCR
+> without being recorded anywhere else.  Such a bit is indistinguishable
+> from an INE the hardware fabricated for a trapping instruction, and is
+> lost if an underflow or overflow trap with an exact result follows it.
+> The FPCR is the only record of those instructions and it carries no
+> attribution.
 >
 > The bug predates the git history, so there is no commit to reference in a
 > Fixes tag.
@@ -143,52 +154,20 @@ te:
 > Cc: stable@vger.kernel.org # 5.15+
 > Signed-off-by: Matt Turner <mattst88@gmail.com>
 > ---
->  arch/alpha/include/uapi/asm/fpu.h | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/alpha/include/uapi/asm/fpu.h b/arch/alpha/include/uapi/=
-asm/fpu.h
-> index cea9eafa056f..d28dc36786e2 100644
-> --- a/arch/alpha/include/uapi/asm/fpu.h
-> +++ b/arch/alpha/include/uapi/asm/fpu.h
-> @@ -101,7 +101,12 @@ ieee_swcr_to_fpcr(unsigned long sw)
->                       | IEEE_TRAP_ENABLE_OVF)) << 48;
->         fp |=3D (~sw & (IEEE_TRAP_ENABLE_UNF | IEEE_TRAP_ENABLE_INE)) << =
-57;
->         fp |=3D (sw & IEEE_MAP_UMZ ? FPCR_UNDZ | FPCR_UNFD : 0);
-> -       fp |=3D (~sw & IEEE_TRAP_ENABLE_DNO) << 41;
-> +       /*
-> +        * Disable denormal operand traps only when denormal inputs are t=
-o be
-> +        * flushed to zero.  Otherwise they must keep trapping, so that /=
-S
-> +        * instructions reach the kernel emulation handler.
-> +        */
-> +       fp |=3D (sw & IEEE_MAP_DMZ ? FPCR_DNOD : 0);
->         return fp;
->  }
->
-> @@ -116,7 +121,6 @@ ieee_fpcr_to_swcr(unsigned long fp)
->                              | IEEE_TRAP_ENABLE_OVF);
->         sw |=3D (~fp >> 57) & (IEEE_TRAP_ENABLE_UNF | IEEE_TRAP_ENABLE_IN=
-E);
->         sw |=3D (fp >> 47) & IEEE_MAP_UMZ;
-> -       sw |=3D (~fp >> 41) & IEEE_TRAP_ENABLE_DNO;
->         return sw;
->  }
->
->
-> --
-> 2.54.0
+>  arch/alpha/kernel/traps.c  |  6 ++--
+>  arch/alpha/math-emu/math.c | 88 ++++++++++++++++++++++++++++++++++++++++=
+------
+>  2 files changed, 80 insertions(+), 14 deletions(-)
 >
 Hi,
 
-The new mapping of FPCR_DNOD to IEEE_MAP_DMZ looks correct to me.
+Passing EXC_SUM to the precise emulation path and always writing the
+corrected FPCR state back looks correct to me.
 
 I tested the complete series with CONFIG_MATHEMU=3Dy on the same machine
 and using the same glibc build. The kernel boots normally, and the
 glibc math testsuite improves from 48 to 28 failing test programs, with
-no new failing tests.
+no new failing tests. Tested on Alphaserver ES40.
 
 Reviewed-by: Magnus Lindholm linmag7@gmail.com
 Tested-by: Magnus Lindholm linmag7@gmail.com
