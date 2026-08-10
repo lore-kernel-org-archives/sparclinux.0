@@ -1,34 +1,34 @@
-Received: from latitanza.investici.org (latitanza.investici.org [185.218.207.228])
+Received: from devianza.investici.org (devianza.investici.org [198.167.222.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBD413C6606;
-	Mon, 10 Aug 2026 12:02:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.218.207.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02E073955E2;
+	Mon, 10 Aug 2026 12:11:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.167.222.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786363325; cv=none; b=tF9RPG7TIf2xPCO53xiWyqVaqW5n9tEhr8hb1arRoQAmawuorvMfzDWZshtacyQJVU2lQuoAgMggU9c8B9idvT/rukgt8GHKMf7oUVijEm4VgINX714mWshksr4b9mtbmMFWV53NuG0KmTwa8Uuhl/8bMm1f7YCfRCjPavE0aUk=
+	t=1786363880; cv=none; b=MfBZ0O9pCgFbfPv5Iyf239A/luIjYPDd6KeSEf+fBhSuV2Hw+gWOLqM38FTyC0PArd9a1f2uWT2f2XDS+NSG0cgKWc89B/88bi5UUBJqUvb/o0taNDDqEP3855uXYtQIJ41j1N2L9hwAH3qU52ZnFKN5b6yvZNcQw+gN3jPrJQo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786363325; c=relaxed/simple;
-	bh=LaxH5pd0afJmmqCtk+AoFhcgtfYL8tCLUuKKzjrP7O0=;
+	s=arc-20240116; t=1786363880; c=relaxed/simple;
+	bh=GKCSg9gewmjo5BKbSguox68daGOzHcRSALBUYYHkchM=;
 	h=Date:From:To:CC:Subject:In-Reply-To:References:Message-ID:
-	 MIME-Version:Content-Type; b=ULbSGSp3hs06Cia9PfhU9JKiq//pnvLskpfOMuC1x8/ITVyazCeEfg7EX0GlSJlimzcKXp6UvAbp9deM4v5ns8qQD84/Jc8hJTIjTY0DrHCnft6Eje8ykAbhERWaZryIC1boOK5pu6NCfQuJschzyZOn5P2qFgZFnVVJ4Z5eX8Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=grrlz.net; spf=pass smtp.mailfrom=grrlz.net; dkim=pass (1024-bit key) header.d=grrlz.net header.i=@grrlz.net header.b=kxMuXODo; arc=none smtp.client-ip=185.218.207.228
+	 MIME-Version:Content-Type; b=S896+oRI0pq62/BhQQO+ubkcttSjEHbQpvMmJ+MzbBMVbAkeSe/Y2xShv7VrAWVs/zyPfbhN4CdUPS0V8gsjrPFXQQJrYfGSMX33d2K0oMaXucoWRC51J3lHMqHiUWr24pOgWb0CVSHpsgJhYMak7ht5NZ0pZEmTuU77/jE7zV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=grrlz.net; spf=pass smtp.mailfrom=grrlz.net; dkim=pass (1024-bit key) header.d=grrlz.net header.i=@grrlz.net header.b=Onmeiva9; arc=none smtp.client-ip=198.167.222.108
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=grrlz.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=grrlz.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=grrlz.net header.i=@grrlz.net header.b="kxMuXODo"
+	dkim=pass (1024-bit key) header.d=grrlz.net header.i=@grrlz.net header.b="Onmeiva9"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=grrlz.net;
-	s=stigmate; t=1786363312;
-	bh=3cfmHDED700Hy4UknGGjQVZX58clxs7NkKnxYCghlj4=;
+	s=stigmate; t=1786363876;
+	bh=5jtAstx+MTmu0BBi0TAzaZP6DrdnW789C5m+qe2bSWE=;
 	h=Date:From:To:CC:Subject:In-Reply-To:References:From;
-	b=kxMuXODoa6ucHGfqOJQbTEaqZdfDOpuDSMFwsUAUoAmX24Vs2x3dJ825/8qhDSguf
-	 7fL1VfriDYDLfRVVVmLjpCfrkgkFz019L9v/BJh3yJM3j67y6edSohz58RZw3BQk9U
-	 pA1gGtfP3xT78Oag93Sgnx+rHTEodlQX5PzEwUEM=
-Received: from mx3.investici.org (unknown [127.0.0.1])
-	by latitanza.investici.org (Postfix) with ESMTP id 4hJYJc6vmFzGpMH;
-	Mon, 10 Aug 2026 12:01:52 +0000 (UTC)
-Received: by mx3.investici.org (Postfix) id 4hJYJc4pJJzGpMF;
-	Mon, 10 Aug 2026 12:01:52 +0000 (UTC)
-Date: Mon, 10 Aug 2026 13:01:53 +0100
+	b=Onmeiva9suyo51mhhhbM3V6gae/eLB19QXce3EzeWQ5TcOGJDaYVXgCJbK1Iqf+Rh
+	 emTNCwidO+4i6ZngG+C5rthOrkMtYrRcGS+T6+BpDN1XhGIQ4iplffnRPKCba/ro5+
+	 Kr2ddS7L/8emp8C1GNbo8VrWf4F3zQ+yBIo+Mc0E=
+Received: from mx2.investici.org (unknown [127.0.0.1])
+	by devianza.investici.org (Postfix) with ESMTP id 4hJYWS0fwwz6vFQ;
+	Mon, 10 Aug 2026 12:11:16 +0000 (UTC)
+Received: by mx2.investici.org (Postfix) id 4hJYWR57z2z4y43;
+	Mon, 10 Aug 2026 12:11:15 +0000 (UTC)
+Date: Mon, 10 Aug 2026 13:11:16 +0100
 From: Bradley Morgan <include@grrlz.net>
 To: Mete Durlu <meted@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>,
  Petr Mladek <pmladek@suse.com>, Heiko Carstens <hca@linux.ibm.com>,
@@ -39,10 +39,10 @@ To: Mete Durlu <meted@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>,
  Andreas Larsson <andreas@gaisler.com>
 CC: linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
  sparclinux@vger.kernel.org
-Subject: Re: [PATCH v5 2/3] s390: Implement arch_do_panic()
-In-Reply-To: <20260810-arch_do_panic-v5-2-e86ae992c253@linux.ibm.com>
-References: <20260810-arch_do_panic-v5-0-e86ae992c253@linux.ibm.com> <20260810-arch_do_panic-v5-2-e86ae992c253@linux.ibm.com>
-Message-ID: <F6A6B990-849D-4F95-B503-8DB33C493ADA@grrlz.net>
+Subject: Re: [PATCH v5 3/3] sparc: Implement arch_do_panic
+In-Reply-To: <20260810-arch_do_panic-v5-3-e86ae992c253@linux.ibm.com>
+References: <20260810-arch_do_panic-v5-0-e86ae992c253@linux.ibm.com> <20260810-arch_do_panic-v5-3-e86ae992c253@linux.ibm.com>
+Message-ID: <963C6504-18B4-4731-95A5-6420EDD0FF8E@grrlz.net>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -53,74 +53,70 @@ Content-Type: text/plain;
  charset=utf-8
 Content-Transfer-Encoding: 8bit
 
-On 10 August 2026 12:35:57 BST, Mete Durlu <meted@linux.ibm.com> wrote:
->Implement s390 specific arch_do_panic() instead of using s390 specific
->ifdef sections in vpanic() code. disabled_wait() is now called after
->"end Kernel panic" marker.
->No functional changes.
+On 10 August 2026 12:35:58 BST, Mete Durlu <meted@linux.ibm.com> wrote:
+>Implement sparc specific arch_do_panic() instead of using sparc specific
+>ifdef sections in vpanic() code.
+>Reorder arch specific panic handling, sparc's Stop-A messages are now
+>printed after "end Kernel panic" marker.
 >
-
-Can't see anything wrong, code wise
 
 Reviewed-by: Bradley Morgan <include@grrlz.net>
 
-
+thank you for clearing the ifdeffery..
 
 >Signed-off-by: Mete Durlu <meted@linux.ibm.com>
 >---
-> arch/s390/kernel/traps.c | 7 +++++++
-> kernel/panic.c           | 3 ---
-> 2 files changed, 7 insertions(+), 3 deletions(-)
+> arch/sparc/kernel/setup.c | 9 +++++++++
+> kernel/panic.c            | 9 ---------
+> 2 files changed, 9 insertions(+), 9 deletions(-)
 >
->diff --git a/arch/s390/kernel/traps.c b/arch/s390/kernel/traps.c
->index 564403496a7c..309d3d3e95fd 100644
->--- a/arch/s390/kernel/traps.c
->+++ b/arch/s390/kernel/traps.c
->@@ -24,6 +24,7 @@
-> #include <linux/entry-common.h>
-> #include <linux/kmsan.h>
-> #include <linux/bug.h>
+>diff --git a/arch/sparc/kernel/setup.c b/arch/sparc/kernel/setup.c
+>index 4975867d9001..5f43cef80638 100644
+>--- a/arch/sparc/kernel/setup.c
+>+++ b/arch/sparc/kernel/setup.c
+>@@ -2,6 +2,8 @@
+> 
+> #include <asm/setup.h>
+> #include <linux/sysctl.h>
 >+#include <linux/panic.h>
-> #include <asm/entry-percpu.h>
-> #include <asm/asm-extable.h>
-> #include <asm/irqflags.h>
->@@ -31,6 +32,7 @@
-> #include <asm/vtime.h>
-> #include <asm/fpu.h>
-> #include <asm/fault.h>
->+#include <asm/processor.h>
-> #include "entry.h"
+>+#include <linux/printk.h>
 > 
-> static inline void __user *get_trap_ip(struct pt_regs *regs)
->@@ -275,6 +277,11 @@ static void monitor_event_exception(struct pt_regs *regs)
-> 	}
-> }
+> static const struct ctl_table sparc_sysctl_table[] = {
+> 	{
+>@@ -36,6 +38,13 @@ static const struct ctl_table sparc_sysctl_table[] = {
+> #endif
+> };
 > 
-
-Comment? I mean, its a suggestion, but it's not strictly needed
-
 >+void arch_do_panic(void)
 >+{
->+	disabled_wait();
+>+	/* Make sure the user can actually press Stop-A (L1-A) */
+>+	stop_a_enabled = 1;
+>+	pr_emerg("Press Stop-A (L1-A) from sun keyboard or send break\n"
+>+		 "twice on console to return to the boot prom\n");
 >+}
->+
-> void kernel_stack_invalid(struct pt_regs *regs)
+> 
+> static int __init init_sparc_sysctls(void)
 > {
-> 	/*
 >diff --git a/kernel/panic.c b/kernel/panic.c
->index 726a97842232..ee6e3f9e3900 100644
+>index ee6e3f9e3900..7dda841c16f9 100644
 >--- a/kernel/panic.c
 >+++ b/kernel/panic.c
->@@ -752,9 +752,6 @@ void vpanic(const char *fmt, va_list args)
-> 		pr_emerg("Press Stop-A (L1-A) from sun keyboard or send break\n"
-> 			 "twice on console to return to the boot prom\n");
+>@@ -744,15 +744,6 @@ void vpanic(const char *fmt, va_list args)
+> 			reboot_mode = panic_reboot_mode;
+> 		emergency_restart();
 > 	}
+>-#ifdef __sparc__
+>-	{
+>-		extern int stop_a_enabled;
+>-		/* Make sure the user can actually press Stop-A (L1-A) */
+>-		stop_a_enabled = 1;
+>-		pr_emerg("Press Stop-A (L1-A) from sun keyboard or send break\n"
+>-			 "twice on console to return to the boot prom\n");
+>-	}
 >-#endif
->-#if defined(CONFIG_S390)
->-	disabled_wait();
-> #endif
 > 	pr_emerg("---[ end Kernel panic - not syncing: %s ]---\n", buf);
 > 
+> 	arch_do_panic();
 >
 >
 
