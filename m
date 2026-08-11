@@ -1,133 +1,175 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 257C737B02D;
-	Mon, 10 Aug 2026 14:07:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A18532C3251;
+	Tue, 11 Aug 2026 04:21:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786370877; cv=none; b=Fg5M1GBxgOWclf2JUQIOmud7uf0cVfELXYCwpXtaomyS5LR82MQHry1QUiKEw7ExNJnspvPeUdBPLDCU0RFiE+ookYS57By/NHUM5Jn0P1LFeSAMkkxyWN1Y6d2EfQ3k0Rzq661R0g4mJxGYYGX8tFrizySL89Il0gt981a6h3E=
+	t=1786422094; cv=none; b=tTH5CxmyTwIjtpijyUWBEHLqglC8K96f5zbpSeqjwLDI0JRCaod/hefj1NL/gqIfvjHnYf4i0anOze/CCFmEqzeqpwPcGptMJZ5yuL4YUhGuvjNTfPhqQ2ZnXIMkVEFnvba9TCike5RBE5IJSp5XjVs0+uYaij4E9OYOtAd4vTw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786370877; c=relaxed/simple;
-	bh=l/l2H3T3xXRxtAlEmVxkMBjt3GQq1sSw4qqDUaZjjxc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UKGbfacET3tpSIWa3qhAkYMtjlhal7Ec01mIFFl3P3gzOmWXrdT2Qd5UMKws0zutMxJ4E2TFn9Sjfqx5CBn/vIAFJxldBM0zJ8FxWzDsUV7/gTr+q7mxwC8BYrcz7qccspIsTIFOUSyhDivlMZX3GQOCUZs7a/Qfed8fSVtLago=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=VDMFqS+F; arc=none smtp.client-ip=217.140.110.172
+	s=arc-20240116; t=1786422094; c=relaxed/simple;
+	bh=U4Z1uTiwNPlptM0+2YMoqojdlsHVf+3xXUYXjiCQ8pk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pH0xt5lUp9T3AE1p+9CXrRSwvEIuIdLrFVgrvZYwZe3/pNjIpDJrLJVl4kTo9eF7dNjGeLBcN1YcV0de1u8GZ6KyPq0YS8E6tBl73BB8tKKp3NzTSPJ7+ChknIr1g0rsGncUX1eTp36wKwHVTuXTojxJVz3ijrTiJuDLtX5GbI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=GopI0I0f; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="VDMFqS+F"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="GopI0I0f"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 745021516;
-	Mon, 10 Aug 2026 07:07:50 -0700 (PDT)
-Received: from [10.57.5.211] (unknown [10.57.5.211])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A0B0D3F86F;
-	Mon, 10 Aug 2026 07:07:44 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 39B3114BF;
+	Mon, 10 Aug 2026 21:21:21 -0700 (PDT)
+Received: from localhost (a085714.arm.com [10.164.19.28])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6E55B3F673;
+	Mon, 10 Aug 2026 21:21:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1786370874; bh=l/l2H3T3xXRxtAlEmVxkMBjt3GQq1sSw4qqDUaZjjxc=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=VDMFqS+FI7dztumWUIj0YSzO03RhoFJUBQIQzYUdFvqVl9cEv8Iw/mDKNo7PN1C6X
-	 1VHMihPE5KmCMT17k5n8XBwRp9N9Pbg9cGBMMV/3LzWSgApFGs1tQxNrK6u2zmk9z2
-	 n2fKbvDMQjaTvkmApv2yhkGVWehw0StqDsKzTy6c=
-Message-ID: <efd52893-bf66-40cc-a53d-980b89cee448@arm.com>
-Date: Mon, 10 Aug 2026 16:07:41 +0200
+	t=1786422085; bh=U4Z1uTiwNPlptM0+2YMoqojdlsHVf+3xXUYXjiCQ8pk=;
+	h=From:To:Cc:Subject:Date:From;
+	b=GopI0I0fYfwHaaeo2Y1tRcsF2e/amGL0odHVP/X1kESNXKYqhycXNoTsAuQ3kbLz6
+	 6aWj1XpWWD5XHhdxDVLSsmNEIV5BHzcUh5zug5WGO5oBPaTxRMDHz11rcK3BnPzn8e
+	 wSjaNCIByq50FgWv0gwZJCSc7yloLZqXMTvqJhr0=
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+To: linux-mm@kvack.org,
+	akpm@linux-foundation.org,
+	david@kernel.org
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	Rich Felker <dalias@libc.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	WANG Xuerui <kernel@xen0n.name>,
+	linux-alpha@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-arch@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [RFC V2 0/6] mm: Drop pxd_ERROR()
+Date: Tue, 11 Aug 2026 09:51:13 +0530
+Message-ID: <20260811042119.3652929-1-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 03/22] mm: introduce MMF_KERNEL flag and set it for
- init_mm
-To: "David Hildenbrand (Arm)" <david@kernel.org>,
- "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Lorenzo Stoakes <ljs@kernel.org>, "Liam R. Howlett" <liam@infradead.org>,
- Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Pasha Tatashin <pasha.tatashin@soleen.com>,
- Russell King <linux@armlinux.org.uk>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- Ryan Roberts <ryan.roberts@arm.com>, linux-arm-kernel@lists.infradead.org,
- Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev,
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
- Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org,
- Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
- Albert Ou <aou@eecs.berkeley.edu>, linux-riscv@lists.infradead.org,
- Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
- Alexander Gordeev <agordeev@linux.ibm.com>,
- Gerald Schaefer <gerald.schaefer@linux.ibm.com>, linux-s390@vger.kernel.org,
- "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
- Richard Weinberger <richard@nod.at>,
- Anton Ivanov <anton.ivanov@cambridgegreys.com>,
- Johannes Berg <johannes@sipsolutions.net>, linux-um@lists.infradead.org,
- Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
- Peter Zijlstra <peterz@infradead.org>, Ning Sun <ning.sun@intel.com>,
- x86@kernel.org, tboot-devel@lists.sourceforge.net,
- Ard Biesheuvel <ardb@kernel.org>,
- Ilias Apalodimas <ilias.apalodimas@linaro.org>, linux-efi@vger.kernel.org,
- Vishal Moola <vishal.moola@gmail.com>, Alistair Popple <apopple@nvidia.com>,
- "Matthew Wilcox (Oracle)" <willy@infradead.org>,
- linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
-References: <20260714-remove_pgtable_cdtor-v1-0-44be8a7685d7@arm.com>
- <20260714-remove_pgtable_cdtor-v1-3-44be8a7685d7@arm.com>
- <01f07ea2-8bdd-4450-8a49-548f8b646cfd@kernel.org>
- <33fc9d31-2866-4315-9510-0004deb93994@kernel.org>
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Content-Language: en-GB
-In-Reply-To: <33fc9d31-2866-4315-9510-0004deb93994@kernel.org>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-On 05/08/2026 14:07, David Hildenbrand (Arm) wrote:
-> On 8/3/26 15:59, Christophe Leroy (CS GROUP) wrote:
->> Le 14/07/2026 à 16:03, Kevin Brodsky a écrit :
->>> mm code often needs to know whether some mm represents a kernel or
->>> user address space. This is currently done by comparing the mm
->>> pointer with &init_mm; besides not being particularly elegant, this
->>> ignores the fact that other mm's (e.g. efi_mm) may also represent
->>> parts of the kernel address space.
->>>
->>> Introduce a new mm flag MMF_KERNEL and set it for init_mm.
->>> Subsequent patches will use this flag to replace comparisons with
->>> &init_mm. No functional change is introduced for now.
->> Did you consider performance impact ? This test is usually done in quite
->> critical memory handling functions.
->>
->> init_mm is known at link time. Before your patch 08/22 there is just a
->> comparison of mm (r3) with a constant (loaded in r10):
->>
->> c0014048 <assert_pte_locked>:
->> c0014048:    3d 40 c1 09     lis     r10,-16119
->> c001404c:    39 4a 03 98     addi    r10,r10,920
->> c0014050:    7c 03 50 00     cmpw    r3,r10
->> c0014054:    4d 82 00 20     beqlr
->> ...
->>
->> After patch 08/22 we have, it first checks that mm is not 0, then it loads the
->> word located at mm+528 then AND it with 0x1. This load might be costly.
->>
->> c0014048 <assert_pte_locked>:
->> c0014048:    2c 03 00 00     cmpwi   r3,0
->> c001404c:    7c 85 23 78     mr      r5,r4
->> c0014050:    41 82 00 10     beq     c0014060 <assert_pte_locked+0x18>
->> c0014054:    81 23 02 10     lwz     r9,528(r3)
->> c0014058:    71 29 00 01     andi.   r9,r9,1
->> c001405c:    4c 82 00 20     bnelr
-> Is that a real problem, though?
+pxd_ERROR() macros have been provided by all platforms, which are very much
+identical and can be dropped off completely if these pgtable printing could
+be moved to callers in generic MM aka all pxd_clear_bad().
 
-I doubt it, this is a load from a fixed address and therefore highly
-cacheable/predictable. At worst we're keeping an extra cache line
-allocated, but I'd expect init_mm to be already in the cache most of the
-time.
+But first cleanups and re-organizations are required in some platforms that
+are using these macros internally. Afterwards [pte|pmd|pud|p4d|pgd]_ERROR()
+macros have been completely dropped from the entire tree.
 
-> What we could do is to just keep the == &init_mm check internally on configs
-> where we know that there is only a single such MM context.
+This series is based on v7.2-rc7 after the following patch. This has also
+been built tested on multiple platforms.
 
-Sure, if this provides a clear performance benefit on powerpc or other
-architectures/configs that don't have an efi_mm we could do that.
+https://lore.kernel.org/all/20260709044334.1741263-1-anshuman.khandual@arm.com/
 
-- Kevin
+Changes in RFC V2:
+
+- Added clean up patches for platforms with existing pxd_ERROR() usage
+- Dropped __FILE__ and __LINE__ from all pgtable entry printing
+
+Changes in RFC V1:
+
+https://lore.kernel.org/all/20260806080639.1916749-1-anshuman.khandual@arm.com/
+
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-csky@vger.kernel.org
+Cc: linux-hexagon@vger.kernel.org
+Cc: loongarch@lists.linux.dev
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-openrisc@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-um@lists.infradead.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org
+
+Anshuman Khandual (6):
+  loongarch/mm: Stop using pte_ERROR()
+  parisc/mm: Directly use generic [pmd|pgd]_clear_bad()
+  sh/mm: Stop using pte_ERROR()
+  sh/mm: Stop using [p4d|pud|pmd]_ERROR()
+  sh/mm: Stop using pgd_ERROR()
+  mm: Drop pxd_ERROR()
+
+ arch/alpha/include/asm/pgtable.h              |  7 ----
+ arch/arc/include/asm/pgtable-levels.h         | 11 -----
+ arch/arm/include/asm/pgtable.h                |  7 ----
+ arch/arm/kernel/traps.c                       | 17 --------
+ arch/arm64/include/asm/pgtable.h              | 15 -------
+ arch/csky/include/asm/pgtable.h               |  4 --
+ arch/hexagon/include/asm/pgtable.h            |  3 --
+ arch/loongarch/include/asm/pgtable.h          | 13 ------
+ arch/loongarch/mm/init.c                      |  2 +-
+ arch/m68k/include/asm/mcf_pgtable.h           |  6 ---
+ arch/m68k/include/asm/motorola_pgtable.h      |  8 ----
+ arch/m68k/include/asm/sun3_pgtable.h          |  7 ----
+ arch/microblaze/include/asm/pgtable.h         |  7 ----
+ arch/mips/include/asm/pgtable-32.h            | 10 -----
+ arch/mips/include/asm/pgtable-64.h            | 13 ------
+ arch/nios2/include/asm/pgtable.h              |  7 ----
+ arch/openrisc/include/asm/pgtable.h           |  7 ----
+ arch/parisc/include/asm/pgtable.h             |  9 ----
+ arch/parisc/kernel/pci-dma.c                  |  6 +--
+ arch/powerpc/include/asm/book3s/32/pgtable.h  |  2 -
+ arch/powerpc/include/asm/book3s/64/pgtable.h  |  7 ----
+ arch/powerpc/include/asm/nohash/32/pgtable.h  |  2 -
+ .../include/asm/nohash/64/pgtable-4k.h        |  3 --
+ arch/powerpc/include/asm/nohash/64/pgtable.h  |  5 ---
+ arch/riscv/include/asm/pgtable-64.h           |  9 ----
+ arch/riscv/include/asm/pgtable.h              |  4 --
+ arch/s390/include/asm/pgtable.h               | 11 -----
+ arch/sh/include/asm/pgtable-3level.h          |  3 --
+ arch/sh/include/asm/pgtable_32.h              | 13 ------
+ arch/sh/mm/init.c                             | 27 ++++++------
+ arch/sparc/include/asm/pgtable_32.h           |  3 --
+ arch/sparc/include/asm/pgtable_64.h           | 10 -----
+ arch/um/include/asm/pgtable-2level.h          |  7 ----
+ arch/um/include/asm/pgtable-4level.h          | 13 ------
+ arch/x86/include/asm/pgtable-2level.h         |  5 ---
+ arch/x86/include/asm/pgtable-3level.h         | 11 -----
+ arch/x86/include/asm/pgtable_64.h             | 18 --------
+ arch/xtensa/include/asm/pgtable.h             |  4 --
+ include/asm-generic/pgtable-nop4d.h           |  1 -
+ include/asm-generic/pgtable-nopmd.h           |  1 -
+ include/asm-generic/pgtable-nopud.h           |  1 -
+ include/linux/mm_types.h                      | 41 +++++++++++++++++++
+ mm/memory.c                                   | 41 +------------------
+ mm/pgtable-generic.c                          | 21 ++++++++--
+ 44 files changed, 76 insertions(+), 346 deletions(-)
+
+-- 
+2.43.0
+
