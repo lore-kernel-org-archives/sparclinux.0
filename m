@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD427432E9F;
-	Wed, 12 Aug 2026 11:21:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 004DA379EC8;
+	Wed, 12 Aug 2026 11:28:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786533698; cv=none; b=kyjbxOSEHb8C9UfQagPKUCvalAkxgfvEvwtLdFyKDoIRpiLa4zpnnQFmizvxXtu8DXbnHsCaAFwdeb8/Nxl4CQ2JFb78RpsTuyTPUPfjaVURhMOPW8MYzsOIVi+YYNaTniCeeXT3DfcfjnSnOeTIbBCTl849frioVo+wEcfnd0w=
+	t=1786534084; cv=none; b=TbNb84U77nNwff3/bbNfgeVIE+vt7E9ifftCR4FbmrPB1vKrIh8ReAyhQIdOBh7lCv73/HoC4XJFkG+EmdBXxYJQfntGmrv4PIhuJD8RcmMJdaZVyn+izCr0pd5PzW0o99vrLi0XY3scKEcdEva4rRbPmcFWV9rCPXn+ryECJrI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786533698; c=relaxed/simple;
-	bh=W7+HLXWVfWPESepwxRG+N1Q5vc1KDQNmNByjwcq2WBU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=fvVYluRm+kLoHUtq2z6a7YcumuM7FU8hXjwcZ0bGLkJZ7wz59mxbFWamZ7Mbn6GGGnIoUiT0NWaRAgjKv8Fv8K7uDsZ+J5zmCiX8jG6dP3Uebie7SS4aqAQ5oW5rZ2ZOzS90UfXFgiKjatYf9THHeA7HgvprgyWgOlijUaIuWzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BmXhqXpH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786534084; c=relaxed/simple;
+	bh=gKdnGi7s1Vr65yjRi85V23l/xjS2KrEtiQNRdVpMPnM=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=lChv88thNw/Bst1W7csFHLXeu1Vfr+XH1e+5n5id7WbwQ9sxJt3rfyvXFSEfPzYSq/SAsucTDq7tKkdgSBQ+AK4zZCahCnJM/ONl6rYfzzMHwMffAUTArOs7NvIOlgG+nhP36n8ihuhAJibK3xaeq9zohyFlfhjRd4D1orQHUd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q2KHEiY0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BmXhqXpH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40D901F000E9;
-	Wed, 12 Aug 2026 11:21:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q2KHEiY0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C454E1F000E9;
+	Wed, 12 Aug 2026 11:27:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786533696;
-	bh=+TveDZHhaOZxOI6aHVBWLYlU17AabpcT5JTtlV96+eA=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=BmXhqXpH52I2iHHZnRDP6XIleIkxYUTARJtDZTfgN3ma29eqOPVpovsyhj8t0O5tm
-	 eskDXlbDcyfaWVlhD27C21PFw4XwN18QhZN7khcNfE8MEjYA43gycEqOEYgt1Ciu3g
-	 5xGg5iozvCuX6IHRI+TfhTpZ4Cg4BReUlUZhENEqeTN7Jw/GwUinLa0UEsBjUHBdoE
-	 CfvBxbe9NOkQ/YfJoq1NnMsw79f0fDyRytMhym/hkYvQT3AFi59a7w9AEL4FKhh2sv
-	 n952ZvqgZiWGfwjDPVnHtQDOg8lvSVBcbyhNcfKb/MSsXPp4eOmk+Aj6UAJip9v/GY
-	 oYYIElK2eTBFA==
-Message-ID: <94b52871-9cfc-42d6-b30f-545b722e71a0@kernel.org>
-Date: Wed, 12 Aug 2026 13:21:28 +0200
+	s=k20260515; t=1786534082;
+	bh=hN9mu9+V031acX0Mqhgz0E8VuHMeV/rI+t3IxqOP4Jw=;
+	h=Date:Subject:From:To:Cc:References:In-Reply-To;
+	b=Q2KHEiY0kJPCcIYq9uuwvfgaJdiV/X0/c44OKVc/4dSWy0qA2VWIcaZbl6Dz/uIqZ
+	 pDkZyaDysF54dnmgnvC+SrOIVOvTBQ02r8B+6lYweA0Eiqjdrt5y8V/KSLMoOJAmW3
+	 uX7KmbdDFJCRaA7qBMCiZpJtWF47js7B31WPas44jYLBsJ7UnN3BVaVynp1SsnzJjn
+	 ZbUSBYOphl83NNs9qk2xX44sCnMn+bLiFfzfcdTlIhS92ltmn8kw7657TWH1+dg426
+	 tod0X1enWIiHrwBrweIR8q/4pZYJuLhojA1auUJ36AHreTWN0YTls2t3pobUYYNk5Q
+	 JnqGgZqKKIeyA==
+Message-ID: <9a66d741-536e-44ac-b02f-395b5fc8ab6d@kernel.org>
+Date: Wed, 12 Aug 2026 13:27:54 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,7 +35,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC V2 4/6] sh/mm: Stop using [p4d|pud|pmd]_ERROR()
+Subject: Re: [RFC V2 1/6] loongarch/mm: Stop using pte_ERROR()
+From: "David Hildenbrand (Arm)" <david@kernel.org>
 To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org,
  akpm@linux-foundation.org
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker
@@ -53,8 +54,8 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker
  linux-um@lists.infradead.org, linux-arch@vger.kernel.org,
  linux-kernel@vger.kernel.org
 References: <20260811042119.3652929-1-anshuman.khandual@arm.com>
- <20260811042119.3652929-5-anshuman.khandual@arm.com>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
+ <20260811042119.3652929-2-anshuman.khandual@arm.com>
+ <e0ada89f-26b2-4e82-8273-8ea7b391c147@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -100,58 +101,64 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260811042119.3652929-5-anshuman.khandual@arm.com>
+In-Reply-To: <e0ada89f-26b2-4e82-8273-8ea7b391c147@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 8/11/26 06:21, Anshuman Khandual wrote:
-> Stop using [p4d|pud|pmd]_ERROR() in __get_pte_phys() as the pgtable entries
-> are known to be NULL and hence could not really be accessed.
+On 8/12/26 13:19, David Hildenbrand (Arm) wrote:
+> On 8/11/26 06:21, Anshuman Khandual wrote:
+>> Directly use pr_err() in __set_fixmap() and drop pte_ERROR() which helps in
+>> eventually dropping pte_ERROR() macro across the tree. In this new printing
+>> __FILE__ and __LINE__ has been dropped because they are always the same and
+>> don't really add any value.
+>>
+>> Cc: Huacai Chen <chenhuacai@kernel.org>
+>> Cc: WANG Xuerui <kernel@xen0n.name>
+>> Cc: loongarch@lists.linux.dev
+>> Cc: linux-kernel@vger.kernel.org
+>> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+>> ---
+>>  arch/loongarch/include/asm/pgtable.h | 2 --
+>>  arch/loongarch/mm/init.c             | 2 +-
+>>  2 files changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/arch/loongarch/include/asm/pgtable.h b/arch/loongarch/include/asm/pgtable.h
+>> index 223528c04d73..a32a8fff70c1 100644
+>> --- a/arch/loongarch/include/asm/pgtable.h
+>> +++ b/arch/loongarch/include/asm/pgtable.h
+>> @@ -128,8 +128,6 @@ struct vm_area_struct;
+>>  #define ptep_get(ptep) READ_ONCE(*(ptep))
+>>  #define pmdp_get(pmdp) READ_ONCE(*(pmdp))
+>>  
+>> -#define pte_ERROR(e) \
+>> -	pr_err("%s:%d: bad pte %016lx.\n", __FILE__, __LINE__, pte_val(e))
+>>  #ifndef __PAGETABLE_PMD_FOLDED
+>>  #define pmd_ERROR(e) \
+>>  	pr_err("%s:%d: bad pmd %016lx.\n", __FILE__, __LINE__, pmd_val(e))
+>> diff --git a/arch/loongarch/mm/init.c b/arch/loongarch/mm/init.c
+>> index 3407030f3e7a..be9b127daef2 100644
+>> --- a/arch/loongarch/mm/init.c
+>> +++ b/arch/loongarch/mm/init.c
+>> @@ -203,7 +203,7 @@ void __init __set_fixmap(enum fixed_addresses idx,
+>>  
+>>  	ptep = populate_kernel_pte(addr);
+>>  	if (!pte_none(ptep_get(ptep))) {
+>> -		pte_ERROR(*ptep);
+>> +		pr_err("bad pte %016lx\n", pte_val(*ptep));
+>>  		return;
+>>  	}
+>>  
 > 
-> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-> Cc: Rich Felker <dalias@libc.org>
-> Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-> Cc: linux-sh@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-> ---
->  arch/sh/mm/init.c | 12 +++---------
->  1 file changed, 3 insertions(+), 9 deletions(-)
+> Ah, I missed that we want to print actual values, I somehow thought that we
+> would be printing pte_none() ...
 > 
-> diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
-> index b3c7fd84ceb4..0bb8555568a4 100644
-> --- a/arch/sh/mm/init.c
-> +++ b/arch/sh/mm/init.c
-> @@ -58,22 +58,16 @@ static pte_t *__get_pte_phys(unsigned long addr)
->  	}
->  
->  	p4d = p4d_alloc(NULL, pgd, addr);
-> -	if (unlikely(!p4d)) {
-> -		p4d_ERROR(*p4d);
-> +	if (unlikely(!p4d))
->  		return NULL;
-> -	}
->  
->  	pud = pud_alloc(NULL, p4d, addr);
-> -	if (unlikely(!pud)) {
-> -		pud_ERROR(*pud);
-> +	if (unlikely(!pud))
->  		return NULL;
-> -	}
->  
->  	pmd = pmd_alloc(NULL, pud, addr);
-> -	if (unlikely(!pmd)) {
-> -		pmd_ERROR(*pmd);
-> +	if (unlikely(!pmd))
->  		return NULL;
-> -	}
->  
->  	return pte_offset_kernel(pmd, addr);
->  }
+> Maybe we should just be more verbose while at it?
+> 
+> pr_err("unexpected set PTE at %ul in __set_fixmap: %016lx\n",
+>        addr, pte_val(*ptep));
+> 
 
-Do we want to print an error like "allocating p4d table failed"?
-
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+On second thought, why not simply use ptval_to_str() here as well?
 
 -- 
 Cheers,
