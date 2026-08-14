@@ -1,71 +1,75 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5447145A285
-	for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 11:04:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B00FC45C6F7
+	for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 11:04:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786705487; cv=none; b=RXIBE+RGkWLIsQLqreCefxGbo/wrvc11Fa/CBPBC5dnYtR7EE25JU9iVXBKPpD1xCknX+Tyuj7y2ha+yKluTliIbtU699ejiG+zK9naJCcPp0LrqiJ7o5eKxgjWu8YA0DfBl2Y3UY+I2FzHzv3eviJH1G+fbb1sqLnTz56sT6vU=
+	t=1786705488; cv=none; b=cn9bJCIOkB4QlrZxf3LxkTAeCxGQnhifcQFneb92S4usHrzTkeobUmRUOPAxDdwDJXJb+mQPghznbWwUG4kSSCLm2IaI4WFCKb4KJvonn+S80dVpuOFSxcFl/nzRIM5vA0rb5jWDkeO+pnHE5tlY712DtDBZ2x4YsevanAOep00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786705487; c=relaxed/simple;
-	bh=HqQ0fEQGk1bZAGwWWc+vH0JEFr0l3ZEK/aZxKLaZ6ls=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=k+qyd2ePFfpT97kK1eVLVFF0OiUlvJo97nfcjmkJ6wDTgWFm4pw+9JcqtfcPfpDzmeA367fp9iOPG2ddYdeXX9ku06TQuBAACmKoEa1CSr0xaRCQuXQPcgVCk34wpLjaKkzEcAbDAK3bgN25kz9buEk01z+x1Ynhjc5soTlxQ2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MWIiVexS; arc=none smtp.client-ip=209.85.218.46
+	s=arc-20240116; t=1786705488; c=relaxed/simple;
+	bh=n0+oMFlCicrxC3zHuZmFe9MeT+CoF1ugOOoTEU4PhmQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ecfbvgg2VoWIvMbz8qAOpl0zQWI389opYAk8ZRfkEukJ0KA7GAJHMuKUrANp86chNns4B8KEgdFZyzD0QOaInhXbM/5vhu+sS/84ucvLZpVNUTK5CvrLgJXsUQExhQlKJX96S+yoe0XuXN8Myuj3z4pjaUZ2/tOq8p00uec/O1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Bhl5goGk; arc=none smtp.client-ip=209.85.218.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MWIiVexS"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c15d47266baso100573866b.3
-        for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 04:04:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bhl5goGk"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-c20363107f4so95511066b.2
+        for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 04:04:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786705479; x=1787310279; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=AHkk9X5Auhk5oo3B+6JZ63WAKaoKtca2c/H9g4rcRdA=;
-        b=MWIiVexSH9wpGvnAsb8BEhC8l5ROG9NkcmZD9K5GW/xsTAVoByj22IswGgXaVfBVtB
-         ihz4JE4cxb4ugBwVvILTAH3QJkUKhcfvY+A6uhuVg3jXbqMItJzPHTwANNa5q6E2TdEe
-         U63Zvf44vtW4I3rQEtlEl24r14qD0jH+FlLJhCgsVx1GUu+gg2LKro6kxkY5Eo5KMzpx
-         fZG/DvzjHJv/IXZ0PGfqM0faY84c5AITgvlr62Df/FHmecqzYfs2KAtzBStDl1sGem39
-         M6qckm3AclT/TARVIK9mWsew8sG9Ckk+mrbBzrSz4BP35brvZWoxL/BDfXp6nwA3BEpo
-         sIMQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786705479; x=1787310279;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1786705482; x=1787310282; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=AHkk9X5Auhk5oo3B+6JZ63WAKaoKtca2c/H9g4rcRdA=;
-        b=D2fonjDAMqTavYxx+UTTFalcud4KGVs5A7icn2E5EBpqzaVv+OfgFSsb8EwzJEXXOY
-         psYS0WtIU7IB0OnI+cupHEESpbmqM4RkrvnOWVQMz6sIQsrPdWdvmk5nIJihRmeWweGV
-         Eobd0G7c9/FS6jGLw/5bvFcljH5NbTfLJwESgkDdP3vEv/Pho4eqsfT0ITJeHXuRXCC7
-         fEBE5fpTltRlvQAkzBD5pjVf8gQrBcVLn/37s6STvs15M8imEUBHpYXoUOrT4vEcEGJk
-         i1A79E8dudtHzCxoVJvuR2u10XrBbFFdTM75RTav+iOp3iIsMJMT9EgwgO3CL5KCeAXq
-         HltA==
-X-Gm-Message-State: AOJu0Yw45a79HEVt59E4g/KipOTkjfvEFGe3dwSWc0NIJtnBCRhHp54Q
-	xQQrIo7qJhPbxMnxfKmHosPtpQId7BNhrT2kZZvykixTHZkMxgRCH0nWw9Czsw==
-X-Gm-Gg: AR+sD10AkeldvazizIltyed8YBTUMUxjIcYEiXyWr1O3RaYFSSPxEEqDcWWRjUM1nw+
-	2g/ECxxxkL58ep15xEvfxGVCauEY9VVQjmGBbai+cJa1IwxdXo3Eju6n4Vwzp7MV85FygWBB7/S
-	of2BRNmTCwnVZGhNkQbkPjQW9jA3k+5d6HKMKKjBwVByd9HVpnBFMIFCubvbMH5DrTgrjNHGdaw
-	L77SHHcEE1Af5KfThRab27JiPB2sN85MAN8MvRiMd1wJqerqokNxBrBIoNzpdohPRpE8RjORL5i
-	yMK/csVPTyZhRKKsdeKDp0aqG6CzLjx6QmIdHuvaRtkqlxIQ5980ck1PQPR80eHIbwtOYLnA8O3
-	Vee1kJO4PqjEq18Q/kx4KAqjjQm59Hk0kFBCBuGjbqDosplq7GC8ZumFtX+TRFpR1JHpJHdgsSq
-	0bTo+sam74wRdPFi9fg+LRVpjDrj7X6AAPgjYxPYNedg9/QfnGYTz63lyMCAuoqOB1dIqmsqMDh
-	tRaZDy5y0z+tfYNCpBZvvCzWHq+ufBU8tqgQh968g==
-X-Received: by 2002:a17:907:80a:b0:c20:2b23:71cc with SMTP id a640c23a62f3a-c2129b96a14mr220288366b.10.1786705479319;
-        Fri, 14 Aug 2026 04:04:39 -0700 (PDT)
+        bh=+C3yDrnyWElju51nv3m1vHWDYdz4gkHACkImbfPvTRU=;
+        b=Bhl5goGkYgG8pNAiiGjnBJ7cRjPUV+in2o42jSbpc7VDool6JItgh7+4WKqTdoWeJt
+         EZq/VbNEB92qzmEWtjL8LsBDTdbnVxGwcqAam+H8fD61rYRN+zRWQppWbQ5sWMj85yy5
+         PlLJhkFaf4z7gjBPsl7LwK5v5sUjP5oa1leKs6J3E/OH5FQlhdXYX66Qs3p3oyznIwW9
+         5A7VtfJT4G3zSZk21mpxkX9dlEpHCWmmQWoMIRC4ugsTqgC5QqD3N68HNFEE99MwKE/j
+         LhJ8CyyMyjpOf70PwjfRQDOXrgVUUa4VlVhvyd/7mBDML+Z4NszxFWWc4QkgMqC785nY
+         zpjQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786705482; x=1787310282;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=+C3yDrnyWElju51nv3m1vHWDYdz4gkHACkImbfPvTRU=;
+        b=sZCTM8kGHrx//Y6Ku7FHuRzK3ZtNg+bm0DWyV61F4OzzRj7HF588zjl+btCZk77wGd
+         KKuFtGvE2oySgD9z3W9Gqgtr+GvzMWHoUYBy8HwOcMf7GEaUZuTHkYtd0pjsAtuTGrdq
+         jMbBFZ9iKu1CBnUXzeT+X7+lTEWEroB26HgTPo+dfJ6XrYbq9EsteR2STG56Pj3+4I7g
+         cjyC//+MJVALzzhMA3CffElAYeTi3pY1a4KYryXCYxWnoeavZO88dr6oz7FSgtZHF+d7
+         9t3PNqZunx6RJNeWkBlpMHt3m+K164vU/ydoIaUpomP2Won6Ynen5yRRY/NGF61q/Khg
+         kAWA==
+X-Gm-Message-State: AOJu0YyBqL89KB0DsqZe2PUqn1oTvcYx6ZDRTF9let9/zd8gw5fyncV6
+	QwXEBuC73ZdB6RHC1wn+rjxin/+D7QgrRZVdnBGCyczGey2BTsFKHnYUIelYfA==
+X-Gm-Gg: AR+sD13TNp1vPqnfA4p4fyXPjo9CU8rZhi42onuiOGxWQOdDbaJDePhGqEg1GjxHe8Z
+	gra7ec4LERPFjN4vFgzz3nzdLoy53l3yXqPe8p3OPpoBgYZi3oGbKs8tuv+Rz9pGVaHTTc2D8Ei
+	DHnqlD5j4PR893RHbbyTzVptPT2hmRSIUwdzr8k1sS19J27Et1FdT9lJOXksTY52HQ/AisIswJq
+	mmBiRlSvwd4bOl0GgO8xyW+GUGA9tbReRiUlas2tJQG4NTQ88KvuaheW+wveX7Ab2I/7czuGzUq
+	CKwqPTRNZk24vj7usc1dfUE9ArFGMKiiC8rW1irTQLyM9FnKMXmC3gfwrAETIK3CzgouAWvaPEX
+	Dfmwa+KYIBwONpePL8OM0nSpc83p0LcuZpLbDHfgVYXLOT3fBxWiwfFVsG62/mu+634neY7iSFr
+	kStl4tlVTkOCuBZvGlhiUN4jiafuaTGKyeA+0JoDdN9rj+BYIsjg6rpvRgO/uet/aDn4EN7BMJR
+	MiOyeiFpvzxupN1TWkgpveHT9yfoINYJG0mEnc2QQ==
+X-Received: by 2002:a17:907:3f09:b0:c15:e118:9b99 with SMTP id a640c23a62f3a-c212aa4d8d5mr190069166b.23.1786705481429;
+        Fri, 14 Aug 2026 04:04:41 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c21233a12e6sm92028366b.12.2026.08.14.04.04.38
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c21233a12e6sm92028366b.12.2026.08.14.04.04.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 14 Aug 2026 04:04:38 -0700 (PDT)
+        Fri, 14 Aug 2026 04:04:40 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
 Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Magnus Lindholm <linmag7@gmail.com>
-Subject: [PATCH 0/3] sparc32: allow a kernel loaded away from the start of RAM
-Date: Fri, 14 Aug 2026 12:52:31 +0200
-Message-ID: <20260814105723.3454511-1-linmag7@gmail.com>
+Subject: [PATCH 2/3] sparc32: derive phys_base from the PAGE_OFFSET mapping
+Date: Fri, 14 Aug 2026 12:52:33 +0200
+Message-ID: <20260814105723.3454511-3-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260814105723.3454511-1-linmag7@gmail.com>
+References: <20260814105723.3454511-1-linmag7@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -74,79 +78,108 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Many years ago I ran Linux on my SPARCstation hardware and tried to keep
-up with new releases, but somewhere around 3.x I hit a wall, sooner for
-SMP builds since they are larger. As the kernel grew it simply became too
-big for SILO to load. On this machine the last one that fit was 2.6.32,
-at 2598956 bytes against a 2605056 byte window: six kilobytes to spare.
-3.12 was 184KB over. Fixing it turned out to need more than SILO changes,
-the kernel side needed work too, and I never got around to giving it
-serious thought. I recently dusted off my old SPARCs and picked the
-journey back up.
+setup_arch() computes phys_base as the base of the lowest sp_banks[]
+entry, that is, where RAM starts, and assumes the kernel image was loaded
+there. That holds for the traditional boot path, where SILO places the
+image at physical 0x4000 and PAGE_OFFSET is mapped to physical 0.
 
-A current sparc32 kernel no longer fits in the window SILO loads into:
-0x4000 up to SILO's own text at 0x280000, about 2.5MB. Loading it higher
-instead exposes two places that assume the kernel sits at the start of
-RAM.
+It stops holding once the image no longer fits there. SILO loads a kernel
+between physical 0x4000 and its own text at 0x280000, a window of 2605056
+bytes; a current sparc32 kernel is roughly twice that. The loader must
+then place the image elsewhere in physical memory and map PAGE_OFFSET to
+it, at which point phys_base describes where RAM begins rather than what
+PAGE_OFFSET maps to, and the two disagree.
 
-Patch 1 is an independent pre-existing bug. viking_flush_page() and
-viking_mxcc_flush_page() compute a physical address as vaddr -
-PAGE_OFFSET, which is __pa() without phys_base. It is wrong regardless of
-the rest of this series; it simply cannot be observed while phys_base is
-zero. When it is not, iommu_flush_iotlb() flushes the wrong page, the
-IOMMU walks stale IOPTEs and every DMA transfer fails. It comes first so
-that no commit in the series leaves Viking DMA broken.
+phys_base is the offset __pa() and __va() are defined in terms of, so once
+it is wrong every early translation is wrong by the difference, including
+the physical addresses written into page table descriptors. The
+tablewalker then follows pointers into pages that hold nothing while the
+same tables read back correctly through the nocache view. The failure
+surfaces as a hang right after the context table pointer is installed and
+the TLB flushed, with nothing on the console to explain it, since the PROM
+mappings the early console depends on have become just as unreachable.
 
-Patch 2 makes setup_arch() discover a non-zero phys_base. It takes it from
-the lowest sp_banks[] entry today, and phys_base is the offset __pa() and
-__va() are defined in terms of, so once the kernel is loaded elsewhere
-every early translation is wrong by the difference, including the physical
-addresses written into page table descriptors. The tablewalker then
-follows pointers into pages holding nothing, while the same tables read
-back correctly through the nocache view, and the machine stops right after
-the context table pointer is installed with no console left to say why.
-The probe is the architecture's existing __get_phys(), which already
-implements it for sun4m and sun4d and returns zero elsewhere.
+Ask the MMU what PAGE_OFFSET actually translates to and adopt that.
+__get_phys() already implements this probe for sun4m and sun4d and returns
+zero elsewhere, so no new low level MMU access is introduced and machines
+without an SRMMU are unaffected.
 
-Patch 3 sets HdrS to 0x0300, the protocol level that tells a boot loader
-the kernel supports being located somewhere other than physical 0x4000.
+Memory below the kernel cannot be reached through the linear map, which
+runs upward from PAGE_OFFSET, so drop the banks that fall below it rather
+than leave entries that __va() would translate to below PAGE_OFFSET.
 
-No change in behaviour when phys_base is zero.
+With this a 6MB kernel loaded at physical 0x03000000 boots on sun4m: the
+context table lands at its true physical address,
+srmmu_inherit_prom_mappings() preserves the PROM console mappings, and
+srmmu.c needs no change at all, since map_kernel() already handles a
+non-zero phys_base via do_large_mapping().
 
-Tested on a SPARCstation 20 booting from SCSI to a full userspace, with
-and without an initramfs, using a SILO carrying the matching loader
-changes. Tested with both CPU module types this machine accepts, single
-and dual:
+The cost is the RAM below the load address the loader chose. SILO's
+memory_find() picks 48MB on machines with 64MB or more.
 
-  SuperSPARC-II, TI Viking/MXCC   the path patch 1 corrects
-  HyperSPARC RT625, ROSS SRMMU    the only variant whose DVMA mappings
-                                  are page coloured
-
-With two SuperSPARC modules fitted the flushes patch 1 corrects are
-reached through cross calls; 400MB of concurrent raw block reads on both
-CPUs completed with no DMA errors, where a single transfer failed
-immediately without the patch. HyperSPARC, which takes a different flush
-path entirely, boots and runs DMA with no errors and no change in disk
-throughput.
-
-Also boot tested under qemu-system-sparc -M SS-5, and build tested for
-LEON and plain sparc32_defconfig. Each commit builds on its own.
-Emulation cannot exercise patch 1: microSPARC-II takes a different cache
-flush path, and qemu models no write-back cache, so a missed flush has no
-consequence there.
-
-The cost is the RAM below the load address, which the loader chooses.
-
-Magnus Lindholm (3):
-  sparc32: honour phys_base in the viking cache flush routines
-  sparc32: derive phys_base from the PAGE_OFFSET mapping
-  sparc32: advertise relocatable kernel with HdrS 0x0300
-
- arch/sparc/kernel/head_32.S  |  2 +-
+Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+---
  arch/sparc/kernel/setup_32.c | 40 ++++++++++++++++++++++++++++++++++++
- arch/sparc/mm/viking.S       |  6 ++++++
- 3 files changed, 47 insertions(+), 1 deletion(-)
+ 1 file changed, 40 insertions(+)
 
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 1b0db16cd37b..795714959da6 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -254,6 +254,30 @@ static __init void leon_patch(void)
+ 
+ struct tt_entry *sparc_ttable;
+ 
++/* Drop RAM below the kernel; the linear map runs upward from phys_base
++ * and cannot reach it.
++ */
++static void __init trim_sp_banks_below(unsigned long base)
++{
++	int i, j = 0;
++
++	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
++		unsigned long start = sp_banks[i].base_addr;
++		unsigned long end = start + sp_banks[i].num_bytes;
++
++		if (end <= base)
++			continue;		/* wholly below - drop it */
++		if (start < base)
++			start = base;		/* straddles - trim the front */
++
++		sp_banks[j].base_addr = start;
++		sp_banks[j].num_bytes = end - start;
++		j++;
++	}
++	sp_banks[j].base_addr = 0;
++	sp_banks[j].num_bytes = 0;
++}
++
+ /* Called from head_32.S - before we have setup anything
+  * in the kernel. Be very careful with what you do here.
+  */
+@@ -332,6 +356,22 @@ void __init setup_arch(char **cmdline_p)
+ 		if (highest_paddr < top)
+ 			highest_paddr = top;
+ 	}
++
++	/* phys_base must describe what PAGE_OFFSET maps to, not where RAM starts. */
++	{
++		unsigned long real_base = __get_phys(PAGE_OFFSET);
++
++		if (real_base && real_base != phys_base) {
++			prom_printf("phys_base: RAM starts 0x%x but kernel is at 0x%x\n",
++				    (unsigned int)phys_base,
++				    (unsigned int)real_base);
++			phys_base = real_base;
++			trim_sp_banks_below(phys_base);
++			prom_printf("phys_base: adopted 0x%x, RAM below it dropped\n",
++				    (unsigned int)phys_base);
++		}
++	}
++
+ 	pfn_base = phys_base >> PAGE_SHIFT;
+ 
+ 	if (!root_flags)
 -- 
 2.43.0
 
