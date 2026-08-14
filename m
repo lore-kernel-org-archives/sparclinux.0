@@ -1,72 +1,72 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95A4C3DA7C3
-	for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 11:04:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFFD31A2545
+	for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 11:04:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786705491; cv=none; b=e3z+N3Y5Wie4lcEtPekhhF9rbxw2GlXXevmEsE3xjvdsOBWpGXUcNwFY2uNCcJNILtyrCT9qbtvHT74xtAz86rCa3woUph3/vQrgXZcZla8+TXMcAW0mmRGz++mVBER/eoYc/kLI2OcHT4PBGo1FA+oN04R9XkfmhSAA2iNaqx8=
+	t=1786705488; cv=none; b=IpnaI+F73GtbkmiHsfj7YrXg/cKybfqJIC3u8lzCMLGib6SKbWHu66H2DgZbsuE7TGi55HShttZ/iz3ciVhmloaiBL6EAVvKMFDbOaEqaeTolp/fnBNIBknUeFuV6KyjUUYOP9YATW1ILMxN9pSfHHS+3728+BFtCtN7obPg6ic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786705491; c=relaxed/simple;
-	bh=ZcvHgI3U1UUIH3Y/QsAcb3zSzGUk/Kqj3EmUTTtZ0WQ=;
+	s=arc-20240116; t=1786705488; c=relaxed/simple;
+	bh=7ZS9XfQBg3/J/2JclDC1KmYn/5ZetW387cKqolJQXzc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=R/jv4Bw+9YCg9llC36hUvz9pvEAdUCXrsVPC9mTHmEOt1kPkQMmQAFwcbA8X2dkv/Vh0fTzTpCvsqRGRMUpkc5Bo0g72V4eDAVGNLq8TGxbPPNFNI+r8KjBBO6WEcLv75HCXlbs0BFvxL9Mju3K/arorDSB85iHp/5lMupK+nD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qesa6303; arc=none smtp.client-ip=209.85.218.46
+	 MIME-Version; b=TSUxV8CsRLxI/15Z6dzFqTYunIi8ApBuRzVc+JDuUzJynb4Zkfdq/MzKSEh2tKZ2ugFbwtBtbtDyAp4lzgHmqEHwVl43o9i+WVcKqLzm0aNurkZJGrmUzDiTocBVq94m/2epfub1gRYpwG5j0K+8ojZvJb3YY0Rt8RWt5EddQtw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jX+oQS5q; arc=none smtp.client-ip=209.85.208.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qesa6303"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c1c52d920b8so120708866b.2
-        for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 04:04:45 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jX+oQS5q"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6a0a4a28cbdso1404529a12.3
+        for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 04:04:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786705482; x=1787310282; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1786705481; x=1787310281; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=48xmVgdSxn1ziJVhznRmfvGtQ8ErzBcg/MTqWjfxPSc=;
-        b=qesa6303n6Vk0DtRBjSG1MbH6FGmpFpWAATulNaY0nhZFTl06CQwRlgOi4pZ0P49f0
-         euBqSfpO8l5kkRg0lCZnUA323nI7XveJLMQkXgCCvSw2Q0d1iJACVOlcgZoIKOK/+b82
-         ourMgCqDbfa3iz/KC+n2HhcUoMlvLVwSFY22MocKf9vkBOR673l7EQg7W32ZVZ3na9cw
-         3YE7/HYcI9OkwCWmg2aaVmUA2r533tIE5y+aQLQ14/I5BC61Fe0fYWaKPh0XWbE9SX/8
-         f8o0EWjkbrS6N0VwrzGsaJ4io4KM7ZjpE8pIpmq8zBjScVlRUOe8L1lpuYV5yi9fMX2S
-         BEfw==
+        bh=xFVxe3t9mWeVpbsGrII+FmHHHZF4AA0TdlMjQEfc1jM=;
+        b=jX+oQS5qIzGP/LxnmwCzXfcxruK7ZApgHgCCvA5h7eAu7LZ3+8hNhrgs2Fh7rViuf1
+         o3u2OABhIVt6CwE+eowQJiNSO3StQmPGGFQ4O4+YckwPLDbxxOYA2xRAVqspBC58dC3N
+         HoZcE5Z06v8G2oxpg+OyjMsaQu67GXWjKApLVtESRrUEYXgRWvfru0KjlDeIProGJmTb
+         eZn1+hX8Il2m5CJt1knL56w+E+XPfR6yVTgdbNfMuLfW2O8vclzs6PH+UzU2kLJ4IKh3
+         VQWwWgQq+HSi36Wpfnf3NwgZltkYGH5nqo6LZYDbI8sIllU+cZaCRZbN9LQ9HaW+nFkE
+         xvIQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786705482; x=1787310282;
+        d=1e100.net; s=20251104; t=1786705481; x=1787310281;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=48xmVgdSxn1ziJVhznRmfvGtQ8ErzBcg/MTqWjfxPSc=;
-        b=rydzorJDVEDXt7IV6kSHGE3lZutyBi3wa90VgyAMlLAHYgmuEikHPnbQLJX/U2/Qv1
-         a+I2cAUYQvoFR6CbJRnUYg8Oe9v0iDoSaOxpAEeVjdkasbObWJ9myr0BpxeVtdttbZzs
-         C6EvARW7YfAtooRSv9j4ir9DOa5AShx3zmOwVoBWgeTe0AwerdB0260Ijvya+O3kSlmA
-         DZGEGbinu1ruMoM27UBXU072zENAjTA6JuC8gYQ2tRlUNDta40rCdBaQXeRRxJlaDmie
-         qXPODT5K4l0dwP6kAgnx8Ttl/FpGjIq5h5slSZGGSYmFrgMTu5CD2yu2euKK++HcQyY+
-         7yew==
-X-Gm-Message-State: AOJu0YxjKKfRK/19EJiNXXNsUW9kkwTC+J0M0/iT9G5fZXp1kd5Xn7Jg
-	pn605JhaG54W5IEU5LwE6s8gHYw6p2eBcrA7eeg0kmnCT9FZlcnnTb1P
-X-Gm-Gg: AR+sD13b7aS5TiISldVk0/8sOvbwFpaAN773oTWEEbMK/qqgJAZwMsgYcnc7OKDameN
-	T24uOo27eaGLewMUMfpQrW+37KG+2K+RO60MObu1IVZgPLVKTsN9iPj3jWo/CT1lXsvpAmMY5y3
-	u1DByCkWhTDnlwtayu+05ybc0I7YKp4PW5bIcyj9lvtw1guxBoMQIscGYx7sJTnu3ArCTLvHQra
-	ClYwOAB3wjrYN86BIJ65PV3REsWDMAKbcpo6hx+yzsHOZkFCXJkW2sxvYXJPmVhQaWhpdYo68yI
-	VlvpE3b6iCd7361Dj7yEG54Lg1GuJ6LI0NEw1GJjTBw01ZJQTgti64uScp5/JoZl9q8H/rPhZsE
-	Erfd4m52eUqNfTrxG4ZWawjbwUHBzgE8fL/fJhG24OAvIp3o4g3o+N53+nLobTwXd88hRVvrP7t
-	ZDfSFmGSWB4Jv+FG5t6qdSMZeUWzhBhW6/BXMd0/3Jy/nsBiMpe9rl3rF4/9iI6aIhCqzB2nTwu
-	Hjl+zY4gZQu0ytb76WijMwf5VA4vFI=
-X-Received: by 2002:a05:6938:a094:10b0:c16:67d8:7a0f with SMTP id a640c23a62f3a-c212a3425e0mr145770866b.28.1786705482320;
-        Fri, 14 Aug 2026 04:04:42 -0700 (PDT)
+        bh=xFVxe3t9mWeVpbsGrII+FmHHHZF4AA0TdlMjQEfc1jM=;
+        b=Ee3x/a0TCL/3jK26Vwja3IFUy78rbOcuSplMDH9pnZPppdaIphNBb+ge8pGtkgpJX1
+         LfHaivccZliu6kZ4zv/gIQk1U7H4i3rsoBkml4rBCClYqezTu+GJhbL1ElBNfXxp5ypJ
+         YBL+fiEncLLJOSH29L7iVbJ3Vl+4Vnvf490G1wUj9Sp9t7gIG8dVXvj/WYCL637KtwkN
+         HxY0hv9BKr4sM2B7ndDiClbZoRJAdLwNd5WDjV1GFAV7ml6IdV4QNHb0TF7KUd4eqsSg
+         FOW0+nCREWnr4S0vp0v6nc6f7/TtF9KYiRdLWvTYFpT72s+jQKe3mKGhcWnSMIlz3hZm
+         LPPg==
+X-Gm-Message-State: AOJu0YyEAWUZPnCagG/ere7KJ+DzviAHgQJV4sE/gwiEt67nxIF/yKSc
+	V+bskiisq5Hh8LBKyurKzEiQ+5GVuwGI6la6PGAvIJeSNVjrcBKYxNX0
+X-Gm-Gg: AR+sD11nF1/iFa2mehWNF2HBfhsKDTjcr73MtIfI6o1vF1QfK9xWvpdjNU6CL7NTpzr
+	HB4PQtw2FrQUKn+g6RzrNnwGZvAdsDTXSwhaHKM4o8YxJUpCq4Yh0gFpvgn8vCPtXte1aF8E4NZ
+	I69hD594Ez5q71QThBrYkTp3rh0l+B/NicHKPmosnbmD/mtQfdNMXYNEgJntkZiB9FwBmXoEcGR
+	4lKC4XKpcVlgX6PKBCAuJRe1br51buhERRTjFCvnoC/VjWJ/pcwEhZOmavBZGPI/DRV4NPHTix2
+	QoINzez96tFZNVrwdp58e9OdUoImyM1uYT4n4ihF7tkhaxHh8hovX1YMaTA9i/JaPKJ5lO8gehB
+	q/7VB7o/dRs8WxjDi7KH60zLK0JKDX6IhD47wFxMdtkY1tHlgLbhTD5R9N8MVLsV6ymYtVy/l0E
+	Sos42GEDlWhrgzCZVT8kD61F3rOcJLDPLKy4WT9l3q4XR9Pch+3YBK1QMQM8a47VTq9hN/69EmR
+	80FAdDI17M406kDHo6EX/2Zge5bqGGG/5NrpR/J3ls=
+X-Received: by 2002:a17:907:94cc:b0:c20:7897:bc69 with SMTP id a640c23a62f3a-c212a8d86a9mr208542866b.30.1786705480333;
+        Fri, 14 Aug 2026 04:04:40 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c21233a12e6sm92028366b.12.2026.08.14.04.04.41
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c21233a12e6sm92028366b.12.2026.08.14.04.04.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 14 Aug 2026 04:04:41 -0700 (PDT)
+        Fri, 14 Aug 2026 04:04:39 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
 Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Magnus Lindholm <linmag7@gmail.com>
-Subject: [PATCH 3/3] sparc32: advertise relocatable kernel with HdrS 0x0300
-Date: Fri, 14 Aug 2026 12:52:34 +0200
-Message-ID: <20260814105723.3454511-4-linmag7@gmail.com>
+Subject: [PATCH 1/3] sparc32: honour phys_base in the viking cache flush routines
+Date: Fri, 14 Aug 2026 12:52:32 +0200
+Message-ID: <20260814105723.3454511-2-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260814105723.3454511-1-linmag7@gmail.com>
 References: <20260814105723.3454511-1-linmag7@gmail.com>
@@ -78,33 +78,61 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-HdrS version 0x0300 tells the boot loader that the kernel supports being
-located somewhere other than physical 0x4000, which is where SILO places
-the image on the traditional path. Anything older is copied back down
-there, and refused outright when it no longer fits.
+viking_flush_page() and viking_mxcc_flush_page() derive the physical
+address of the page they are asked to flush by subtracting PAGE_OFFSET
+from the kernel virtual address:
 
-sparc32 could not make that claim before, because setup_arch() took
-phys_base from the lowest memory bank rather than from what PAGE_OFFSET
-maps to. It can now, so say so.
+	sethi	%hi(PAGE_OFFSET), %g2
+	sub	%o0, %g2, %g3
+
+That is only the physical address when phys_base is zero. The C side spells
+the same conversion __pa(), which adds phys_base, and every caller passes a
+kernel virtual address expecting exactly that.
+
+With a kernel loaded away from the start of RAM the two disagree by
+phys_base. viking_flush_page() then compares cache tags against the wrong
+page and flushes nothing, and viking_mxcc_flush_page() streams a page that
+is phys_base lower than the one it was given, so the intended lines stay
+dirty in the cache while unrelated ones are pushed out.
+
+The visible effect is that anything relying on a flush to make memory
+visible to another bus master silently keeps working from stale data. On a
+SPARCstation 20 this shows up as every SCSI transfer failing with a DMA
+error: iommu_flush_iotlb() cannot get the IOPTEs out to RAM, so the IOMMU
+walks stale entries and the ESP DMA faults.
+
+Add phys_base, so these agree with __pa() again. No change when phys_base
+is zero, which is why this went unnoticed.
 
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
- arch/sparc/kernel/head_32.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/mm/viking.S | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
-index 8c320fa25a67..11a1746829a4 100644
---- a/arch/sparc/kernel/head_32.S
-+++ b/arch/sparc/kernel/head_32.S
-@@ -69,7 +69,7 @@ sun4e_notsup:
-  */
- 	.ascii	"HdrS"
- 	.word	LINUX_VERSION_CODE
--	.half	0x0203		/* HdrS version */
-+	.half	0x0300		/* HdrS version */
- root_flags:
- 	.half	1
- root_dev:
+diff --git a/arch/sparc/mm/viking.S b/arch/sparc/mm/viking.S
+index 48f062de7a7f..8b4e251bbba2 100644
+--- a/arch/sparc/mm/viking.S
++++ b/arch/sparc/mm/viking.S
+@@ -38,6 +38,9 @@ sun4dsmp_flush_tlb_spin:
+ viking_flush_page:
+ 	sethi	%hi(PAGE_OFFSET), %g2
+ 	sub	%o0, %g2, %g3
++	sethi	%hi(phys_base), %g2
++	ld	[%g2 + %lo(phys_base)], %g2
++	add	%g3, %g2, %g3		! + phys_base = physical address
+ 	srl	%g3, 12, %g1		! ppage >> 12
+ 
+ 	clr	%o1			! set counter, 0 - 127
+@@ -91,6 +94,9 @@ viking_flush_page:
+ viking_mxcc_flush_page:
+ 	sethi	%hi(PAGE_OFFSET), %g2
+ 	sub	%o0, %g2, %g3
++	sethi	%hi(phys_base), %g2
++	ld	[%g2 + %lo(phys_base)], %g2
++	add	%g3, %g2, %g3			! + phys_base = physical address
+ 	sub	%g3, -PAGE_SIZE, %g3		! ppage + PAGE_SIZE
+ 	sethi	%hi(MXCC_SRCSTREAM), %o3	! assume %hi(MXCC_SRCSTREAM) == %hi(MXCC_DESTSTREAM)
+ 	mov	0x10, %g2			! set cacheable bit
 -- 
 2.43.0
 
