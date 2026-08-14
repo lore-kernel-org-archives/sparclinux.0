@@ -1,119 +1,118 @@
-Received: from mailrelay-egress4.pub.mailoutpod2-cph3.one.com (mailrelay-egress4.pub.mailoutpod2-cph3.one.com [46.30.211.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36205377A8E
-	for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 20:53:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.179
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786740812; cv=none; b=JnNL5enAKdItF0C/W5DyvwzzygtJ4k3pUJVCo4JG0uSopkmh/+akxNv7+Fl8Ld7NpYEH3rxNXwc21ix+8L3zxBFdR5eQky+yXStn/MNruwvTuE01/+nhhYhwrxB1IFqyAaQISB8jcKrni2ZlRvL0+VjxFFnkf0B7YIJJAPeK+ec=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786740812; c=relaxed/simple;
-	bh=rDWahC2zYLyUUe8PUoO8V/s4yZFQTHn7uv447S0tzU8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c2rKsmtQRRPwXxWYWMl5FMXAPLJBkbsvjoasoXJ4HZa3ZJxaWL4PfyMzJ3rblNIplEiWzqD3LSBbzu2ypGT/x9qfq7N+i1qtXjN3ZykxITsHikz9y3kjDqMKZMIN7w3u0A0Rj8zJnoxEwLUIF2bf9anXQcJTOAhP0ecw2K4g0oI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=X57lOKz1; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=ZJPQtMeQ; arc=none smtp.client-ip=46.30.211.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 993333E6DCF
+	for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 21:58:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.50
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786744738; cv=pass; b=ZvKxFkdNPHbD/5jpXX0ZXv+n1JKWvwPkQRFBwAWG5XDT3HI8HqJmxorRyDH8QCGrj8MmRr3pL5k+dZJnPXTIhsrgJeLs3SElQSH9gwIujpQ8Yu6hn+Xk/Z8XmiDBeHKXAOURcv+Gn37DVlcvL6FI4w+JHArNh7MYWlzOfEFEyHQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786744738; c=relaxed/simple;
+	bh=nilVc6nvu7/iJpSZm14D1rmmMSkreXTyX4PZg3lOqm4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dnmH6ROJoRMCXnMTXY4BkKu0TfY4+8q+QBRzvjh/epCjTHt8j50OBkp+rBDjGowAVIRrrszA7oqXEzARC1aEiseqk3cqxqRuUbPD2I5HfWdhtmYk28hPcVLjbKHBM9nrpmM1zkBs0mF9ZZUMEoH81794IjOJi1X78nQtKm14Uko=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fWhZD7Si; arc=pass smtp.client-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="X57lOKz1";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="ZJPQtMeQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1786740808; x=1787345608;
-	d=ravnborg.org; s=rsa1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=nrYtPulkZ4mcIxLMP3yo3Oq21lFIwulqUScAEaLy53Y=;
-	b=X57lOKz1Oy/Iad9MsAfE5T33WaqNz/tSjzI8eE8zo4EWKhV/6rROWPEafnnaXZcXMbdC85ZsZM6z4
-	 lOhMjFxOdH8EQdcwYcVKmze1tmxoO+hRDdbz9GkrdveTfz4P3dhf0uwpTontD8UDjVS19nWQjQKsdw
-	 FjtPiQCwvYxkhkjbQIvojL9tYFQKPcR7w9xUYORlh4RdEPLXBDh+rHQx7boLYAFTnaMAk/71U7rc0q
-	 zvZOySabmEaR4/z4ca6jPjOsvhhwL3Jf6Y8P7pvyqR9ycHiJjcB70MfklyndiwOvfOIWI5UCa4SImg
-	 9BnL1C3BWk4rkkypru4UDCH3UNlxMbw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1786740808; x=1787345608;
-	d=ravnborg.org; s=ed1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=nrYtPulkZ4mcIxLMP3yo3Oq21lFIwulqUScAEaLy53Y=;
-	b=ZJPQtMeQlxL+tEFgBPf5aeGf2oqF7/30eTWjT4+oQT/+3HKbNIUZRNJHELAu7AqtKwHS+5+G1/k8d
-	 CgT5tD8DA==
-X-HalOne-ID: 318c3163-9822-11f1-982a-fd5ae24138eb
-Received: from ravnborg.org (unknown [2a00:fd01:81e9:6100:173:77b0:ce00:a307])
-	by mailrelay6.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 318c3163-9822-11f1-982a-fd5ae24138eb;
-	Fri, 14 Aug 2026 20:53:28 +0000 (UTC)
-Date: Fri, 14 Aug 2026 22:53:26 +0200
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Magnus Lindholm <linmag7@gmail.com>
-Cc: davem@davemloft.net, andreas@gaisler.com, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/3] sparc32: allow a kernel loaded away from the start
- of RAM
-Message-ID: <20260814205326.GD534878@ravnborg.org>
-References: <20260814105723.3454511-1-linmag7@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fWhZD7Si"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-69c108fee7fso2087441a12.3
+        for <sparclinux@vger.kernel.org>; Fri, 14 Aug 2026 14:58:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786744735; cv=none;
+        d=google.com; s=arc-20260327;
+        b=dDN4wYSyRZgI+gdYNGPZVKYDL+KGdTLb9Tqdos9iIvM1Ruc6JqyxsDUIy5EYplRnft
+         K5iXR5r5bStxqqCrTMtORNvlxk9KpZ9hXbTMpkGpUya8Ub7P3xVfzw/6UVXXwGc6iJxw
+         L+F3HhBW5iOpFJ++um8yTTp3TfC582/shwwcItySG+RYwiBcXX6V5fx60k2jw7bYLjyQ
+         PI22oEeBY7wuIVh03cTEymT85WhxcTF7MOYNCgV7DbxUZxAEqa+zmz11BHVyn3EQ51a/
+         IfXiwsx+F+bKRAxIwAhXcel+nATcXOKX8i2LpdduOtUEOjLxaVuO8e1aSDr0jJvjr0KH
+         gP+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=nilVc6nvu7/iJpSZm14D1rmmMSkreXTyX4PZg3lOqm4=;
+        fh=i4kKtj6PZRu6fYQHmdmf51ddnTdRTxly3X+M0hHtE24=;
+        b=RyXHTk9gbMNECUH7RHVcZ6+hKznnq1qP1Bbq/ruWZnfPEmuof3iC6L5qHSnx32K6gl
+         OWDtNE3A2rWfK51B/PEnL/uCc635c9I9kZ/7myZGBsEP8nPb1oOdVeF/Y7gyd47QmIVH
+         yj1Lal3y6C5IQExM8wbqCtLPtxWjoipYuOFlveM9aU6TNCu7/dgJQgcTj/UQZK9+xk7t
+         6CvFSN6WD4BrGQdxtlQWDowcw3YKi/ZcblAotz1tDEJrHq9vxmvbfWi/wrMKOyFs4JHu
+         gBCiq8IgVS7vxlWUGepS5bJP2qjPDpBxv5KhbII02O0CcJAMxP5sUdMnfPW1DxxruL4D
+         1nlA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786744735; x=1787349535; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=nilVc6nvu7/iJpSZm14D1rmmMSkreXTyX4PZg3lOqm4=;
+        b=fWhZD7Si42knWY3ZndceLun4DfXKkWO7T+CDOWlqzg+MWS2IecPdI6SRvLym1b3saA
+         huhStTCyeOPCMfq3LzcZXATMa3gqhrwoEaO2MLKqGe5fztmxY7voMc95hGW+6Lb6L//M
+         66ZDgUS4W2r/ZnlV3w/exkzZNeNEaGqk9/l7VGdKz1cbNSEjk6aMozt+rGYav7gcQZIb
+         cbQ0msNcb3bbx5SRAAjCiDjNOmvgIcmIptS3nIN5LBf8bDag6WX69X45l8jlbcs8rcQE
+         i+m+1B1Xs23SjIxN/4ZQvJxjxtyBlpkW7tmzj1joX4riYRWxoGt2r11yMeYprVNFcZL8
+         e+EQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786744735; x=1787349535;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=nilVc6nvu7/iJpSZm14D1rmmMSkreXTyX4PZg3lOqm4=;
+        b=M9Sb+nzMCkBPxfmauscc2NzTz2qEm+SUVNnhXwbkv+xQugb5QSUXg1KUmDe3yEnzur
+         sGvy415qPNz0mruYIzl2N/eEctx0lFGjQIRqaB/+Il+sPOA+E/BlHdh1Mf4X4dIOeqZh
+         L3zawOa3wCg4bHJ7BUJhfFTyOCClVksupxdCDJSy2kpd1M0NacHAQGj+9nn5sOuWiFlI
+         8wNElGudY4NUh4qyiJorQ2o1XjlpE5uPXNQA8NaOfBRljFTlSMlghJ38jnuLGDPeybHx
+         +hOedQZONj8HDgCmjCwn2XYpyVGS3ovRK+eg/z2ru5BOTwO5JaUn9fMWF8iBOXe/khVX
+         /i3Q==
+X-Forwarded-Encrypted: i=1; AHgh+RpZSUGiQoYboBLRDw45tSHBLaWTU9llpbZeAsJj4zXzG5lKdQnZvhRCIOBo3n6D6eVFW3WYlgOnMMOc@vger.kernel.org
+X-Gm-Message-State: AOJu0YwAATmnxtpvmMAWh1FgMHbV7QZfihZN53wxgA4Ds8UaxmRjnVPi
+	SvYBMQN1Cr7COzP+3x8J4Zao/65sAw/ntWmF6zbt9F6sfjT63XLn4+mKQFIFr1+9iuSqjLywHKq
+	eGH1ZbbFXodmsCdXSLWe43KJ07CNbGB8=
+X-Gm-Gg: AR+sD12GzHuQGQUX1SUgAVTDOIVufa3KTX4J4euVX6imHV4mW+uMnOt2WB0sFte96p1
+	0CXML07jm/7BS05w7syQJv1saqb5+LvLSa3nwSXxMqokoqOiX5XqgqQQC9rte7IrWXu6X4OgIQP
+	i3FRyahOFXmtQFVwpIIvVD1yfTdaa45HNpft/wTx1hd5SDm+RBG3RLvQYPQ/tli0E2c73lDG93u
+	2lpH49822IwYek7RpFUxsv3CujzEyel+gxh40jwbocEH/jln7OA350OSNXF8Jk3ije9QLF6Da41
+	TjE7z9BANh4+D0iXUzQP0OmVxJWIdbfFroLCFIyG+HjShpQXBEzkfkblsICCDSrz8NQXNnM99HZ
+	9P9YohtC3MlAZIw/9MHxPUXt3oYehJOI=
+X-Received: by 2002:a05:6402:2111:b0:6a0:dd2a:a7b8 with SMTP id
+ 4fb4d7f45d1cf-6a38a9bac9dmr4257550a12.21.1786744734634; Fri, 14 Aug 2026
+ 14:58:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260814105723.3454511-1-linmag7@gmail.com>
+References: <20260814105723.3454511-1-linmag7@gmail.com> <20260814105723.3454511-3-linmag7@gmail.com>
+ <20260814204652.GB534878@ravnborg.org>
+In-Reply-To: <20260814204652.GB534878@ravnborg.org>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Fri, 14 Aug 2026 23:58:43 +0200
+X-Gm-Features: AUfX_mxTOBKhQmQfh0N4yB4fRv5zznGCzXcaA3xx92zfFct8NWla3ABB9J398gQ
+Message-ID: <CA+=Fv5T4d0WiKZJ6ZahZ99+kN7a5vxZEy5qBz-Q1SKJ+n9T6Uw@mail.gmail.com>
+Subject: Re: [PATCH 2/3] sparc32: derive phys_base from the PAGE_OFFSET mapping
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: davem@davemloft.net, andreas@gaisler.com, sparclinux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Magnus.
+Hi Sam,
 
-On Fri, Aug 14, 2026 at 12:52:31PM +0200, Magnus Lindholm wrote:
-> Many years ago I ran Linux on my SPARCstation hardware and tried to keep
-> up with new releases, but somewhere around 3.x I hit a wall, sooner for
-> SMP builds since they are larger. As the kernel grew it simply became too
-> big for SILO to load. On this machine the last one that fit was 2.6.32,
-> at 2598956 bytes against a 2605056 byte window: six kilobytes to spare.
-> 3.12 was 184KB over. Fixing it turned out to need more than SILO changes,
-> the kernel side needed work too, and I never got around to giving it
-> serious thought. I recently dusted off my old SPARCs and picked the
-> journey back up.
-> 
-> A current sparc32 kernel no longer fits in the window SILO loads into:
-> 0x4000 up to SILO's own text at 0x280000, about 2.5MB. Loading it higher
-> instead exposes two places that assume the kernel sits at the start of
-> RAM.
-> 
-> Patch 1 is an independent pre-existing bug. viking_flush_page() and
-> viking_mxcc_flush_page() compute a physical address as vaddr -
-> PAGE_OFFSET, which is __pa() without phys_base. It is wrong regardless of
-> the rest of this series; it simply cannot be observed while phys_base is
-> zero. When it is not, iommu_flush_iotlb() flushes the wrong page, the
-> IOMMU walks stale IOPTEs and every DMA transfer fails. It comes first so
-> that no commit in the series leaves Viking DMA broken.
-> 
-> Patch 2 makes setup_arch() discover a non-zero phys_base. It takes it from
-> the lowest sp_banks[] entry today, and phys_base is the offset __pa() and
-> __va() are defined in terms of, so once the kernel is loaded elsewhere
-> every early translation is wrong by the difference, including the physical
-> addresses written into page table descriptors. The tablewalker then
-> follows pointers into pages holding nothing, while the same tables read
-> back correctly through the nocache view, and the machine stops right after
-> the context table pointer is installed with no console left to say why.
-> The probe is the architecture's existing __get_phys(), which already
-> implements it for sun4m and sun4d and returns zero elsewhere.
-> 
-> Patch 3 sets HdrS to 0x0300, the protocol level that tells a boot loader
-> the kernel supports being located somewhere other than physical 0x4000.
-> 
-> No change in behaviour when phys_base is zero.
-> 
-> Tested on a SPARCstation 20 booting from SCSI to a full userspace, with
-> and without an initramfs, using a SILO carrying the matching loader
-> changes. Tested with both CPU module types this machine accepts, single
-> and dual:
-> 
->   SuperSPARC-II, TI Viking/MXCC   the path patch 1 corrects
->   HyperSPARC RT625, ROSS SRMMU    the only variant whose DVMA mappings
->                                   are page coloured
+On Fri, Aug 14, 2026 at 10:46=E2=80=AFPM Sam Ravnborg <sam@ravnborg.org> wr=
+ote:
 
-I thought Viking was only used by the large sun4d machine.
-Good to learn something new here.
+> Use 0x%xl to avoid the casts?
+> If we are noisy like this it would be nice to always print the RAM start
+> and kernel start.
 
-Nice to see someone having fun with these Sun machines.
-I gave up and have actually tried to have the support for sun4m and
-sun4d removed from the kernel.
+I've taken that as making the first print unconditional so both values
+always show, and leaving the "adopted" line only for when they actually
+differ - is that what you meant?
 
-	Sam
+One wrinkle: __get_phys() returns 0 on anything but sun4m/sun4d, so on LEON
+it would read "kernel is at 0x0" - happy to gate the whole thing on those
+two if you'd prefer that, and I'll send a v2 either way.
+
+
+Magnus
