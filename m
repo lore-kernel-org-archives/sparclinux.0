@@ -1,74 +1,79 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 357B328505E;
-	Fri, 21 Aug 2026 02:23:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B21D30EF77;
+	Mon, 24 Aug 2026 07:27:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787279027; cv=none; b=Z7vqqvS+H6i3BKeggZBpJ6n3DbukZkNJd2t9ghaWdGEKOtA6U8xdaDEo8sIJkoBhh1ppOonpqSXF4SmBFYP1xe6Npkc5xHZtaT3p6ZYo2/5c59H0MpmvWKlHbU+lqe30XuBrZBSqJJ3A+dLL5g7xDyhfk365NEqzwmSEHlrrkfk=
+	t=1787556466; cv=none; b=mqWOOeaDdExeDi2jMqhdnaLKma8ExNC/Ty6vwIBMvAxsMFyq953NxkVVXhwAZdYLodMg6TyV6S/v2czOPAHreFpU3yubf4dcN9dhTNhCT8h5jfJ0+1GvX/8cxZ5X7jO+ZMdupZLXCVs7RgpkRik9h3w+gtaYBfaghzfHwOez/+w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787279027; c=relaxed/simple;
-	bh=8wTjae5ItH3+9qVgMgpyKw/xjrBMDHD6eVKxcIkHwwM=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=gs34YAnedTbfyUCb1Efri6k0cNHXW1yDPB07O02bcxWWcjPxgtVDvyMQsCQm9JiAWnUnRTsozv6ocd8LlEbaQ3gaxju3hy2P8/goCpUW4qb2rd9Z/0xKBFMOXtPsNu+S2foTlnJYnLRNJDJobt/6JNPtRB00Wb2yAU0svoQ+ZjA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FKOdp80K; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787556466; c=relaxed/simple;
+	bh=KfXzxN/sCr/F7pK2AdyGUYO5OQQU04dyr7yb+QQZaKI=;
+	h=MIME-Version:Content-Type:Subject:From:To:Cc:In-Reply-To:
+	 References:Date:Message-Id; b=PYyMCQf/X63XR8h67xJHxoL3YSwIU1JoEI6gUpk9VjAKRiGb8rdUoQtgmjXziCQs29ea6m4hVRSoMOJj5EcThtAogunVaAeDF+qgCyQL887RXBLZEMbQW8lc+17O2tIm9dJNzWuzrs9mA3fYxpzT5s9KlD3BhMZG+2uMtBafQZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hghfi3F3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FKOdp80K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB7941F000E9;
-	Fri, 21 Aug 2026 02:23:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hghfi3F3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B017B1F000E9;
+	Mon, 24 Aug 2026 07:27:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787279025;
-	bh=nwj029qvfIuS0n2IlGGdFsymc671fa/erueghYr3m0A=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References;
-	b=FKOdp80K1NCdExfZ1tcV6jarRclI8uxefHf43o0VfsGMY7h6gHGbb2Rx1STpUXm3W
-	 ZqllCnvzbL/8/x8dercSC6kVEvqT2XPEZGyYrbE/rwLPpSiTtbtKl/4vEvNiotiM+H
-	 /ppk8euQ1OD384/8sy5svQj87ViMgNLjapwxeRn6TmnDbBv5i/zXQQ8t/325nQ2NjH
-	 AqolJF6RXXh+L7bpAQA8mNzojnq//qqj9QpSOI+LWw5dQiVChms/JXaexpX7c34u1l
-	 e++Owow0HeRcTCq1jG3DhsIBIx9wYnOEK/idwAIO06GpBh+b3diywe7T4A4oLu4hfJ
-	 p6mVte1Qi/1sw==
-Date: Thu, 20 Aug 2026 20:23:44 -0600 (MDT)
-From: Paul Walmsley <pjw@kernel.org>
-To: =?ISO-8859-15?Q?Thomas_Wei=DFschuh?= <thomas.weissschuh@linutronix.de>
-cc: Kees Cook <kees@kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
-    linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
-    linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-    linux-riscv@lists.infradead.org, loongarch@lists.linux.dev, 
-    linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-    linux-mips@vger.kernel.org, sparclinux@vger.kernel.org, 
-    linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org
-Subject: Re: [PATCH 07/15] RISC-V: Remove AT_VECTOR_SIZE_ARCH from UAPI
-In-Reply-To: <20260302-at-vector-size-arch-v1-7-a11f03ba2ca8@linutronix.de>
-Message-ID: <236a0edb-76f4-a28c-175b-f43994310a9f@kernel.org>
-References: <20260302-at-vector-size-arch-v1-0-a11f03ba2ca8@linutronix.de> <20260302-at-vector-size-arch-v1-7-a11f03ba2ca8@linutronix.de>
+	s=k20260515; t=1787556464;
+	bh=hpXldSP37oQmlhckItfAzwUOG6JobW41WzP0kSdLesI=;
+	h=Subject:From:To:Cc:In-Reply-To:References:Date;
+	b=Hghfi3F3hhjgblfEVPUEEPHALjTTBAgKBK8MbewWtmMLpyrYB+8Jo29/224FAiShM
+	 0SLcU5txHHDDVRBQmZbs0Km1ZqbqYphsVzR3okw73rVZzhWFSwmbPshMJk+4ij8Gwk
+	 wBlW/tVqVoMXtxSb8VWH+7r37m/WC7KmAwdV5lxYZr50+jzu/iInwaVg4PoIgWPYV+
+	 C5co0jxq4J2+miGm/bYP5+zECjtlCOUz+jUuPUU4mw1mdcjIPjf5Qqh658+sfYqF50
+	 oCrhxE7AzAMSOiSyXc8TzEpXzk6qb68sZUnHfTQBzsRUMB6GzKuCnUN8V+wutnGyd3
+	 qgVllw8rmVK3Q==
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="8323329-746012605-1787278993=:86110"
-Content-ID: <1dd06b80-a066-feec-b1fa-addb8fb6fff9@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Subject: Re: [RFC V3 0/8] mm: Drop pxd_ERROR()
+From: Mike Rapoport <rppt@kernel.org>
+To: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: linux-mm@kvack.org, akpm@linux-foundation.org, david@kernel.org, 
+ Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>, 
+ WANG Xuerui <kernel@xen0n.name>, linux-alpha@vger.kernel.org, 
+ linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+ linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+ loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
+ linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+ linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, 
+ linux-um@lists.infradead.org, linux-arch@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20260818040041.1891769-1-anshuman.khandual@arm.com>
+References: <20260818040041.1891769-1-anshuman.khandual@arm.com>
+Date: Mon, 24 Aug 2026 10:27:34 +0300
+Message-Id: <178755645423.3606540.14531883744138096395.b4-review@b4>
+X-Mailer: b4 0.17-dev
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---8323329-746012605-1787278993=:86110
-Content-Type: text/plain; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
-Content-ID: <c4da6fb9-7dfb-d0d8-ef0a-6c21140cde31@kernel.org>
-
-On Mon, 2 Mar 2026, Thomas Weiﬂschuh wrote:
-
-> There is nothing userspace can do with this value. In the kernel is
-> always combined with AT_VECTOR_SIZE_BASE, which is not exposed to
-> userspace and also changes from time to time.
+On Tue, 18 Aug 2026 09:30:33 +0530, Anshuman Khandual <anshuman.khandual@arm.com> wrote:
+> mm: Drop pxd_ERROR()
 > 
-> Move the symbol to a kernel-internal header.
+> pxd_ERROR() macros have been provided by all platforms, which are very much
+> identical and can be dropped off completely if these pgtable printing could
+> be moved to callers in generic MM aka all pxd_clear_bad().
 > 
-> Signed-off-by: Thomas Weiﬂschuh <thomas.weissschuh@linutronix.de>
+> But first cleanups and re-organizations are required in some platforms that
+> are using these macros internally. Afterwards [pte|pmd|pud|p4d|pgd]_ERROR()
+> macros have been completely dropped from the entire tree.
+> 
+> [...]
 
-Acked-by: Paul Walmsley <pjw@kernel.org> # arch/riscv
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 
+-- 
+Sincerely yours,
+Mike.
 
-- Paul
---8323329-746012605-1787278993=:86110--
