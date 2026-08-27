@@ -1,92 +1,88 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 996253624D3;
-	Thu, 27 Aug 2026 06:06:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86A5543E06A
+	for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 14:53:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787810795; cv=none; b=cY4cv+G8fEGGat+QHOVm2qBQvSgRvAh0w7Ipzf2suSz1PG2MpGinyE50YMZo9SMlRYne8cRzjtI7CLs6m8Y3Ix5SDRDEV+lGziAjjUQ4KAjB18t8tExYx7SHwqVWJjqsZui/ddUaSNMGIa0bVRAqrD4MGGMZFvrj6D+ih0bUGik=
+	t=1787842416; cv=none; b=SYgL6JhE3npKdHgao261TFFgSiobUk+FcIoL5RxKD8HQQJ0bJjUji+AWf7MMYDoIlBRXqiF+6Pc3e/IE6t+39F8tPzx864SGyBl5nsp11iKLZISOin4e0isEnEOk0s2adaXV9BHZ0uOyQ4xYRCINrgGOCBIsoLQHE+k5RUm78Hw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787810795; c=relaxed/simple;
-	bh=4MEVYAYSJL4cEovvPaUuVnqFB51awZSJxYddF6SWzro=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Gq69hnNIJU8hblxeQF44JDGZK894+0A1Zq6M7EGp5TZlkeO/rUOU5CvHk3nZYVLwgnaXloamI/89YEfmm0aekwfrTJ3vQsRyCTzTrP41zHStOV/G61uFMa55Fca2tjpvKMqwaExkSpqcayHxqBzq1fY3dTpcbrX5FP0o2lyzXSA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=atxvd2MB; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1787842416; c=relaxed/simple;
+	bh=bq5t7BpkdQBLknsV45gxFXffgo42Kc6Gbzq3XfyTBbI=;
+	h=Message-ID:Subject:From:To:Cc:Date:Content-Type:MIME-Version; b=qe0eV5oDcc8V9RchmO/Zof63dKO6N4kN7I08nDlkcTdslLBP2OEXjwGdEz7vby8J/6soC+R+xw2qI5UWRDnyRSBV8yElx4sXnlsCaVvrKdgvkmRo9+ev9ceXhErIbyOqSLrhYJiLUktOj+Z4Ywg+DWrfA1VGVbaMVFCMEorAG3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=ImGjNIzq; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="atxvd2MB"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 343D01691;
-	Wed, 26 Aug 2026 23:06:29 -0700 (PDT)
-Received: from localhost (a085714.arm.com [10.164.19.28])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 46D2D3F85F;
-	Wed, 26 Aug 2026 23:06:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1787810793; bh=4MEVYAYSJL4cEovvPaUuVnqFB51awZSJxYddF6SWzro=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=atxvd2MBYeFEkKGg88c3L5GRhXIVBg8ao3BgsUAsWkYA7ds0RiLYyyyMKGlCqEe4v
-	 MOEpEcQqGd8VjOnqn4rLw1NEKggOUfl9biN2Je1oGa1rmznEcLbhjXu1/IkCtDfkV+
-	 TlSm0YogFKVAPwPubmvtzGJxMq025DHHeIV/tBH0=
-Date: Thu, 27 Aug 2026 11:36:29 +0530
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-To: Samuel Holland <samuel.holland@sifive.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>, 
-	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, linux-alpha@vger.kernel.org, 
-	linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, 
-	linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
-	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
-	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-um@lists.infradead.org, 
-	linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Stoakes <ljs@kernel.org>, 
-	linux-mm@kvack.org, akpm@linux-foundation.org, david@kernel.org
-Subject: Re: [RFC V3 1/8] mm: Make ptrval_to_str() generally available
-Message-ID: <xj6w5re27lbtih3lxksk2jxv6kvnpek25urjjcoobwj5pgfqtr@z5loauvsw3jj>
-References: <20260818040041.1891769-1-anshuman.khandual@arm.com>
- <20260818040041.1891769-2-anshuman.khandual@arm.com>
- <029cfde8-74fc-4437-bc18-b1b53d44cab2@sifive.com>
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="ImGjNIzq"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:Date:Cc:To:From:Subject:Message-ID:From:Reply-To:Subject:Date:
+	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=G+cfkhvWz2FX27224IE3KQ7lz5FAoajyY3BQxkeXYpE=; t=1787842402; x=1788447202; 
+	b=ImGjNIzqP1eaGNA4tAqYG8LjqdhfJWYTnKbX2N9R5/TkhoIEe/uaR/FaIM4RoafK7YEdpVGnUVO
+	P4cifTDIzCKAzWgX34BqSotCo8TojqRTB+Pc+m0C739rZk1rDr8oXSCSAUHqTwMjyV+QHpKSd91gg
+	/2+5sF+/3WfDPvK1lVdx1ZwklyZn6tN5zZDIl6F6wr7fXO6Y6QJikl8G2F3M/VSqlNJ2RTgwSMxke
+	Ek6ApXnwmFCOT0nR5h2eIFyHDwSQ9szw2QTFGQ4QM1dky49WLNaPp74yghVuLCcomPQBjPxH5MFeU
+	bqA4ErGZ0SM+AxCBdmvDx+BrlhFAZKXHVEfg==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.99)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1wzbTb-000000030tg-2C6n; Thu, 27 Aug 2026 16:53:11 +0200
+Received: from p5dc55206.dip0.t-ipconnect.de ([93.197.82.6] helo=suse-laptop.fritz.box)
+          by inpost2.zedat.fu-berlin.de (Exim 4.99)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1wzbTb-00000001sQ9-1FvU; Thu, 27 Aug 2026 16:53:11 +0200
+Message-ID: <fe9a51c4d5a4d1e0ddcc1978bd8ee39ed9c82a72.camel@physik.fu-berlin.de>
+Subject: SPARC kernel soft-lockup with CONFIG_TRANSPARENT_HUGEPAGE and Golang
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Andreas Larsson <andreas@gaisler.com>, sparclinux
+	 <sparclinux@vger.kernel.org>
+Cc: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>, 
+ gentoo-sparc <gentoo-sparc@lists.gentoo.org>, Stian Halseth <stian@itx.no>,
+ Michael Karcher	 <mail@michael-karcher.net>
+Date: Thu, 27 Aug 2026 16:53:10 +0200
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.60.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <029cfde8-74fc-4437-bc18-b1b53d44cab2@sifive.com>
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-On Mon, Aug 24, 2026 at 10:45:09AM -0500, Samuel Holland wrote:
-> On 2026-08-17 11:00 PM, Anshuman Khandual wrote:
-> > Move ptrval_to_str() inside a header thus making the helper more generally
-> 
-> Typo here and in subject: ptrval -> ptval
+Hi,
 
-Fixed.
+we recently discovered a new reproducer for triggering a soft-lockup in
+the SPARC Linux kernel. The issue was originally discovered by me while
+testing Stian Halseth's Go port for SPARC [1].
 
-> 
-> > available for new users which are being added later. While here, also move
-> > another related string size macro PTVAL_STR_MAX inside the header as well.
-> > 
-> > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > Cc: David Hildenbrand <david@kernel.org>
-> > Cc: Lorenzo Stoakes <ljs@kernel.org>
-> > Cc: linux-mm@kvack.org
-> > Cc: linux-kernel@vger.kernel.org
-> > Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-> > ---
-> >  include/linux/mm_types.h | 15 +++++++++++++++
-> >  mm/memory.c              | 16 ++--------------
-> >  2 files changed, 17 insertions(+), 14 deletions(-)
-> > 
-> > diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> > index b18c2b2e7d2c..a5b514e55dd7 100644
-> > --- a/include/linux/mm_types.h
-> > +++ b/include/linux/mm_types.h
-> > @@ -2001,4 +2001,19 @@ static inline unsigned long mmf_init_legacy_flags(unsigned long flags)
-> >  	return flags & MMF_INIT_LEGACY_MASK;
-> >  }
-> >  
-> > +void ptval_bytes_to_hex_str(char *buf, size_t buf_size, const void *entry, size_t entry_size);
-> > +
-> > +#define ptval_to_str(buf, val)								\
-> >...
+Stian then spent some time on the issue and was able to write a small
+reproducer in C and found out that it can only be triggered when the
+option CONFIG_TRANSPARENT_HUGEPAGE is enabled.
+
+The issue is discussed in [2], the C reproducer can be found in [3].
+
+Huge thanks go to Stian, both for his efforts to finish the Go port for
+SPARC as well as debugging the kernel issue.
+
+Adrian
+
+> [1] https://github.com/shalseth/go
+> [2] https://github.com/sparclinux/issues/issues/87
+> [3] https://github.com/sparclinux/issues/issues/87#issuecomment-543126385=
+9
+
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
