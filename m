@@ -1,104 +1,113 @@
-Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7D6743E06B
-	for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 14:54:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D83D34B048C
+	for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 18:26:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787842503; cv=none; b=uU1NAD5w2qeIUGmNGSmIZwuPDCIsgZuR+1AwN9UBadw2QP1ej5BnQS6t9/HrBYlTNK26UsS9pNpBMdrIymENVVWTzY+eMhlstdI6/ZFl3Ry56TfPaItX6q/oo5pCHPrRyNBpXis8MMJtITrcUa7onWPE9EjlkgwlcEWTPTytMMk=
+	t=1787855199; cv=none; b=kgVy9ImtAohh0rPR7CLoUlWUPVkiXRWY/rw7RlJY7McHMKLPGB6ImAQ48JLYGwDdNpTsFKv/4OxoulmszCEiDerbAyFC0zu6/VskKUhpbo6z/BGlvLY5nJjAJTm7iLC60BLmo8ZKCVHU8B1KXEBEan1Dgp94uBRFs8EnYT9fHE4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787842503; c=relaxed/simple;
-	bh=PrK+ZTBPp9oMQZepAYrrwk/bXLxCzFuwkXY7dxFh4D0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hOmgs/hh7p3l8UvDybSEwMup3dqhV6Ok/xrTGCzrMDOnwmlVX2B+RN9jPLv998SdhMyqYpIggWoO1uxZ3LslJiXUspQ4KaXDA2cTj9Fd9H8eeSp2R79g/oCzGJMRIW5+f5PHQlnTH/nawI2cDG+CmWacav9qgBGTDBKyOy0HfqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GY/UmWFr; arc=none smtp.client-ip=209.85.214.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787855199; c=relaxed/simple;
+	bh=otES2IL0Q5tRQnJ07uBCLSTu7ZT0irLPYULt16jBq/4=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=nK5IW6dbJoxjcdkDOHEHfbgx9RKT0+pXLr/bI3idXQjpGz1hFixJ3eDxWJUhCLriQ+7QPWT+ZtZNKA7BSzw2vRMgDL2/vPJhGWrYqCc/yFgE59KvFZk4zpUvHbrYjvOPelMsr28SbqyAGlWIALkFv/EH0sIKjbHiRTUkS8MQq5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=AwmOYLss; arc=none smtp.client-ip=91.189.121.228
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GY/UmWFr"
-Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2d58efc7356so26417575ad.1
-        for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 07:54:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787842494; x=1788447294; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=z0BquGYPn2o69A57j1S92QvXaMtH50+KXNysShZUBXQ=;
-        b=GY/UmWFr6bLIAXt98w9MRX63UrdBafAR/7f0ceRG5uMHGwbB3Xeru4DBEvEEixWyMs
-         P9EoW7x0lQOkO7PxqoA108Hno1jaIohBHQfyRfOxp7QeSBfXDDQLrO+xMU2trwVxTH7z
-         J4sU9jFs90Ce6IAJBgUSXiUpCe0qLMxr8xqjGCaIss2+2UIRnZjpJ3F1vyvS74oK4djd
-         Mx098sbJIZULFYf/w17BGT78Mlig7Va7zvrsq1JpaZD3oDvImcbxnsc/rErKP4uLMuPD
-         FYM430C1rHQfZj4qAZlf0Xfm3wg9X77ULVgMklcrHqbZjE/Kmqdt4Zp2t8KfMFWIeg/9
-         tj4g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787842494; x=1788447294;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=z0BquGYPn2o69A57j1S92QvXaMtH50+KXNysShZUBXQ=;
-        b=FoPiwl7l6rfn5MhSgd6b+W0043OWUwsqZRiQ/6AbCDyemQhpY5to3aLV0rWh5HrrkE
-         9hEw5/PY478hmFCqxRaMVqH2mmdMecoVjhEHa/ffX8iYKYEP1v3nRj5/xgOG7o8702aR
-         c48lFJt96fFhJOtoHnB4GWcvk6IgsyyAzLAGPI24t1nmykeFlqm3cLBvM5jfyDD5aTQG
-         T0I9jeVuzQx9AEtTiCSyMa49UZYP+UHKKytQWq4T28rav7ERLTxH8lvXpsNbbmFWvIZt
-         hMULol+XTtknmbIo2KRfgGd3HEcOe6D/U1oIUDkWPWyFPOUcM9ilJpY9z4dtFcEw4EzY
-         LktQ==
-X-Forwarded-Encrypted: i=1; AHgh+RodEj8vhD5gNP05+yVPsiLvaUqpV/Z52yE7xa9xLs22tNNyk6lND0hpHd3+71eXePz8inR+ebtkEu5M@vger.kernel.org
-X-Gm-Message-State: AFuF++kXN/Vnmw13tsfTBmMncpaKsz5NeOcTL/Z1Oxz+HVEb3SasdNjG
-	X43oAUryxy4vLLIOXlUMzmqvgiQK2VYq+ZCN8E1Hh8AtcQiMTreJ6SSqmEnAFg==
-X-Gm-Gg: AR+sD11KgDUjS4Gk7raxFpW2PorAP9yvf52WmrDl+d5M2eIsVUkeTRa8cyPltN960On
-	rizlkwmouTDlvY7FoaKwV9S4s3GuMNEaEEdIMn3FevzmwAPksQTe9bCp2vBHRBmerghEtyUKmDG
-	3digBnre2btlJmN65aXpp7G3NA8V2yfA2rgMU+HG+E585l81RGar/gTnLtLtHc2B/bRmjx9KNKZ
-	iooN48bAzXPiX0a/mHW1Rx8BvTB8jKBREMaFsRKTbJ4r9UY8ODazlQ2tOnBUfwOPm4tvEMEVqQt
-	pLEN0YHlLsRNvA/PkszyGlV1YdDJk+zKCE1Yl1jH1cDFX5X0X5MMoTR4rYC7+2Dej8YHxVPA6QE
-	1iSXc/rn9KKDAXO9dZyltK7OGI+ivrOtxNPSs8MwF7sb1Db3fyWkAmd6LuLeu7tVF5fr8Wloe/V
-	D49SSIKIdNOT1FfNGTL2w8vgqL6p0CPVF/IB6bFL9zp8JEsMFu497JWsI=
-X-Received: by 2002:a17:903:1ae8:b0:2d6:f3f0:3e7a with SMTP id d9443c01a7336-2d707957143mr289849535ad.3.1787842494167;
-        Thu, 27 Aug 2026 07:54:54 -0700 (PDT)
-Received: from ubuntu.. ([110.9.142.4])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d704b9f555sm18725405ad.40.2026.08.27.07.54.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Aug 2026 07:54:52 -0700 (PDT)
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: linux-kernel@vger.kernel.org,
-	sparclinux@vger.kernel.org
-Subject: [PATCH 2/2] sparc32: remove redundant memset in srmmu_nocache_init()
-Date: Thu, 27 Aug 2026 23:54:34 +0900
-Message-ID: <20260827145437.490605-3-ekffu200098@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260827145437.490605-1-ekffu200098@gmail.com>
-References: <20260827145437.490605-1-ekffu200098@gmail.com>
+	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="AwmOYLss"
+Message-ID: <f39d0413947affe8e7fb3bc802ca05e96a0cb517.camel@itx.no>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
+	t=1787854821;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=lDuiEc5qx4lbQSiINzkv0vJEeJWErNjRuac6m4R4j08=;
+	b=AwmOYLssnBX7VrcSvA9E9lXtM9VrzsgKAFeFtmy0GuaC15Oysp55p/6SVVAITAwNxab1ks
+	286tGlhWcdcRiGxLNtQ308j204f2TJ4m4Z4a1hWeuUBmEGoInuDEvaDB28MEP1pHSCHo8E
+	KxSly6DsY76Vjx2SVDy1fkqwCvbUOx8=
+Subject: Re: SPARC kernel soft-lockup with CONFIG_TRANSPARENT_HUGEPAGE and
+ Golang
+From: Stian Halseth <stian@itx.no>
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Andreas
+ Larsson <andreas@gaisler.com>, sparclinux <sparclinux@vger.kernel.org>
+Cc: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>, 
+ gentoo-sparc <gentoo-sparc@lists.gentoo.org>, Michael Karcher
+ <mail@michael-karcher.net>
+Date: Thu, 27 Aug 2026 20:20:21 +0200
+In-Reply-To: <fe9a51c4d5a4d1e0ddcc1978bd8ee39ed9c82a72.camel@physik.fu-berlin.de>
+References: 
+	<fe9a51c4d5a4d1e0ddcc1978bd8ee39ed9c82a72.camel@physik.fu-berlin.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-memblock_alloc_or_panic() returns zeroed memory, so the memset after
-the allocation is redundant.
+Thanks Adrian. One small correction, since it changes where to look:
+there are two separate bugs here, and only the second one involves THP.
 
-No functional change.
+1. The soft lockup itself does not depend on THP (proposed patch [2])
+The C reproducer[1] works with CONFIG_TRANSPARENT_HUGEPAGE not set
 
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
----
- arch/sparc/mm/srmmu.c | 1 -
- 1 file changed, 1 deletion(-)
+2. A second, THP-only bug, which is the one Go kept hitting
+With patch[2] applied the soft lockup was replaced by intermittent=20
+SIGSEGV at an address that made no sense.=C2=A0I believe this is a differen=
+t
+defect in the huge-page path in arch/sparc/kernel/tsb.S.
 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 9a74902ad181..f9a92a07a255 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -279,7 +279,6 @@ static void __init srmmu_nocache_init(void)
- 
- 	srmmu_nocache_pool = memblock_alloc_or_panic(srmmu_nocache_size,
- 					    SRMMU_NOCACHE_ALIGN_MAX);
--	memset(srmmu_nocache_pool, 0, srmmu_nocache_size);
- 
- 	srmmu_nocache_bitmap =
- 		memblock_alloc_or_panic(BITS_TO_LONGS(bitmap_bits) * sizeof(long),
--- 
-2.43.0
+THP as the trigger was confirmed, with two tests taken from one boot by
+toggling
+/sys/kernel/mm/transparent_hugepage/enabled:
+  THP=3Dalways   2/2 builds died, at 63 s and 68 s
+  THP=3Dnever    2/2 builds completed, 562 s each
 
+After applying patch[3], a native Go toolchain build is green and three
+full cgo builds of Grafana Alloy (~2500 packages each) have completed
+with no faults, all with THP enabled.
+
+
+[1]
+https://github.com/user-attachments/files/31473033/sparc64-signal-livelock.=
+c
+[2]
+https://github.com/user-attachments/files/31480409/fix-asi-urtt-fill.patch
+[3]
+https://github.com/user-attachments/files/31487949/fix-hugetlb-fill-glbank.=
+patch
+
+
+--=20
+Best regards
+Stian Halseth=E2=80=8B
+
+On Thu, 2026-08-27 at 16:53 +0200, John Paul Adrian Glaubitz wrote:
+> Hi,
+>=20
+> we recently discovered a new reproducer for triggering a soft-lockup
+> in
+> the SPARC Linux kernel. The issue was originally discovered by me
+> while
+> testing Stian Halseth's Go port for SPARC [1].
+>=20
+> Stian then spent some time on the issue and was able to write a small
+> reproducer in C and found out that it can only be triggered when the
+> option CONFIG_TRANSPARENT_HUGEPAGE is enabled.
+>=20
+> The issue is discussed in [2], the C reproducer can be found in [3].
+>=20
+> Huge thanks go to Stian, both for his efforts to finish the Go port
+> for
+> SPARC as well as debugging the kernel issue.
+>=20
+> Adrian
+>=20
+> > [1] https://github.com/shalseth/go
+> > [2] https://github.com/sparclinux/issues/issues/87
+> > [3] https://github.com/sparclinux/issues/issues/87#issuecomment-
+> > 5431263859
+>=20
