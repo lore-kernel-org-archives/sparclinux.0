@@ -1,88 +1,89 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86A5543E06A
-	for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 14:53:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C67072BEFFD
+	for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 14:54:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787842416; cv=none; b=SYgL6JhE3npKdHgao261TFFgSiobUk+FcIoL5RxKD8HQQJ0bJjUji+AWf7MMYDoIlBRXqiF+6Pc3e/IE6t+39F8tPzx864SGyBl5nsp11iKLZISOin4e0isEnEOk0s2adaXV9BHZ0uOyQ4xYRCINrgGOCBIsoLQHE+k5RUm78Hw=
+	t=1787842497; cv=none; b=SyLDT/Vs4C32eoKnw/d7rtu8HQCsqrcm1WTYXa+YEySC1TXAduzLywu0oopGs3GnzHd7T6PA+pLRnLgaXvKN23KVOd38KCgRkrykTIyl+CzbLtfRK8CxCYmN/k7IckGAEi49oCqQN6m+rSHyquX40pI9fLgss3GW23owl6t5+tA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787842416; c=relaxed/simple;
-	bh=bq5t7BpkdQBLknsV45gxFXffgo42Kc6Gbzq3XfyTBbI=;
-	h=Message-ID:Subject:From:To:Cc:Date:Content-Type:MIME-Version; b=qe0eV5oDcc8V9RchmO/Zof63dKO6N4kN7I08nDlkcTdslLBP2OEXjwGdEz7vby8J/6soC+R+xw2qI5UWRDnyRSBV8yElx4sXnlsCaVvrKdgvkmRo9+ev9ceXhErIbyOqSLrhYJiLUktOj+Z4Ywg+DWrfA1VGVbaMVFCMEorAG3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=ImGjNIzq; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1787842497; c=relaxed/simple;
+	bh=hS8kZLzke/hWnngzBIU+zb54LbfdhiEhmPlegZFkQ+0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iQ8c94y5fZ7+3tBjaVe0calXjbl0wvIV1gUimBGQ4p2ocqR5rJPBTxt2lHD+OS/lSRjHgBZIdK1PBbk0pGb/aW9FpJk06lauKoBVg24EpH3v43Js2r2djqSGOrZiICg+3YJtF5UVOpKefJdt9cHG2VNeD5yaBio0zX6foo/xZ2o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PzOG1SGD; arc=none smtp.client-ip=209.85.214.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="ImGjNIzq"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:Date:Cc:To:From:Subject:Message-ID:From:Reply-To:Subject:Date:
-	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=G+cfkhvWz2FX27224IE3KQ7lz5FAoajyY3BQxkeXYpE=; t=1787842402; x=1788447202; 
-	b=ImGjNIzqP1eaGNA4tAqYG8LjqdhfJWYTnKbX2N9R5/TkhoIEe/uaR/FaIM4RoafK7YEdpVGnUVO
-	P4cifTDIzCKAzWgX34BqSotCo8TojqRTB+Pc+m0C739rZk1rDr8oXSCSAUHqTwMjyV+QHpKSd91gg
-	/2+5sF+/3WfDPvK1lVdx1ZwklyZn6tN5zZDIl6F6wr7fXO6Y6QJikl8G2F3M/VSqlNJ2RTgwSMxke
-	Ek6ApXnwmFCOT0nR5h2eIFyHDwSQ9szw2QTFGQ4QM1dky49WLNaPp74yghVuLCcomPQBjPxH5MFeU
-	bqA4ErGZ0SM+AxCBdmvDx+BrlhFAZKXHVEfg==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.99)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1wzbTb-000000030tg-2C6n; Thu, 27 Aug 2026 16:53:11 +0200
-Received: from p5dc55206.dip0.t-ipconnect.de ([93.197.82.6] helo=suse-laptop.fritz.box)
-          by inpost2.zedat.fu-berlin.de (Exim 4.99)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1wzbTb-00000001sQ9-1FvU; Thu, 27 Aug 2026 16:53:11 +0200
-Message-ID: <fe9a51c4d5a4d1e0ddcc1978bd8ee39ed9c82a72.camel@physik.fu-berlin.de>
-Subject: SPARC kernel soft-lockup with CONFIG_TRANSPARENT_HUGEPAGE and Golang
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Andreas Larsson <andreas@gaisler.com>, sparclinux
-	 <sparclinux@vger.kernel.org>
-Cc: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>, 
- gentoo-sparc <gentoo-sparc@lists.gentoo.org>, Stian Halseth <stian@itx.no>,
- Michael Karcher	 <mail@michael-karcher.net>
-Date: Thu, 27 Aug 2026 16:53:10 +0200
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.60.2 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PzOG1SGD"
+Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-2d71ae3455aso23116945ad.1
+        for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 07:54:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1787842488; x=1788447288; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=E8woUSV97warbSE8lybgrVZFJY5N1nQOSji8VKScgrU=;
+        b=PzOG1SGDeY9lvzYQXUJg4UnDzP67zjdkNyPcA2L2Oi6ffbWIMDXegqnMzO5MTEQ3+m
+         FJIFezdUB1K/zA56IzzbPhTJOQ/ep+U3P38h2E/mYW5Hk/wUr77BDbFHIsJ5V3VeZWHq
+         LiTvPeRhu/akPIpXDjsjoiHXbNGldpi2nuZv70OzzAeJXMve/huzWXRVDG+Bwsrxl4dU
+         tEu94U3ipkJmJx6w/kYNlryrPsJlfD2GVwJQEWbjiXltoIxvRzkrZ1zuHOeJ+7xQ3Jol
+         tCQVICH6ql5Uy1iyfFqh+KziTO5+wscaH3UppetZQ8JiOu5pIjZWO2B5Fg3Uj2KbyldM
+         o09w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787842488; x=1788447288;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=E8woUSV97warbSE8lybgrVZFJY5N1nQOSji8VKScgrU=;
+        b=g51fLhC8pmtPw58Ocp4QzyCIOurp0Or6eRMsF8wbG/81tpgvQW7avuQgdq4CyRl3Nb
+         ULof8eES/bmWLMok4je8xfZkdkGls57FxOPzuIg0d11qAoQy8w7bhTUfSSU/UaDpKXS7
+         7iyUxFugUo1CBGQFkTRnws7lpNxp8+CSAKB6/DFvwuBTOQYnpM4w6swoMDjpSDuHYDSA
+         z3q2yJ2kp9nPSgQGkGlldSWFxYqp5OoQMIpyqYqZvR9KuO6iU6nkuvMAg/RAr4u89+DJ
+         rEKmPlhxVYaiJ9+TceCG7NtHFvm51sI9kfPkkPL722j86HPopqDGjN10FBfHdy339sPS
+         GWGA==
+X-Forwarded-Encrypted: i=1; AHgh+Rq7ldDu3TTDx9S0ji5rFoFJk6umVgBoaWqX8jzdoG23SI/DD2nSuMhmDz2CUO5itVgDsH0MoE3hrk6Y@vger.kernel.org
+X-Gm-Message-State: AFuF++llzq7MiT2MqpPWSz1I24Sn43d9PrRrX5NnP7e9nXUNO8SYI8yD
+	/KnOHk3CHf1KY4hbEsx6jR2mQdszai6GV1eFFyXaF2MMgVq5bxqkQPBw
+X-Gm-Gg: AR+sD1301uVlfVPcmFTVEh/FEZlHm9iMbCxDTO9ZT28QzrZ4XSQtzTGQUpeI9F8f/15
+	pQ51zVAPE218AopXYSmAG5H33+yGgTdun9jNq13KFbd01wbL9yKVBVA9kEYU1r6qVhvEsBlztcf
+	/HiYe+jQncXAH9wKWh7ACfwyzX/IJj8WOx2etfGq2KWuDSjdaOQJBzabfm2KSK9CoYmBxU2ww/t
+	/5LHxa5W3VqCznFgS5z325G645AabsTRyZ7V3E05Au7lL6FbMLSbJRQNu3hCtcBIoXq5/OwHfKO
+	5lDHGQ6ptQAWsonOKNwt8wDd6MSwm81iQY7RdW7IHd4UwulPPIrruFwk98975DYF8bv7TzfegRJ
+	5uk5oeFuC1HV8HnHn7hwJHjB9LD6YjSwOQKgpGLFnk0m/FolBmgLCGYqLNMPxpOiDqJtBTcQfGa
+	lQ274tE/9HwxZoqt5g4cV74zz0VnGRWUvHjgE4TCwYMxZMiOiCH/JuNkw=
+X-Received: by 2002:a17:903:230d:b0:2d7:1e07:4859 with SMTP id d9443c01a7336-2d71e074bf5mr165600495ad.2.1787842488539;
+        Thu, 27 Aug 2026 07:54:48 -0700 (PDT)
+Received: from ubuntu.. ([110.9.142.4])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d704b9f555sm18725405ad.40.2026.08.27.07.54.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 27 Aug 2026 07:54:47 -0700 (PDT)
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+To: Andreas Larsson <andreas@gaisler.com>,
+	"David S. Miller" <davem@davemloft.net>
+Cc: linux-kernel@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: [PATCH 0/2] sparc32: remove redundant memsets after memblock allocations
+Date: Thu, 27 Aug 2026 23:54:32 +0900
+Message-ID: <20260827145437.490605-1-ekffu200098@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Transfer-Encoding: 8bit
 
-Hi,
+memblock_alloc() and memblock_alloc_or_panic() return zeroed memory,
+so the memsets after the allocations are redundant.
 
-we recently discovered a new reproducer for triggering a soft-lockup in
-the SPARC Linux kernel. The issue was originally discovered by me while
-testing Stian Halseth's Go port for SPARC [1].
+Sang-Heon Jeon (2):
+  sparc32: remove redundant memset in arch_mm_preinit()
+  sparc32: remove redundant memset in srmmu_nocache_init()
 
-Stian then spent some time on the issue and was able to write a small
-reproducer in C and found out that it can only be triggered when the
-option CONFIG_TRANSPARENT_HUGEPAGE is enabled.
+ arch/sparc/mm/init_32.c | 1 -
+ arch/sparc/mm/srmmu.c   | 1 -
+ 2 files changed, 2 deletions(-)
 
-The issue is discussed in [2], the C reproducer can be found in [3].
+-- 
+2.43.0
 
-Huge thanks go to Stian, both for his efforts to finish the Go port for
-SPARC as well as debugging the kernel issue.
-
-Adrian
-
-> [1] https://github.com/shalseth/go
-> [2] https://github.com/sparclinux/issues/issues/87
-> [3] https://github.com/sparclinux/issues/issues/87#issuecomment-543126385=
-9
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
