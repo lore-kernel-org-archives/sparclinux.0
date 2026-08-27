@@ -1,59 +1,61 @@
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6881648C8D2
-	for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 18:28:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33C371E1A3D
+	for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 18:28:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787855301; cv=none; b=PKunmwnoq5WRo8gm8xEz391wrUcprUTmWDCeBdwMbsoCq6ca0ilDIhKppO8m/6MBzUgjAT2P1SujrDAhXDOcX7YzmVpIt5ZnP+hUgW9v5bdTj+CZC2g2DTEmzECLd4uORowZ2Q3zCSNP4WLTB3E5XFyH+6ut84p0yXtc5ZIfpIs=
+	t=1787855302; cv=none; b=Ld3FL7NIzytKTvl73zZvQNGQoSljtdrUW10DM8uA15NXjztNlOgp4sceBQ2/DYvb7bSXbUVMqCAnyzUrlWnyGoD3/UEgQWAD64v1waVfOqjL3ZiieQYQT/hzSF4qao0oAb+3QmFuTkla2QYFWz5zKfLq9HhuiUki3MN6x/cegQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787855301; c=relaxed/simple;
-	bh=8WvPnhhFeZ2URlGzjg9e0UUP8uR+W+FeMhbeU0YInps=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kBtjGVCqukLbcQkjVKdPJrTvAgn9GfT9jsNQqUOB6o5dCqqs9G+bTpyNEU05Mw7QzZQPSn1HAOn705QBRF1pD/rrdBpksn5a/qvmHRtsVV9tYavDfbfkELWg8eDH+mi5o92Tu6x5qjpxAT7EVHwKiMVopA8B6OCWtbNNCk1jdzs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KEQX1ZI8; arc=none smtp.client-ip=209.85.218.45
+	s=arc-20240116; t=1787855302; c=relaxed/simple;
+	bh=8FWA9AVOhWxmQZ3JjAGZ5b76UZEA8wc94gm4Jv7PZTY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Di+LWpxJHAMiQ0TSUTc4kXVNa3px2kcqxXiE/vCQn0/I0hd2WUO6rLcVdVk1/pKQObVnnxpPsW+LjEpUoxJ1fgS+Wpt70zymNCMpMKk76WceQ2Sgd4u1Phs+jWvd8jmRlul5qm4ADmnRAjSwsFbUqbdzEZNFnfj9cYAFbWeMO+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UG9xcFh2; arc=none smtp.client-ip=209.85.218.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KEQX1ZI8"
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c2533d83e3bso25287866b.2
-        for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 11:28:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UG9xcFh2"
+Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-c160420289bso27340766b.0
+        for <sparclinux@vger.kernel.org>; Thu, 27 Aug 2026 11:28:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20251104; t=1787855299; x=1788460099; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=jg0L0KQH1TGgD5UWd+gOmMXSQA65MZQV6AxkueBsrHg=;
-        b=KEQX1ZI8hP9BkFYFpWf4y4sbKyZnZldebZ3hiW4bHP8f15xQ6aKsyhJf6bXCbK1JI8
-         CORgUdrKFQ6r4WB1Fz3oLgs+6pskccOf39wz2RmpO61L4KfEl6JmIYsQRt87ZImsXUFI
-         3jX96BGzoPBU3epRYFhIkl3QPOVVnvFhhkI8RXnb4Z/Sd9NlfxprrTd7Xo02OnsAOuwT
-         GfFa6+UxY1HwLc57cmSwF8xMU8JhhR5XDAhiYWacbYd15bBmyTm+Mg0AWejN7+sbDu94
-         h6cR6iyNL5TW3MuVIxBFVrMUnqLxzvIgNUP/gvIB0JSKz4uw14N7/CBCNJL61cg3UeTl
-         uwzw==
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=K7W0FYldKuHhAWB+T1mpyUsx45/uTv/Vu54VWOFp0Yo=;
+        b=UG9xcFh2btOij8vEKcQX9VdHZBEVN0J7RipLkzAd7h9pr+Zq9gBMTMMT8Q9AQgC0/J
+         OxdcLh6SG23Ei4sDblBWaBSbqx8Z/s+4Rc0afp/0ndm+OUzMCmWZvUGLHgNniGxNVqYT
+         cNkIU2Im93A1c/kAqVS6jNvZIrvz+gxocoOyTNPqn0mJ8xlSHx3Ee3HeXS66GknLT44R
+         g9A2O0x8qCrtonasx6Rr3Bxb24GLIewqc9yVAtLNqruZW7l6K7l8LFbIgrjcVk6X92MV
+         jqd625FmIgeVUGf5JXRUhjx9U/MxUJUK88peyxjIqAbNTaS7l2nxb41svDTXeM7RbQWe
+         DJ1g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20251104; t=1787855299; x=1788460099;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=jg0L0KQH1TGgD5UWd+gOmMXSQA65MZQV6AxkueBsrHg=;
-        b=nSIwXSStJPXXZBoM1txppalgMt5MIwZys2JKC9niB/Q+vYQ6vNiooP1BVoG6z2o7G/
-         6CtYsaDesoKCh1Ahzywp3fPSIs4XtYhyrW2LwwJyn41DyiLhZ4cA0gHrncl+JtJTiM8J
-         gXEeDMx/c3Ebb5E+IOMwQes4XbjHyVtxkSRlre5NE97WwnrenWY07hNgWwv5Dj0GWu7r
-         XOSsIPafWEHXnkd3TGoQk0WXBjO4ReRgIheX/YH20jxZ0eFvFN55ljNDgK2KV5NHMcAu
-         mc4OGfq3xeCFu7XgRWqpSzon/X94hdBy6Muyi7b1DneITHeQR6IM4pbFkIt79/E1ZFvY
-         jH8A==
-X-Gm-Message-State: AFuF++nW/c1cRBnOI8boO7ZqiwoyYrBALCG5d9TRz7AG2l35cQ/AWfBT
-	qHMCoNu74MJDo7nLPBBfn5bF6BOcH4DINwk1RArzqM3gIpAqXQAgEOtYe63C+I1X
-X-Gm-Gg: AR+sD108t2/zmnguwKiXZz41EZVM0BGDHx8u9CzEPl7VK/q3JMWHK8e8Gum1I7CvPmA
-	Dfbak4DH94IC7LMWsvUGKlpbgBgzP0PXh8NH5Tn9IojyzPU6JZAvMrLhJ9cfQ15AWrv7FiYIl/I
-	r4Tx7I33hv4j0bWFAwFSKuZdS08z/7qLzphtvi+/CxK3HJTtQYhz3TuK53cnVJVKi5hYWJc9NQb
-	oiNtAtM9Kq4QjcGfzEm9n8duPsf7rJdEQUFja0RzDIuJFDPAbP6/CBNYnLT+XTkH9Mw5kKU76CV
-	IxKITRgctrbCor4p0Q03e/rYUy0nUhNJ4qAE7KlpNtZku5C7450lv1yVXZMig+XGo1U3W2ivQok
-	jDlcvXfK4f8uZhPuDqGYr3UL/ZXkprXpIz6DUigzOmyTXroaXxg8S3OUFUan8TSxPSEHMK7bTwi
-	ySm4NkJI7oLdBGYAxJ2R5BseSuDQVWQ6odUCyupfBAv9eFbJM3fnVtkestPsSay33J7rqsPHZAJ
-	3vckRWe8wjL6vqHxQ0+dapuyg4vqkMCJ9lGz11gmQ==
-X-Received: by 2002:a17:907:e1d3:10b0:c16:8799:fcb4 with SMTP id a640c23a62f3a-c25571a63c1mr37073766b.19.1787855298365;
-        Thu, 27 Aug 2026 11:28:18 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=K7W0FYldKuHhAWB+T1mpyUsx45/uTv/Vu54VWOFp0Yo=;
+        b=CeYRZQpjC55NtPMt3fJPa3iyRKFKrnj1lOdsUyfQl1T4BAgNs4HudaieaXoO/XMdFs
+         k+uPof0heAVS20Ka+Kx4n8I4ixx92ks4/oA1Wa81P8P+1UV1+aBEFdkjCL/78fuAWMj8
+         QoFNdu4Fu6ags/P/cp60xcNDhYvkhBjHx3LoH6AriURU2iX55E8uXOfnoTi4EkmOJtkA
+         oy6FYePMrYqrJEuqzbym/lxSoqxWX8Ws8DB+/JaWuwG3N5TEaSB/0d5IClBQm4XAscRP
+         tP40bZj/ro8okMF5CllfOoiJiKuVClwMCW5ZJVTMVlZaYoJrjLRso9/p7uJ/0oHP8ABj
+         cK2w==
+X-Gm-Message-State: AFuF++mRzgB0AFdt4/Qa6YIA1gmp2HDAqnHetcDpsGPDugVAgLbdH76g
+	s77XL7FyqsXIAWJu89i1Uh4V8PIuSbZddmjJFFbt9Rpo6Thcv8LJ9rTOtd6KofvK
+X-Gm-Gg: AR+sD10yjvYoE5sCfFm75MSpffTkNGr4WnIp7Hg2scAO/3McrTPjSPHr2GLLwHs54EC
+	1EWu8xs2uCOaZJiu1ePfInGJcZEiNeSAdgGXJF9eStaFrMZ9Gcr2jUSYIvzorBhSfC77p4QTQpr
+	tWll43I68ZenBS2nXiFJgC/k5ElP+4KZOepO9BBZ4s9gh0SOXkOEkkpoBNSRUbYTRoeSiTeqwbK
+	ls0W9OYHSXyV5iceB33DP3xxXkCZlvwsnkK2T74d9qxO1DIx7Oz4U7gYUw+yD1tClPvBQwwFy+I
+	4DJfKRFVJWIXLBRuFp2nWWMS3czoe3u+N/zaZySkhdi6lUK3yGGvlzCo8ZpQBON1u2pJxId6y4L
+	/JePL8dKFYgg5zbwoMxJq/jwo0t1sF8qpmJpGYGSHYZgHd05UkCApnxTkDDKkfnaH1xX0m/LJBN
+	k7fbPr/Po3Y+MC1yycdfC17+vgInHTr2Q7l4ASNzYqJQD5SAX19jDi10zMWbb/4KtjomIRdgWeN
+	/jWzOQJygevwdjpPgT2nbpq69Znwa9djTN7xrURsA==
+X-Received: by 2002:a17:907:1c90:b0:c25:362e:fb8b with SMTP id a640c23a62f3a-c2556d9cd56mr49465066b.7.1787855299269;
+        Thu, 27 Aug 2026 11:28:19 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c254e4e736dsm61288266b.11.2026.08.27.11.28.17
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c254e4e736dsm61288266b.11.2026.08.27.11.28.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Thu, 27 Aug 2026 11:28:18 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
@@ -63,10 +65,12 @@ Cc: davem@davemloft.net,
 	linux-kernel@vger.kernel.org,
 	sam@ravnborg.org,
 	Magnus Lindholm <linmag7@gmail.com>
-Subject: [PATCH 0/5] sparc32: replace sp_banks with memblock
-Date: Thu, 27 Aug 2026 20:24:12 +0200
-Message-ID: <20260827182757.6856-1-linmag7@gmail.com>
+Subject: [PATCH 1/5] sparc32: use memblock when mapping the kernel
+Date: Thu, 27 Aug 2026 20:24:13 +0200
+Message-ID: <20260827182757.6856-2-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260827182757.6856-1-linmag7@gmail.com>
+References: <20260827182757.6856-1-linmag7@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -75,48 +79,82 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Replace the sparc32-private sp_banks memory description with memblock.
-
-The first two patches convert the SRMMU consumers that already run after
-bootmem_init() has populated memblock. The third patch moves memblock
-population to prom_meminit() and applies the mem= limit there, keeping that
-intermediate state correct. The fourth patch moves the early memory setup
-into setup_32.c and the final patch removes the now-unused sp_banks array.
-
-This work is based on an earlier eight-patch series by Sam Ravnborg.
-Patch 2 directly carries over Sam's memblock sizing conversion. The series
-has otherwise been substantially reorganized and reworked for the current
-kernel. Compared with Sam's series, this version is ported to the current
-generic MM setup, keeps the sparc32 mem= command-line option by using
-memblock_enforce_memory_limit(), and uses memblock's exclusive range-end
-semantics throughout.
-
-The series is based on top of the sparc32 phys_base and Viking fixes. In
-particular, setup_memory() preserves the relocated-kernel handling by
-removing RAM below the physical address to which PAGE_OFFSET maps.
-
-This series is boot tested on a Sun SPARCstation-20 with dual
-Supersparc-II cpu (SM71) as well as dual Hypersparc RT626.
+memblock already contains the available memory ranges when map_kernel()
+runs. Iterate those ranges directly and remove the sp_banks-specific
+mapping helper. memblock range ends are exclusive, so use end - start as
+the range size.
 
 Suggested-by: Sam Ravnborg <sam@ravnborg.org>
-Link: https://lore.kernel.org/r/20260817153237.GA702187@ravnborg.org
+Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+---
+ arch/sparc/mm/srmmu.c | 47 +++++++++++++++++++------------------------
+ 1 file changed, 21 insertions(+), 26 deletions(-)
 
-Magnus Lindholm (5):
-  sparc32: use memblock when mapping the kernel
-  sparc32: use memblock to find available system memory
-  sparc32: populate memblock from the PROM memory map
-  sparc32: move early memory setup to setup_arch
-  sparc32: drop sp_banks
-
- arch/sparc/include/asm/page_32.h    |  16 ----
- arch/sparc/include/asm/pgtable_32.h |   3 +-
- arch/sparc/kernel/setup_32.c        | 118 +++++++++++++----------
- arch/sparc/mm/init_32.c             | 139 +---------------------------
- arch/sparc/mm/srmmu.c               |  65 +++++--------
- arch/sparc/prom/memory.c            |  51 ++--------
- 6 files changed, 104 insertions(+), 288 deletions(-)
-
-
-base-commit: 982260b3f81e405af4a65a3029399840a2d2a4be
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index f0fe09169528..483235458d69 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -846,39 +846,34 @@ static void __init do_large_mapping(unsigned long vaddr, unsigned long phys_base
+ 	*__nocache_fix(pgdp) = __pgd(big_pte);
+ }
+ 
+-/* Map sp_bank entry SP_ENTRY, starting at virtual address VBASE. */
+-static unsigned long __init map_spbank(unsigned long vbase, int sp_entry)
+-{
+-	unsigned long pstart = (sp_banks[sp_entry].base_addr & PGDIR_MASK);
+-	unsigned long vstart = (vbase & PGDIR_MASK);
+-	unsigned long vend = PGDIR_ALIGN(vbase + sp_banks[sp_entry].num_bytes);
+-	/* Map "low" memory only */
+-	const unsigned long min_vaddr = PAGE_OFFSET;
+-	const unsigned long max_vaddr = PAGE_OFFSET + SRMMU_MAXMEM;
+-
+-	if (vstart < min_vaddr || vstart >= max_vaddr)
+-		return vstart;
+-
+-	if (vend > max_vaddr || vend < min_vaddr)
+-		vend = max_vaddr;
+-
+-	while (vstart < vend) {
+-		do_large_mapping(vstart, pstart);
+-		vstart += PGDIR_SIZE; pstart += PGDIR_SIZE;
+-	}
+-	return vstart;
+-}
+-
+ static void __init map_kernel(void)
+ {
+-	int i;
++	phys_addr_t start, end;
++	u64 i;
+ 
+ 	if (phys_base > 0) {
+ 		do_large_mapping(PAGE_OFFSET, phys_base);
+ 	}
+ 
+-	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
+-		map_spbank((unsigned long)__va(sp_banks[i].base_addr), i);
++	for_each_mem_range(i, &start, &end) {
++		unsigned long vbase = (unsigned long)__va(start);
++		unsigned long pstart = start & PGDIR_MASK;
++		unsigned long vstart = vbase & PGDIR_MASK;
++		unsigned long vend = PGDIR_ALIGN(vbase + end - start);
++		const unsigned long min_vaddr = PAGE_OFFSET;
++		const unsigned long max_vaddr = PAGE_OFFSET + SRMMU_MAXMEM;
++
++		/* Map low memory only. */
++		if (vstart < min_vaddr || vstart >= max_vaddr)
++			continue;
++		if (vend > max_vaddr || vend < min_vaddr)
++			vend = max_vaddr;
++
++		while (vstart < vend) {
++			do_large_mapping(vstart, pstart);
++			vstart += PGDIR_SIZE;
++			pstart += PGDIR_SIZE;
++		}
+ 	}
+ }
+ 
 -- 
 2.43.0
+
