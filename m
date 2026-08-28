@@ -1,21 +1,21 @@
 Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7EB63D646B;
-	Fri, 28 Aug 2026 12:37:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 446D944A701;
+	Fri, 28 Aug 2026 12:37:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787920675; cv=none; b=hwrkbIpKbx1wz/s7Uzi+lqdxqKRBqi7uDSYuISVzCceXxSMobmc4oEHORi278FC4T08OLQmrDYe1WhtO8wpLT60aUwrK2AFEMZhZkRRwHniq3BPcNE98aJ1nVxLG5QReRc2/WXxapohwKoFFFw1fdM/CWHoxSdZ7Y6oJF6gKsSc=
+	t=1787920673; cv=none; b=PChTb8iW4vosZzHwpm6J1dilJ5uzIBrfxMHAxluIe/DZV1Ou4T1A3ARsUfmBNKJVpLVxA5ifdPKPU8vmStaFP8VF5OnNTfyR5Nag2Mziijew7f6i/DYTmZvL+/cWJSAIHyE7sKySjt6Ccbjd0hEgNKGra/iQlxocYwjdaWOvSNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787920675; c=relaxed/simple;
-	bh=oo6KV7zUyyEiWTF/mpP3ZgTJ52TgOt9ofBBLTeyNrNs=;
+	s=arc-20240116; t=1787920673; c=relaxed/simple;
+	bh=OmY+8PZlHKkkMXWeh0ben5lXrY6btWYfaFgkAQqKTMY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bYg8wSWBXAaz0jQMtSnecZD0gtVJNe55xlizx+ISe5gGxiPTrB85WU6OEGQfLEdPswyc0hjE99k8eKIptDzb21jU29dJwPj8zQdxHWmnyDsfAxoEfcszpliGlviNbupM39VFem9JjJE2h5vj+sJ20IUoTlSUCTN0kX1ygwqqzqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=lXxyGBOZ; arc=none smtp.client-ip=91.189.121.228
+	 MIME-Version; b=atR6XPVwy0XyLYn6NvPlZ6Cpylhk5WnYOg6xVPxL4fwyJxqcv7GgWWmuTgMeoU97dw8q6BKQ09TeeOYV2LAahxxpIgWlYJ4os2kE0+gb2emL6MEaRbHvzVbhRnO+5vIm9ISirfW5yk2DVP6VSXtoLvnAutwbi1+4i3m5VyRvtAg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=Msat1m7/; arc=none smtp.client-ip=91.189.121.228
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="lXxyGBOZ"
+	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="Msat1m7/"
 From: Stian Halseth <stian@itx.no>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
 	t=1787920659;
@@ -23,19 +23,19 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=pxrgltKwht0j2/GB66AG5cKTYHSGd5M+OZGr77Ffeps=;
-	b=lXxyGBOZsc9LbfVTjuxGvaK9k/v97BxkhiyTWetJNV8x6bddDhNyQIw6pYabQtho68TJF2
-	Q35siAt/0IcrsOqDfuy3hXOgoG4bmWeUgmFJPXidtDSmcqlevHzGgNqPWZUQzof6vuuksa
-	EQlsAC/TWy6jXmpiv/y7XV0Z4jEpggs=
+	bh=f8O/Xp9V6094Ri0HZFEnYjkpNf8IyEr6Jqh1UvzCjF4=;
+	b=Msat1m7/7vm1lPQRiZGUxDxwMs4lBbDDOeLPN8/+Vef7zKWc8WzTDqZhxFQCQ+ebSHsJYF
+	LAjWJqBYhkr0hpq9f2wBpXdmB76ZLgVeClgGeEWvYMCW2xxTlwgm0eOCTjeu1ysculaszI
+	0NcEAGFX+j4i39RjszNz1EngoD5VO1U=
 To: davem@davemloft.net,
 	Andreas Larsson <andreas@gaisler.com>
 Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	glaubitz@physik.fu-berlin.de,
 	Stian Halseth <stian@itx.no>
-Subject: [PATCH 1/3] sparc64: restore %asi in user_rtt_fill_fixup_common
-Date: Fri, 28 Aug 2026 14:37:05 +0200
-Message-ID: <20260828123707.1852437-2-stian@itx.no>
+Subject: [PATCH 3/3] sparc64: decide the TSB huge-page window fixup before the bank switch
+Date: Fri, 28 Aug 2026 14:37:07 +0200
+Message-ID: <20260828123707.1852437-4-stian@itx.no>
 In-Reply-To: <20260828123707.1852437-1-stian@itx.no>
 References: <20260828123707.1852437-1-stian@itx.no>
 Precedence: bulk
@@ -46,62 +46,77 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A window fill that faults re-enters the kernel through
-user_rtt_fill_fixup_common(), which does not pass through etrap.  rtrap
-has already set %asi to ASI_AIUP for the fill, and etrap is what would
-normally re-establish ASI_AIUS from the TSTATE it synthesizes, so the
-kernel carries on with %asi = ASI_AIUP while the primary context has
-just been restored to the kernel's.
+The huge-page path in the TSB miss handler has to route a fault taken
+during a register window spill or fill away from hugetlb_setup(), since
+a trap stack cannot be built at TL > 1.  That test is made after
 
-Every %asi-based user access made from there - put_user(), get_user()
-and everything built on them - then translates in the kernel context.
-User addresses below the VA hole fault forever, because nothing ever
-fills a context-zero translation for them, and the CPU is wedged in
-kernel mode: the task survives SIGKILL, sits in state R at 100% CPU,
-and takes the machine down once RCU stalls.  Addresses above the hole
-fail more quietly, silently aliasing the kernel linear mapping.
+	wrpr	%g5, PSTATE_AG | PSTATE_MG, %pstate
 
-Restore the invariant before any user access is attempted.
+(SET_GL(1) on sun4v) has already switched the global register bank.
+%g3, holding the fault code, and %g5, holding the PTE, live in the TLB
+miss handler's globals and do not survive that switch, so the branch to
+winfix_trampoline passes on whatever the new bank happens to contain: a
+stale fault code and a garbage fault address.  The task is then killed
+with SIGSEGV pointing at an address that was never mapped.
 
-Fixes: 7cafc0b8bf13 ("sparc64: Fix return from trap window fill crashes.")
+The path predates the fault code being passed at all; it was given one
+when winfix_trampoline's %g4 requirement was fixed, and the register it
+reads has been the wrong bank's since.
+
+Make the decision before the switch and route to tsb_do_fault, which
+re-reads both from the MMU after switching banks, rather than entering
+winfix_trampoline with registers that no longer mean anything.
+
+Fixes: 84bd6d8b9c0f ("sparc64: Fix corrupted thread fault code.")
 Reported-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Link: https://github.com/sparclinux/issues/issues/87
 Signed-off-by: Stian Halseth <stian@itx.no>
 ---
- arch/sparc/kernel/urtt_fill.S | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/sparc/kernel/tsb.S | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/urtt_fill.S b/arch/sparc/kernel/urtt_fill.S
-index e4cee7be5cd0..5acd27b18b1e 100644
---- a/arch/sparc/kernel/urtt_fill.S
-+++ b/arch/sparc/kernel/urtt_fill.S
-@@ -1,4 +1,5 @@
- /* SPDX-License-Identifier: GPL-2.0 */
-+#include <asm/asi.h>
- #include <asm/thread_info.h>
- #include <asm/trap_block.h>
- #include <asm/spitfire.h>
-@@ -32,6 +33,20 @@ user_rtt_fill_fixup_common:
- 		sethi	%hi(KERNBASE), %g1
- 		flush	%g1
+diff --git a/arch/sparc/kernel/tsb.S b/arch/sparc/kernel/tsb.S
+index eaed39ce8938..a70d5b124a80 100644
+--- a/arch/sparc/kernel/tsb.S
++++ b/arch/sparc/kernel/tsb.S
+@@ -144,6 +144,26 @@ tsb_miss_page_table_walk_sun4v_fastpath:
+ 	bne,pt		%xcc, 60f
+ 	 nop
  
-+		/* rtrap set %asi to ASI_AIUP for the window fill, and
-+		 * we re-enter the kernel here without passing through
-+		 * etrap, which would have re-established ASI_AIUS via
-+		 * the TSTATE it synthesizes.  The primary context was
-+		 * just restored to the kernel's above, so a leftover
-+		 * ASI_AIUP makes every %asi-based user access (put_user,
-+		 * get_user) translate in the kernel context: user
-+		 * addresses below the VA hole then fault forever
-+		 * (nothing ever fills a context-zero translation for
-+		 * them), and addresses above it silently alias the
-+		 * kernel linear mapping.  Restore the kernel invariant.
-+		 */
-+		wr	%g0, ASI_AIUS, %asi
++	/* If this fault came from a window spill or fill (TL > 1),
++	 * we cannot build a trap stack and call hugetlb_setup() from
++	 * here.  Route it through tsb_do_fault instead, so that
++	 * do_sparc64_fault() runs and its huge-TSB grow check
++	 * allocates the TSB before the access is replayed.
++	 *
++	 * This must be decided before the register bank switch below:
++	 * %g3 (the fault code) and %g5 (now the PTE) live in the TLB
++	 * miss handler's globals and do not survive it.  Consuming
++	 * them after the switch, as this path used to when it went to
++	 * winfix_trampoline directly, records a stale %g3 as the
++	 * fault code and a stale %g5 as the fault address, and the
++	 * task is then killed with a SIGSEGV at a garbage address.
++	 * tsb_do_fault re-fetches both from the MMU after switching.
++	 */
++	rdpr	%tl, %g7
++	cmp	%g7, 1
++	bgu,pn	%xcc, tsb_do_fault
++	 nop
 +
- 		mov	%g4, %l4
- 		mov	%g5, %l5
- 		brnz,pn	%g3, 1f
+ 661:	rdpr		%pstate, %g5
+ 	wrpr		%g5, PSTATE_AG | PSTATE_MG, %pstate
+ 	.section	.sun4v_2insn_patch, "ax"
+@@ -152,10 +172,6 @@ tsb_miss_page_table_walk_sun4v_fastpath:
+ 	nop
+ 	.previous
+ 
+-	rdpr	%tl, %g7
+-	cmp	%g7, 1
+-	bne,pn	%xcc, winfix_trampoline
+-	 mov	%g3, %g4
+ 	ba,pt	%xcc, etrap
+ 	 rd	%pc, %g7
+ 	call	hugetlb_setup
 -- 
 2.43.0
 
