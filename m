@@ -1,63 +1,63 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B16292EB874
-	for <sparclinux@vger.kernel.org>; Sun, 30 Aug 2026 12:08:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0659C3B3BF2
+	for <sparclinux@vger.kernel.org>; Sun, 30 Aug 2026 12:08:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788091683; cv=none; b=C22vd8QKADv5/kM1m+p22rneH4sRIHtxpHFEgaEUKIHIP0aIZ1H/EWyhgpUNjJlu856eSbAMFKOboQ0hzmoy7xnTaPnuPFKEMvTz+z8Ez7h/zqrrjCZuJ+xCAnqKmkaCFurNu7Vg78J4FLksIOYx19Bc7Wwc74idcMYUiYJ/vmY=
+	t=1788091685; cv=none; b=tzMVX2AtVlu2+5Y+fXUYAoFKHXUEf/OfnWSLdmKaL4Wobt5bV4CWY2dzvhJzkhkR/wlFqbh0/+A2Sbwn8h1vGox8UzQHgdLnYL8aXmo13MPqekM3tj9w1oU0sv35RWxVGCOxv8dSirJJ+FloFwuayH7rmp6xyYhgSJWp03mILBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788091683; c=relaxed/simple;
-	bh=kBYbgY9C1IVSMpDCAy1CI3kRgaJc78wxHYafgcraeKw=;
+	s=arc-20240116; t=1788091685; c=relaxed/simple;
+	bh=VmbFlELFJ3Rn+I0JOfMdlDLEE3OEnrmuWAkyZTBARKw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qJwxoDkWDae0Uw/TVqcWrhfs1xHOwZpKAVYkLmzbS0yHz5Hi7sEf3mBTktyetKZHpfYPfb6AXvuzpMtqHCazGs4DXSeNtENaQEfBPiJlJmtsl+uKpRU5GOv0LMopj5ZKinhdiM/MiyhUFYHuJDxTUjgBYFS4oZVJ2LaB3BOExlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EZMKFqJt; arc=none smtp.client-ip=209.85.218.43
+	 MIME-Version; b=r6aK/oEykbn4GLpCuWrwBe1XPSpFhNEDS98pURYcTuN8bzoWZCkYwkvSm3sbGK0ePjGjZ6sJIdjwoudtdB2/MOOgHkKzP6cYcZpnAjQrHJ7zdXRR1eJl1FjCB1kG1d+ZtNFLhWjLslnwNbQVBMONtUDGgyV2vMA78Zdcia47YXs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kUKynZOk; arc=none smtp.client-ip=209.85.218.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EZMKFqJt"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c2074710751so337020466b.1
-        for <sparclinux@vger.kernel.org>; Sun, 30 Aug 2026 05:08:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kUKynZOk"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-c2569aa5116so250660666b.0
+        for <sparclinux@vger.kernel.org>; Sun, 30 Aug 2026 05:08:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788091680; x=1788696480; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1788091681; x=1788696481; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=7o67oyyTyEc09pnUJGRRIXfdxc355uJN1B7XMFhIUSM=;
-        b=EZMKFqJtQmOB8gT4GU5ZCwQFZUrkm/BDpyWV3b3WTfleh2sj+Yile9pGGXq2LF8ebo
-         F1zlMGUfiP+08hv1dmaGR28BQHFbkPAogwtlNrN1KykSFx6n/zO6rTTfTDbRunTh4cWK
-         Hij2eweYEnB0PVLVppoy9cbhukOYGOQNyIr3UBxWn2vBCZz3cCAOEl/0W/SO+/R9V2JS
-         6cjiGE6oDq8J1dSWy9h8IGSfRhfoP3bGCiMP/B2ZbCtIZUlIJpOCvC5C329mkiSzN4dj
-         RUti3J0btPhsTO10EK7Oi+yr8XJ9QBUDf0mFxGpn91fPmsXyUz/pQcWCEWQBdrH2If14
-         pYfA==
+        bh=uJ7HB4Zmwe3amRULeH6fSoLAudldxAC6NdOXYXWuTOQ=;
+        b=kUKynZOkJTzl3jCgeGVf25oKJ285QGb/XO9krKc6Zp8qZH1eqybC8+4xiZpfMHhfgq
+         YDAYhw8FLUG3dDLnCjO4kRLBYkDg+erVwByOFmDzgzUEiNHnnOVkGLspNSInxQrthrvk
+         5+0gM/7iPyFos1nQboGirqRmQi+V0Hs8YFg8Vy9Wnym4WNeUa+/Ocxr0VQ0FBRU95Z8U
+         7PP1I8euDpfvFEkcsOfsZKKuzeiHYLxtiCCXsW46klFN2G9sjkUg0rKvTYsgi6kzVTbs
+         0IHpQM0noLdqeTmUVK2Kuwr7qUWsvp7fNqQjDZnUTzh5f+KKpCzeyODODVE3PPGTT/1v
+         9Dug==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788091680; x=1788696480;
+        d=1e100.net; s=20251104; t=1788091681; x=1788696481;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=7o67oyyTyEc09pnUJGRRIXfdxc355uJN1B7XMFhIUSM=;
-        b=NE/uhMWe8v11jM7rYm+I8/FLvUXDzUdEZojwylmH/TWGgB6vsmY4MwIqzsgX/PE183
-         /D+/kxYuifaWtHwFnfEN+i6NdV3Xu9odppuRw+ai2ofIL914PXhiAJaOTKTYKGotGbWB
-         7jwsSpdqqg2L5VySPphbhLJ9YALnBsgBgVSKPltbZkKAZePqhbMMU3SP8n5MjAi0C1Ia
-         seke50/u9PUvl2dgmYE+vlkaEN44lkMxMGHO38pbbgJ998a4UiCsna1SikMKBjr77BX8
-         GeBRmfftlRcxitSSZFfBAQKv4lkjnNGc//qexw+5GATNGmodYpEI7Ah1K42uYddJqFPL
-         pJMg==
-X-Gm-Message-State: AFuF++mtnSr4TN2DFR7eanKQtkFawBM7kFB9AKqiqo1bsL8sxLPW5yI7
-	zZkCZQJvIMHuQzJYUXB8UvmEkrRaXLZRPx+pV9H8ZHNv9slktvpWWuKdZAwDzVaU
-X-Gm-Gg: AR+sD10FiFtH7OUrnxOf4bAqTwZYAsp5ahoilqowAw9cONyuDtyPVrpCTA/+NbXznma
-	iMqnLkAsil14SWykXoEa8jknt1A5zo4bWMqoOH5IrI2l1vVyCE/Qfk/bGA4sMDLypw2kW8e4wv3
-	Rp18ul7q13GXQve6I406ozxaVfc3LwWmobyK1nmAheOj2sjQEoLnpzeecQttAYls2joL/iS9fOv
-	qbdij7zJVMydPfmH4DKmyEmzYBW8JbqCwIe1CPBeJuMSvp5hg1Tpbgf6FAIVdkYuimp/9azH9EH
-	TnQ/5EfPCkkMv8Wi0+DBAMtav4KH95wckKP9FblMmfjuNlQApfoQ3Z+I7rahRUzWcOUVyjhHVv3
-	BuAG6bGuS2bmybbb2IM1QFaVU3zQSnyRzqxjNBmZnyKuAYt0c/nbFQNA9RA7EFPfYHHlyZuVuRP
-	8x6CJqbr65Q1CySbTgt3SXiww6w0wtLroUSKJqXDXIah4bsnqdYK07gbsfkvO3IBJ2SjvhT4cyq
-	6uiG1Q+dL71axeL/IV1Pwmm3KnQnqSxFZyCqWCnmQ==
-X-Received: by 2002:a17:907:c01c:b0:c21:382e:9a38 with SMTP id a640c23a62f3a-c2556c18e20mr1323915266b.2.1788091679662;
-        Sun, 30 Aug 2026 05:07:59 -0700 (PDT)
+        bh=uJ7HB4Zmwe3amRULeH6fSoLAudldxAC6NdOXYXWuTOQ=;
+        b=DNjgoU/IgpJnRgo04ONH2XmTKX75tRjmwXMJ6xYRb7vt9TwuHkr3hYXVY/YMlvzAip
+         8OOJPUDdJxH1+qMiZdnxz10F5BCcNEdHndaRX5++VBL/RMPnVTO4qCu5Umjqs2ISw+kn
+         HawJLqtaL+/yuGorvrwcBkIPbRTtomAJtR82sl2PWzqqCE3Xb1ZNdJ3JaRQrwbYNMyqh
+         sOGguteXg61X4ezpf/9QYPmgYuEkXqMMweLuNWu7K6zcByD19xsg6g1gP9JYPnT1+TFJ
+         AqkK7lBKEKs7r9K2NFITmUdO7nL6OdEHJE79SYZG8NpHlVPHNUety0cIvQ2ks0RQcEU7
+         58tQ==
+X-Gm-Message-State: AFuF++moy7MEwa5nfiDBIiPKugqA0GGnAxTYm2aizzmYHDd6xCzfkcVs
+	EJ16pj74sifgUozoak0N7Cb9VFEl+l5D4s/Y8gQUL8sCxV4M2e/aasCtdIHNKJrS
+X-Gm-Gg: AR+sD121A8OfBs6WsLuNDNopFZL6ZxYdPE1yTpPVa8NyyAjUYhvHZShh7dmBbwu2jNT
+	EDOsl4ikNvGuQrSgOp18Wdr/4NdOa8Q0zFnJmFvBGWOvTKyR5S/D+nzjGkquzS9by08I0flD+ne
+	dJprOp9riD6mr1lbZlF4TRw+pi/1XUYU7jeoz92y605euNqtain/nzLAscwOxUN86vU8ymoW1cv
+	KgVXs1+XwEzjRuSYnpMxSzoUh2qJHZaJWtzioXAG5KVnygngk6VWTZAP/OHmFeTlGVOQCpG2WCD
+	LKE/Z1iIhXTa3BA4YtLItnoypXFG687cx9GwJgENFhb6qu8lPrJl3dUcLkuCDpVzJXzk5Q8pFGW
+	MSKFIIayRumj0k9WvqH+xWVXARkmNfF8Dm33aJNMgfQbKKjh2RTVhm3apxg20dRryyEVCD0SLsA
+	DaGLHb5ofTx73Kde5p713SlRKVPYS7J4pasOgdvvlkz26XZ13TAoNEAGU+uMgxdByhrk+JhjiEf
+	rAMeoOCRO/anJ2EWpW0W5UsTAS2UQg=
+X-Received: by 2002:a17:906:99d4:b0:c25:3e36:acc8 with SMTP id a640c23a62f3a-c25966d7ff6mr110233066b.4.1788091680875;
+        Sun, 30 Aug 2026 05:08:00 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c255ee09eb6sm304287966b.10.2026.08.30.05.07.58
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c255ee09eb6sm304287966b.10.2026.08.30.05.07.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 30 Aug 2026 05:07:59 -0700 (PDT)
+        Sun, 30 Aug 2026 05:08:00 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: sparclinux@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -66,9 +66,9 @@ Cc: davem@davemloft.net,
 	sam@ravnborg.org,
 	glaubitz@physik.fu-berlin.de,
 	Magnus Lindholm <linmag7@gmail.com>
-Subject: [PATCH v2 2/6] sparc32: use memblock to find available system memory
-Date: Sun, 30 Aug 2026 14:06:41 +0200
-Message-ID: <20260830120742.20950-3-linmag7@gmail.com>
+Subject: [PATCH v2 3/6] sparc32: populate memblock from the PROM memory map
+Date: Sun, 30 Aug 2026 14:06:42 +0200
+Message-ID: <20260830120742.20950-4-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260830120742.20950-1-linmag7@gmail.com>
 References: <20260830120742.20950-1-linmag7@gmail.com>
@@ -80,47 +80,65 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The SRMMU nocache pool is sized after memblock has been populated. Use
-memblock_phys_mem_size() instead of summing the private sp_banks array.
+Add each available PROM memory range to memblock as it is discovered.
+Keep populating sp_banks temporarily so the remaining users continue to
+work while they are converted in the following patches.
+
+Since the complete PROM map is now present before bootmem_init(), enforce
+the mem= limit after the legacy bank processing. Adding a smaller
+overlapping range would otherwise leave memory beyond the requested limit
+in memblock during this intermediate commit.
 
 Suggested-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/srmmu.c | 14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ arch/sparc/mm/init_32.c  | 3 +++
+ arch/sparc/prom/memory.c | 3 +++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 483235458d69..3029527a5a9f 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -226,25 +226,13 @@ void srmmu_free_nocache(void *addr, int size)
- static void srmmu_early_allocate_ptable_skeleton(unsigned long start,
- 						 unsigned long end);
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index e0e66f91ceeb..75050dfbc2ea 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -165,6 +165,9 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+ 		memblock_add(sp_banks[i].base_addr, sp_banks[i].num_bytes);
+ 	}
  
--/* Return how much physical memory we have.  */
--static unsigned long __init probe_memory(void)
--{
--	unsigned long total = 0;
--	int i;
--
--	for (i = 0; sp_banks[i].num_bytes; i++)
--		total += sp_banks[i].num_bytes;
--
--	return total;
--}
--
- /*
-  * Reserve nocache dynamically proportionally to the amount of
-  * system RAM. -- Tomas Szepe <szepe@pinerecords.com>, June 2002
++	if (cmdline_memory_size)
++		memblock_enforce_memory_limit(cmdline_memory_size);
++
+ 	/* Start with page aligned address of last symbol in kernel
+ 	 * image.
+ 	 */
+diff --git a/arch/sparc/prom/memory.c b/arch/sparc/prom/memory.c
+index 269d6ab5ef5e..59962bc0bc82 100644
+--- a/arch/sparc/prom/memory.c
++++ b/arch/sparc/prom/memory.c
+@@ -7,6 +7,7 @@
   */
- static void __init srmmu_nocache_calcsize(void)
- {
--	unsigned long sysmemavail = probe_memory() / 1024;
-+	unsigned long sysmemavail = memblock_phys_mem_size() / 1024;
- 	int srmmu_nocache_npages;
  
- 	srmmu_nocache_npages =
+ #include <linux/kernel.h>
++#include <linux/memblock.h>
+ #include <linux/sort.h>
+ #include <linux/init.h>
+ 
+@@ -23,6 +24,7 @@ static int __init prom_meminit_v0(void)
+ 	for (p = *(romvec->pv_v0mem.v0_available); p; p = p->theres_more) {
+ 		sp_banks[index].base_addr = (unsigned long) p->start_adr;
+ 		sp_banks[index].num_bytes = p->num_bytes;
++		memblock_add(p->start_adr, p->num_bytes & PAGE_MASK);
+ 		index++;
+ 	}
+ 
+@@ -42,6 +44,7 @@ static int __init prom_meminit_v2(void)
+ 	for (i = 0; i < num_ents; i++) {
+ 		sp_banks[i].base_addr = reg[i].phys_addr;
+ 		sp_banks[i].num_bytes = reg[i].reg_size;
++		memblock_add(reg[i].phys_addr, reg[i].reg_size & PAGE_MASK);
+ 	}
+ 
+ 	return num_ents;
 -- 
 2.43.0
 
