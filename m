@@ -1,91 +1,71 @@
-Received: from mout-p-202.mailbox.org (mout-p-202.mailbox.org [80.241.56.172])
+Received: from mailrelay-egress4.pub.mailoutpod2-cph3.one.com (mailrelay-egress4.pub.mailoutpod2-cph3.one.com [46.30.211.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A9A33B42EB;
-	Sun, 30 Aug 2026 12:56:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38373815DD
+	for <sparclinux@vger.kernel.org>; Sun, 30 Aug 2026 17:22:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788094585; cv=none; b=aPZQKPdSy06erS6Kg61CesPp1GsLIy1b15/zBMmoNbOS/pF3dRJKnF/vrjA8zQO2/N9MzbpbzLVuSJppfm2Vx1ZY+6FHYuIn3o3+SV0ASZPEPDkgKjcjbgwX7mOvkw4Jg7e0Uh8DbjF248iPVmoMdov8giuCA+xENZ2gYX6SBKA=
+	t=1788110575; cv=none; b=qeDwu7tajQaMAW9pCXBUkm8w2tRCEDpbBqRNVFjegh0u9sVVjjUv/f7xRjnR8widw31toCx5yBKiouX9F8h7eQCNur7MEHBcFh4fXvic+1OgJJwZK0359ODdbHQtfSGT3H3CvEpGtodY2KY3QeTDkYEV/iBRY39LaV7CIAYAjgo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788094585; c=relaxed/simple;
-	bh=H1zD2pLjI680g5/OJbjQdx7WVWDNX9BDJOGjwqEnQx4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XDraER+J0Kh9tB3IYEzlQtU5GTVeAADjTne5V7KHP87NfOrR/XQWuRr8tfV9myEly4omJAqGmaErTDC+SWcXQks1+vhYCjo+4f9prbL4nexJxP+81rGqdzJ3/o+jarQGT4t59lmCSVFXTobRKZPLzQJYfWpv5U8BMywQXr7Ti/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org; spf=pass smtp.mailfrom=mailbox.org; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=aFwuAh/h; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=qDbDKdEs; arc=none smtp.client-ip=80.241.56.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailbox.org
+	s=arc-20240116; t=1788110575; c=relaxed/simple;
+	bh=tyWZoQAQblOmCVI+PbxPrKMuMatAbXJUuZAqwdCG7xk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=i+B/x6UdVAQBCFGYLs+L/SjnPb/wusmSPzrTiBBHA8BFz+gdhiorZAaErirthw18PJfcny7cioGaw9zVSygpT6GVftW+o26+kLBBKe/rUuOI82SRuAxesayLpn3vgu15vPOmohehg1mtNPqZ8/veP1CCltwxKpbf5h7As8bQxAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=IDCWZFK1; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=hjAMNVy/; arc=none smtp.client-ip=46.30.211.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="aFwuAh/h";
-	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="qDbDKdEs"
-Received: from smtp202.mailbox.org (smtp202.mailbox.org [10.196.197.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mout-p-202.mailbox.org (Postfix) with ESMTPS id 4hXsZ554nfzMlK6;
-	Sun, 30 Aug 2026 14:56:13 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
-	t=1788094573;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=RLZ0HwhGINaP5EA/WEgAvRaXyZ65SyZetSkgoRNegjU=;
-	b=aFwuAh/hAFj9t1JCrVwFehKq7bri3P+IUqn+OjzIkyUQKgtszYwX42+hFOmb8D5mviPCSd
-	Alf3CMFNVSSAi8gzI0tLN3R8KiHCnkk1m90GlFDzKLMbuXcj3/DuFaxh8VZRM9hXLVNkze
-	bU1ggeyTRAKeZRI81sADI9wzua2m8dNUl6Q29N4Z36RTnZiNcDupMjF8iT/L8Bd5HNIxFC
-	MLbrTvcaYNrlRYJ8yhh+VFp7TZ9fooC/w2t7moFOe4wNY0qDrmNLMcdnXTyH25xLT7w/5J
-	epGgdbtQgMqEHFgXviljYFyoAw6Br5iR31JmH4TSwgD5dKcwP73QGPB/udwT7g==
-From: Manuel Ebner <manuelebnerli@mailbox.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
-	t=1788094572;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=RLZ0HwhGINaP5EA/WEgAvRaXyZ65SyZetSkgoRNegjU=;
-	b=qDbDKdEs5Z1xu/eeejnuEFFKJq3CEX/v9kYH13We9X7v8LHaVQTC8lSVe9hRl9bMG5ZA0B
-	n9EpWzWpEkuCZQwaG0v1Wie6rKej7/ChM4RJDnlLGO8O3fYrOvcfC58+a/FSG3e+7SGISG
-	BOx/4Ow7hu+dHlPWavsigK8IXlIWacKGm357VMAoHrbyypaKi9Ok5Bscrw95//VawhgBAd
-	sbBQF82g5iEwOXNNFMXjAJdaYQZyO7UmFmoLJTkXm9x7Y/xe+kyUb7+lG8ctdktC8FagKD
-	Qg0LQIp9W2Y63vhM6wGQKxlwWqR98jV5G/6jpA1bxktDN72CrmxLFI+B1AVAZg==
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: Manuel Ebner <manuelebnerli@mailbox.org>,
-	Bhaskar Chowdhury <unixbhaskar@gmail.com>,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc: NMI: Remove obsolete comment
-Date: Sun, 30 Aug 2026 14:55:05 +0200
-Message-ID: <20260830125506.632168-2-manuelebnerli@mailbox.org>
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="IDCWZFK1";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="hjAMNVy/"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1788110558; x=1788715358;
+	d=ravnborg.org; s=rsa1;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=S6AnUn2esV66ylB6zaKCehVlp7CaVncyvopYVMYp8yM=;
+	b=IDCWZFK1J68IevBYTNWD/js+nn/SdlycHJ3rTWeQEpzfrNY0G9pJ3mPmVe3wFzaRM/BCNhUZDp2BO
+	 EspXP9tIwbgXCGjBoC7pDPVMbOnJqOAvbQE7YG+YwDQUNkxYzVf5yyGx9vBSnYkw/UuL4S3PuR9A7h
+	 Wuh7/HkYVTgBy4hKWGMmglcXusbyQyfhhkFEkAnjjm4zK93GOlBOknNBlcOg2xcQ6mPwu0Qj/pp2fx
+	 uuAbM+saG6cbZZ0czCtsgDO0vOHMIP6QtpoJjSKgJIgwi50ISkaqy1sJ67bHdcJsz7vZ+Z5b0Srr5b
+	 kaX/ioxnfDO6XLlhfrqdxA3Q8zzwsvQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1788110558; x=1788715358;
+	d=ravnborg.org; s=ed1;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=S6AnUn2esV66ylB6zaKCehVlp7CaVncyvopYVMYp8yM=;
+	b=hjAMNVy/s01mFFL0UqLy33R0xjLElrq5L5Pxk+wMEpU6/aGpRVMXix8ABnQSkpsU6Z8dCMIGXqkx2
+	 kARZUsLDg==
+X-HalOne-ID: 6534019c-a497-11f1-98ec-579199b74f77
+Received: from ravnborg.org (unknown [2a00:fd01:81e9:6100:f5ac:d3d2:8b9f:e425])
+	by mailrelay5.pub.mailoutpod3-cph3.one.com (Halon) with ESMTPSA
+	id 6534019c-a497-11f1-98ec-579199b74f77;
+	Sun, 30 Aug 2026 17:22:38 +0000 (UTC)
+Date: Sun, 30 Aug 2026 19:22:37 +0200
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Magnus Lindholm <linmag7@gmail.com>
+Cc: sparclinux@vger.kernel.org, davem@davemloft.net, andreas@gaisler.com,
+	linux-kernel@vger.kernel.org, glaubitz@physik.fu-berlin.de
+Subject: Re: [PATCH v2 4/6] sparc32: drop unused valid address bitmap
+Message-ID: <20260830172237.GA173328@ravnborg.org>
+References: <20260830120742.20950-1-linmag7@gmail.com>
+ <20260830120742.20950-5-linmag7@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-MBO-RS-META: jshafit6zj5y9j6jtdmotws7htgtawym
-X-MBO-RS-ID: b19ad3c68e5209a608b
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260830120742.20950-5-linmag7@gmail.com>
 
-OProfile has been discontinued as of commit 8e9fa2f21151 
-("oprofiled version output line removed from the list")
+On Sun, Aug 30, 2026 at 02:06:43PM +0200, Magnus Lindholm wrote:
+> sparc_valid_addr_bitmap is populated during early memory setup but never
+> read. Remove the bitmap, its allocation and the population helper.
+> 
+> Suggested-by: Sam Ravnborg <sam@ravnborg.org>
+> Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 
-CC: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Signed-off-by: Manuel Ebner <manuelebnerli@mailbox.org>
----
- arch/sparc/kernel/nmi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Good to have this dead code gone.
 
-diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-index 149adc094..1571d6298 100644
---- a/arch/sparc/kernel/nmi.c
-+++ b/arch/sparc/kernel/nmi.c
-@@ -41,7 +41,7 @@ static int panic_on_timeout;
-  * <0: the NMI watchdog has not been set up, and cannot be enabled
-  *  0: the NMI watchdog is disabled, but can be enabled
-  */
--atomic_t nmi_active = ATOMIC_INIT(0);		/* oprofile uses this */
-+atomic_t nmi_active = ATOMIC_INIT(0);
- EXPORT_SYMBOL(nmi_active);
- static int nmi_init_done;
- static unsigned int nmi_hz = HZ;
--- 
-2.54.0
-
+	Sam
