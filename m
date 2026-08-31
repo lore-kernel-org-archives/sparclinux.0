@@ -1,144 +1,218 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E563390CAC;
-	Mon, 31 Aug 2026 18:07:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 646DF3B8130
+	for <sparclinux@vger.kernel.org>; Mon, 31 Aug 2026 18:25:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788199658; cv=none; b=VDZXXMEpdz2/zHiZ9JwJMmulEqGjnlEm7pfi4CXrsprSQywulux7bQrOjcJjQZIm5i1L0jbTcHIXE4ebWl8/aZ7yREJNiW5NkEIswCZc7Hhe2zLHlg0oYsxU4L6BK1pAN8fXE2up3IS0/PymKZGa/3j6V8In38qP5oPKoSs7P34=
+	t=1788200706; cv=none; b=Xb97es2fIoj57cg9rTQGB/pLu9DNosYIBl+O2NvzncvsMEpf+vPpGaRW7Fx8mOcf43x3wDRv2ZF5rUN1J8W7THUDdUakmikdxZOkrVT12opC5r7YMU7M62nC7w1oWbMMtKJ5fAKkz9XJ+IphjqzYsXBQFlQh6Nhvw3M6At5CLwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788199658; c=relaxed/simple;
-	bh=wlBvWv5wAC+mYLHqVd2/cXFvgyXsx7SGWxIsHuZFY8k=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LBsPytWUo+12f0Gj3r6OAjGBrjipS1MCoAke7btC9oUWhcH+OK2ynJ3CBpf3qtwAaOeI7IVrMNefqzucm4tQrbIdlZTlA301RJ+ZLB96rxx17CV59x/Vna+AfHWki4MNbN7UBIYSNMk38hz3jb7eRK9XvkHYsfiTuLFunbbUjJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=GPDavYa0; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	s=arc-20240116; t=1788200706; c=relaxed/simple;
+	bh=1geMDasm5YEAbcc8lbIMJ8Z0mYy0xqKyIcoPdlMMkQg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=EME7cmPE0YWIa1YfwWF3JaKHmwX34ovCVqexgc11C9a5sDLX3FHDR8/f/FkbdScaaUm2EaixTkyDeYnKtGAVw2l/KiQZvjTQVTK75rccPbCQbSHrWs7FfJdE2oEsXVld+pqngOm85gT5IqYy83mnrux5AlXW+BzDDMzoG2310yg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aEo9tyXt; arc=none smtp.client-ip=209.85.215.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="GPDavYa0"
-From: Stian Halseth <stian@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1788199655;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QWROxA68Nbt4khZYWg/OSJ5zjSHC+mroG5OsDJm8z2Q=;
-	b=GPDavYa0rbB6zLs+pK0yXVZSusP0ltO+/BfAk70NqN6jOpyi0AZYVlj0PPWQURTfjOipSY
-	+miF+BkQ+GPLjq9cMfbc/0Zx1ugirVnVYMxXjyI1dfsq3jobSOXuhTzWOMyaCxn3Dlu4Dl
-	cUVEFFYPvCvCSK2B/VK7LfJipc39bIQ=
-To: tglx@kernel.org,
-	andreas@gaisler.com,
-	davem@davemloft.net,
-	sparclinux@vger.kernel.org
-Cc: Tony Rodriguez <unixpro1970@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	thomas.weissschuh@linutronix.de,
-	regressions@lists.linux.dev,
-	glaubitz@physik.fu-berlin.de,
-	linux@leemhuis.info,
-	torvalds@linux-foundation.org,
-	Stian Halseth <stian@itx.no>
-Subject: [PATCH v3] sparc64: Fix comparator problem with timer interrupts
-Date: Mon, 31 Aug 2026 20:07:27 +0200
-Message-ID: <20260831180728.3097740-1-stian@itx.no>
-In-Reply-To: <20260519022421.5978-1-unixpro1970@gmail.com>
-References: <20260519022421.5978-1-unixpro1970@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aEo9tyXt"
+Received: by mail-pg1-f176.google.com with SMTP id 41be03b00d2f7-cc1cbb64a1fso3734123a12.1
+        for <sparclinux@vger.kernel.org>; Mon, 31 Aug 2026 11:25:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788200704; x=1788805504; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=zg16aUyXsNhWNe3K+DCBkMThZsxzbl8N3Kd+8LFw0cY=;
+        b=aEo9tyXtGNimgrIMSUIZ9lBYkP6+sw5rb0YFS7uDF8pkZqTO3sTNhuEQ5Uw55FGHvp
+         UMQCWZkNedqvW7qWwLN8L0czwPbF4BZnd/TR/E4sCCk5gl5L3BGg+ZJhpkiWnZW3C/Ep
+         YjHky+as5u27md+DERO9iZoQLA4qVB92qKdq2W1f5EWvPkqmD59BigmUXuaUJeCDQLJf
+         xlBKcpn8G/KQ7MGN21clXLqM0/O0tW0aoarHOXcSk2FvXmXvJQ9+Q4Y9FrMfRQelhV0H
+         w9w2k96Kz6J4MTul8gRYqN8991oh0qEy4C5j0IehIGJ1iBfJhMV5ZZoacqu0HsgM/5hF
+         jEpw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788200704; x=1788805504;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=zg16aUyXsNhWNe3K+DCBkMThZsxzbl8N3Kd+8LFw0cY=;
+        b=Bs4ecG81bOfJUXAr9Ka3lqHoHBm+xOMSPpI2+TPWJfZ7QKwzdnpqiNa+sb7UTpRMfW
+         xkOYoZrIEe+t7F1EfkwQQ+bb8fUv2sgQLCVFvhdGKfiwV29EcT4+A0yPXbH3uRQFVgdI
+         9UfCh7ODsqdlnv67D4nl3O0KDVXWw9FmXI22S1R6CrhI9DpwJzcnH9RjkXGqXs/fRD5y
+         myD5TvrDWoh6C2wiPI6HBacuZUJ680YJd4mBGjndZaBkIEZvGCs3+lJ29Kp9IariGyWs
+         bkY4L0rwkPnnVJdqdDFtYmgH4qrWOnZrkoKeQGz/Bmzz25+1JBGVvHS6sRTYpt4T8ZkX
+         2Zug==
+X-Forwarded-Encrypted: i=1; AHgh+RpfYVvr6aGVOgb7OlFcD4y5nAUzt9BocroRGTScl6jcpg1nRDga63GuTVyczCqK8FjzNiUzlK8PXXJQ@vger.kernel.org
+X-Gm-Message-State: AFuF++lBuzbFRsMPNaiVzPjb1h/J59si3ifzdHbLMEQtHFx6yoiq0n2f
+	vZpPcq4SOXtzwJ83BCKdFUnQzDzlCSlAIBhw/QadA4xsyVti62RbnXw8
+X-Gm-Gg: AR+sD11YABLl92ib6tblPkRyze1EWxpWEjlLM6M9J1zesgR10QsHIQ8aEIhRsy7SzPa
+	zsl6oMib4znAfo2BUEPE2YCK6a2u4awEry4fi+k3OGgfFUdS908BxdYm4TPpfLSTEXS12PkxkxB
+	WprxRnJeB9Qn+8HuRaL4lYbBKHHLUOHgSGaN55zRaeVcttKsEFFgKRTize3j/RUbpnGkcsI90Hi
+	/DlLvtrBoeKgOATFbhJJHDpgoPALwHCfBi3FhUMCIQCuK0U8Je0tXPr6SOX6kE/7aQGu0+/HErf
+	by9c36djxWKwY6iMakkOnWPfQqvD9rgZIQc/Q+qJdBDNFfWenxB5BlxaKwbLnddRWWui7RfjuQI
+	OTw/j4OReYY/GYLyiZVCLmGCtBGkb+HoMnkJOmqiDM5iPX2tuU416doIIYTZiWzbUzQus+kYDRn
+	2S+PedUj6dzw5NTCcq1DIR3bKltjbk3lHcoGDCxXtqV93gmVLTaC51K/cQ7NV1y3VWQKXTrbzj9
+	xdisnXoaonor9McwxlxNyYS
+X-Received: by 2002:a05:6a21:46c4:b0:3d1:2f88:913f with SMTP id adf61e73a8af0-3d2681aa0damr46895633637.14.1788200703483;
+        Mon, 31 Aug 2026 11:25:03 -0700 (PDT)
+Received: from [192.168.21.192] ([24.18.106.4])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-142e0dc898dsm29077645c88.9.2026.08.31.11.25.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 31 Aug 2026 11:25:02 -0700 (PDT)
+Message-ID: <afaa8ced-0717-4d62-8ea6-4ecdbf489694@gmail.com>
+Date: Mon, 31 Aug 2026 11:25:01 -0700
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Betterbird (Linux)
+Subject: Re: [PATCH v2] sparc64: increase kernel thread stack size to 32K
+To: Stian Halseth <stian@itx.no>, andreas@gaisler.com, davem@davemloft.net,
+ sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, david.laight.linux@gmail.com,
+ glaubitz@physik.fu-berlin.de, thuth@redhat.com, regressions@lists.linux.dev,
+ nroach44@nroach44.id.au
+References: <20260519075809.8993-1-unixpro1970@gmail.com>
+ <20260831172928.3082853-1-stian@itx.no>
+Content-Language: en-US
+From: Tony Rodriguez <unixpro1970@gmail.com>
+In-Reply-To: <20260831172928.3082853-1-stian@itx.no>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-From: Tony Rodriguez <unixpro1970@gmail.com>
+Hi Stian,
 
-The tick/stick/hbtick add_compare() implementations program the
-comparator and then check whether the write took effect in time:
+Thanks for following up regarding this, I am currently busy with other 
+tasks.  Back in May/June 2026, I also mentioned the following to Andreas:
 
-	exp = read_cnt() + delta_ticks;
-	write_cmp(exp);
-	return (read_cnt() - exp) > 0;
+The combined stack usage is already very close to the 32K limit. If you 
+need an immediate workaround, increasing the stack to 64 K may be the 
+better option. That should provide enough headroom to avoid the stack 
+overflow panics we are seeing.  As of kernel 7.1, I haven't noticed any 
+panics using a 32K stack, but once again a stack size that is so close 
+to the 32K boundary is a concern. But once again, sparc64 definitely 
+crashes with a 16K stack.  The Nvidia/Mellonox mlx5 driver also 
+allocates a big stack on sparc64, which pushes it to the 32K boundary.  
+There may be other drivers that may do so as well.
 
-A nonzero return value means the expiry time was already reached
-before the comparator write could take effect, so the interrupt may
-never fire, and the caller retries with a new expiry:
+The 64K stack is more ideal.
 
-	return tick.add_compare(delta_ticks) ? -ETIME : 0;
+When I compile the kernel with -fstack-usage to generate .su files, on 
+7.1 kerner, the static analysis shows small stack frames for all USB 
+core functions.
+For example:
 
-The check only fails the write when the counter has advanced past the
-expiry time, but not when it is equal to it. In the equal case it is
-unknown whether the comparator write took effect before or after the
-counter reached the expiry value, so the compare match - and with it
-the timer interrupt - may have been missed. add_compare() then
-reports success, the caller does not retry, and the CPU is left with
-no pending timer interrupt.
+hub_event:      2457 bytes  (static)
+hub_activate:   1892 bytes  (static)
+usb_control_msg: 1248 bytes (static)
 
-This results in stalled hrtimers and RCU stalls / hangs under load,
-observed on SPARC S7-2 and T7-1 systems:
+However, my runtime stack tracing shows a dramatically different picture:
 
-    rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
-    rcu: rcu_sched kthread timer wakeup didn't happen for 5259 jiffies!
-    rcu:     Possible timer handling issue on cpu=100 timer-softirq=15
+STACKTRACE: hub_event():entry: 31856 bytes used
+STACKTRACE: hub_activate():entry: 31680 bytes used
+STACKTRACE: usb_control_msg():entry: 30768 bytes used
 
-Treat counter == expiry as failure as well, so the caller retries
-with a new expiry time. After this change S7-2 and T7-1 systems no
-longer hang.
 
-Diagnosed-by: Thomas Gleixner <tglx@kernel.org>
-Link: https://lore.kernel.org/all/87tssb6olo.ffs@tglx/
-Link: https://lore.kernel.org/all/871pfcznw0.ffs@tglx/
-Link: https://lore.kernel.org/all/20260519022421.5978-1-unixpro1970@gmail.com/
-Signed-off-by: Tony Rodriguez <unixpro1970@gmail.com>
-[stian: rewrote the changelog per review of v2, retested]
-Signed-off-by: Stian Halseth <stian@itx.no>
----
-v3:
- - rewrite the changelog: describe the write/readback ordering and the
-   direction of the equal-compare case per Thomas Gleixner's review
-   https://lore.kernel.org/all/878q9fxywc.ffs@tglx/
-   (the code change is identical to v2)
- - add the Link: tags to the original debugging discussion
- - picked up with Tony's agreement after v2 stalled
-   https://lore.kernel.org/all/10382506-3f57-4b33-8356-34f23fb5f153@gmail.com/
+PS - I have not tested a 64K stack yet, only 32K, and this is a heads-up 
+recommendation.
 
-Tested on an UltraSPARC T4-1 (sun4v, stick variant): 9.1M hrtimer
-reprograms in 90s across 32 threads with 10-500us expiries, no
-stalls, no lost wakeups (worst oversleep 657us).
 
- arch/sparc/kernel/time_64.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Tony
 
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -146,7 +146,7 @@
- 			     : "=r" (new_tick));
- 	new_tick &= ~TICKCMP_IRQ_BIT;
- 
--	return ((long)(new_tick - (orig_tick+adj))) > 0L;
-+	return ((long)(new_tick - (orig_tick+adj))) >= 0L;
- }
- 
- static unsigned long tick_add_tick(unsigned long adj)
-@@ -277,7 +277,7 @@
- 			     : "=r" (new_tick));
- 	new_tick &= ~TICKCMP_IRQ_BIT;
- 
--	return ((long)(new_tick - (orig_tick+adj))) > 0L;
-+	return ((long)(new_tick - (orig_tick+adj))) >= 0L;
- }
- 
- static unsigned long stick_get_frequency(void)
-@@ -411,7 +411,7 @@
- 
- 	val2 = __hbird_read_stick() & ~TICKCMP_IRQ_BIT;
- 
--	return ((long)(val2 - val)) > 0L;
-+	return ((long)(val2 - val)) >= 0L;
- }
- 
- static unsigned long hbtick_get_frequency(void)
---
-2.53.0
+On 8/31/26 10:29 AM, Stian Halseth wrote:
+> From: Tony Rodriguez <unixpro1970@gmail.com>
+>
+> Kernel stacks on sparc64 are 16K and this is no longer enough:
+> several machines (SPARC T5-2 among them) panic early in boot during
+> USB hub enumeration with "corrupted stack end detected inside
+> scheduler". sparc has not been converted to THREAD_INFO_IN_TASK, so
+> thread_info sits at the bottom of the kernel stack and a marginal
+> overflow corrupts it first; CONFIG_SCHED_STACK_END_CHECK then fires
+> from __schedule long after the deep path has unwound, which is why
+> the reported backtraces look shallow.
+>
+> Measurements with CONFIG_STACK_TRACER on an UltraSPARC T4-1 show the
+> problem is frame count, not any single large frame. The high-water
+> mark of an ordinary successful boot is 12616 of 16384 bytes (77%),
+> reached in hub_probe() with a printk console flush and then a timer
+> interrupt (which runs on the task stack, and whose scheduler tick
+> performs load balancing and IPI delivery) stacked on top. Of the 66
+> frames in that path the largest is 408 bytes, and ~85% of them are
+> 176-224 bytes - at or just above the SPARC V9 ABI minimum frame
+> (128-byte register window save area plus 48-byte argument save
+> area). An equivalent call chain on x86-64 costs roughly a third of
+> the stack, so a 16K stack on sparc64 provides far less effective
+> call depth than on other 64-bit architectures.
+>
+> Double THREAD_SIZE to 32K (four 8K pages). The PAGE_SHIFT
+> conditionals are dropped: sparc64 only supports 8K base pages, so
+> the other branches were dead code. Kernel stacks become order-2
+> allocations; sparc64 has no VMAP_STACK, but stacks are allocated
+> once per thread and the trade against boot-time panics is a good
+> one.
+>
+> Link: https://lore.kernel.org/all/20260519075809.8993-1-unixpro1970@gmail.com/
+> Signed-off-by: Tony Rodriguez <unixpro1970@gmail.com>
+> [stian: reduced the diff to the THREAD_* defines, measured stack
+>   usage with CONFIG_STACK_TRACER and rewrote the changelog]
+> Signed-off-by: Stian Halseth <stian@itx.no>
+> ---
+> v2:
+>   - drop the CONFIG_SPARC64 / PAGE_SHIFT conditional chain from v1;
+>     thread_info_64.h is only built on sparc64 and only 8K pages are
+>     supported, so define the three constants unconditionally
+>   - replace the panic backtrace in the changelog with stack tracer
+>     measurements answering David Laight's review comments:
+>     https://lore.kernel.org/all/20260520144104.618c75ca@pumpkin/
+>   - retitled from "unify thread stack sizing and add explicit 32KB
+>     stack"; the sizing logic for other configurations is unchanged
+>
+> Tested on an UltraSPARC T4-1, booted with the stack tracer armed
+> ("stacktrace") before and after this patch. The boot high-water mark
+> is 12616 bytes on both kernels - the worst path (hub_probe with a
+> printk and a timer interrupt on top) is deterministic - i.e. 77% of
+> the 16K stack before, 38% of the 32K stack after. DEBUG_STACK_USAGE
+> agrees: the peak boot-time task shows 9208 bytes left of 16K before
+> vs 25592 bytes left of 32K after (7176 bytes used in both).
+>
+>   arch/sparc/include/asm/thread_info_64.h | 15 +++------------
+>   1 file changed, 3 insertions(+), 12 deletions(-)
+>
+> diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
+> --- a/arch/sparc/include/asm/thread_info_64.h
+> +++ b/arch/sparc/include/asm/thread_info_64.h
+> @@ -99,13 +99,8 @@
+>   #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
+>   #define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
+>   
+> -#if PAGE_SHIFT == 13
+> -#define THREAD_SIZE (2*PAGE_SIZE)
+> -#define THREAD_SHIFT (PAGE_SHIFT + 1)
+> -#else /* PAGE_SHIFT == 13 */
+> -#define THREAD_SIZE PAGE_SIZE
+> -#define THREAD_SHIFT PAGE_SHIFT
+> -#endif /* PAGE_SHIFT == 13 */
+> +#define THREAD_SIZE (4 * PAGE_SIZE)
+> +#define THREAD_SHIFT (PAGE_SHIFT + 2)
+>   
+>   /*
+>    * macros/functions for gaining access to the thread information structure
+> @@ -128,11 +123,7 @@
+>   #endif
+>   
+>   /* thread information allocation */
+> -#if PAGE_SHIFT == 13
+> -#define THREAD_SIZE_ORDER	1
+> -#else /* PAGE_SHIFT == 13 */
+> -#define THREAD_SIZE_ORDER	0
+> -#endif /* PAGE_SHIFT == 13 */
+> +#define THREAD_SIZE_ORDER	2
+>   
+>   #define __thread_flag_byte_ptr(ti)	\
+>   	((unsigned char *)(&((ti)->flags)))
+> --
+> 2.53.0
