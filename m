@@ -1,44 +1,47 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A699459AE1;
-	Mon, 31 Aug 2026 13:34:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57A165476FC;
+	Mon, 31 Aug 2026 13:46:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183284; cv=none; b=ZqDIGO3xJozC4ve3VvTeFX1aK3m+gHRIF2ppiWPK6GJGuFVaIGtwOSVa3feznuKnmU009y+s5BQjwMjrHFSdGj44+PmvJSz484w7P/YGbKQiD18B/i4cyWP3BpDHNtQzlE07SIJHqUDMo1jZ+OySKs0Lka/nr7lul+w2PMEMsMQ=
+	t=1788183981; cv=none; b=VUUxte0hK3Xrf7P/q2cb4xMrlpqSVQ2Un0ieTmsmaW+iSQf7Xnu6lc9caoFJCYxKQS8kr7dNAAMptTm5fmSrl/sPxZdz259kSlqe4zktQnsb09zWvEqLzIsnGlsPt9t9SyokYXOd/ZCB8/p82MV3BSq4K3j4WyatFR5re+qBFCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183284; c=relaxed/simple;
-	bh=PH2X3SFn9NSEbVrnM93NioM31uEVwUeY3PxrAvoIU5g=;
+	s=arc-20240116; t=1788183981; c=relaxed/simple;
+	bh=YAfnDOC5zY1e+UV28FtmJyCelrSWxoNwOdIP5MkjSQ8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OiYyGLRTwAm94SohFS3j5+ujcAtI2HWYNw2yTZJdYIdmBogOZ9DZoBIN0J3m6ixi2vTofAFPYJNWMJ2b3Wyy+HJIYvFOTNcHajQjr0a7qKH6msWImSfFY/zBYDx0QqPS13JMXFL2M9LWH0EQoc22nL/4ze+aIzi7kgKBv3Z2UY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RvoIgE+O; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=RW9s+ncsxvshSz6l7A08QNYW9Js7e61zTq4yod3EQStPODgswX6Unrb0PwRpLyTIoqTRbBtvgIVj+G0TcYfON5JZ09vVLYN312z79wpt2WARhWITbCJr39K3jh6/9UUl3LQh7ConsKd9ItlhYXxkb7pYDo/ZLFUJZu5chntRI88=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z7hwDB89; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RvoIgE+O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BE191F000E9;
-	Mon, 31 Aug 2026 13:34:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z7hwDB89"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2B071F01558;
+	Mon, 31 Aug 2026 13:46:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183282;
-	bh=mZkxmumgWxt+25lmmE7hMDBxeMFAURVsSHQbXMIjoFo=;
+	s=k20260515; t=1788183978;
+	bh=f95LOdgaP6V6KgOb6K1Z2STN85DVH3UJaoxWcXsZFME=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=RvoIgE+OrctmpA+8ZXMVBVnMNE7Zg47gm2VAMVsdfB+XajESy4oXH9yBKaPkJZYvV
-	 a9ci1TYvvchG0Ipxjevn1POoKruEju3mr/gz7Iwi2TuXJH5RCrCfbOKMw5sli+vl9x
-	 9wvEHLQJx8ow5YI+e3Nnz5/JXbPjeeWOBB9jA2cpq4phJ7+fA/cpwoMqli9BGbX2sT
-	 TnUH1XuHb2FzODRgcfhVW3Cha2Ve2Quh4sYfD0/h9ioOJDGQNdj4Mql55lbJ86zZBW
-	 It9tUG7u7+bfW4vV4B+VooweC/FKQINPb3PfRvKHyv83XIAGxg5gefKZwl1fFPAXj7
-	 BFWNGzBJ8mHxg==
+	b=Z7hwDB89gcKTMDkCyeBNMAcdmqrF9YsUcfUEED41t44fj+Tajvt+hBlDSXvzFvggA
+	 bAwqQY0fqcQk+fqwHfya6ag05niWbPBac50t+O7OXV66Zmi9NXdAMmjva+y5K12YAZ
+	 bPvdUYZtTsHb5syPh5mdE0nzSwkY/S500a/rWsrGvPM3huG+SLOcCL10wv7mghlpdG
+	 hRZi1q7eniA2Mo5Ctf6HB0FCYu+FXnPj7YLait//4wKbavwUCkP9ocqbEhISo+PJsG
+	 L4k78Jjvlc66/vs76wbHAPTcT3LCrhZ59zK88DbfUIiA1zHXPBrIMNV9oDxEy2eK7t
+	 5t8CimAvpY2vA==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
 Cc: Rosen Penev <rosenp@gmail.com>,
-	Nathan Chancellor <nathan@kernel.org>,
+	"Masami Hiramatsu (Google)" <mhiramat@kernel.org>,
 	Andreas Larsson <andreas@gaisler.com>,
 	Sasha Levin <sashal@kernel.org>,
+	oleg@redhat.com,
+	peterz@infradead.org,
 	davem@davemloft.net,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] sparc: Disable compat support with LLD
-Date: Mon, 31 Aug 2026 09:21:22 -0400
-Message-ID: <20260831133314.4125787-54-sashal@kernel.org>
+	linux-kernel@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.18-5.10] sparc64: uprobes: add missing break
+Date: Mon, 31 Aug 2026 09:27:25 -0400
+Message-ID: <20260831133314.4125787-417-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -56,376 +59,404 @@ Content-Transfer-Encoding: 8bit
 
 From: Rosen Penev <rosenp@gmail.com>
 
-[ Upstream commit 852fed2e8bfe195351fb0078ba7245d41154e7a5 ]
+[ Upstream commit 5b0eee4cd812bd6547eea393cb9b5c0322f26c88 ]
 
-An LLVM=1 sparc64 allmodconfig enables COMPAT and then tries to
-build the 32-bit vDSO. That path cannot be linked with ld.lld:
+Missing fallthrough causes failure with newer compilers:
 
-  ld.lld: error: unknown emulation: elf32_sparc
+arch/sparc/kernel/uprobes.c:284:2: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+  284 |         default:
+      |         ^
+arch/sparc/kernel/uprobes.c:284:2: note: insert 'break;' to avoid fall-through
+  284 |         default:
+      |         ^
+      |         break;
 
-ld.lld does not support the 32-bit SPARC ELF emulation used for
-the compat vDSO, so keep COMPAT disabled when LLD is the linker.
-This avoids selecting an unsupported build path while leaving the
-existing GNU ld configuration unchanged.
-
-Assisted-by: Codex:GPT-5.5
 Signed-off-by: Rosen Penev <rosenp@gmail.com>
-Acked-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Reviewed-by: Andreas Larsson <andreas@gaisler.com>
-Link: https://lore.kernel.org/r/20260508000834.834824-1-rosenp@gmail.com
 Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: `sparc: Disable compat support with LLD`
-
-**Local tree:** Linux **6.18.44** (`v6.18.44-1-g2736c32da98b9`)
-
----
-
-## PHASE 1: COMMIT MESSAGE FORENSICS
+## Phase 1: Commit Message Forensics
 
 ### Step 1.1: Parse the Subject Line
-**Record:** `[sparc] [disable] Disable compat support with LLD` —
-Kconfig change to prevent an unsupported LLVM/LLD build path on sparc64.
+**Record:** `[sparc64/uprobes]` `[add]` — Add a missing `break`
+statement in the sparc64 uprobes die-notifier switch.
 
 ### Step 1.2: Parse All Commit Message Tags
 **Record:**
-- **Acked-by:** Nathan Chancellor `<nathan@kernel.org>` (LLVM/toolchain
-  maintainer)
+- **Signed-off-by:** Rosen Penev `<rosenp@gmail.com>` (author)
+- **Reviewed-by:** Masami Hiramatsu (Google) `<mhiramat@kernel.org>`
+  (uprobes maintainer)
 - **Reviewed-by:** Andreas Larsson `<andreas@gaisler.com>` (sparc
   maintainer)
-- **Link:**
-  https://lore.kernel.org/r/20260508000834.834824-1-rosenp@gmail.com
-- **Signed-off-by:** Rosen Penev `<rosenp@gmail.com>` (author)
-- **Signed-off-by:** Andreas Larsson (committer/maintainer)
-- **Assisted-by:** Codex:GPT-5.5
-- No Fixes:, Reported-by:, Tested-by:, or Cc: stable tags
-- Notable: dual maintainer endorsement (toolchain + sparc)
+- **Signed-off-by:** Andreas Larsson `<andreas@gaisler.com>` (subsystem
+  maintainer ack)
+- No Fixes:, Reported-by:, Link:, Cc: stable@vger.kernel.org, or Tested-
+  by: tags
+- Notable: dual Reviewed-by from uprobes and sparc maintainers; no
+  syzbot or user bug reports
 
 ### Step 1.3: Analyze Commit Body
 **Record:**
-- **Bug:** `LLVM=1 sparc64 allmodconfig` enables `CONFIG_COMPAT`
-  (default y), which builds the 32-bit compat vDSO using `elf32_sparc`
-  linker emulation.
-- **Symptom:** Build failure: `ld.lld: error: unknown emulation:
-  elf32_sparc`
-- **Root cause:** LLD does not support 32-bit SPARC ELF emulation; GNU
-  ld path is unaffected.
-- **Fix approach:** Add `depends on !LD_IS_LLD` to `CONFIG_COMPAT` so
-  LLD builds skip the unsupported vDSO32 path.
-- No kernel version range specified in the message.
+- **Bug description:** Missing `break` after `case DIE_SSTEP:` causes an
+  unannotated fall-through warning that becomes a build error under
+  `-Werror,-Wimplicit-fallthrough`.
+- **Symptom:** sparc64 kernel compilation fails on
+  `arch/sparc/kernel/uprobes.c:284`.
+- **Root cause:** `case DIE_SSTEP:` lacks `break;` before `default:`.
+- **Version info:** None stated; failure is tied to newer compilers
+  enforcing `-Wimplicit-fallthrough`.
 
 ### Step 1.4: Detect Hidden Bug Fixes
-**Record:** Not disguised — this is an explicit **build fix**. No hidden
-runtime bug; the failure is at link time during kernel build when LLD is
-the linker.
+**Record:** Not a hidden runtime bug fix. The fall-through lands on
+`default: break;`, which is a no-op. This is a **build-fix / compiler-
+warning fix**, not a functional correctness fix. No hidden UAF, race, or
+logic error.
 
 ---
 
-## PHASE 2: DIFF ANALYSIS
+## Phase 2: Diff Analysis
 
 ### Step 2.1: Inventory the Changes
 **Record:**
-- **Files:** `arch/sparc/Kconfig` only (+1 line)
-- **Scope:** Single-file, surgical Kconfig fix
-- **Function modified:** N/A (Kconfig symbol `COMPAT`)
+- **Files:** `arch/sparc/kernel/uprobes.c` (+1 line)
+- **Function modified:** `arch_uprobe_exception_notify()`
+- **Scope:** Single-file, single-line surgical fix
 
 ### Step 2.2: Code Flow Change
 **Record:**
-- **Before:** `CONFIG_COMPAT` depends only on `SPARC64`, defaults to
-  `y`. With `LLVM=1` + LLD, COMPAT stays enabled →
-  `arch/sparc/vdso/Makefile` builds `vdso-image-32.o` using `-m
-  elf32_sparc` → LLD fails.
-- **After:** `CONFIG_COMPAT` additionally requires `!LD_IS_LLD`. LLD
-  builds disable COMPAT and skip vdso32; GNU ld builds unchanged.
+- **Before:** `case DIE_SSTEP:` could fall through to `default:`
+  (compiler warning/error).
+- **After:** `case DIE_SSTEP:` ends with `break;`, matching `case
+  DIE_BPT:` and other architectures.
+- **Path affected:** Die-notifier callback for uprobes on sparc64;
+  normal and error paths unchanged at runtime.
 
 ### Step 2.3: Bug Mechanism
 **Record:**
-- **Category:** Build fix / toolchain incompatibility (Kconfig guard)
-- **Mechanism:** Kconfig enables a build target (`vdso32.so` with
-  `elf32_sparc`) that the selected linker cannot handle. The fix gates
-  COMPAT on linker capability.
+- **Category:** Build fix (compiler `-Wimplicit-fallthrough` /
+  `-Werror`)
+- **Mechanism:** Unannotated switch fall-through triggers a warning;
+  with `-Werror` it fails the build. No runtime behavior change because
+  `default:` only contains `break;`.
 
-Relevant existing code in this tree:
-
-```64:64:arch/sparc/vdso/Makefile
-VDSO_LDFLAGS_vdso32.lds = -m elf32_sparc -soname linux-gate.so.1
-```
-
-```470:476:arch/sparc/Kconfig
-config COMPAT
-        bool
-        depends on SPARC64
-        default y
-        select HAVE_UID16
-        select ARCH_WANT_OLD_COMPAT_IPC
-        select COMPAT_OLD_SIGACTION
-```
-
-### Step 2.4: Fix Quality Assessment
-**Record:** Obviously correct, minimal (1 line), matches established
-pattern on s390. **Regression risk:** Low — only affects LLVM+LLD
-sparc64 builds; those already fail to build. Trade-off: LLD builds lose
-32-bit compat support, which is unavoidable until LLD gains
-`elf32_sparc` support.
+### Step 2.4: Fix Quality
+**Record:**
+- Obviously correct; matches powerpc/mips pattern.
+- Minimal, zero regression risk.
+- No API, locking, or logic changes.
 
 ---
 
-## PHASE 3: GIT HISTORY INVESTIGATION
+## Phase 3: Git History Investigation
 
 ### Step 3.1: Blame Changed Lines
-**Record:** `CONFIG COMPAT` on sparc dates to Sam Ravnborg, 2008
-(`26b4c912185a8`). The missing `!LD_IS_LLD` guard has been absent since
-COMPAT was introduced. `CONFIG_LD_IS_LLD` was added in `b744b43f79cc7`
-(kbuild, May 2020) and is present in this tree.
+**Record:** Buggy code introduced in `e8f4aa6087fa8` ("sparc64:Support
+User Probes for sparc", Oct 2016, Allen Pais). Present in this tree
+since uprobes support landed on sparc64.
 
 ### Step 3.2: Follow Fixes: Tag
-**Record:** No `Fixes:` tag. N/A.
+**Record:** No Fixes: tag. N/A.
 
-### Step 3.3: File History for Related Changes
-**Record:** Recent sparc toolchain work in this tree includes
-`05457d96175d2` ("sparc/module: Add R_SPARC_UA64 relocation handling" —
-needed for LLVM's IAS, committed Sep 2025). This shows active LLVM sparc
-build enablement. The candidate fix is **standalone** (not part of a
-multi-patch series).
+### Step 3.3: File History
+**Record:** Recent `arch/sparc/kernel/uprobes.c` history in 6.18.y:
+- `a51b8c83bf274` sparc64: Fix prototype warning for uprobe_trap
+- SPDX/treewide cleanups
+- Original `e8f4aa6087fa8` uprobes introduction
+
+Commit `5b0eee4cd812b` is on `master` but **not** in
+`stable/linux-6.18.y`. Standalone one-patch fix.
 
 ### Step 3.4: Author's Other Commits
-**Record:** Rosen Penev is an active contributor (ata, gpio, net
-drivers) but not the sparc maintainer. Andreas Larsson (sparc
-maintainer, also committed the LLVM relocation fix) reviewed and signed
-off.
+**Record:** Rosen Penev has no other sparc commits in this tree. Fix
+came through sparc maintainer tree (Andreas Larsson).
 
-### Step 3.5: Prerequisite Commits
-**Record:** Requires only `CONFIG_LD_IS_LLD` from `init/Kconfig`, which
-exists in 6.18.44. No other dependencies. Applies cleanly as a one-line
-addition.
+### Step 3.5: Dependencies
+**Record:** No prerequisites. Applies cleanly to current 6.18.y
+`uprobes.c`. Self-contained.
 
 ---
 
-## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+## Phase 4: Mailing List and External Research
 
 ### Step 4.1: Original Patch Discussion
-**Record:** `b4 dig` with message-id failed (wrong invocation syntax).
-Lore.kernel.org fetch blocked by anti-bot protection. Could not read
-thread discussion directly.
+**Record:**
+- **b4 dig URL:**
+  https://patch.msgid.link/20260506031815.779909-1-rosenp@gmail.com
+- Single-patch submission, no series revisions (`b4 dig -a` not needed).
+- No stable nomination or NAKs found in thread.
+- Maintainer reviews present (Hiramatsu, Larsson).
 
 ### Step 4.2: Reviewers
-**Record:** Acked-by Nathan Chancellor (LLVM/kbuild) and Reviewed-by
-Andreas Larsson (sparc maintainer) — appropriate reviewers for this
-change.
+**Record:** CC'd to `sparclinux@vger.kernel.org`, `linux-trace-
+kernel@vger.kernel.org`, David S. Miller, Oleg Nesterov, Peter Zijlstra
+— appropriate uprobes/sparc audience.
 
 ### Step 4.3: Bug Report
-**Record:** No external bug report or syzbot link. Failure is
-reproducible from the commit message's described build command (`LLVM=1
-sparc64 allmodconfig`).
+**Record:** No external bug report. Author demonstrated compiler error
+in commit message and patch.
 
-### Step 4.4: Related Patches/Series
-**Record:** Standalone 1-patch fix. Direct precedent: s390 uses the same
-pattern:
+### Step 4.4: Related Patches
+**Record:** Standalone. No series dependencies.
 
-```507:514:arch/s390/Kconfig
-config COMPAT
-        def_bool n
-        prompt "Kernel support for 31 bit emulation"
-        ...
-        depends on MULTIUSER
-        depends on !CC_IS_CLANG && !LD_IS_LLD
-```
-
-### Step 4.5: Stable Mailing List History
-**Record:** Could not search lore (blocked). No evidence of prior stable
-discussion found.
+### Step 4.5: Stable Mailing List
+**Record:** No stable-list discussion found. Not searched exhaustively;
+no stable nomination in patch thread.
 
 ---
 
-## PHASE 5: CODE SEMANTIC ANALYSIS
+## Phase 5: Code Semantic Analysis
 
 ### Step 5.1: Key Functions
-**Record:** Kconfig symbol `COMPAT` in `arch/sparc/Kconfig`; build
-impact via `arch/sparc/vdso/Makefile` line 14: `obj-$(CONFIG_COMPAT) +=
-vdso-image-32.o`
+**Record:** `arch_uprobe_exception_notify()` — only function modified.
 
-### Step 5.2: Callers / Impact Surface
-**Record:** COMPAT enables 32-bit userspace syscall emulation on sparc64
-(sys_sparc32.c, signal32.c, vdso32, etc.). Only disabled when
-`LD_IS_LLD` is true — a build-time Kconfig decision, not a runtime code
-path.
+### Step 5.2: Callers
+**Record:** Registered as die notifier in `kernel/events/uprobes.c`:
+
+```2901:2913:kernel/events/uprobes.c
+static struct notifier_block uprobe_exception_nb = {
+        .notifier_call          = arch_uprobe_exception_notify,
+        .priority               = INT_MAX-1,    /* notified after
+kprobes, kgdb */
+};
+
+void __init uprobes_init(void)
+{
+        ...
+        BUG_ON(register_die_notifier(&uprobe_exception_nb));
+}
+```
+
+Called from kernel die-notification path on `DIE_BPT` / `DIE_SSTEP` when
+uprobes are active.
 
 ### Step 5.3: Callees
-**Record:** When COMPAT=y, vdso build invokes `$(LD)` with `-m
-elf32_sparc`. With LLD, this fails at link time.
+**Record:** `user_mode()`, `uprobe_pre_sstep_notifier()`,
+`uprobe_post_sstep_notifier()`.
 
-### Step 5.4: Reachability
-**Record:** Triggered by any developer/CI building `LLVM=1` sparc64
-kernel with LLD (default with LLVM=1). Not userspace-triggerable at
-runtime; build-time only.
+### Step 5.4: Call Chain / Reachability
+**Record:** Reachable when `CONFIG_UPROBES` is enabled and a userspace
+breakpoint/single-step trap occurs. Not a syscall path;
+debugging/tracing infrastructure. Build impact is unconditional when
+`uprobes.c` is compiled.
 
 ### Step 5.5: Similar Patterns
-**Record:** `arch/arm/mm/Kconfig` (`CPU_BIG_ENDIAN depends on
-!LD_IS_LLD`), `arch/arm/Kconfig.platforms`, and `arch/s390/Kconfig`
-(`COMPAT depends on !CC_IS_CLANG && !LD_IS_LLD`) — established pattern
-for gating features LLD cannot support.
+**Record:** powerpc has the correct `break` after `DIE_SSTEP`:
+
+```148:159:arch/powerpc/kernel/uprobes.c
+        switch (val) {
+        case DIE_BPT:
+                if (uprobe_pre_sstep_notifier(regs))
+                        return NOTIFY_STOP;
+                break;
+        case DIE_SSTEP:
+                if (uprobe_post_sstep_notifier(regs))
+                        return NOTIFY_STOP;
+                break;
+        default:
+                break;
+        }
+```
+
+sparc64 was missing the equivalent `break`. Prior sparc precedent:
+`f6f8c1c09c224` ("sparc builds with -Werror") addressed similar fall-
+through warnings.
 
 ---
 
-## PHASE 6: CROSS-REFERENCING AGAINST LOCAL TREE (6.18.44)
+## Phase 6: Cross-Reference Against Local Tree
 
-### Step 6.1: Does the Buggy Code Exist?
-**Record:** **YES.** `arch/sparc/Kconfig` lacks `depends on !LD_IS_LLD`
-on COMPAT. vdso32 build with `elf32_sparc` is present.
-`CONFIG_LD_IS_LLD` exists in `init/Kconfig`. The fix commit itself is
-**not yet** in this tree.
+### Step 6.1: Does Buggy Code Exist?
+**Record:** **Yes.** Local tree is **v6.18.44** (`stable/linux-6.18.y`).
+Buggy code at lines 280–285:
+
+```280:286:arch/sparc/kernel/uprobes.c
+        case DIE_SSTEP:
+                if (uprobe_post_sstep_notifier(args->regs))
+                        ret = NOTIFY_STOP;
+
+        default:
+                break;
+```
+
+Bug present since 2016 uprobes introduction.
 
 ### Step 6.2: Backport Complications
-**Record:** **Clean apply** — single line insertion after `depends on
-SPARC64`. No conflicting changes in recent `arch/sparc/Kconfig` history.
+**Record:** Clean one-line apply expected. No conflicting changes in
+this file on 6.18.y since the uprobes introduction.
 
 ### Step 6.3: Related Fixes Already Present?
-**Record:** No equivalent fix found (`git log -S "depends on !LD_IS_LLD"
--- arch/sparc/Kconfig` returned nothing). s390's analogous guard exists
-but sparc does not.
+**Record:** No equivalent fix in 6.18.y. `git merge-base --is-ancestor
+5b0eee4cd812b HEAD` → NOT IN TREE.
 
 ---
 
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+## Phase 7: Subsystem and Maintainer Context
 
 ### Step 7.1: Subsystem Criticality
-**Record:** `arch/sparc` — **PERIPHERAL** architecture (niche hardware),
-but kbuild/toolchain interaction affects kernel builders.
+**Record:** **arch/sparc** uprobes — **PERIPHERAL** (sparc64 only,
+tracing/debugging). Build impact matters for sparc64 builders.
 
 ### Step 7.2: Subsystem Activity
-**Record:** Active LLVM/toolchain work on sparc in this tree
-(R_SPARC_UA64 relocation, Sep 2025), indicating LLVM sparc builds are a
-real and growing concern.
+**Record:** Low churn on this file; last functional change was prototype
+fix `a51b8c83bf274`.
 
 ---
 
-## PHASE 8: IMPACT AND RISK ASSESSMENT
+## Phase 8: Impact and Risk Assessment
 
 ### Step 8.1: Who Is Affected
-**Record:** **Config-specific** — sparc64 kernel builders using `LLVM=1`
-with LLD. Not general runtime users. Relevant to CI, distro builders,
-and developers adopting LLVM toolchains on SPARC.
-
-### Step 8.2: Trigger Conditions
-**Record:** `LLVM=1` + sparc64 + LLD linker + config that enables COMPAT
-(default y on sparc64). Reproducible on `allmodconfig`. Not timing-
+**Record:** sparc64 kernel **builders** with `CONFIG_UPROBES` enabled.
+`sparc64_defconfig` has `CONFIG_UPROBE_EVENTS=y`, which selects
+`UPROBES` via Kconfig. Not universal; sparc64-specific and config-
 dependent.
 
-### Step 8.3: Failure Mode Severity
-**Record:** **Build failure** (hard error at link stage) — severity
-**MEDIUM** for affected builders (cannot complete kernel build), **LOW**
-for runtime/production users (no oops, corruption, or security issue).
-
-### Step 8.4: Risk-Benefit Ratio
+### Step 8.2: Trigger Conditions
 **Record:**
-- **Benefit:** Unblocks LLVM+LLD sparc64 kernel builds; aligns with
-  active LLVM enablement work in tree; follows s390 precedent.
-- **Risk:** Very low — 1-line Kconfig guard; only changes behavior for
-  builds that already fail.
-- **Ratio:** Favorable for backport as a build fix.
+- `-Wimplicit-fallthrough` is enabled globally
+  (`scripts/Makefile.extrawarn:94` via
+  `CONFIG_CC_IMPLICIT_FALLTHROUGH`).
+- Becomes a **build failure** with `-Werror` (`CONFIG_WERROR=y` or `make
+  W=e`).
+- Default `sparc64_defconfig` does not set `CONFIG_WERROR`; typical
+  distro builds may see a warning only.
+- Developers/CI using `-Werror` or `W=e` hit a hard failure.
+- **No unprivileged runtime trigger**; no security impact.
+
+### Step 8.3: Failure Mode Severity
+**Record:**
+- **Build failure** with `-Werror`: **MEDIUM** for
+  developers/maintainers.
+- **Runtime:** **NONE** — fall-through to `default: break;` is
+  semantically identical.
+- **Warning-only** builds: **LOW**.
+
+### Step 8.4: Risk-Benefit
+**Record:**
+- **Benefit:** Unblocks sparc64 builds with WERROR/W=e and UPROBES;
+  aligns with other arch implementations; matches stable precedent for
+  `-Wimplicit-fallthrough` fixes (e.g. `3ab659eb696f0`, `98845e7753902`
+  in this tree).
+- **Risk:** Very low — one `break;` with no behavioral change.
+- **Ratio:** Favorable for a build-fix backport, though end-user runtime
+  benefit is zero.
 
 ---
 
-## PHASE 9: FINAL SYNTHESIS
+## Phase 9: Final Synthesis
 
 ### Step 9.1: Evidence Summary
 
 **FOR backport:**
-- Explicit build fix — listed in `Documentation/process/stable-kernel-
-  rules.rst` as valid stable material
-- Reproducible, documented failure (`elf32_sparc` unsupported by LLD)
-- 1-line, obviously correct, maintainer-reviewed
-- Direct precedent on s390 (`COMPAT depends on !LD_IS_LLD`)
-- Bug exists in 6.18.44; applies cleanly
-- LLVM sparc support actively being developed in this tree
+- Valid **build fix** (stable exception category)
+- Demonstrated `-Werror` compilation failure
+- `uprobes.c` compiled in default sparc64 defconfig (`UPROBE_EVENTS=y` →
+  `UPROBES`)
+- One-line, maintainer-reviewed, obviously correct
+- Bug present since 2016; applies cleanly to 6.18.y
+- Precedent for similar implicit-fallthrough fixes in stable
 
 **AGAINST backport:**
-- Very niche audience (sparc64 + LLVM + LLD)
-- No runtime user impact — only affects kernel builders
-- LLD builds lose 32-bit compat (acceptable workaround)
+- **No runtime bug** — purely compiler hygiene
+- sparc64 is niche; limited user base
+- Default production builds may only warn, not fail
+- Low severity for running systems
 
-**Unresolved:**
-- Full lore.kernel.org review thread (blocked by anti-bot)
-- Whether any distro has filed a stable request
+**Unresolved:** Whether any sparc64 distro enables `CONFIG_WERROR` by
+default (not verified; not needed for decision).
 
 ### Step 9.2: Stable Rules Checklist
-1. Obviously correct and tested? **PASS** — Kconfig guard;
-   Acked/Reviewed by toolchain and sparc maintainers.
-2. Fixes a real bug affecting users? **PASS** — real build failure for
-   LLVM sparc64 builders.
-3. Important issue? **PASS (MEDIUM)** — build error, not
-   crash/corruption/security.
+1. Obviously correct and tested? **PASS** — trivial fix; reviewed by
+   uprobes and sparc maintainers.
+2. Fixes a real bug? **PASS** — real build failure with `-Werror`.
+3. Important issue? **PASS (build-fix category)** — not
+   crash/corruption, but prevents compilation for sparc64+UPROBES+WERROR
+   builds.
 4. Small and contained? **PASS** — 1 line, 1 file.
-5. No new features or APIs? **PASS** — Kconfig dependency only.
-6. Can apply to local tree? **PASS** — clean one-line apply to 6.18.44.
+5. No new features/APIs? **PASS**.
+6. Can apply to local tree? **PASS** — buggy code confirmed in v6.18.44;
+   patch applies cleanly.
 
-### Step 9.3: Exception Categories
-**Record:** **Build fix** — explicitly qualifies under stable kernel
-rules.
+### Step 9.3: Exception Category
+**Record:** **Build fix** — prevents compilation failure under
+`-Wimplicit-fallthrough` + `-Werror`.
 
 ### Step 9.4: Decision Rationale
 
-This commit fixes a reproducible build failure when compiling a sparc64
-kernel with `LLVM=1` and LLD. The failure occurs because `CONFIG_COMPAT`
-(default y) triggers building the 32-bit vDSO with `elf32_sparc`
-emulation, which LLD does not support. The fix is a one-line Kconfig
-guard matching an established pattern on s390 and arm.
-
-While the affected audience is small (sparc64 LLVM builders), stable
-kernel rules explicitly include build errors as backport-worthy, and
-LLVM toolchain adoption on sparc is actively progressing in this 6.18.y
-tree. The fix is minimal, reviewed by both the sparc and LLVM
-maintainers, and carries negligible regression risk.
+This commit fixes a sparc64 build break, not a runtime defect. The
+missing `break` is harmless at runtime because execution falls through
+to `default: break;`, but it violates `-Wimplicit-fallthrough` and fails
+builds that use `-Werror` — a configuration kernel developers and CI
+commonly use. With `UPROBE_EVENTS=y` in `sparc64_defconfig`, `uprobes.c`
+is compiled by default on sparc64. The fix is one line, matches powerpc
+and other architectures, is maintainer-reviewed, and fits the stable
+exception for build fixes. Risk is negligible.
 
 ---
 
 ## Verification
 
-- [Phase 1] Parsed subject, tags, body; identified as build-fix with
-  maintainer review
-- [Phase 2] Confirmed 1-line diff in `arch/sparc/Kconfig`; verified
-  `elf32_sparc` in `arch/sparc/vdso/Makefile:64` and COMPAT→vdso32
-  linkage at `Makefile:14`
-- [Phase 3] `git describe HEAD`: v6.18.44; `git blame` COMPAT lines to
-  2008; `CONFIG_LD_IS_LLD` present since b744b43f79cc7 (2020)
-- [Phase 3] Related commit `05457d96175d2` (LLVM R_SPARC_UA64) present
-  in tree, confirming active LLVM sparc work
-- [Phase 3] `git log -S "depends on !LD_IS_LLD" -- arch/sparc/Kconfig`:
-  no results — fix not present
-- [Phase 4] `b4 dig` with message-id: failed (syntax error);
-  lore.kernel.org: blocked by anti-bot
-- [Phase 4] Verified s390 precedent at `arch/s390/Kconfig:514` (`depends
-  on !CC_IS_CLANG && !LD_IS_LLD`)
-- [Phase 5] Traced COMPAT → vdso32 build path via Makefile and Kconfig
-- [Phase 6] Confirmed buggy Kconfig state in 6.18.44; fix not yet
-  applied; clean apply expected
-- [Phase 8] Assessed as build-time failure, MEDIUM severity for
-  builders, LOW runtime risk
-- UNVERIFIED: Full mailing list review thread content (lore blocked)
-- UNVERIFIED: Whether commit has landed in mainline (evaluated as
-  candidate for this 6.18.y tree)
+- **[Phase 1]** `git show 5b0eee4cd812b`: parsed subject, body, tags
+- **[Phase 2]** `git show 5b0eee4cd812b -p`: confirmed +1 `break;` in
+  `arch_uprobe_exception_notify()`
+- **[Phase 2]** Read `arch/sparc/kernel/uprobes.c:274-286`: confirmed
+  missing `break` in 6.18.y
+- **[Phase 2]** Read `arch/powerpc/kernel/uprobes.c:148-159`: confirmed
+  correct pattern on other arch
+- **[Phase 3]** `git blame -L 274,286 arch/sparc/kernel/uprobes.c`: bug
+  since `e8f4aa6087fa8` (2016)
+- **[Phase 3]** `git merge-base --is-ancestor 5b0eee4cd812b HEAD`: NOT
+  IN TREE
+- **[Phase 3]** `git log --oneline -20 -- arch/sparc/kernel/uprobes.c`:
+  file history verified
+- **[Phase 4]** `b4 dig -c 5b0eee4cd812b`: lore URL found
+- **[Phase 4]** `b4 dig -c 5b0eee4cd812b -w`: recipients and reviewers
+  verified
+- **[Phase 4]** `b4 dig -m /tmp/uprobes_break.mbox`: thread saved; no
+  stable nomination found
+- **[Phase 5]** `grep arch_uprobe_exception_notify`: callers in
+  `kernel/events/uprobes.c` verified
+- **[Phase 6]** `git describe HEAD`: v6.18.44 on `stable/linux-6.18.y`
+- **[Phase 6]** Read `arch/sparc/configs/sparc64_defconfig`:
+  `CONFIG_UPROBE_EVENTS=y` at line 204
+- **[Phase 6]** `kernel/trace/Kconfig:778-783`: `UPROBE_EVENTS` selects
+  `UPROBES`
+- **[Phase 6]** `arch/sparc/Kconfig:150-151`: `ARCH_SUPPORTS_UPROBES`
+  for SPARC64
+- **[Phase 6]** `init/Kconfig:939-942`: `CC_IMPLICIT_FALLTHROUGH`
+  enabled by default
+- **[Phase 6]** `scripts/Makefile.extrawarn:94,217-219`: global
+  `-Wimplicit-fallthrough`; `-Werror` with `CONFIG_WERROR` or `W=e`
+- **[Phase 6]** `init/Kconfig:227-229`: `CONFIG_WERROR` defaults to
+  `COMPILE_TEST` (typically off in defconfig)
+- **[Phase 7]** `git show f6f8c1c09c224`: prior sparc
+  `-Werror`/fallthrough precedent
+- **[Phase 8]** Runtime analysis: fall-through to `default:break` is a
+  no-op — **no runtime bug**
+- **[Phase 8]** `git log --oneline --grep='missing break'`: similar
+  implicit-fallthrough fixes exist in tree history
 
 **YES**
 
- arch/sparc/Kconfig | 1 +
+ arch/sparc/kernel/uprobes.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index a630d373e6453..454782ac54b26 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -470,6 +470,7 @@ endmenu
- config COMPAT
- 	bool
- 	depends on SPARC64
-+	depends on !LD_IS_LLD
- 	default y
- 	select HAVE_UID16
- 	select ARCH_WANT_OLD_COMPAT_IPC
+diff --git a/arch/sparc/kernel/uprobes.c b/arch/sparc/kernel/uprobes.c
+index 305017bec164f..c8cac64e9988a 100644
+--- a/arch/sparc/kernel/uprobes.c
++++ b/arch/sparc/kernel/uprobes.c
+@@ -280,6 +280,7 @@ int arch_uprobe_exception_notify(struct notifier_block *self,
+ 	case DIE_SSTEP:
+ 		if (uprobe_post_sstep_notifier(args->regs))
+ 			ret = NOTIFY_STOP;
++		break;
+ 
+ 	default:
+ 		break;
 -- 
 2.53.0
 
