@@ -1,112 +1,141 @@
-Received: from mail.zytor.com (terminus.zytor.com [198.137.202.136])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6D532571DA;
-	Mon, 31 Aug 2026 20:01:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.136
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 321D2381B04
+	for <sparclinux@vger.kernel.org>; Mon, 31 Aug 2026 20:18:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788206494; cv=none; b=BkdMh9+Qt7oGMHDByyQo1mw//S3wg/LhNsianOPXgB2JL8ujFIdhXgxqzlyjI36ESi494hFC/4beXN7HowDNB/A0scyM38c5pRDRQk3qpUI1KWuIR0ZA6QFeD9pdwPNi/eSbndzp1Zzfoc0NwTxTLq/IieRSogA8r+naDHQ3Vcs=
+	t=1788207501; cv=none; b=P63qUFgmIkO+D9R2LT25a00VEd398FSm8unTubc0/jxaNnTWADlhMfw/nxDBwZzUWI0RZqHnhDXK8iBidRsUaSN6lMZ/6nQXJ/QN6ocmhT6UzbaD398KAMUV4wePegQmMSYfT+Y31XOzXdYEVBVgFAx7jHWXluVWjE/UhZQsJKo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788206494; c=relaxed/simple;
-	bh=OeDDnqo1IRQEK4Js5nZgXclVX2MFMUyaSHTgtYCOrSo=;
+	s=arc-20240116; t=1788207501; c=relaxed/simple;
+	bh=o4qQdmso+7jbXfBITogLWM6RoF+x+AIWAvNaFOvCHxE=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=njkYA1k+ZugF+FEXl7H41FdDK//v8WgsTMQu88pQDcZWzSDn3lJOgnkwH5QLJYed6ubNo9OJFvzD+JJEYecctOiGVSzp6O+7EHGyER2c1R45arb0xRwhryBI1yGZ4tcyHVpe6uAgv5L72yQtj2UFgX6GVzupetlhW4qRiAgctho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zytor.com; spf=pass smtp.mailfrom=zytor.com; dkim=pass (2048-bit key) header.d=zytor.com header.i=@zytor.com header.b=hRWHGA+w; arc=none smtp.client-ip=198.137.202.136
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zytor.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zytor.com
+	 In-Reply-To:Content-Type; b=a3J1kvr+DdlrN67n447jemm3p6lkWLRtJt5TtvjwBGYWdBZAzUeKg7pNYkCDnH8f2jIj4yJko/nHUmg4Lgbf5jmltTaRU25z7UJZ3CLJ0Tuyz3Y6oCjROGH5AO/KS/LNKgyn1hooRt01KsUx9cqOZPws31l2ojH6yMNN3p+TdAA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=INxwvYPk; arc=none smtp.client-ip=209.85.210.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=zytor.com header.i=@zytor.com header.b="hRWHGA+w"
-Received: from [IPV6:2601:646:8081:8d71:2faf:8150:30da:aafd] ([IPv6:2601:646:8081:8d71:2faf:8150:30da:aafd])
-	(authenticated bits=0)
-	by mail.zytor.com (8.18.1/8.17.1) with ESMTPSA id 67VJvbar3264483
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NO);
-	Mon, 31 Aug 2026 12:57:38 -0700
-DKIM-Filter: OpenDKIM Filter v2.11.0 mail.zytor.com 67VJvbar3264483
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zytor.com;
-	s=2026082801; t=1788206263;
-	bh=Lfk4Zm0mu1VaJNyCW+feQLM2PduJnrH08+Q8uKNAglM=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=hRWHGA+w8FeyeULwEDoEDUDPGkwf8JT2eZmPRRthmhsNz9HWOb7HiXCTZLLUmuztp
-	 lWRv7ug1Z+kxGR18u2FB1NAFu/6cVMaURG6BetJiHKBnIMtH9EfefRvmdaf5cQcfWS
-	 Iv6R5AMN9t7OAQ114p39WCAynQY5oir3FFMoBbYdgUDXZtV4B07Wsr3e2OhubFmvQs
-	 ktT4EOmqNjonvu8hUPE3i1g0T9wDBDboBsSqe9LwY819N+bvUhSesPS4zzwQuLkCru
-	 dSZCFGqC+rA/gs0WgODW7ZBr87rVZStGsxS6+U65Nf/RVAnAJDMEX94B5D/OKkRTEH
-	 BWNnKAFiy16zQ==
-Message-ID: <1238a07e-ce04-47d9-b8ac-8b7f557b401f@zytor.com>
-Date: Mon, 31 Aug 2026 12:57:32 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="INxwvYPk"
+Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-853c07a76adso4159416b3a.0
+        for <sparclinux@vger.kernel.org>; Mon, 31 Aug 2026 13:18:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788207499; x=1788812299; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=gJshX3L9F+nGxdNG5KJuqcT71hdUCxKC1U3uQESPtUs=;
+        b=INxwvYPkAD/gHPnXwMHlCZbWtQDDkvks4nAeazUIibpZopKq9esDdZtsUQe3vaeAAN
+         ejXZmjD7fYOE0xxINt8Zeq7pqSyRONLf1ph61lIKfd2z8FCuqrm9S+CiWv70Sr9n9jhZ
+         kSrRimu4ByYZzZlO1iIWQaTVXzTrO1R4BLq/YVpY+/rXrhCoVkpUAe888BmdPgElvTtN
+         k4hACU7Cv9A2LVmRJfv9e907T2HUjVeF5pMkgWB/uBH1MxE1t8L0mD0uD247EQ9uBfMN
+         M06P/a9//jMPuNfjY7HoFoxtU//YMlsX5Rej83zSb/dYazw196OPmdNUq72ZnMs68Wb+
+         TIFQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788207499; x=1788812299;
+        h=content-transfer-encoding:content-type:in-reply-to:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=gJshX3L9F+nGxdNG5KJuqcT71hdUCxKC1U3uQESPtUs=;
+        b=M1UULzxjiQnU2vh8Tj9aQC34EwT34DK/Vf3QxrkAb16dUMqbP/az1FwW1iQ6OtTZjY
+         Vx+ZkFHctyBhQ5ru3JXbXXwzIfqMWF2dpcT2eGtwwnhEqyOuDDMJFDRMqFUmH384o96e
+         l7IuNId7VhljoG8mQYcwS4eiIfg5Wi4vB+YrccrbHD3i/eJ6/dsgSun+R8DcEF6kOlbJ
+         lh9ysLn7tuK2VThNVIlT2R1gSnH7koMC2LC65+ta3a+SrHMsV4unjrBFPf4+WASn1LVg
+         MAgWjNd9N0fBUvrC7NcL9gtFU4D0fa7KMmz9sZ2w2Jl3/kMKWnoa6EZde5NNUz2otfZX
+         QqIg==
+X-Forwarded-Encrypted: i=1; AHgh+Rpk5C+dfc9pgE9UAOHyPSk+JaiHt14rm9Y/4JCGqyHvVhBqmyo5Zy9BhBP/QX04AIMnDnnEkCeKgBkq@vger.kernel.org
+X-Gm-Message-State: AFuF++lB4g3dox3PbWe3+eyRQC6g9zb5FHNwtdfPnzogzQ0j6GgaYQmc
+	9NHYPDU2fycms9bdQhjJR96MVh5QLgzJIOvCVylFfwow7KRgm1ghaivV
+X-Gm-Gg: AR+sD136tFaMF86+eEb/boD84KNNIJ20SGLtphdtYFc00S0+lDEqfpPDyQzSTN0XGWV
+	Xdom9HMeQWZSUY2uByoVJE/creZFLk5foZz7yeyKNBbeq11AvwhFo/2zZRNdOlxvQ4VUdE4coU3
+	ORC1/pAfH9GfBPOzZxgbV9tYmqKOLUFVf6LeDtIjm3KA+GoLEmCjyCG62n09ZG6TXfF+iVLcVdv
+	pbDoSoLaiby0fGoNskSKTb1cw3cR/U3PIhaBFdHMhNcB8hHOSVfTguDpAGg0mih+ayZltEPJKCw
+	JOCVrEZqvgiCD/Gp80uOP1OT2XyWpZhq8XAvwdCWL1cP9LPWvk4Hg/VIhTKflsvU3E09mOaafwy
+	WyFfnVkYARtUzKD5HHa08m408Gp1Wh+uv3LCHQUJ0e9yuAXzrmNzKneDXokKyD2HMoxYm+lJABQ
+	se+kehulSBsDQYakehK4iKklwYBtP7wRhSE3j6Gb/1l5owDzitwTkG8rV/hXDo8KjGp++ueeyJQ
+	8fn2GWun3notN0gIGI7nK//
+X-Received: by 2002:a05:6a21:6e88:b0:3c4:46ca:334b with SMTP id adf61e73a8af0-3d267b60e7emr49750171637.9.1788207499237;
+        Mon, 31 Aug 2026 13:18:19 -0700 (PDT)
+Received: from [192.168.21.192] ([24.18.106.4])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3286f9e3cf8sm34915143eec.24.2026.08.31.13.18.07
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 31 Aug 2026 13:18:18 -0700 (PDT)
+Message-ID: <b46209d5-e518-4289-9b3a-5854a2512278@gmail.com>
+Date: Mon, 31 Aug 2026 13:18:07 -0700
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [patch 00/18] entry: Consolidate and rework syscall entry
- handling
-To: Heiko Carstens <hca@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Michael Ellerman
- <mpe@ellerman.id.au>,
-        Shrikanth Hegde <sshegde@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org,
-        Kees Cook <kees@kernel.org>, Huacai Chen <chenhuacai@kernel.org>,
-        loongarch@lists.linux.dev, Paul Walmsley <pjw@kernel.org>,
-        Palmer Dabbelt <palmer@dabbelt.com>, linux-riscv@lists.infradead.org,
-        Sven Schnelle <svens@linux.ibm.com>, linux-s390@vger.kernel.org,
-        x86@kernel.org, Mark Rutland <mark.rutland@arm.com>,
-        Jinjie Ruan <ruanjinjie@huawei.com>, Andy Lutomirski <luto@kernel.org>,
-        Oleg Nesterov <oleg@redhat.com>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Helge Deller
- <deller@gmx.de>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Richard Weinberger <richard@nod.at>, Chris Zankel <chris@zankel.net>,
-        linux-arm-kernel@lists.infradead.org, linux-alpha@vger.kernel.org,
-        linux-csky@vger.kernel.org, linux-m68k@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-um@lists.infradead.org,
-        Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@kernel.org>,
-        Will Deacon <will@kernel.org>, Brian Cain <bcain@kernel.org>,
-        Michal Simek <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andreas Larsson <andreas@gaisler.com>,
-        linux-snps-arc@lists.infradead.org, linux-hexagon@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org,
-        =?UTF-8?Q?Michal_Such=C3=A1nek?= <msuchanek@suse.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-References: <20260707181957.433213175@kernel.org>
- <ed8b99e6-4d90-4622-9d43-451bf6a8db2c@zytor.com>
- <20260831085056.34274A00-hca@linux.ibm.com>
-Content-Language: en-US, sv-SE
-From: "H. Peter Anvin" <hpa@zytor.com>
-In-Reply-To: <20260831085056.34274A00-hca@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+User-Agent: Betterbird (Linux)
+Subject: Re: [PATCH v2] sparc64: increase kernel thread stack size to 32K
+Content-Language: en-US
+To: Stian Halseth <stian@itx.no>, andreas@gaisler.com, davem@davemloft.net,
+ sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, david.laight.linux@gmail.com,
+ glaubitz@physik.fu-berlin.de, thuth@redhat.com, regressions@lists.linux.dev,
+ nroach44@nroach44.id.au
+References: <20260519075809.8993-1-unixpro1970@gmail.com>
+ <20260831172928.3082853-1-stian@itx.no>
+ <afaa8ced-0717-4d62-8ea6-4ecdbf489694@gmail.com>
+ <680606d594645568c21afcc552558882c4f59a96.camel@itx.no>
+From: Tony Rodriguez <unixpro1970@gmail.com>
+In-Reply-To: <680606d594645568c21afcc552558882c4f59a96.camel@itx.no>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On 2026-08-31 01:50, Heiko Carstens wrote:
-> On Thu, Aug 27, 2026 at 03:22:35PM -0700, H. Peter Anvin wrote:
->> This isn't a hard thing to solve in any way: replacing the pointer argument
->> with a two-element structure return would do the trick. As far as I know,
->> *all* architectures that support Linux support returning structures with two
->> register-sized values in registers.
-> 
-> That is unfortunately not true. The s390 ABI defines that structures,
-> regardless of size, are returned in a return value buffer allocated by
-> the caller.
+Hi Stian,
 
-*Groan*
+No problem at all, and I appreciate your honesty and for reaching out. 
+It’s best to get this addressed as soon as possible if you have the time 
+to work on it—I’m currently swamped with other tasks. Overall, I don’t 
+mind if you take over these patches, and truly appreciate your 
+assistance to the sparc64 community. Just please continue to give me a 
+mention in any patches related to this work, since I spent a 
+considerable amount of time debugging, researching, and validating the 
+fixes.
 
-You guys should use an improved ABI for the kernel like i386 does (different
-from the standard ABI used in user space)...
+When I last tested on 7.0 and 7.1, both of my patches worked:
 
-That being said, perhaps s390(x) isn't affected by the underlying problem, and
-passing a pointer to a structure isn't any more expensive than passing a
-pointer to a variable...
+A)    sparc64: increase kernel thread stack size to 32K
 
-	-hpa
+B)    sparc64: Fix comparator problem with timer interrupts
 
+I was able to debug and validate these issues on S7‑2 and T7‑1 hardware. 
+I’m not sure if others have reported similar problems on T4 or T5 systems.
+
+Regarding:
+
+STACKTRACE: hub_event():entry: 31856 bytes used
+STACKTRACE: hub_activate():entry: 31680 bytes used
+STACKTRACE: usb_control_msg():entry: 30768 bytes used
+
+This was a set of debugging code inserted into function hot spots and 
+scripts to measure stack usage at runtime. It helped me identify trouble 
+spots and gave me a better idea of where stack consumption was highest. 
+At the time, I wondered whether it might be possible to reduce the stack 
+size of usbcore and the Nvidia mlx5 functions on sparc64, but that would 
+be a significantly more time‑consuming task. I may have updated my stack 
+monitoring script since then as well.  It’s also been a few months, so 
+I’d need to refresh my memory on the details.
+
+If you have a quicker or better methodology for reviewing stack usage—or 
+any general suggestions—I’m definitely open to seeing them, along with 
+your config and exact procedure. And if you need help validating against 
+S7‑2 and T7‑1 hardware, I can try to allocate some time to assist.
+
+Best regards,
+Tony
+
+On 8/31/26 11:54 AM, Stian Halseth wrote:
+> Hi Tony,
+>
+> You're welcome.
+>
+> I saw it was stuck, and wanted to push it along. Looks to me like a
+> proper fix that should be included.
+>
+> PS: Don't want to take any credit, this is 100% your fix. If you rather
+> want to handle it yourself, let me know :)
+>
