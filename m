@@ -1,63 +1,63 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5E4144A3EE
-	for <sparclinux@vger.kernel.org>; Tue,  1 Sep 2026 21:46:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3968536196B
+	for <sparclinux@vger.kernel.org>; Tue,  1 Sep 2026 21:46:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788299203; cv=none; b=DVQAg64CDVyJo1ZogEN2Yveh9FtsbeE1d31NA87g9r8yfh4/YdOuBpR0PCDIou1Dea68ug6oZs3r8NEiAGa5m0DSaRCpW/JNSnkcP8Fh1AXAUpd3ghQHvEdzKMmmfv5nbdVuAZygfCGrsXaPcmxOUfwp93yb47Ui9h+lkOxJq44=
+	t=1788299204; cv=none; b=bb0884H/Bq8dpOxfDIAjhYY1yPb1BZjm41ig98yD1K5/VxgMchRyLURIrP63OMOHtYjw9N/oSaD9Fk3DVwey2D+m0Ezb8lHyChqAWdMVNZhIm+lFwWybVc0RabX7OjxWT/RkEXs/hupvBhmgEiDYGyOWo4qoHxU3d1HtHpbltwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788299203; c=relaxed/simple;
-	bh=VmbFlELFJ3Rn+I0JOfMdlDLEE3OEnrmuWAkyZTBARKw=;
+	s=arc-20240116; t=1788299204; c=relaxed/simple;
+	bh=z+smutewlOq/DVax40CqKK7q1Y7YvZUwgS3R4KOIJ/Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ATPVoCsfYQbNM1iZhVVUvDw1NqGq4UYLh4aLpjhSUG89pijmj/WAVdFNYldJJVSGJmiz/PC9IBIU4RZRwckMG7u5yESj49i4nZDomwkQnDsPHeNBzIn1Bw2tw6HLlVhuK01ufvuype0YvxOBpS5LyMe+7Q0eH8YtptJD5Lu6VLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U1emJxKZ; arc=none smtp.client-ip=209.85.218.46
+	 MIME-Version; b=aGo4YoQx1vIslko0mIpJ71jqIYFerwj0/QqTasqcwAWJlGlwocdDA8bLylAdtAL+vDcs1aUQCOMgJz9Jor7X/W839Y+JW5kUREL49vunFYjfGwHeTesQjMo0duBXHYaAhTtfJ8gr8a1Zlea34gY+/CxSkSPKcI00wgSwup+croo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wbd1D/hP; arc=none smtp.client-ip=209.85.218.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U1emJxKZ"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c2544ff970dso37532666b.2
-        for <sparclinux@vger.kernel.org>; Tue, 01 Sep 2026 14:46:41 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wbd1D/hP"
+Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-c25344a8c6cso38696666b.0
+        for <sparclinux@vger.kernel.org>; Tue, 01 Sep 2026 14:46:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788299200; x=1788904000; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1788299201; x=1788904001; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=uJ7HB4Zmwe3amRULeH6fSoLAudldxAC6NdOXYXWuTOQ=;
-        b=U1emJxKZL//hS/mmCC/CoUxxCJeKsV5aRjHLMPZcqIiLPM8Y0pDao3UOvbrJ20joq3
-         8UTd1pCr9lVT6Zgk9C2jMgzKNQyM4a161yVOzAxEagafd5Igp6cyFbt63jhV0F/AMF7d
-         WPYScR6OvmQWrMbVUDopRcf/1mNUf2j2Ny0n18fgp/n4DsNLPKas5iwQ9tuBR8Tk6zec
-         0EXe0Y42xFGDVfud/gel3n+eKY+nLRT2ce/h1JnS+eeHBM93dXlTDNVKQj6vHSySoF+R
-         wCm4GVb7zFPhw97hmpt0CGYJuYGiX1B/5iKd6hOzchlLzuuCCvNdjnfEK6sYhP0OWMfq
-         F1jQ==
+        bh=yiQkNyFj/w6aOeqdi5RimSxmu3RrYESQzCuwF1FuMeo=;
+        b=Wbd1D/hPpOGUfCMd3HsWyo0SWLBzdC3827/KrsQgdIU310mgnJsJnOgfw9JkLtGNnO
+         DhteeuOmObBQs7D6iRUjZfDTh+Bt4Ufmqu89NEV2cqANrsMclw7hD2Jx+n0qahfSO8S8
+         Lal2U4WN9GcLv7P1V6fZs1VC65NkVeJiLPkCL+Bs219Iz3GL/hwM4nmQQ6k75rQpgKQC
+         hgxnxuBw7R0ajpQ+oboZMsXUs8pK2lLzbrTV7G8P/vwdbQFRibbtdxUUeNnnZuKE7j51
+         4mFwAffBEaympy8wGgndRm6aBNqZoik3Mry0so7m11MD82Ots121AII1y+lGcgTOTeDr
+         T/4A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788299200; x=1788904000;
+        d=1e100.net; s=20251104; t=1788299201; x=1788904001;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=uJ7HB4Zmwe3amRULeH6fSoLAudldxAC6NdOXYXWuTOQ=;
-        b=hZzwczLpbg//WoGFZImtNjldP9yQJHerC+76SFpF8WlvbeV7//OTFr9lj4FRzJoJu5
-         R8C0FtKSmu0izKn/Yv3l8kNwHsK1iyrRj3WsUsPlxzjFlJcdjR5xZ22ujahcPJ+Y2el8
-         v3h5TEtLEJFuuwOsQu00nZM3dijqL3j+kbpkXRUuIWNJUp6dqn4975YCn9IaxweBSJJV
-         bEgAqvmWnJvXzVTrVHhaKrTesJplDFFixY5WeeViaXpshNGiVBtwVMV7sLAHdmw/heEp
-         0NEsCbcPd00kXA+ePXzp5CMtP9EZORqkAsRkkMO1g1W4IVC8kG3Gkz9q3bMjJlH/jt1t
-         XuxA==
-X-Gm-Message-State: AFuF++nhrH9/D2P2v6EQMKKSZc3DCYRbggTA7wZL9qhkBF8CuAj1gW3Z
-	4VaD9UmgE8FyuAo98fXSRThRUbq1xB8acAxsP+Re7TFtrlLxsXJFfmMcO+oGKw==
-X-Gm-Gg: AR+sD100FNCoE5YRr7A0MAMB3O4hMjnm2HrnL4VL737FdYn3/rL2H9kH5SU1TiTX3kS
-	9bes7nGQ9hYcCJlzJxyKbnYKVA6q2OJRC9vvaUhTfuZIDXK0IWRTJ9aYrKOEh5qI5UV2uE+bDyC
-	9zwKJ16E+Ob2hfWHKDAUC8mfxv7aUV7eCVkF7z/+NOKkXPKXe2xZKdI2twg0Z5KsMF+kkFvrrRY
-	UCCeOhAcIOgsrmMxAbORod0IOMwGFvNLSHYb620Zrl6YaCyIaZrhu1DmLrxHU8ms0gmknJdaxhk
-	td8wdGa+wqov1JagmwrEEMholVoeQ8edXJ24m6TBnAgEOC0h53DXDKWe3xpHn+nLCeLmYnUkpl3
-	pmPrPuzvp/DOixMdfjSfcLvitQl/Z3w9D8lbjBe8wWV71Y1aQ2djOQ65MlaDwv47VRxSs1ga+Q7
-	wD9UNFYSJ+l81EJVEbwEEl/Q/+c41jrxCcMVzjroPcHQZaxUhQHzCvjxYBQhIw3LYGIbdt/wjzI
-	GBgkZXdEzupvAfQy9yM3Kj5+C7Ddk0=
-X-Received: by 2002:a17:907:80c:b0:c1c:5aa1:de57 with SMTP id a640c23a62f3a-c25d548f0ccmr12610166b.13.1788299199717;
-        Tue, 01 Sep 2026 14:46:39 -0700 (PDT)
+        bh=yiQkNyFj/w6aOeqdi5RimSxmu3RrYESQzCuwF1FuMeo=;
+        b=VowvwK85KoB6XEt+CFyDxDbfWc1XiqltKlxOWy/9lnF2JQSF+c4fjIH9hj5YNI09Nd
+         22YIpx9nJG5z/ORZ6gjUn5mXXUS/K1b1uLRi+t2VWNA/1yzjjCGvmI9IlaLvfsVQatzy
+         tnONKE6faeKDUD39ism5WuHhlPlFLk/nRJFSCCFLJk5uqCm1yGJ8CplebGV5DeulRvol
+         0jWnGT86o4kesE7oN8PjEq5bzvaMNZHCFD59kZmd1YpoV44wq9fXJ7bz0ENxhEWtDpar
+         KJXtgvYpzUrmAKVeVufRqV81nKjLkd4grfnC2A9q8Fr4Vqhj5g8d+BHHXVuhW9DXFP54
+         s/dw==
+X-Gm-Message-State: AFuF++mhIOL3seUysVMbpYEtloba2kAUXLOiFzejNXd5zIvDQf8CcnIo
+	3OFER7buDkfjjI578dRR6hWGRTRSmwvGACRctxvQHLOmcccm5ot08OeHps6YvA==
+X-Gm-Gg: AR+sD13T+d/+ebQvgP0cwZlVcWsdVuI3/K3O/1b7qmCcmSfC1AwMI4TH5SyrHYDKAnY
+	kwT64jdTHskA8/Ba7T8nTnXQCoZjcMwNttJakpM/Bfre4OlthRCz6N9as2J5iqJzVexAdkL+Hql
+	abAX+jlUuquxZaZBJQYcNHxs3nxw9N706O11+eIe//ceud+LKrmfsdC8s017u5FRPeHGsDoFcRu
+	h3YfjAHVc7hll9UUK+5HN0E4UDzHYeY0oOvPZnApRts0HXY4KqpL+Mkb7gL8qTCWxnYVBMLwEqA
+	0S0ZFJVfx4kVZgtpW2CqcZV/OSosgXRRTc8OByLguytFamcekwWS5f9GRBGp38s02Y42p/vcika
+	35h7HMvCNo3aDzFVpWkHk9e0fR9z5kKWRtfpZbq+Imhurh1zcJErdw3rEwKFakiZq/NrNt3h3xs
+	1y4lG/g3klmrsHlhOy6lsvBilCkQOf7iUYIcLS6N3wacCWJ8exsRZxaRudcXrVkRFURnja08/yO
+	hDd8BZrzhgrv2tt+GtlcoTfng9KqhG1S7DBYMbgnA==
+X-Received: by 2002:a17:906:478d:b0:c25:848a:4a8d with SMTP id a640c23a62f3a-c25d52875e3mr17277066b.5.1788299201163;
+        Tue, 01 Sep 2026 14:46:41 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c25cffc70fdsm27500866b.4.2026.09.01.14.46.38
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c25cffc70fdsm27500866b.4.2026.09.01.14.46.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Sep 2026 14:46:39 -0700 (PDT)
+        Tue, 01 Sep 2026 14:46:40 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: sparclinux@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -66,9 +66,9 @@ Cc: davem@davemloft.net,
 	sam@ravnborg.org,
 	glaubitz@physik.fu-berlin.de,
 	Magnus Lindholm <linmag7@gmail.com>
-Subject: [PATCH v3 3/6] sparc32: populate memblock from the PROM memory map
-Date: Tue,  1 Sep 2026 23:45:47 +0200
-Message-ID: <20260901214611.60560-4-linmag7@gmail.com>
+Subject: [PATCH v3 4/6] sparc32: drop unused valid address bitmap
+Date: Tue,  1 Sep 2026 23:45:48 +0200
+Message-ID: <20260901214611.60560-5-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260901214611.60560-1-linmag7@gmail.com>
 References: <20260901214611.60560-1-linmag7@gmail.com>
@@ -80,65 +80,93 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add each available PROM memory range to memblock as it is discovered.
-Keep populating sp_banks temporarily so the remaining users continue to
-work while they are converted in the following patches.
-
-Since the complete PROM map is now present before bootmem_init(), enforce
-the mem= limit after the legacy bank processing. Adding a smaller
-overlapping range would otherwise leave memory beyond the requested limit
-in memblock during this intermediate commit.
+sparc_valid_addr_bitmap is populated during early memory setup but never
+read. Remove the bitmap, its allocation and the population helper.
 
 Suggested-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/init_32.c  | 3 +++
- arch/sparc/prom/memory.c | 3 +++
- 2 files changed, 6 insertions(+)
+ arch/sparc/mm/init_32.c | 36 ------------------------------------
+ 1 file changed, 36 deletions(-)
 
 diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index e0e66f91ceeb..75050dfbc2ea 100644
+index 75050dfbc2ea..6880d9cb30a5 100644
 --- a/arch/sparc/mm/init_32.c
 +++ b/arch/sparc/mm/init_32.c
-@@ -165,6 +165,9 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
- 		memblock_add(sp_banks[i].base_addr, sp_banks[i].num_bytes);
- 	}
- 
-+	if (cmdline_memory_size)
-+		memblock_enforce_memory_limit(cmdline_memory_size);
-+
- 	/* Start with page aligned address of last symbol in kernel
- 	 * image.
- 	 */
-diff --git a/arch/sparc/prom/memory.c b/arch/sparc/prom/memory.c
-index 269d6ab5ef5e..59962bc0bc82 100644
---- a/arch/sparc/prom/memory.c
-+++ b/arch/sparc/prom/memory.c
-@@ -7,6 +7,7 @@
-  */
- 
+@@ -13,7 +13,6 @@
+ #include <linux/sched.h>
  #include <linux/kernel.h>
-+#include <linux/memblock.h>
- #include <linux/sort.h>
- #include <linux/init.h>
+ #include <linux/errno.h>
+-#include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/ptrace.h>
+ #include <linux/mman.h>
+@@ -24,7 +23,6 @@
+ #include <linux/highmem.h>
+ #include <linux/memblock.h>
+ #include <linux/pagemap.h>
+-#include <linux/poison.h>
+ #include <linux/gfp.h>
  
-@@ -23,6 +24,7 @@ static int __init prom_meminit_v0(void)
- 	for (p = *(romvec->pv_v0mem.v0_available); p; p = p->theres_more) {
- 		sp_banks[index].base_addr = (unsigned long) p->start_adr;
- 		sp_banks[index].num_bytes = p->num_bytes;
-+		memblock_add(p->start_adr, p->num_bytes & PAGE_MASK);
- 		index++;
+ #include <asm/sections.h>
+@@ -37,8 +35,6 @@
+ 
+ #include "mm_32.h"
+ 
+-static unsigned long *sparc_valid_addr_bitmap;
+-
+ unsigned long phys_base;
+ EXPORT_SYMBOL(phys_base);
+ 
+@@ -218,27 +214,8 @@ void __init paging_init(void)
+ 	device_scan();
+ }
+ 
+-static void __init taint_real_pages(void)
+-{
+-	int i;
+-
+-	for (i = 0; sp_banks[i].num_bytes; i++) {
+-		unsigned long start, end;
+-
+-		start = sp_banks[i].base_addr;
+-		end = start + sp_banks[i].num_bytes;
+-
+-		while (start < end) {
+-			set_bit(start >> 20, sparc_valid_addr_bitmap);
+-			start += PAGE_SIZE;
+-		}
+-	}
+-}
+-
+ void __init arch_mm_preinit(void)
+ {
+-	int i;
+-
+ 	if (PKMAP_BASE+LAST_PKMAP*PAGE_SIZE >= FIXADDR_START) {
+ 		prom_printf("BUG: fixmap and pkmap areas overlap\n");
+ 		prom_printf("pkbase: 0x%lx pkend: 0x%lx fixstart 0x%lx\n",
+@@ -248,19 +225,6 @@ void __init arch_mm_preinit(void)
+ 		prom_printf("Please mail sparclinux@vger.kernel.org.\n");
+ 		prom_halt();
  	}
+-
+-	i = last_valid_pfn >> ((20 - PAGE_SHIFT) + 5);
+-	i += 1;
+-	sparc_valid_addr_bitmap = (unsigned long *)
+-		memblock_alloc(i << 2, SMP_CACHE_BYTES);
+-
+-	if (sparc_valid_addr_bitmap == NULL) {
+-		prom_printf("mem_init: Cannot alloc valid_addr_bitmap.\n");
+-		prom_halt();
+-	}
+-	memset(sparc_valid_addr_bitmap, 0, i << 2);
+-
+-	taint_real_pages();
+ }
  
-@@ -42,6 +44,7 @@ static int __init prom_meminit_v2(void)
- 	for (i = 0; i < num_ents; i++) {
- 		sp_banks[i].base_addr = reg[i].phys_addr;
- 		sp_banks[i].num_bytes = reg[i].reg_size;
-+		memblock_add(reg[i].phys_addr, reg[i].reg_size & PAGE_MASK);
- 	}
- 
- 	return num_ents;
+ void sparc_flush_page_to_ram(struct page *page)
 -- 
 2.43.0
 
