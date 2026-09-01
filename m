@@ -1,147 +1,170 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D0413921D6;
-	Tue,  1 Sep 2026 13:33:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788269620; cv=none; b=i+dKOy/g+Q08m6q1NTBOUrVxGR1ooEU5GjbH80utPmfD4ZFg8GC39avaYFBsmmlyZ2EeOqzuIo/64TYs4e834lZ0YmjY/P6JMNftRucmEaGO4L5SZw+uB8zLzIwSCmAMyXInRV1my6yph9QL0ond4KAQTvodgfCV5O+C+/4E63w=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788269620; c=relaxed/simple;
-	bh=L8mffahwowpqu6th6laYccc721TU8H9CSNOMIhSy280=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FcAB4+cnEBbj0sspr64CU7s5kdYcGx3uubQiXWH8/AkAmXJTFwwKJT/FndjE6Z/t4KlCRHeafAx/qwBUX6X/BE6+4jxBA691C/8kSKmPTVaPvrOKQbCzetdv6cBdgdDv2Z4n+lo6WQdi+IiXgyfokYovBfpyHhV0laAB85AiKPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ndLlqhHl; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178921FBEA6
+	for <sparclinux@vger.kernel.org>; Tue,  1 Sep 2026 13:54:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788270856; cv=pass; b=WsaOXgsSVZik/UvSPYUavgOtTx1aa8LD/WQTyoYl9KJczONlHtbExCFTQ190jz4fjBrF58wSuK2GLQRdKb5tblaNUebVgvhzyoQ2Y6/QcqirOfBEmKeqjzUPo68tiAhqZ//jUyMu1MGOwrcwwmM8A7aPQe4ZHyeFxKDISLjTzAI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788270856; c=relaxed/simple;
+	bh=nklgLPfJRHctBtbtLaS9gMySV66Qnszrm+swoA1Ytd4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=AlRNZsUsc6zsi1aCl/rIM4WmAruOsYqwhG25mc3ESNiX1dS9ceI8+D806b7MJRZwhI90WSUkcMddXA0ZKhviLkylsCIhRm1lXO2Cms4aSlcZpagvp/BW45QpxFmATjTjrV5KsEszH6JomemOyoVvh4OpXgRoe9RZVHp31E82ilo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dUZmm32G; arc=pass smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ndLlqhHl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77C1B1F000E9;
-	Tue,  1 Sep 2026 13:33:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788269618;
-	bh=jcbNqyZ4CJOFUcx+fZWWPKksNhyQwz/xPjmgvkWytSE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=ndLlqhHlVeL1h7g7ph+Wt2NFtmrZ4rOV34TH/BkR1LV3hXV72TFKXBa6SSiWah+YS
-	 osor63kOccehDjmVkh3sQpwcQSMSNYVcFsZhRDfV0BOZWC20X/uzVpPoz11vEPx72u
-	 kLe6Dj8pgXjqMdQBlQ+iOksFRpcAk/cRL2f/1AsjTtd62N9p9KMdTkAyeamslLimmh
-	 rePS6mrE/57HAXFkLSbWMR+W5a6VAq9eNnH/iI1RsHXSsazC5suOIyBDNrTwwP628+
-	 9FLGn6PmlvlXDRo7ABVcbcGo7/AsOm/eX+GOgiWGn/e+QIZmVf+XE4geioRTZyxcRH
-	 0zLk/FGxJh8gA==
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailfauth.ams.internal (Postfix) with ESMTP id 57E291980064;
-	Tue,  1 Sep 2026 09:33:18 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-02.internal (MEProxy); Tue, 01 Sep 2026 09:33:33 -0400
-X-ME-Sender: <xms:HdSWar0zDxM1rzMXPVKSiiHY4KJJXKW9_dKFmXqdbTa_fmaDqPnrAQ>
-    <xme:HdSWasJnHNfyfuCbnPXJ41QnOfMcQ3IsJbdR3mnGKXr-4wj9FELqFm8ZdfeRPj7fy
-    bnm6jh3UIcKaloZqTodN2-BguOMyRSr9poABUPkwGcmSl04lFepx8g>
-X-ME-Received: <xmr:HdSWamc0hBDzYeZ6meHT1N8NrjNwQDlG7ndA51A5p6yJYm1erjaIFQqZ_aA>
-X-ME-Proxy-Cause: dmFkZTE7XYI88DUY2gRkJOK6+ZyCIFoNn8bzP7pT6CkwBKHBvKWUe6kvcLZyJKqoR/mFua
-    tnuce/0i36y0TC7Im4WvZyoy/crD2rPu16GAU43MkToFESYNa+q/dgDmYeFoLAKy++6ZgW
-    8jn2vUxLTK4d+JU7NpIMhvmFWN+lBL6CrhfWBNMDXcQ2eFN5VMfwvgG7wpe8357MD3J5gK
-    7xFBRFrqPTsz4yMLY+EEChvmjl1qNNrFzTmc4wdkVOaUc1KRt3nz4X6b9lgB4AP7QFsDWQ
-    tYyrUQvI3wO8SrGFb+1aGvYLJgVsklk3Kc0+LAmLAEM6pSFrAQvRZGfFtBIFEXt5smoDZ8
-    0sIIODp3p+XbaMM1IQmfCvE2+2bbjw/rRlbPqyxvx3AWjW0wx69YF5Ocr+JktO0nTZOok2
-    HEw0ft0H3myd2V1s6FmW7lpkinX5D+jdOQrkC/osJIL3mBMTcjL7XfwqTbI8tt3mank0qt
-    BcT630GiS2PTitGfmJ6/iVLTorQObFhmiWUpu/4o8m4w+lLom0XGtnouU3SvS4FcugWWNZ
-    7nEECz0GGK+6YbBSmEMxBhw/vyLb4HqtpoQS+cM14FfTsm1gjY737Jmi4qjcP7ghw4NaMo
-    mSjmk0LJqLELQl49SSqDTw86/FRQj/i6o2/Z7vFbf6wnUbIU1mKMMzFy+Xyw
-X-ME-Proxy: <xmx:HdSWaorGnJV8X3w6RQ6-yTLBHwkt_MBfkV8RsDaiRQlkH0hCDXuTig>
-    <xmx:HdSWam_C35Dm2JBzL0A5fzPuG5ZvMut58CN7trPjhfIb_5hDuszCGQ>
-    <xmx:HdSWaobzZlmDe5Y-27Rtv7XIlXhpki_IJYzJN_lp2MB6mY3t1TeGow>
-    <xmx:HdSWam8XuaM7yobHeA1s3aD4FW-Jnsz8789jiGSamkl6EtIN7IErBA>
-    <xmx:HdSWaoYZmoLC2txSUqseUpEqs0XigJd8k-YHiiGmmzkLSGyss1bakguf>
-Feedback-ID: i10464835:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 1 Sep 2026 09:33:15 -0400 (EDT)
-Date: Tue, 1 Sep 2026 14:33:14 +0100
-From: Kiryl Shutsemau <kas@kernel.org>
-To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- 	David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>,
- 	Baolin Wang <baolin.wang@linux.alibaba.com>,
- "Liam R. Howlett" <liam@infradead.org>,
- 	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>,
- Dev Jain <dev.jain@arm.com>, 	Barry Song <baohua@kernel.org>,
- Lance Yang <lance.yang@linux.dev>, 	Usama Arif <usama.arif@linux.dev>,
- Guo Ren <guoren@kernel.org>, Brian Cain <bcain@kernel.org>,
- 	Geert Uytterhoeven <geert@linux-m68k.org>,
- Dinh Nguyen <dinguyen@kernel.org>,
- 	Simon Schuster <schuster.simon@siemens-energy.com>,
- Jonas Bonn <jonas@southpole.se>,
- 	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
- Stafford Horne <shorne@gmail.com>,
- 	Yoshinori Sato <ysato@users.sourceforge.jp>,
- Rich Felker <dalias@libc.org>,
- 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Paul Walmsley <pjw@kernel.org>, 	Palmer Dabbelt <palmer@dabbelt.com>,
- Albert Ou <aou@eecs.berkeley.edu>, 	Alexandre Ghiti <alex@ghiti.fr>,
- Russell King <linux@armlinux.org.uk>, 	Vineet Gupta <vgupta@kernel.org>,
- Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>,
- 	Max Filippov <jcmvbkbc@gmail.com>, Will Deacon <will@kernel.org>,
- 	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
- Nick Piggin <npiggin@gmail.com>, 	Peter Zijlstra <peterz@infradead.org>,
- "David S. Miller" <davem@davemloft.net>,
- 	Andreas Larsson <andreas@gaisler.com>,
- Richard Henderson <richard.henderson@linaro.org>,
- 	Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>,
- 	Catalin Marinas <catalin.marinas@arm.com>,
- Mark Rutland <mark.rutland@arm.com>,
- 	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
- 	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
- 	Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>,
- 	Michael Ellerman <mpe@ellerman.id.au>,
- "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
- 	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
- 	Alexander Gordeev <agordeev@linux.ibm.com>,
- Christian Borntraeger <borntraeger@linux.ibm.com>,
- 	Sven Schnelle <svens@linux.ibm.com>,
- Richard Weinberger <richard@nod.at>,
- 	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
- Johannes Berg <johannes@sipsolutions.net>,
- 	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>,
- 	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, 	Arnd Bergmann <arnd@arndb.de>,
- Vlastimil Babka <vbabka@kernel.org>, 	Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, 	Michal Hocko <mhocko@suse.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, 	John Hubbard <jhubbard@nvidia.com>,
- Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
- 	linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
- linux-hexagon@vger.kernel.org, 	linux-m68k@lists.linux-m68k.org,
- linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org,
- 	linux-riscv@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
- 	linux-snps-arc@lists.infradead.org, linux-arch@vger.kernel.org,
- sparclinux@vger.kernel.org, 	linux-alpha@vger.kernel.org,
- loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
- 	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-s390@vger.kernel.org, 	linux-um@lists.infradead.org,
- Hugh Dickins <hughd@google.com>, Qi Zheng <qi.zheng@linux.dev>
-Subject: Re: [PATCH 11/12] mm: make userland page table freeing RCU-safe
-Message-ID: <apbSaL0YaQqtO9XB@thinkstation>
-References: <20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org>
- <20260901-rcu-pagetable-freeing-v1-11-5456a81c8212@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dUZmm32G"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6a38098734bso481632a12.1
+        for <sparclinux@vger.kernel.org>; Tue, 01 Sep 2026 06:54:14 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788270853; cv=none;
+        d=google.com; s=arc-20260327;
+        b=AZSs5B54Ty0ZRnSgY+ssBjagQBrYJgNLqhR42vH6/g1Frs6x7ByiASp8QQBV/HYsxw
+         olN6Pv4Ek3WQqUoiJm2aZ7gPTvn0MMWVeFRVpZSMDsFyZSTGxLv8XXeKoZI4Ygsszrky
+         YwP1G60IKX1OcKC5p0nYwrkyF+z/X4lt9WNSfLAK/bi0Pae/Xea3KTjHy7OImB8OTIXM
+         Vz4Re22sAZKsCnvxYqA9p8kQ2JFk8veH0E5L5iv5ybbHPZ3YNNAta4xVoat3EkGeAdSU
+         /LyWX1Pvi1HjuzWV4WRBpxvYkxXuDNmcq9gIkraI5C1wtNeovqceijERwUEcqK7Hv1ef
+         Yg+Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=Ulo3g+NwIm1JGOdXuJA1Xyyl2IN9ayh+l8FSH/4IwHg=;
+        fh=lIBdiMTals0VDbKkknJNa4hZrTGWR7Btvm26/3VRa0k=;
+        b=lJpsWDm/8DY4ZfkHJ+Bw90lZ46HFwi6MO1R8n7pUBgIcPODoEubC0wGj7dyxq0vdPC
+         b93i47WVlufmTRZd2wliPsTw2nYQjsrlMe64u2pB7ms6IxL9gLc+C7WvsmJhO0HyvHd5
+         rTEU46O5alTLMr0WthxtXgXdshrp1a/Z+lpaUvjeWGi2OeOPgAkFdUTyOGIJBuS9VvBP
+         ml+F6X2k5lrgoflHHKrHx3je9zBPWkMWDcyxZyQcBg4dGrxoEqAXPb+5uCoR/dMZzXO5
+         1YV0hRAqycqm5DvkicVV3JPjey3dKvgmY+mI001rnqWP1hAPc8f/zb67Nsoyl1BBasfx
+         uXNg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788270853; x=1788875653; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Ulo3g+NwIm1JGOdXuJA1Xyyl2IN9ayh+l8FSH/4IwHg=;
+        b=dUZmm32GvIJmVibW6RTHMDt51Oh/sjjEhS9LbxUYupJsdFXQ6Axihm1XBvz20G+ATZ
+         tsHh7QkGl0WZwR6un6DBWoo2IXP6/q0ay3i3OliUQekHlOyGXr/rnp5ysdHsqlc43I0P
+         LZGzxds7MkGTdZiM4TRCrq6+UuMh4U6fHrhP7ZQJXWq+djy9PVdhGykBtTrFKH58bOyy
+         xlC6O8PfQilk/eaiK1rYlmuFkj0MdSD0Pxdctw3UEjMctkDnEkiLNAEwb6V2SiVO+mWU
+         jodTa5xvRQjnAU7bpWElPdjArES50UujDYEW54ug62MiADRhFifAqp5uycsZsEg0NLhi
+         cgoA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788270853; x=1788875653;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Ulo3g+NwIm1JGOdXuJA1Xyyl2IN9ayh+l8FSH/4IwHg=;
+        b=ArFJnvCgngK9NVKpQ0FgE0W4P9iM/t495WZqZWSWrH+yABznnF+zxrk0gtbIpf6BV/
+         VB2yg+2UqnCbuIfrJQgsj6ELGoOCnVp0xTtD/I15IqUs7KA6zuc2O3BaKaJHR9/c2oCt
+         V1LI/bEz4HN2xlqXMJWaBGwlI5OIimep8UWiwFfRZzD6EAc8NpsAHKHzpom4SxpqYC0q
+         E+9jWYkGW9JXibPHr20IdfA+VwgSyac3jyzPus8xzHHoNzOc2kwhc93nU8RvzMzCInar
+         wcrhfZwybU9J6B+7O/B8f5eI9gEtliisNaL642uOvExhjxozuIkWSDyctGnInSJ+QzLK
+         5w1A==
+X-Gm-Message-State: AFuF++lDzJszyFk2Ncf3riBS2TC6EBPJOgnGzpVlwu9m8nQY7CxpCnpT
+	T6h0Xk+X3/jYAmJ59XoVjVNcvnzdnexoc0Cnkx1CRHoHMjvaJgliNpLQwqapp3bYgjp0G5VQPAk
+	OA9hbhXioctzkulySK3iHSNwDbN7jmbc8Hfro
+X-Gm-Gg: AYBFou0wFcz5ZO59Vw/cvtm8P8Z2uYbwPJ/kWNBo8dW3rqNXGN+BhBrJsgrXqja72Fk
+	KNsv4v0If6H6KvZdYWwLuBMLawuRuG9M+z493YC9vB7w11KUyansq/3y4TOfXAEjW3O78lKceWz
+	APe/pFiz/aIwlAu1qsIleE5LLL+WTQwOgd48WxHefg4Vq128AEdgXMYAmNMFxHPEm3sZE2+Cx+9
+	8KIYVV2R7qUHu0QVDKXSIndPRFssMtlXqqyKcCrS4s2btfrLcmkR7rJQQ6TrKXYjxrkYfJIIj1u
+	LwFb0DqOyNbRm4sJNScP7NfdyO3O0k56NyxoFCiLwum5yXFXdVUk89nQnGxQ3dNlCk7hflMr8aw
+	t/w==
+X-Received: by 2002:a05:6402:2753:b0:6a1:c908:1701 with SMTP id
+ 4fb4d7f45d1cf-6a663b0cebfmr5071769a12.13.1788270853073; Tue, 01 Sep 2026
+ 06:54:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260901-rcu-pagetable-freeing-v1-11-5456a81c8212@kernel.org>
+References: <20260830120742.20950-1-linmag7@gmail.com> <20260830120742.20950-6-linmag7@gmail.com>
+ <20260830181926.GB173328@ravnborg.org>
+In-Reply-To: <20260830181926.GB173328@ravnborg.org>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Tue, 1 Sep 2026 15:54:01 +0200
+X-Gm-Features: AcwNN1Ujzqq8uSBYZYR26NfQu3bI-0Yzhq3DaXzDvavXmWNc0ExNRc2BNZ1AaXk
+Message-ID: <CA+=Fv5TV6YAeLriGHxQQ6Sv4PrMFYYDk=n2v92kpg8srb1tSHw@mail.gmail.com>
+Subject: Re: [PATCH v2 5/6] sparc32: move early memory setup to setup_arch
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: sparclinux@vger.kernel.org, davem@davemloft.net, andreas@gaisler.com, 
+	linux-kernel@vger.kernel.org, glaubitz@physik.fu-berlin.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 01, 2026 at 12:01:31PM +0100, Lorenzo Stoakes (ARM) wrote:
-> With this change in place the kernel policy is now that all page tables are
+Hi Sam,
 
-s/all/userspace/ as subject implies?
 
-BTW, what is your take on kernel page tables? Do we want the same policy
-there. pagetable_free_kernel() is not RCU-safe as it is.
+Thanks for taking the time to review this, I've put together a v3 to addres=
+s
+your feedback, will post it after some more polishing.
 
-> freed after an RCU grace period, and thus it is now safe to unconditionally
-> perform page table walks under RCU, safe in the knowledge that page tables
-> will not be freed underneath the walker.
+On Sun, Aug 30, 2026 at 8:19=E2=80=AFPM Sam Ravnborg <sam@ravnborg.org> wro=
+te:
 
--- 
-  Kiryl Shutsemau / Kirill A. Shutemov
+>
+> We have several >> PAGE_SHIFT and << PAGE_SHIFT.
+>
+> It would be more readable to use the corresponding:
+> PHYS_PFN() and PFN_PHYS().
+
+I agree this makes sense.
+
+>>  #define PFN(x)           ((x) >> PAGE_SHIFT)
+>A cleanup for another day is replacing  PFN() with the standard PFN_DOWN()
+
+I'll make a note of this, maybe we come back to it later than.
+
+
+> > -extern unsigned long last_valid_pfn;
+> > +extern unsigned long max_low_pfn;
+> This is already declared in memblock.h:
+>
+> $ git grep max_low_pfn
+> include/linux/memblock.h:extern unsigned long max_low_pfn;
+>
+>
+
+This is the better solution, thanks
+
+
+> > +     for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn,
+> > +                            NULL) {
+> No need to break this up, we are not above 80 columns.
+>
+
+Yes, I'll fix this.
+
+> > +     min_low_pfn =3D PFN_DOWN(memblock_start_of_DRAM());
+> > +     pfn_base =3D phys_base >> PAGE_SHIFT;
+> > +     max_low_pfn =3D PFN_DOWN(memblock_end_of_DRAM());
+> > +     highend_pfn =3D max_low_pfn;
+> highend_pfn is only used to set max_zone_pfn[ZONE_HIGHMEM].
+> It would be simpler to just use max_low_pfn and get rid of
+> highend_pfn.
+>
+>
+> This part should also set max_pfn.
+>
+
+Well spotted, that makes sense.
+
+> > -     if (max_low_pfn > pfn_base + (SRMMU_MAXMEM >> PAGE_SHIFT)) {
+> > -             highstart_pfn =3D pfn_base + (SRMMU_MAXMEM >> PAGE_SHIFT)=
+;
+> > -             max_low_pfn =3D calc_max_low_pfn();
+> > -             high_pages =3D calc_highpages();
+> > -             printk(KERN_NOTICE "%ldMB HIGHMEM available.\n",
+> > -                 high_pages >> (20 - PAGE_SHIFT));
+> > -     }
+> All the above are not needed as the kernel already print HIGHMEM, and
+> this patch removes it - good.
+> Maybe tell so in the commit message?
+
+Yes. will fix this.
+
+Magnus
