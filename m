@@ -1,114 +1,115 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C943F48BD2B;
-	Tue,  1 Sep 2026 17:40:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E180E379EC4;
+	Tue,  1 Sep 2026 17:48:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788284417; cv=none; b=OJm2KsfBvhszdvWkiiTIDSX5TeAOffuwe3Dc0iGf2hmjxfRzvpzpqe99Vn9rKVIeDfyDr5XtdSzwTXz0DIhCy/NjbfEPaXrSeD2ENT81xNJ2Zp5ltRYfPchVWI56CMxXYnasz6mwQ0ASVdd2EtBmnmDhBrZShYDh1PV5P3rRGM8=
+	t=1788284926; cv=none; b=nRw44fybFluxUpS3KRt7kSsW6w/OGu3GXPu0so8YF/A4/X3lm6b9C39uqwoNXw4jEEW+86ji667yiQbpG+uZ+enhEq+DbEbrIBESKCTPnQ8mcqz5Z+BKh/4f2zePlE6KiHfgx2gG7gqdM6YA8a/o77ucMvuFcyhvG/YwuFeEHqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788284417; c=relaxed/simple;
-	bh=o+BiYyHTA2eYb3SI7fyRtwAGevvrPg9Zjjod3z/vGaA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PJ5SpVB+CdBL37D/dVfS3u24AP7mEEmjosbNwCT5wfgvWqPFGkh0Qe//j21P3Zz+KzwwdCGfJ1KAdnh0tV9x8oVm6e1wikfxwyenZXBmWiP9vLmKUhS4HuHTMlZNttjFd3cfY9/3x89G0k6EOSutLCvXDVdjgTwu09hMs8YO7dw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=QrZY31hF; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	s=arc-20240116; t=1788284926; c=relaxed/simple;
+	bh=ILEgUta+XEN5A01rR7LjqPYu5e1vBHkVQXMhim+XKZM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QL2a4/xJJ7CEboRu8aaKbIpBEqV6TOOxxB3hZZ/7NAGEclplMo33/wpPsHIYDHA1WT5xAarWWJ/o5aIXFEnUrfOXXJ3PePT8RFhwXklDSjaR3b2k1sXfK9Bi0HX3JkV6ZhUcrGuzOkbRdJosmkTgIuNLCIvZ3MkE31VtWPbpDik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=UVtis7e+; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="QrZY31hF"
-From: Stian Halseth <stian@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1788284413;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=71sn3dbaPtgCkZiSutjY0Za4tGeeJfsylcC5LIB7G/Y=;
-	b=QrZY31hFUEYlKdMaV1iOJi8lVrG66kEXMUWbm12eed8mhGAq33epUeb/WXVQFHbFS95iU0
-	AhkaCQhKtnguhEeul7rAG67tvIEbjRmL4CJPuz/LMqbnm6Jc4GCOgTOuXbbMH3P9gZPCn9
-	oEVc3hks3TCbSWZDvfapOaGGXEl6NlI=
-To: axboe@kernel.dk
-Cc: linux-block@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	andreas@gaisler.com,
-	davem@davemloft.net,
-	glaubitz@physik.fu-berlin.de,
-	regressions@lists.linux.dev,
-	Stian Halseth <stian@itx.no>
-Subject: [PATCH 2/2] sunvdc: fix -EIO issue due to lack of retries
-Date: Tue,  1 Sep 2026 19:39:46 +0200
-Message-ID: <20260901173947.3292110-3-stian@itx.no>
-In-Reply-To: <20260901173947.3292110-1-stian@itx.no>
-References: <24f8b266-f17c-4909-b43d-8ab05721c5d8@kernel.dk>
- <20260901173947.3292110-1-stian@itx.no>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="UVtis7e+"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=PQNx8cP7/H92zG22iJw5UI7f9yq7f8zWrRV0yPrbUWI=; b=UVtis7e+r5/G27TIqfxZ+en6iD
+	ewP14Pe2h9SnqatfXnO6L1fC4qcBnFOELp+V8WjW5RT1xwY3uZi3XSEv9Vu+4qZ1jP6BGVn7PXBEA
+	4Uw0Phr831M7R4vLdI8REUIOdbiINbJ1LMU5Mje2MkkXTCbCEn9Xn2ArP+y9asBIjud478+zn1SSo
+	lebc9FLfrg1/y0a6m2dAyJLJ3yltmw6G3+vcRUXeO4yRAwAxeKznEDSHVJJRWpAMX3il8mcbEeTWo
+	3139sv5kbIIlk0Z/E868rddoQ5sSESOXVT4ZQj4kMrc2J++kPSB2h0IKqxPLn0UnyiWT6B5SeVd+c
+	852DOAfw==;
+Received: from [38.23.173.23] (helo=localhost)
+	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1x1SaY-0000000Crxj-16sr;
+	Tue, 01 Sep 2026 17:48:03 +0000
+Date: Tue, 1 Sep 2026 13:47:49 -0400
+From: "Liam R. Howlett" <liam@infradead.org>
+To: Kiryl Shutsemau <kas@kernel.org>
+Cc: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Andrew Morton <akpm@linux-foundation.org>, 
+	David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, Guo Ren <guoren@kernel.org>, 
+	Brian Cain <bcain@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+	Dinh Nguyen <dinguyen@kernel.org>, Simon Schuster <schuster.simon@siemens-energy.com>, 
+	Jonas Bonn <jonas@southpole.se>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, 
+	Stafford Horne <shorne@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+	Russell King <linux@armlinux.org.uk>, Vineet Gupta <vgupta@kernel.org>, 
+	Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, 
+	Max Filippov <jcmvbkbc@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, 
+	Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Richard Henderson <richard.henderson@linaro.org>, 
+	Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, 
+	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
+	Sven Schnelle <svens@linux.ibm.com>, Richard Weinberger <richard@nod.at>, 
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>, Johannes Berg <johannes@sipsolutions.net>, 
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Vlastimil Babka <vbabka@kernel.org>, 
+	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+	Michal Hocko <mhocko@suse.com>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org, 
+	linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org, 
+	linux-sh@vger.kernel.org, linux-riscv@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-snps-arc@lists.infradead.org, linux-arch@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-alpha@vger.kernel.org, loongarch@lists.linux.dev, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-s390@vger.kernel.org, linux-um@lists.infradead.org, Hugh Dickins <hughd@google.com>, 
+	Qi Zheng <qi.zheng@linux.dev>
+Subject: Re: [PATCH 01/12] mm/huge_memory: zap deposited page tables after an
+ RCU grace period
+Message-ID: <px4uwbuq4ixucmjzudxulldk5l2tbuymaoaheyc624jdznnac6@px5wkmxqjmfo>
+References: <20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org>
+ <20260901-rcu-pagetable-freeing-v1-1-5456a81c8212@kernel.org>
+ <apbOlyF77yDCV4cF@thinkstation>
+ <apbcoMTVlL42G5tg@gremlin>
+ <20260901142408.GA56830@ziepe.ca>
+ <apbiB51hjm-9pRzf@gremlin>
+ <apbuO_QveZNAz3ns@thinkstation>
+ <kasi4mkjkt56wxsrmphm5o2qfg2lwsdxf3tlmzx5tq6t7uez74@kozleoavd6r2>
+ <apcHiE7jDQaFYXOM@thinkstation>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <apcHiE7jDQaFYXOM@thinkstation>
 
-From: Jens Axboe <axboe@kernel.dk>
+On 26/09/01 06:13PM, Kiryl Shutsemau wrote:
+> On Tue, Sep 01, 2026 at 11:54:47AM -0400, Liam R. Howlett wrote:
+> > Do you have munmap() performance dependent workload that you are
+> > concerned about regressing?
+> 
+> exit(2) path is performance critical for many workloads. Like, if you
+> need to restart VM.
+> 
 
-John reports that since commit:
+That is not enough to see any impact, although less overall work would
+be done during the exit call.
 
-a11f6ca9aef9 ("sunvdc: Do not spin in an infinite loop when vio_ldc_send() returns EAGAIN")
+It would be very difficult to come up with a scenario that this would
+have a measurable difference and an even harder time to come up with one
+that is slower.
 
-users of Linux inside Solaris ldom see occasional -EIO errors because
-the request send loop now times out. The current loop does 10 retries,
-and inside vio_ldc_send() a further 1000 1usec retries are done as well.
-Even with 10.5 msec of busy loop retries that's apparently not enough to
-always succeed.
-
-Rather than introduce continued busy looping, requeue the request and
-have the delayed queue kicking retry the request after another 10ms.
-This obviously isn't ideal, but there's seemingly no way to wait for
-this type of event. And if 10ms of busy looping was not enough to make
-progress, then presumably this is an edge condition and we just need to
-guarantee to make forward progress at some later point in time. That's
-more suitably done through letting the CPU tend to other work, rather
-than sitting in a tight loop retrying.
-
-Reported-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Link: https://lore.kernel.org/all/20251006100226.4246-2-glaubitz@physik.fu-berlin.de/
-Link: https://lore.kernel.org/all/418310b3-2b77-4534-b2fd-27dcc11e333c@kernel.dk/
-Signed-off-by: Jens Axboe <axboe@kernel.dk>
-[stian: rebased on top of the cookie-unmap fix, without which every
- requeued attempt leaks LDC map table entries; tested on an
- UltraSPARC T4 LDOM where the vdc_tx_trigger failure condition was
- reproduced and absorbed by the requeue with no I/O error]
-Signed-off-by: Stian Halseth <stian@itx.no>
----
- drivers/block/sunvdc.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
---- a/drivers/block/sunvdc.c
-+++ b/drivers/block/sunvdc.c
-@@ -556,6 +556,7 @@
- 	struct vdc_port *port = hctx->queue->queuedata;
- 	struct vio_dring_state *dr;
- 	unsigned long flags;
-+	int ret;
- 
- 	dr = &port->vio.drings[VIO_DRIVER_TX_RING];
- 
-@@ -577,7 +578,13 @@
- 		return BLK_STS_DEV_RESOURCE;
- 	}
- 
--	if (__send_request(bd->rq) < 0) {
-+	ret = __send_request(bd->rq);
-+	if (ret == -EAGAIN) {
-+		spin_unlock_irqrestore(&port->vio.lock, flags);
-+		/* already spun for 10msec, defer 10msec and retry */
-+		blk_mq_delay_kick_requeue_list(hctx->queue, 10);
-+		return BLK_STS_DEV_RESOURCE;
-+	} else if (ret < 0) {
- 		spin_unlock_irqrestore(&port->vio.lock, flags);
- 		return BLK_STS_IOERR;
- 	}
---
-2.53.0
