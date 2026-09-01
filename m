@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B67538399A;
-	Tue,  1 Sep 2026 14:03:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A14FC3B05A3;
+	Tue,  1 Sep 2026 14:13:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788271439; cv=none; b=QFfuqbWMjnMhkeBByQphXFtwmVhlgNJtqto/4GMMbHI48DfNxgLLd94CCX5Bvo7i3X9YRWFV6vKilJXk4ejr4zDmQtGxtzMG+l2JI7MX5yFASUznPt7+Q+ODYCwJnZBqi9yOAr3Luz0sbRdLD2vl7m603B/6Lg6JMw7DEcfaIWw=
+	t=1788271990; cv=none; b=stplvCYIyqcfGEvRXVyv9kLt4VQchXNtmoqA9E03KOes+BnyzcnohTyw3sMs5gn7x0vTXtzW1/14arL8uuBr9NqD+57YwNNVo1C8eZSK2q9DlEC8fN88pzDvqU6YW1xSC02yBC/p5vCKRkHNbXCS5SAAyDKQemu9PgEqaFiU8/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788271439; c=relaxed/simple;
-	bh=kve6uDAI7DTcVIXstL9jFu6NdqDG5Q6URxuFKahq9dY=;
+	s=arc-20240116; t=1788271990; c=relaxed/simple;
+	bh=a2b+xv6S/sQj7cWLxXIth8VJz3Q7Xf04YGK8+l/yPro=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eMn0YStT+cuuwtDY6LddAkepehcNCPD0hDjBc2ZqUeapFBIwuBOCDqI45J4wk/nJKp78lhg6ho9I4S2TmAP8iQYUZfIgF0ngkCUySgeZXMdF1uRqtuBKtB3SsK9YYJ3ZW94X7Yn9HXJbOOjgq3KXY+qCTs7FsTJH75TN/MuaX+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VkHIyhIL; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=Wop2UBMjjbMu9KITmfvKtSNbmFQOgjklHqq8OVVPAWb6xXumquB/3c37ecigu9v27a9ptkVoh5/TxbFyU06TiqO50XqmTD03ZvNM+6COsLjl2fGbNFWFwfNpWb6ta3/n3gy9WUs07UKBECUuDP6SZ2aJ9Lptzyc3DvHJ0Lqzicc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ojh3C4HD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VkHIyhIL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9601A1F00A3E;
-	Tue,  1 Sep 2026 14:03:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ojh3C4HD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24C071F00A3E;
+	Tue,  1 Sep 2026 14:12:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788271438;
-	bh=utZgOAk3glT+w9jGyIL1e4+wDW3VgIywx5aDJ+IClBI=;
+	s=k20260515; t=1788271988;
+	bh=zIFNccvs+atFhWftoJEJD5wmod58xIW+qFgefX0BOCg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=VkHIyhIL5RYsevDjObNKXZqn+SdY5WQb69y59u2HEPU8+koXsjF39lkchtgGfID2/
-	 RRta8sEiyqrYHeGZADgvcepo/d6BCIy1rew63LXlaVY0Xupe7DXsdoMNSJ2LwTdz2t
-	 9L5dRACEK20PlxkRCThhZUhUvCQOFVCbvgosbtCrmvTH2mK9HkGA5IIhEFa7R3t6KR
-	 sYprPzYjwJdozsniM15JaMhNn3suHrmHgExLHHHmoISXD5OQ3cY25wcuADGpitpChH
-	 /n/kgOyZ1a5axdohia++5dysGbeDD/F5NBdm+JhIfjt3j2SloNQlLySaTEevH9y1p5
-	 qVSTayD4zeHWQ==
-Date: Tue, 1 Sep 2026 15:03:34 +0100
+	b=ojh3C4HDmqZjOi1pkhDSDGdV7SfRfNfWGZdomRJtqMccy2x0v2yndUbLTlFfoma31
+	 dXPCD/3iuiFmrOyTzvDFsi3JMSQci44mXNjMW5aZrX1wksJI6YrjjSO9AmUv57cBYV
+	 9z8GlCwH5Lcq8HdHGJ0PhyaJV91X1hhmLlTYoLDJyqV5tpAA3OmuNtzuupyJ9NgXA9
+	 UJ1DFYAPUuZI2d/93NYxQqW7uJLFNFyZWGMt5ve018yg00i9qrJwXbMtHXQVNemoe6
+	 vmWZlNLESArFUgZ4rroUvf022k6zvA9BUurkwbyrW+S7uSnPMqBoCZlDQJvO6b3uMa
+	 s/wAJaE9PbDug==
+Date: Tue, 1 Sep 2026 15:12:45 +0100
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
 To: Kiryl Shutsemau <kas@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -70,11 +70,12 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	linux-alpha@vger.kernel.org, loongarch@lists.linux.dev, linux-mips@vger.kernel.org, 
 	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, 
 	linux-um@lists.infradead.org, Hugh Dickins <hughd@google.com>, Qi Zheng <qi.zheng@linux.dev>
-Subject: Re: [PATCH 11/12] mm: make userland page table freeing RCU-safe
-Message-ID: <apbZwZHOkExAqOPA@gremlin>
+Subject: Re: [PATCH 01/12] mm/huge_memory: zap deposited page tables after an
+ RCU grace period
+Message-ID: <apbcoMTVlL42G5tg@gremlin>
 References: <20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org>
- <20260901-rcu-pagetable-freeing-v1-11-5456a81c8212@kernel.org>
- <apbSaL0YaQqtO9XB@thinkstation>
+ <20260901-rcu-pagetable-freeing-v1-1-5456a81c8212@kernel.org>
+ <apbOlyF77yDCV4cF@thinkstation>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -83,27 +84,85 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <apbSaL0YaQqtO9XB@thinkstation>
+In-Reply-To: <apbOlyF77yDCV4cF@thinkstation>
 
-On Tue, Sep 01, 2026 at 02:33:14PM +0100, Kiryl Shutsemau wrote:
-> On Tue, Sep 01, 2026 at 12:01:31PM +0100, Lorenzo Stoakes (ARM) wrote:
-> > With this change in place the kernel policy is now that all page tables are
+On Tue, Sep 01, 2026 at 02:19:36PM +0100, Kiryl Shutsemau wrote:
+> On Tue, Sep 01, 2026 at 12:01:21PM +0100, Lorenzo Stoakes (ARM) wrote:
+> > When an anonymous mapping is collapsed for THP, a PTE page table is
+> > 'deposited' with the installed PMD entry.
+> >
+> > This is done in order that a split can be performed without needing to
+> > allocate additional memory.
+> >
+> > The freeing occurs in zap_deposited_table() and is done directly without
+> > any delay via pte_free().
+> >
+> > This is currently not a problem as existing page table walks are protected
+> > by the mmap or anon rmap lock.
+> >
+> > However this becomes problematic in a future where RCU-only page table
+> > walkers exist, as there is nothing to prevent a page table walker that
+> > started the walk prior to collapse having its PTE table freed underneath
+> > it.
+> >
+> > Commit 13cf577e6b66 ("mm/pgtable: add pte_free_defer() for pgtable as
+> > page") already provides us the mechanism by which to solve this -
+> > pte_free_defer().
+> >
+> > Therefore, as a prerequisite to a future commit which will permit fully RCU
+> > page table walks, update zap_deposited_table() to use pte_free_defer()
+> > rather than pte_free().
+> >
+> > Note that the IPI sync in collapse_huge_page() is still required to ensure
+> > refcount correctness against a GUP-fast operation.
+> >
+> > This is because GUP-fast might increment refcount, but
+> > __collapse_huge_page_isolate() determines whether it is safe to proceed by
+> > checking folio_ref_count() against folio_expected_ref_count(), so the two
+> > must be mutually excluded.
+> >
+> > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+> > ---
+> >  mm/huge_memory.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+> > index 54494c3fa983..505f7b62ff28 100644
+> > --- a/mm/huge_memory.c
+> > +++ b/mm/huge_memory.c
+> > @@ -2476,7 +2476,7 @@ static inline void zap_deposited_table(struct mm_struct *mm, pmd_t *pmd)
+> >  	pgtable_t pgtable;
+> >
+> >  	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+> > -	pte_free(mm, pgtable);
+> > +	pte_free_defer(mm, pgtable);
 >
-> s/all/userspace/ as subject implies?
+> Hm. So it is call_rcu() on each PMD. It might be costly, especially for
+> zap_huge_pmd() path: 512 call_rcu() per-GB of unmapped THPs.
+>
+> Do we want leverage mmu_gather if caller has it?
 
-Right yeah :) I hoped that the summary line would clarify that but can edit that
-also.
+I mean, I'm not sure in which respect that'd be costly, 512 is not a big number
+to a computer, and repeated call_rcu() invocations should just queue more
+operations no?
+
+It won't be costly at the time of the calls obviously as its deferred. Maybe
+increase some time spent in softirq but again is 512x that big of a deal?
+
+I'm not sure how you'd both defer the free and somehow utilise mmu_gather here
+either really, certainly not without it becoming extremely messy.
+
+But yeah I'd want to see hard data on that before I really believe that's a
+problem :)
 
 >
-> BTW, what is your take on kernel page tables? Do we want the same policy
-> there. pagetable_free_kernel() is not RCU-safe as it is.
-
-Yeah I think so too. I may follow up with a series to that effect also!
-
->
-> > freed after an RCU grace period, and thus it is now safe to unconditionally
-> > perform page table walks under RCU, safe in the knowledge that page tables
-> > will not be freed underneath the walker.
+> >  	mm_dec_nr_ptes(mm);
+> >  }
+> >
+> >
+> > --
+> > 2.55.0
+> >
 >
 > --
 >   Kiryl Shutsemau / Kirill A. Shutemov
