@@ -1,146 +1,126 @@
-Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A98C43B6C4
-	for <sparclinux@vger.kernel.org>; Tue,  1 Sep 2026 16:06:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED75E42049F;
+	Tue,  1 Sep 2026 17:12:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788278781; cv=none; b=ZmnlBUfkpuG0Q5juBWXNAvamLWgMfNUCE6x9TQOWfcxZqEr/yqthPtgu9H1e5I0anML5q1KsEKHI/BsuNdUFQ+7iMGto20JYPEr/ZbbKPoxGcs82/JFHrtSiJVfC6+O7SatTHovpiHE59c75oucpPcD0Qzp9OXq/7JK4cC08NFA=
+	t=1788282743; cv=none; b=HDWLOUhZkEqISdiKEh+76k0GRwPXklloVJDhFm1abLhumch900ySF6hQuRIAbRvR84ea5v9HctnLf6Tcs0YYHEHCQEbYVBq6iUeJkz54PAxOkmPo6LQ6WbelPTEG7PIo20WRXYx2dOOldE6ozeC+VKwJOqXtpb59bTK7LlyqA7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788278781; c=relaxed/simple;
-	bh=m9GF6BVXJghb0t0TACX7Y0SpJfQTXPLs06gu6gZAn2Y=;
+	s=arc-20240116; t=1788282743; c=relaxed/simple;
+	bh=GJjpEYktLXQfUdDya8N4c9YCXPfJKcNIiYclRIysixU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jNgYRB2OQU5EPOS9+A+GghoXiUWzVzADi9Q1aNQNmH3EqBrfqEGHw9ADD0iowAWBV7c7SmqSOsMO6x231Tu//QgHOUKG0tOusY4ZpOVSCteHtdFee6uuZ+z1a2Za8yV7cHVilezPaDlnKMg+98XfEHyqQntNeJQQq/Bfm9Cy+us=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=BQcWIcoV; arc=none smtp.client-ip=209.85.222.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	 Content-Type:Content-Disposition:In-Reply-To; b=aNkbTATF6frjSDu55UPqeCGxPzXpf9XrpXN4bVLiONpzLjXIt0A/U214TeS5SjMX854Ta5ns5vK24ZmnDkAElR7mkm0vaorS/SqH7JAyY+m5Rng09TYWPYgbpsHDodFe76ZdpEgQNpVvKzsbyt8ZmMFtT7qc0t1MoKcl6lh3Rrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AGFJkbrl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="BQcWIcoV"
-Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-936cda0e3fbso8101985a.3
-        for <sparclinux@vger.kernel.org>; Tue, 01 Sep 2026 09:06:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1788278778; x=1788883578; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=wqCXc1d2wL50duIrdszOJfzq0EqANvFRgXietPv5nSU=;
-        b=BQcWIcoV7P3Hr2LDZpO5LnlyE0+kl7BJcY/963/R3GpW+crY1co2xJ0VB/jrCBT5U+
-         sUWQ0qhCyeJNxHtT6geZRvpMmyBGAmAqykF3LtaV2i1XYHstPYbbJwP2CNyvATO0fX7+
-         qdAzbkhHzNaFhbaje/y8wVWDOoJ+O8NTGXOplwJne+lpwuLVz4/mIJkeh0+/O1qhaoSZ
-         0L8++LEs2lMFVe4zBAmvRmxeNtGBbF6AWtXQKKjSUg79N+3uZkVTZ45yKLBp848ccCNt
-         HkWwtQY+zmVRVYj7zfVvYfJ9ZFsctneRdffIWTYUSyHt/PGBfVimfMFQZCKGETAmlej3
-         AErQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788278778; x=1788883578;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=wqCXc1d2wL50duIrdszOJfzq0EqANvFRgXietPv5nSU=;
-        b=Eauhl1OVZ7dKXnU0jKJF327lkWM6hGs4TgaeCHofoz76ZgMYBSjGbO2FPCsxJ8KdIa
-         NFPkydaiLZgmaWjPyRmEi3r3zq67API41a1KqBfwVq4mJENuiw4eln9zDjiwM2JWJArf
-         1JeVIgxi8OvufnKcgfpHr85fK3ngksHQoMhj1+Qf+cpJYo8UKvt2lr2Zkh/7nMv4g0aC
-         DE6ss+asWbgddnNbDrIom5V975yli1tKv6BbjvUpq2AfDvAY8OHDNGh8e7BntN1Avtm5
-         eZrr/pApQKiNrlaIkuN29isQ1y475fY4qkUwM2+wpq7Aan5fHS7v0bgham8vXa84YX8X
-         2wAA==
-X-Forwarded-Encrypted: i=1; AHgh+RpNxdxqeiVygfEl2s8UIxGFSr6BhU3tgrn2BbT/pAYFTx+U55BUUlc73y2pcaMdkTR2a5K+mkanFHoF@vger.kernel.org
-X-Gm-Message-State: AFuF++m2bfYz0CJv8rCvxqfrfzWDEkpeAeNcE0SWfBaJMkeY5y2bHx1z
-	v7r/TKLKJC/SbSU/ARGG+HkAPggYfsAR+GQ7761uDYFlT9VQiZqONBzWGK3K0sSvbRM=
-X-Gm-Gg: AR+sD10/AnqfDLYZan0/zeOUO5yLZqiuCmYoIFzW6Nbn+uCkibW89oNJT6oK6++GLSU
-	pbPA80q6YshJ3yqhk1jhnTuNx9zP43jhxc6jyyQ0AxSoMl50mawrsYyRE66YmVQRuvFdCWt1hUQ
-	a9q46UnMz6sFWDNXvdSG5USeQG0Zs6Z0MCagWUjzIDf3tMbVj1hCHZAUuVDLPmxcErBmqom8rwd
-	pBbaR4B25H/CNMKz1OALn+XMWbpd+Zx2VO4FNlQ8JPLCDM08dwPumN3gSgrkt/W0a/0e+SK4OyS
-	lHDjc6PSGHvngeVvQLLGSX6ipcLeuqdX+ISYaRB7sfShhMyElOWOY4ntRu2SiL3qC9KH/yJ8VdZ
-	0SohQ2vywniN2MXeVJ2XY//seOlayYLxmo+d89aITH0TFC+tXdDsgV3KIMHyWiXASy5RwRBNgLl
-	1afsNfqVRNVrA2s9hBvY7Kano3RRUFA5SZMcZw6qXuO+blemfsMzRYj4nRnDv99rW16qxwJorve
-	XR8mvEEe8bdtGPYMnqL5vCYTGn1B7iirYspxe8MOnkytA==
-X-Received: by 2002:a05:620a:21d2:b0:936:ea0d:ffc3 with SMTP id af79cd13be357-939139002d3mr3178331885a.22.1788278777843;
-        Tue, 01 Sep 2026 09:06:17 -0700 (PDT)
-Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-93922e5278fsm886283685a.14.2026.09.01.09.06.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Sep 2026 09:06:17 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1x1R04-0000000BtB8-1Fgr;
-	Tue, 01 Sep 2026 13:06:16 -0300
-Date: Tue, 1 Sep 2026 13:06:16 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: "Liam R. Howlett" <liam@infradead.org>
-Cc: Kiryl Shutsemau <kas@kernel.org>,
-	"Lorenzo Stoakes (ARM)" <ljs@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Nico Pache <nico.pache@linux.dev>,
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
-	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>,
-	Usama Arif <usama.arif@linux.dev>, Guo Ren <guoren@kernel.org>,
-	Brian Cain <bcain@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Simon Schuster <schuster.simon@siemens-energy.com>,
-	Jonas Bonn <jonas@southpole.se>,
-	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-	Stafford Horne <shorne@gmail.com>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	Russell King <linux@armlinux.org.uk>,
-	Vineet Gupta <vgupta@kernel.org>, Michal Simek <monstr@monstr.eu>,
-	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>,
-	Will Deacon <will@kernel.org>,
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
-	Nick Piggin <npiggin@gmail.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Matt Turner <mattst88@gmail.com>,
-	Magnus Lindholm <linmag7@gmail.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Mike Rapoport <rppt@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>, John Hubbard <jhubbard@nvidia.com>,
-	Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
-	linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-snps-arc@lists.infradead.org, linux-arch@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-alpha@vger.kernel.org,
-	loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-s390@vger.kernel.org, linux-um@lists.infradead.org,
-	Hugh Dickins <hughd@google.com>, Qi Zheng <qi.zheng@linux.dev>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AGFJkbrl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58EFC1F00A3D;
+	Tue,  1 Sep 2026 17:12:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788282741;
+	bh=StaeALLek35hMlcSHa6BZyUhT0ljTsLx6yTS5xCyYM0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=AGFJkbrleqRQzyFStbTqjNA9soKh7i/3HJhaA5YivyKFH6Le7DK3xN3u70X/XVjoy
+	 HWh5zfY3QCq0/GiCMASHtiGecXSJB+C/RfUq4r8bi/ium72Sxmxkh29JszYDD394+v
+	 uM32X/N2LJlZn2MY42zNkd2bQSsPb5sqGKGY9tAZD/qIjuPiXfhHLmXqn6U0YsxQZh
+	 WyelfqLXGVUCKno2/e+KhsojiikSyz+ONTnhJU4nqlED1LQLXmQMLudPbYWT4VwlnN
+	 4rS+n+oW2lzrzHlfY2ulaVzUqVW8fZ8oTGFb9jZ+jxf/KJTrME3YWylmQZiyy+TXXv
+	 s1Sr457SjLhnQ==
+Received: from phl-compute-01.internal (phl-compute-01.internal [10.202.2.41])
+	by mailfauth.ams.internal (Postfix) with ESMTP id 509151980082;
+	Tue,  1 Sep 2026 13:12:02 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-01.internal (MEProxy); Tue, 01 Sep 2026 13:12:17 -0400
+X-ME-Sender: <xms:YQeXarupuu8lP4hODV4Kl4cTBMZRESUvNFli0neseEvSVdU6eTqegQ>
+    <xme:YQeXaujYR-JcqcZ5XRB19_Sp4AidO5MknnGtlz5Ss_8D6FAekB1GDKTys9TKm5dQ7
+    9-CzIWyGX5yW7Y4wxP7-FxE2PboOlz7Sija6KJsrP8cvzQQUwq3uQCR>
+X-ME-Received: <xmr:YQeXapWFsxw_1UNeqnO8z4EZg2oOg-FIVaehIEwbl2C9sTmSY05S5RPiU9I>
+X-ME-Proxy-Cause: dmFkZTE95wHRzu4Jku/uqR1uWajKbrR5zJX2cXnYtALksDxTaOWWCUqT0ALShYzFchhR19
+    jABbL3NMpQdq2Q4yk1wxABfpkhz1tXbwJ0ETPbBKtnkrOsetjBDE6HJPSHCSzQ+lV8p7hR
+    m8B5tw0NCYc8nr5KG+JJnI7EqrKbJ9j/iB4uBQ8v3yh2BnmhuMnsKxLkWZCbcUsikaiaIb
+    afOgG11+NHa8fIFfGiaQPV11ZUcZ/PxqcPGfORQq/nrNuM+iA2OtyKWdZtMIzuN7Y+Bitk
+    xOhO/HMBDeF+31R8MKrPNSYAO9QueQgK/MZ6ZozJxRSVjUBLpeca5t06PFY2rHErDLj+iW
+    2yn2As7fL8DmU2YIyhDqY4qqwa2/ZrsmjL2YjjyNf5Ut5V+o1Q2jHYwdnRpVE4qQekDIlA
+    0QFGDvxUI/D1PW8k3h1xG2sm2CMe+07Xc1+6x36TyY7o9SD12A1XaguCEJgvlOl/E4/LPo
+    GFNx+zoYsO4VdClgp1h7hc4suTeM5K0X91cofeEj76CiP8ubXYR9unXAMBRmzaTibsCFRl
+    htnRbe1HGqYqK8cW0PalkL3qgmd3CH6stsr7YLE6PHlCrh2N2VCi400sm4iXeFTUQOgmsx
+    q+kN/77vj/DcD2YNv53dz8Mkn5XTiexA6E9lSNNFtklTEqyElGj/pD/1naEQ
+X-ME-Proxy: <xmx:YQeXaiCrGQOdc0DQyRgUDZV_Q7rbwwtsvYy_6612aWm1Dw459aKeLg>
+    <xmx:YQeXak3aszLb-RuoyQQti3VDFiBgP4eq84UZpaU9PzzzbGI3kIPqQQ>
+    <xmx:YQeXagyRzlL5sf79pX7TX42r92YD-ITwLJRci3UCGMw3KLjWYgQL6Q>
+    <xmx:YQeXan2N5VeJKbhgyOObCD-q2vQfw0NbQQLabtDLgtNHoJWCeTl7HA>
+    <xmx:YQeXanzxgCScGaao3xUiAb6wqDwwmrMtpplfWrXaivHsO8SbqI1rMQni>
+Feedback-ID: i10464835:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 1 Sep 2026 13:11:59 -0400 (EDT)
+Date: Tue, 1 Sep 2026 18:11:57 +0100
+From: Kiryl Shutsemau <kas@kernel.org>
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>,
+ 	Andrew Morton <akpm@linux-foundation.org>,
+ David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ 	Baolin Wang <baolin.wang@linux.alibaba.com>,
+ "Liam R. Howlett" <liam@infradead.org>,
+ 	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, 	Barry Song <baohua@kernel.org>,
+ Lance Yang <lance.yang@linux.dev>, 	Usama Arif <usama.arif@linux.dev>,
+ Guo Ren <guoren@kernel.org>, Brian Cain <bcain@kernel.org>,
+ 	Geert Uytterhoeven <geert@linux-m68k.org>,
+ Dinh Nguyen <dinguyen@kernel.org>,
+ 	Simon Schuster <schuster.simon@siemens-energy.com>,
+ Jonas Bonn <jonas@southpole.se>,
+ 	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+ Stafford Horne <shorne@gmail.com>,
+ 	Yoshinori Sato <ysato@users.sourceforge.jp>,
+ Rich Felker <dalias@libc.org>,
+ 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Paul Walmsley <pjw@kernel.org>, 	Palmer Dabbelt <palmer@dabbelt.com>,
+ Albert Ou <aou@eecs.berkeley.edu>, 	Alexandre Ghiti <alex@ghiti.fr>,
+ Russell King <linux@armlinux.org.uk>, 	Vineet Gupta <vgupta@kernel.org>,
+ Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>,
+ 	Max Filippov <jcmvbkbc@gmail.com>, Will Deacon <will@kernel.org>,
+ 	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+ Nick Piggin <npiggin@gmail.com>, 	Peter Zijlstra <peterz@infradead.org>,
+ "David S. Miller" <davem@davemloft.net>,
+ 	Andreas Larsson <andreas@gaisler.com>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ 	Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>,
+ 	Catalin Marinas <catalin.marinas@arm.com>,
+ Mark Rutland <mark.rutland@arm.com>,
+ 	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
+ 	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ 	Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>,
+ 	Michael Ellerman <mpe@ellerman.id.au>,
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+ 	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ 	Alexander Gordeev <agordeev@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ 	Sven Schnelle <svens@linux.ibm.com>,
+ Richard Weinberger <richard@nod.at>,
+ 	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ 	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>,
+ 	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, 	Arnd Bergmann <arnd@arndb.de>,
+ Vlastimil Babka <vbabka@kernel.org>, 	Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, 	Michal Hocko <mhocko@suse.com>,
+ John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>,
+ 	linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ linux-csky@vger.kernel.org, 	linux-hexagon@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org,
+ 	linux-sh@vger.kernel.org, linux-riscv@lists.infradead.org,
+ 	linux-arm-kernel@lists.infradead.org,
+ linux-snps-arc@lists.infradead.org, linux-arch@vger.kernel.org,
+ 	sparclinux@vger.kernel.org, linux-alpha@vger.kernel.org,
+ loongarch@lists.linux.dev, 	linux-mips@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ 	linux-s390@vger.kernel.org, linux-um@lists.infradead.org,
+ Hugh Dickins <hughd@google.com>, 	Qi Zheng <qi.zheng@linux.dev>
 Subject: Re: [PATCH 01/12] mm/huge_memory: zap deposited page tables after an
  RCU grace period
-Message-ID: <20260901160616.GD56830@ziepe.ca>
+Message-ID: <apcFUthh0XSFg3JQ@thinkstation>
 References: <20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org>
  <20260901-rcu-pagetable-freeing-v1-1-5456a81c8212@kernel.org>
  <apbOlyF77yDCV4cF@thinkstation>
@@ -148,7 +128,7 @@ References: <20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org>
  <20260901142408.GA56830@ziepe.ca>
  <apbiB51hjm-9pRzf@gremlin>
  <apbuO_QveZNAz3ns@thinkstation>
- <kasi4mkjkt56wxsrmphm5o2qfg2lwsdxf3tlmzx5tq6t7uez74@kozleoavd6r2>
+ <apbvoN6ttgHfI_xg@gremlin>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -157,33 +137,28 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <kasi4mkjkt56wxsrmphm5o2qfg2lwsdxf3tlmzx5tq6t7uez74@kozleoavd6r2>
+In-Reply-To: <apbvoN6ttgHfI_xg@gremlin>
 
-On Tue, Sep 01, 2026 at 11:54:47AM -0400, Liam R. Howlett wrote:
-> On 26/09/01 04:28PM, Kiryl Shutsemau wrote:
-> > On Tue, Sep 01, 2026 at 03:41:17PM +0100, Lorenzo Stoakes (ARM) wrote:
-> > > On Tue, Sep 01, 2026 at 11:24:08AM -0300, Jason Gunthorpe wrote:
-> > > > On Tue, Sep 01, 2026 at 03:12:45PM +0100, Lorenzo Stoakes (ARM) wrote:
-> > > >
-> > > > > It won't be costly at the time of the calls obviously as its deferred. Maybe
-> > > > > increase some time spent in softirq but again is 512x that big of a deal?
-> > > > >
-> > > > > I'm not sure how you'd both defer the free and somehow utilise mmu_gather here
-> > > > > either really, certainly not without it becoming extremely messy.
-> > > >
-> > > > The less costly version is to thread the page to be freed onto the
-> > > > mmu_gather through a linked list in the struct page memory. This is
-> > > > super cheap since it is just a singly linked list operation.
-> > > >
-> > > > Then when the mmu_gather is flushed it does a single call_rcu using
-> > > > the rcu head of the struct page of the head of the list. The callback
-> > > > clears the entire linked list of pages.
+On Tue, Sep 01, 2026 at 04:45:14PM +0100, Lorenzo Stoakes (ARM) wrote:
+> > munmap() of 64G worth of THP should be enough to demonstrate the
+> > problem.
 > 
-> If you are going through the trouble of doing this on your side with a
-> custom rcu callback, it might be better to pack the pointers in a way
-> that does not need to pointer chase through a linked list.
+> I mean you're going to hit that from RCU freeing page tables already, which
+> most architectures already do right?
 
-Well, I have 8 bytes of memory in a struct page and can't allocate in
-these paths, so IDK there is another option..
+Not at the same rate -- tlb_remove_table() batches into struct
+mmu_table_batch. One call_rcu() per MAX_TABLE_BATCH.
 
-Jason
+> So if RCU saturation is a problem, that problem already exists, but I've
+> not heard of that being a problem at all?
+
+I did quick test and I don't see a measurable difference in munmap()
+wall time of 40G of THPs. I see ~17x more softirqs, but this is
+expected.
+
+The objection is retracted.
+
+We can return to this later if it is going to be visible anywhere.
+
+-- 
+  Kiryl Shutsemau / Kirill A. Shutemov
