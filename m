@@ -1,49 +1,63 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+Received: from mout-p-102.mailbox.org (mout-p-102.mailbox.org [80.241.56.152])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8293F3D0939;
-	Wed,  2 Sep 2026 07:28:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3754D391838;
+	Wed,  2 Sep 2026 11:32:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.152
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788334113; cv=none; b=BG+op2l6+GXs2St6keEzXGmWeaZ4wlLydqs8hD1YaN0eut6y1WTXAmMFisRqtfk8C6eqcmDcJUUPFV+ZzwK/O9CGhbuPKKzGa3j2ywH1AtesOT8Bpvwm1U5iQcmZimbbf77HFpxoQaSvd/5MXSOq9vPrn7zaDIINBEUGfhTgzsY=
+	t=1788348755; cv=none; b=fMVY38Y8b7853Rbg33wvgEmSIMltUcRPucPbGiOKtwLA/pN/CNlsTeq/2nKNkLjQXMAYvx7r036q4hitO/J9xcSmhocIsx489SfhHM37sMjxYmMBvRczXQetV7MzfflT60EnPvlmWmXmhQW5BbiOPtIf7bC04pB3WabhNyUp6SQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788334113; c=relaxed/simple;
-	bh=32XgzvgcAvOMeWmCxaUc4eTUndOQ98uP3VUdLdUDvcY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=AHEG+qwS/uQTWRNsLPdPOO8ySjRowscnBv3eUno9KBdE29yCkAU1lGbgfG4Yw2X0HqqawS/3VrISC7DreDm8k4CWZSzsBk5dtqmVL4xjoGkXBdINUiFfVEhOUQEE/zFXVvZLZCA7K89DweK7dWKjWk8iep+D0lZAAXo4HzkJdIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=EeaRCk0r; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	s=arc-20240116; t=1788348755; c=relaxed/simple;
+	bh=AQ2PpGVA8G7z3eoN6jVZRewlOLEsqsxhJKBZkIO6eXI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=evQ9i7jHbztsLAwK8IC2d+yjAB6CRf3OlnYEePde0sgX989vuVgpNmKZ0wdLv/8aNMKnqiRm+8fCuGcj8DRSdVIujUkxQVcHYoY8GflcN/nPqNE83zwTluYqq8TnpB8XszDfSe6+ujsfdwrmHCO0YXG0QOYYdWOdwc9IhEYA94E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org; spf=pass smtp.mailfrom=mailbox.org; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=FAo7ezqR; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=mfBCQOvs; arc=none smtp.client-ip=80.241.56.152
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailbox.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="EeaRCk0r"
-From: Stian Halseth <stian@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1788334109;
+	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="FAo7ezqR";
+	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="mfBCQOvs"
+Received: from smtp102.mailbox.org (smtp102.mailbox.org [IPv6:2001:67c:2050:b231:465::102])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-p-102.mailbox.org (Postfix) with ESMTPS id 4hZgZ05lZCzKvt9;
+	Wed, 02 Sep 2026 13:32:24 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
+	t=1788348744;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=AowIdWVlih1ZdZxEW4QviidjDC/yIXmYnu0qnAul1C4=;
-	b=EeaRCk0rMWlKVIVxJ1hVDK3WbpiDpizmuMw0cCfCknxZtdtDW+Xmg0a7T+vnLBIutCOtUS
-	ABG+Tggz7dutzfYA0/7x1NOmP+LmQcJRsT91623xuPgXor8azAMsa2F7OfPO3n2RmpsIkY
-	A1lNsmNECrNa7KRTmmDj79Ebzu0knlk=
-To: Andreas Larsson <andreas@gaisler.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Kees Cook <kees@kernel.org>,
-	sparclinux@vger.kernel.org
-Cc: Andy Lutomirski <luto@amacapital.net>,
-	Will Drewry <wad@chromium.org>,
-	Oleg Nesterov <oleg@redhat.com>,
-	Shuah Khan <shuah@kernel.org>,
-	linux-kselftest@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Stian Halseth <stian@itx.no>
-Subject: [PATCH v2 2/2] selftests/seccomp: add sparc64 support
-Date: Wed,  2 Sep 2026 09:27:45 +0200
-Message-ID: <20260902072745.3412940-3-stian@itx.no>
-In-Reply-To: <20260902072745.3412940-1-stian@itx.no>
-References: <20260902072745.3412940-1-stian@itx.no>
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=CBncpdNxhT2wgrUbqZyWv/D9ykxvciWc6wNNNJJ/Ruc=;
+	b=FAo7ezqRhW6c7wtw84oL2+WHijwmf/qTrYoK0hDjpW3pcHjvV2KxFa4QEx7UbsWdilHoZo
+	eQk6BfnmXKJMtMLSmPQXUUzjrGdyN3Uy96SPqrEslAv9WrPGCnngpR86Puuy7cD338PdaF
+	MvnuVzVwnarNTu/aSIDYw8X6/ERPZYIu1o7uhfJK1ts6TEEP/a/rdK+Kcb1W80XdJkgrYW
+	1F5oowDelbps4zPRUpJg70O4xOFgESEAuJo/o9g3JKfKJISGV2MIMB6dTWa7OaI+hqnt15
+	7Clc+lHIYuPB0lTJia3IkSGn4Ak7SXRRqk5GtUGrGiBboyaRMNFQuam9VklE5A==
+Authentication-Results: outgoing_mbo_mout;
+	dkim=pass header.d=mailbox.org header.s=mail20150812 header.b=mfBCQOvs;
+	spf=pass (outgoing_mbo_mout: domain of manuelebnerli@mailbox.org designates 2001:67c:2050:b231:465::102 as permitted sender) smtp.mailfrom=manuelebnerli@mailbox.org
+From: Manuel Ebner <manuelebnerli@mailbox.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
+	t=1788348743;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=CBncpdNxhT2wgrUbqZyWv/D9ykxvciWc6wNNNJJ/Ruc=;
+	b=mfBCQOvs87KBUSMIs2+uS7Ey6q/sPzJVpHHkgJLXp1VN+0AtJfT28t8FqHdqPknTuYky6p
+	LNUM+TCbd7NTKWW5HW88TGihOCjZbOzYtsJRSyH3RU13Ge9473taPbKVWJTvggmbmKHX3z
+	Wqx8B2hBs7ordJeWDG0prx3trlTGaN4MevClku6ht/GISS+dY+PJfGCZgusi1TX5+RAkbD
+	pn+aCmXHUBfjMj1M7CDq7Hu036wXxof8f+ZQtKKHMclQMnk8J08KXtMdbvM+8XfWRYgw/Z
+	b9bFbP8dwlBUI8st4SzLT0q3852w2miCw77kItCkTIIUXoLRMCv/cBl6a9/tsg==
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>
+Cc: Manuel Ebner <manuelebnerli@mailbox.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Bhaskar Chowdhury <unixbhaskar@gmail.com>,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2] sparc: NMI: Remove obsolete comment
+Date: Wed,  2 Sep 2026 13:30:08 +0200
+Message-ID: <20260902113009.684977-2-manuelebnerli@mailbox.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -51,88 +65,45 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-MBO-RS-META: 64zq6grwk8yq74kkmcgjzf8gb44n8op3
+X-MBO-RS-ID: aed84a56e00241a64d5
+X-Rspamd-Queue-Id: 4hZgZ05lZCzKvt9
 
-sparc64 now selects HAVE_ARCH_SECCOMP_FILTER, so teach seccomp_bpf
-how to read and write its registers: the syscall number lives in %g1
-and the return value in %o0.  The NT_PRSTATUS regset appends the
-register window read back from the tracee's stack and has no exported
-layout, so use the sparc-specific PTRACE_GETREGS64/PTRACE_SETREGS64
-requests instead, which transfer the uapi struct pt_regs directly.
+OProfile has been discontinued as of commit 24880bef417f ("oprofile-removal")
 
-Errors are signaled by the carry bit in tstate with a positive errno
-value in %o0, so provide a SYSCALL_RET_SET that maintains both, and
-mark the arch SYSCALL_RET_SET_ON_PTRACE_EXIT since a return value
-poked at entry would be overwritten by the syscall skip path, as on
-powerpc.
-
-Passes 95 of 95 on an UltraSPARC T4-1 (16 skipped for missing
-optional features such as uprobes).
-
-Link: https://github.com/sparclinux/issues/issues/11
-Signed-off-by: Stian Halseth <stian@itx.no>
+Suggested-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Signed-off-by: Manuel Ebner <manuelebnerli@mailbox.org>
 ---
-v2: use PTRACE_GETREGS64/PTRACE_SETREGS64 and the uapi struct pt_regs
-    instead of a locally defined NT_PRSTATUS regset layout, as
-    suggested by Kees Cook. Note the historical %g0 omission in that
-    layout, which shifts the u_regs indices by one.
+Bhaskar Chowdhury review doesn't show up in the mailing list, but I got it.
 
- tools/testing/selftests/seccomp/seccomp_bpf.c | 36 +++++++++++++++++++
- 1 file changed, 36 insertions(+)
+[v2]
+ fixed referenced commit
+ + Suggested-by
+ + Reviewed-by
 
-diff --git a/tools/testing/selftests/seccomp/seccomp_bpf.c b/tools/testing/selftests/seccomp/seccomp_bpf.c
-index 0622bc2acad4..3711060c22a7 100644
---- a/tools/testing/selftests/seccomp/seccomp_bpf.c
-+++ b/tools/testing/selftests/seccomp/seccomp_bpf.c
-@@ -1872,6 +1872,34 @@ TEST_F(TRACE_poke, getpid_runs_normally)
- # define ARCH_REGS		struct user_regs_struct
- # define SYSCALL_NUM(_regs)	(_regs).orig_d0
- # define SYSCALL_RET(_regs)	(_regs).d0
-+#elif defined(__sparc__) && defined(__arch64__)
-+# include <asm/ptrace.h>
-+/*
-+ * PTRACE_GETREGS64/PTRACE_SETREGS64 transfer the uapi struct pt_regs,
-+ * but in the historical layout that omits %g0: the blob starts at %g1,
-+ * so every u_regs index is one lower than the register number suggests.
-+ */
-+# define ARCH_REGS		struct pt_regs
-+# define SYSCALL_NUM(_regs)	(_regs).u_regs[0]	/* %g1 */
-+# define SYSCALL_RET(_regs)	(_regs).u_regs[7]	/* %o0 */
-+/*
-+ * A syscall error is signaled by the carry bit in tstate, with the
-+ * errno held in %o0 as a positive value; the carry can only be
-+ * written reliably once the syscall has been skipped or has run.
-+ */
-+# define SPARC64_TSTATE_CARRY	0x0000001100000000UL	/* xcc.c | icc.c */
-+# define SYSCALL_RET_SET(_regs, _val)				\
-+	do {							\
-+		typeof(_val) _result = (_val);			\
-+		if (_result < 0) {				\
-+			SYSCALL_RET(_regs) = -_result;		\
-+			(_regs).tstate |= SPARC64_TSTATE_CARRY;	\
-+		} else {					\
-+			SYSCALL_RET(_regs) = _result;		\
-+			(_regs).tstate &= ~SPARC64_TSTATE_CARRY; \
-+		}						\
-+	} while (0)
-+# define SYSCALL_RET_SET_ON_PTRACE_EXIT
- #else
- # error "Do not know how to find your architecture's registers and syscalls"
- #endif
-@@ -1939,6 +1967,14 @@ const bool ptrace_entry_set_syscall_ret =
- #if defined(__x86_64__) || defined(__i386__) || defined(__mips__) || defined(__mc68000__)
- # define ARCH_GETREGS(_regs)	ptrace(PTRACE_GETREGS, tracee, 0, &(_regs))
- # define ARCH_SETREGS(_regs)	ptrace(PTRACE_SETREGS, tracee, 0, &(_regs))
-+#elif defined(__sparc__) && defined(__arch64__)
-+/*
-+ * The NT_PRSTATUS regset appends the register window, which struct
-+ * pt_regs does not carry; the sparc-specific requests transfer
-+ * struct pt_regs directly (and take the buffer in addr).
-+ */
-+# define ARCH_GETREGS(_regs)	ptrace(PTRACE_GETREGS64, tracee, &(_regs), 0)
-+# define ARCH_SETREGS(_regs)	ptrace(PTRACE_SETREGS64, tracee, &(_regs), 0)
- #else
- # define ARCH_GETREGS(_regs)	({					\
- 		struct iovec __v;					\
+[v1]
+ https://lore.kernel.org/all/20260830125506.632168-2-manuelebnerli@mailbox.org/
+
+prior discussion
+ https://lore.kernel.org/all/875527abdf9df0393ade872c6df3612ae9945b44.camel@mailbox.org/
+---
+ arch/sparc/kernel/nmi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 149adc094..1571d6298 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -41,7 +41,7 @@ static int panic_on_timeout;
+  * <0: the NMI watchdog has not been set up, and cannot be enabled
+  *  0: the NMI watchdog is disabled, but can be enabled
+  */
+-atomic_t nmi_active = ATOMIC_INIT(0);		/* oprofile uses this */
++atomic_t nmi_active = ATOMIC_INIT(0);
+ EXPORT_SYMBOL(nmi_active);
+ static int nmi_init_done;
+ static unsigned int nmi_hz = HZ;
 -- 
-2.43.0
+2.54.0
 
