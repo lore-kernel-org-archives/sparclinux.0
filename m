@@ -1,116 +1,114 @@
-Received: from mailrelay-egress4.pub.mailoutpod2-cph3.one.com (mailrelay-egress4.pub.mailoutpod2-cph3.one.com [46.30.211.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69801337B81
-	for <sparclinux@vger.kernel.org>; Wed,  2 Sep 2026 05:35:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.179
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788327348; cv=none; b=Z/sxj/AQVRmlCHqJN0Pt1b18V94LDjHYscMNpBFhdZ57JTR8vBQO60L3aN7QmBq6xz8dvKeoOVloCfmEruktjCnlrwXEy1crfUIPjWclc3ElAXsWq/aydvMcYRKrSO8R9dOcqTy9vOp8kdgFz8Yj9uBvziFEcl+dhkrSmSkpU64=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788327348; c=relaxed/simple;
-	bh=1YYc3sMFUbCbbn19wgr7YV3/l+3KgfXUec6TQy1or+I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tZCTFo8hjtRrjCylcwgnAlVAS1rTTWy5YpaOwx/Z4DmxCpM0/AKQ45nY/vTL5beC5YZhMNJsSza/IKvkFupYivfsJzg95Enw9RvymeUxlTb6G558ohf4svigCS5pVSmSo7dEO8EjGDlQGmCToh/uRI9Ne9NikCXI/42bq1INpwQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=qw3vM1dc; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=f/YiOkjO; arc=none smtp.client-ip=46.30.211.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5B4438758C
+	for <sparclinux@vger.kernel.org>; Wed,  2 Sep 2026 05:38:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.51
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788327538; cv=pass; b=GJCn2GPkGz3QNHDGAH3TFNYxZ2y0SE7ka/lwt5lPjPCqn/f7Qm0DgU7DpoNJbOtYODFTnCrTUjMce1b19w0j6US2LLo+G6SUnMqBC/Wd2M0eLEnLSclLcfDZU4cvVGYKyTENnFfm5wplcfyqqmrR/+li3FPtUV5Jl+OLPk4+WFA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788327538; c=relaxed/simple;
+	bh=gE6vkTgnAHnamDKA+igQgYq/8m3BMccvQocwRHbGwhA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=MbgIoTW+nsM2vlDtif1BS1AfO8mNqPVDWVdDVMUncAZESzgBeaVeSLcl1vdy2avAHbWuRvJnih/sg33T69Q9MyYcYUgl1qP06OgDhlhpfaOtkU9KUOguAaHz1nwlZFEUnRRqlYtvvFP+7KykYsbV8pDLYhOS6vjV50AeO/jImk8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l9kfJJYA; arc=pass smtp.client-ip=209.85.208.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="qw3vM1dc";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="f/YiOkjO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1788327342; x=1788932142;
-	d=ravnborg.org; s=rsa1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=teV4sx8uLoW3jHOdd+YcF3stnTGkkGnzM5IGThhf40c=;
-	b=qw3vM1dcFUcNzTFwuJHPewwXMxkzIjppWQJuYqKMy/imtpa7rLbZpQC5xiYbKpyJMJi5I/a8VyWo9
-	 czuKYKAdF7oqL8a7Q/ztg2F0IniRDueE9GgrvUwUExzYq7LfY5Nzj8I/fhhKApcoEn5tOJ4XlrsQNO
-	 Eve7K3qiLFGg46n+WuCPwYnslyBUDFENYJSitV8B3Z3Ud55I3H+hEBLRl6eU4+FJ3i+oh3xqKC2TpW
-	 42R2FfRjwSv2dr34JRAuKculWZSZAdOZtTuTpH3WnP3GpWJtI+cNKk0+jkW2m+mI//4mqtWrzuE/nl
-	 iSjN+JEe5eyq37gT66RyJU8wH4jBAIg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1788327342; x=1788932142;
-	d=ravnborg.org; s=ed1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=teV4sx8uLoW3jHOdd+YcF3stnTGkkGnzM5IGThhf40c=;
-	b=f/YiOkjO6nWwiBj8N7L1HMQaEaUAd52u3v6kFKc0cMi+ylMHAFXZCdRf+Iq/0pgBvk91LgxbcBxaN
-	 qvb6FZjAw==
-X-HalOne-ID: 219fc36e-a690-11f1-a0c3-6b8d581b3111
-Received: from ravnborg.org (unknown [2a00:fd01:81e9:6100:5cc:91fa:7f53:a32a])
-	by mailrelay3.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 219fc36e-a690-11f1-a0c3-6b8d581b3111;
-	Wed, 02 Sep 2026 05:35:42 +0000 (UTC)
-Date: Wed, 2 Sep 2026 07:35:40 +0200
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Magnus Lindholm <linmag7@gmail.com>
-Cc: sparclinux@vger.kernel.org, davem@davemloft.net, andreas@gaisler.com,
-	linux-kernel@vger.kernel.org, glaubitz@physik.fu-berlin.de
-Subject: Re: [PATCH v3 0/6] sparc32: replace sp_banks with memblock
-Message-ID: <20260902053540.GB338380@ravnborg.org>
-References: <20260901214611.60560-1-linmag7@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l9kfJJYA"
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-6a5ebf75d62so1065741a12.1
+        for <sparclinux@vger.kernel.org>; Tue, 01 Sep 2026 22:38:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788327535; cv=none;
+        d=google.com; s=arc-20260327;
+        b=FUp520QrBw4a/OBf/MSkREYhrBT+WqnuhTyhESkjSYe0fPZAoEfqGswoxBZ+dX3w7H
+         zkB5+YZzA2Anw5bFjFG4LRwqhJz4cR5CoTL+x04Lj/BM0LQnXiTUYR5pQexcglEo3aO9
+         Jul/lcmThCjnvy/TpITRwYAJ7jgvptzaQ30iGx8hmw0FYja1n1Yg/prdejlwQkjZ++fM
+         1zXNkfbWmG/b2Ms3NC8JtTxiGS+6LTopoIGUxQgwsvPSBO1/ewPSx9Sz4l+5NkkxdCnA
+         qNkLOFXJOp+REH+5uwIkm7rbBGGlMF3v70EfnWjKtDZE1xV1byIFq18RQtoXArhb05AT
+         X3Pw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=gE6vkTgnAHnamDKA+igQgYq/8m3BMccvQocwRHbGwhA=;
+        fh=lIBdiMTals0VDbKkknJNa4hZrTGWR7Btvm26/3VRa0k=;
+        b=gHa3W94NowiCe8C2SDDt9pJp7v2U6u+emF28nRO7o1ctmZKcn4fzUgbE4tqzRYw0GI
+         NhjOKqbbzsWZxxPC9J4u6Wea2dPnX8dTG1xSgIRPC3GHzUb1jPoZgDygQM/UXyycdZ2z
+         6iOwIiY/fjfddpbbRZpULbsSGxaYX0XAT6ztCQY78xY9ETDLTzotOX6jL0hGAOkvC6vA
+         pQc2UcHh9AKsJH0pDgGnl2eAqp8jsloRn/914TILIZBy81Xg2UJF64kkqgf2tQugG0af
+         0hyAbxw/4+ug7R892B0Go4QyVOJqjsOr61ShIf9goYTsnNycu4Befe0khR5pyBXJYXn3
+         674A==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788327535; x=1788932335; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=gE6vkTgnAHnamDKA+igQgYq/8m3BMccvQocwRHbGwhA=;
+        b=l9kfJJYANtiQ+u1ltTK0WO3ROSM9otFrx6JsdH94A8+tWe2XvNP/j79xEzs27T81uV
+         n4Mj0BAMEOt9q4ZtLYbP+ekCBMd6NaJrtbqsAZIi+7XqtyYIiK+hv5yj2dwbPjE047rG
+         rpXyvHsFji4ebYTSibdHe6L8e68P2LTxn1P/2dYXSpgca4wIsaVHPwGFUCLoi/fJkAWG
+         TnuaJw24IqqKrwEeVbVw3N3/3MfZDVpH2TtO5aC9C4m91VGV2xKxIaI4YaaT0zmwqB3y
+         Er+p/48p6Oldpee2VtKITJ/0zLU/LUCEN0x5b8FuotB1HszJKQy40UeroS4P5mGfCUNK
+         dyuQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788327535; x=1788932335;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=gE6vkTgnAHnamDKA+igQgYq/8m3BMccvQocwRHbGwhA=;
+        b=RX4o/G27ycjsdMCemB08q+RMHE0uQoUoXDlc1BtvRctoH39vM83Djiln/gV/tvkizY
+         w+FSZGHmZi2fDZY51Lza6oFQZBYqPVx4a400zlwdEGdv2VjnozxfxTnnevUrjVf38QK9
+         3UayI1aZRR6H0WNc7tirc4VjfIWMBq7cnVN3nPOnDyonOsHKrjsF0NafqkqckDMjoxpy
+         WFWvk8jDHFMnqnlXCe1u2yfosd1uKCH6sUl31zQsSqJKwTTn3xQQGJnsTAVuL02B6h/h
+         AjaAqmd3pzLuu95yYUbuUV/2saMTUTLk5s7JknS2DIMYVIo8S1YXoBnEGIii2W+BF5zI
+         CcPg==
+X-Gm-Message-State: AFuF++nV1PxpRzpaHzovofZhkJ7j6zsosG8sqezxBer02dmiykFLNK4p
+	dKe89sfQOGwP793fBGw7oM2aXHIAjO0KPr3OXWMYFmCbKSCDaV8NX9+JxyjhISstvJuroEV5EgI
+	A3+PFXek7+wZflTbPkFmQmLLYwGdoo88=
+X-Gm-Gg: AYBFou0cnmr83PlZfx8bUTnLfoxPij5ZBvRkvIJQwF2BLiLquc9GgxQvpgpwyUjF1Z7
+	ONXiYw81g5ewCx1GA3QyFihx7dyPX2Xd4q7u1ZWouZfq7iXXmgCqQw1jsRf2//TGoKwzAOXzC8c
+	yw6JsNceTZvlXit050eOj+Cd3vIU46dek4PW3HacxEg7JdAV+Ox9E/P7GciI2y3/LN92TjtK1HU
+	f4dSIpsbpaZ2+x1dguk6XXyx1EqIl1nJOwJINuMWpRaF1KAvZyRK7yDe2VjNWy8NlLf2z+LkBiF
+	Dq/ae50rH+gSDM2FsyrwU5wKb4sywGxQ6Of34LTHrHV5E7GdDVusuDN2wEzZQpFvWh0LjdYU14t
+	8P4OM4EmbQUyrTPGiPqDyNhEbWQe1XgtauE7dp0VaBCQ=
+X-Received: by 2002:a05:6402:4406:b0:6a6:75c8:6bba with SMTP id
+ 4fb4d7f45d1cf-6a68a55196emr379910a12.7.1788327534406; Tue, 01 Sep 2026
+ 22:38:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260901214611.60560-1-linmag7@gmail.com>
+References: <20260901214611.60560-1-linmag7@gmail.com> <20260902053540.GB338380@ravnborg.org>
+In-Reply-To: <20260902053540.GB338380@ravnborg.org>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Wed, 2 Sep 2026 07:38:42 +0200
+X-Gm-Features: AcwNN1Vu-Vp6k3k-HA37zla-acUKeXYAi2KMc4dYXKBa6LxbxZIme52Bazb2qHQ
+Message-ID: <CA+=Fv5QBPP6mjZpXePrzCwUt5YmkM++5g624N0hruDR_P1PHEw@mail.gmail.com>
+Subject: Re: [PATCH v3 0/6] sparc32: replace sp_banks with memblock
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: sparclinux@vger.kernel.org, davem@davemloft.net, andreas@gaisler.com, 
+	linux-kernel@vger.kernel.org, glaubitz@physik.fu-berlin.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Magnus.
-On Tue, Sep 01, 2026 at 11:45:44PM +0200, Magnus Lindholm wrote:
-> Replace the sparc32-private sp_banks memory description with memblock.
-> 
-> The first two patches convert the SRMMU consumers that already run after
-> bootmem_init() has populated memblock. The third patch moves memblock
-> population to prom_meminit() and applies the mem= limit there. Patch 4
-> removes an unused address bitmap before patch 5 moves the early memory
-> setup into setup_32.c. Patch 6 removes the now-unused sp_banks array.
-> 
-> This work is based on an earlier eight-patch series by Sam Ravnborg.
-> Patch 2 directly carries over Sam's memblock sizing conversion. The series
-> has otherwise been substantially reorganized and reworked for the current
-> kernel. It retains the sparc32 mem= command-line option by using
-> memblock_enforce_memory_limit() and uses memblock's exclusive range-end
-> semantics throughout.
-> 
-> The series applies on top of the sparc32 phys_base and Viking fixes.
-> setup_memory() preserves relocated-kernel handling by removing RAM below
-> the physical address to which PAGE_OFFSET maps.
-> 
-> Link: https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.com/T/#t
-> 
-> The v1 series was boot tested on a Sun SPARCstation 20 with dual
-> SuperSPARC-II CPUs (SM71).
-> The v2 series was boot tested on a Sun SPARCstation 20 with dual
-> ROSS HyperSPARC (RT626) CPUs.
-> The v3 series was cross-compiled with the SPARCstation 20 and LEON
-> configurations as well as boot tested on a Sun SPARCstation 20
-> with dual ROSS HyperSPARC (RT626) CPUs.
-> 
-> Changes in v3:
-> - Add Sam's Reviewed-by tag to patch 4.
-> - Initialize max_pfn in patch 5 and use it as the highmem zone limit.
-> - Use PHYS_PFN() instead of open-coded PAGE_SHIFT conversions in patch 5.
-> - Remove the obsolete highstart_pfn and highend_pfn declarations.
-> - Use the generic max_low_pfn declaration from linux/memblock.h.
-> - Document removal of the duplicate private HIGHMEM summary.
-> 
-> Changes in v2:
-> - Add Sam's Reviewed-by tags to patches 1-3 and 6. Patch 6 is the
->   unchanged source change from patch 5 in v1, renumbered by the new patch.
-> - Drop the unused sparc_valid_addr_bitmap in a preparation patch.
-> - Use for_each_mem_pfn_range() and the standard max_low_pfn variable in
->   the early memory setup. This tightens LEON's _pfn_valid() upper bound
->   from all memory to the lowmem limit, with no functional change because
->   LEON does not use highmem.
+Hi Sam,
 
+On Wed, Sep 2, 2026 at 7:35=E2=80=AFAM Sam Ravnborg <sam@ravnborg.org> wrot=
+e:
 
-The full series looks good now, thanks for picking this up and adressing
-my review feedback.
-For anyone looking at sparc32 code this is now much more standard
-and you managed to remove ~250 lines of old code.
+> The full series looks good now, thanks for picking this up and adressing
+> my review feedback.
+> For anyone looking at sparc32 code this is now much more standard
+> and you managed to remove ~250 lines of old code.
+>
+> It is now ready for Andreas to take a look.
+>
 
-It is now ready for Andreas to take a look.
+Thanks alot for spending time on reviewing this, and for all the
+feedback pointing me in the right direction.
 
-	Sam
+Magnus
