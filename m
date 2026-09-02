@@ -1,53 +1,52 @@
 Received: from mailrelay-egress4.pub.mailoutpod2-cph3.one.com (mailrelay-egress4.pub.mailoutpod2-cph3.one.com [46.30.211.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4ED2BE7AB
-	for <sparclinux@vger.kernel.org>; Wed,  2 Sep 2026 05:31:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69801337B81
+	for <sparclinux@vger.kernel.org>; Wed,  2 Sep 2026 05:35:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788327116; cv=none; b=u6ujcO/TypkzEN6BiJr7enofbttmb7XaYl5jKgE4mDR3cI7FBp2+EILa/ufl8yNYeauIlahmPmgZSE+S/mSrQ96ELiiseDsmSdpOBGAfp6u9nPns4FInAG9ge3azk46Q93QaU7cu53uySSGDpmdYGOU4eg0mLVTO0wnKscZtjUU=
+	t=1788327348; cv=none; b=Z/sxj/AQVRmlCHqJN0Pt1b18V94LDjHYscMNpBFhdZ57JTR8vBQO60L3aN7QmBq6xz8dvKeoOVloCfmEruktjCnlrwXEy1crfUIPjWclc3ElAXsWq/aydvMcYRKrSO8R9dOcqTy9vOp8kdgFz8Yj9uBvziFEcl+dhkrSmSkpU64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788327116; c=relaxed/simple;
-	bh=bH0Buk3xCzD+egxywnHWe81W6DFXtGOVFHPtpOmXQkU=;
+	s=arc-20240116; t=1788327348; c=relaxed/simple;
+	bh=1YYc3sMFUbCbbn19wgr7YV3/l+3KgfXUec6TQy1or+I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EmP/RG663J1/vbyyL4cxNr/cCArtDchI3vawsVRSalnphm8LMftjCtEhzKaKZQvNGLj0azCx5265t/Z41oveNIsp719b+u5lL5iW8C3I6wiZ+wHoIkhLh1RNkId+DkwvRlK8uhZyoXJbfYwZ8t/gAoNYcj7dxZeOWgOK/sh30Xc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=a8eInwkJ; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=viGJRKRz; arc=none smtp.client-ip=46.30.211.179
+	 Content-Type:Content-Disposition:In-Reply-To; b=tZCTFo8hjtRrjCylcwgnAlVAS1rTTWy5YpaOwx/Z4DmxCpM0/AKQ45nY/vTL5beC5YZhMNJsSza/IKvkFupYivfsJzg95Enw9RvymeUxlTb6G558ohf4svigCS5pVSmSo7dEO8EjGDlQGmCToh/uRI9Ne9NikCXI/42bq1INpwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=qw3vM1dc; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=f/YiOkjO; arc=none smtp.client-ip=46.30.211.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="a8eInwkJ";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="viGJRKRz"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1788327103; x=1788931903;
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="qw3vM1dc";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="f/YiOkjO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1788327342; x=1788932142;
 	d=ravnborg.org; s=rsa1;
 	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
 	 from:date:from;
-	bh=B6gtezrpXMM+WrKlgGNeZEenLznI+XCgGYSh3BBrdN8=;
-	b=a8eInwkJF5WivoWF+VlcB/Yv3NAK7uTvxDEr2pzlp3DFHPuaXvZCiwGiwZ1c4Rx3OoD+weQnNQc0Z
-	 l9UzOq1pj6hap8cvqwG/e7DioHBfthFMKKBuOonlOSuaT6BCGgfRcWD8AOqxuzxS20REcgj91ubwMj
-	 cIIPgZJyhWnIPX6Fj5XNfoLMu8aYwNjtO2uflMHECENh3VACbHYafdREA3CGRVU4ULyk6VsMgESoZ6
-	 GejzOg9DHWWF8gOMeBpv4Y6dDBzcUcVr5Jofnsupoechzt0Y5U1vrH6UtSyUxck8v2xWuVlTlF3NIB
-	 cJVgBCMv+NhVDXJ/b7eXvzpCuIKdFeQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1788327103; x=1788931903;
+	bh=teV4sx8uLoW3jHOdd+YcF3stnTGkkGnzM5IGThhf40c=;
+	b=qw3vM1dcFUcNzTFwuJHPewwXMxkzIjppWQJuYqKMy/imtpa7rLbZpQC5xiYbKpyJMJi5I/a8VyWo9
+	 czuKYKAdF7oqL8a7Q/ztg2F0IniRDueE9GgrvUwUExzYq7LfY5Nzj8I/fhhKApcoEn5tOJ4XlrsQNO
+	 Eve7K3qiLFGg46n+WuCPwYnslyBUDFENYJSitV8B3Z3Ud55I3H+hEBLRl6eU4+FJ3i+oh3xqKC2TpW
+	 42R2FfRjwSv2dr34JRAuKculWZSZAdOZtTuTpH3WnP3GpWJtI+cNKk0+jkW2m+mI//4mqtWrzuE/nl
+	 iSjN+JEe5eyq37gT66RyJU8wH4jBAIg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1788327342; x=1788932142;
 	d=ravnborg.org; s=ed1;
 	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
 	 from:date:from;
-	bh=B6gtezrpXMM+WrKlgGNeZEenLznI+XCgGYSh3BBrdN8=;
-	b=viGJRKRzxNaWycHNkyL6yXlihT0XT9AcNuAHPOqCVsjtZZWtOg8k2Re4YRgtIoJTzzTWrOYRSDw1+
-	 qodeZnPBw==
-X-HalOne-ID: 92ff610b-a68f-11f1-b2ef-55bb5426428c
+	bh=teV4sx8uLoW3jHOdd+YcF3stnTGkkGnzM5IGThhf40c=;
+	b=f/YiOkjO6nWwiBj8N7L1HMQaEaUAd52u3v6kFKc0cMi+ylMHAFXZCdRf+Iq/0pgBvk91LgxbcBxaN
+	 qvb6FZjAw==
+X-HalOne-ID: 219fc36e-a690-11f1-a0c3-6b8d581b3111
 Received: from ravnborg.org (unknown [2a00:fd01:81e9:6100:5cc:91fa:7f53:a32a])
-	by mailrelay2.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 92ff610b-a68f-11f1-b2ef-55bb5426428c;
-	Wed, 02 Sep 2026 05:31:42 +0000 (UTC)
-Date: Wed, 2 Sep 2026 07:31:41 +0200
+	by mailrelay3.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id 219fc36e-a690-11f1-a0c3-6b8d581b3111;
+	Wed, 02 Sep 2026 05:35:42 +0000 (UTC)
+Date: Wed, 2 Sep 2026 07:35:40 +0200
 From: Sam Ravnborg <sam@ravnborg.org>
 To: Magnus Lindholm <linmag7@gmail.com>
 Cc: sparclinux@vger.kernel.org, davem@davemloft.net, andreas@gaisler.com,
 	linux-kernel@vger.kernel.org, glaubitz@physik.fu-berlin.de
-Subject: Re: [PATCH v3 5/6] sparc32: move early memory setup to setup_arch
-Message-ID: <20260902053141.GA338380@ravnborg.org>
+Subject: Re: [PATCH v3 0/6] sparc32: replace sp_banks with memblock
+Message-ID: <20260902053540.GB338380@ravnborg.org>
 References: <20260901214611.60560-1-linmag7@gmail.com>
- <20260901214611.60560-6-linmag7@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -56,30 +55,62 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260901214611.60560-6-linmag7@gmail.com>
+In-Reply-To: <20260901214611.60560-1-linmag7@gmail.com>
 
-On Tue, Sep 01, 2026 at 11:45:49PM +0200, Magnus Lindholm wrote:
-> Move the early memory configuration out of SRMMU paging setup and next to
-> the rest of setup_arch(). Derive the PFN limits from memblock, reserve the
-> kernel and initrd there, and retain mem= support with
-> memblock_enforce_memory_limit().
+Hi Magnus.
+On Tue, Sep 01, 2026 at 11:45:44PM +0200, Magnus Lindholm wrote:
+> Replace the sparc32-private sp_banks memory description with memblock.
 > 
-> Use for_each_mem_pfn_range() to find the lowmem boundary and replace
-> last_valid_pfn with the standard max_low_pfn variable. Set the standard
-> max_pfn variable to the end of physical memory and use it as the highmem
-> zone limit. This tightens LEON's _pfn_valid() upper bound from all RAM to
-> the lowmem limit, with no functional change because LEON does not use
-> highmem.
+> The first two patches convert the SRMMU consumers that already run after
+> bootmem_init() has populated memblock. The third patch moves memblock
+> population to prom_meminit() and applies the mem= limit there. Patch 4
+> removes an unused address bitmap before patch 5 moves the early memory
+> setup into setup_32.c. Patch 6 removes the now-unused sp_banks array.
 > 
-> The removed bootmem code also printed a private HIGHMEM summary. Generic
-> memory initialization already reports the highmem zone, so do not retain
-> the duplicate message.
+> This work is based on an earlier eight-patch series by Sam Ravnborg.
+> Patch 2 directly carries over Sam's memblock sizing conversion. The series
+> has otherwise been substantially reorganized and reworked for the current
+> kernel. It retains the sparc32 mem= command-line option by using
+> memblock_enforce_memory_limit() and uses memblock's exclusive range-end
+> semantics throughout.
 > 
-> When PAGE_OFFSET maps a relocated kernel, remove memory below phys_base
-> from memblock because it cannot be reached through the linear map. This
-> replaces the equivalent trimming of sp_banks.
+> The series applies on top of the sparc32 phys_base and Viking fixes.
+> setup_memory() preserves relocated-kernel handling by removing RAM below
+> the physical address to which PAGE_OFFSET maps.
 > 
-> Suggested-by: Sam Ravnborg <sam@ravnborg.org>
-> Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
-Looks good!
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+> Link: https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.com/T/#t
+> 
+> The v1 series was boot tested on a Sun SPARCstation 20 with dual
+> SuperSPARC-II CPUs (SM71).
+> The v2 series was boot tested on a Sun SPARCstation 20 with dual
+> ROSS HyperSPARC (RT626) CPUs.
+> The v3 series was cross-compiled with the SPARCstation 20 and LEON
+> configurations as well as boot tested on a Sun SPARCstation 20
+> with dual ROSS HyperSPARC (RT626) CPUs.
+> 
+> Changes in v3:
+> - Add Sam's Reviewed-by tag to patch 4.
+> - Initialize max_pfn in patch 5 and use it as the highmem zone limit.
+> - Use PHYS_PFN() instead of open-coded PAGE_SHIFT conversions in patch 5.
+> - Remove the obsolete highstart_pfn and highend_pfn declarations.
+> - Use the generic max_low_pfn declaration from linux/memblock.h.
+> - Document removal of the duplicate private HIGHMEM summary.
+> 
+> Changes in v2:
+> - Add Sam's Reviewed-by tags to patches 1-3 and 6. Patch 6 is the
+>   unchanged source change from patch 5 in v1, renumbered by the new patch.
+> - Drop the unused sparc_valid_addr_bitmap in a preparation patch.
+> - Use for_each_mem_pfn_range() and the standard max_low_pfn variable in
+>   the early memory setup. This tightens LEON's _pfn_valid() upper bound
+>   from all memory to the lowmem limit, with no functional change because
+>   LEON does not use highmem.
+
+
+The full series looks good now, thanks for picking this up and adressing
+my review feedback.
+For anyone looking at sparc32 code this is now much more standard
+and you managed to remove ~250 lines of old code.
+
+It is now ready for Andreas to take a look.
+
+	Sam
