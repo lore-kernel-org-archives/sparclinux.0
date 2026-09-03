@@ -1,123 +1,138 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D71A545FFD9;
-	Thu,  3 Sep 2026 07:41:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED3B235C1BD;
+	Thu,  3 Sep 2026 08:21:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788421304; cv=none; b=cBbXFg3ySG+ZGWkaQJUvItvYD/FigvqjpctfUApRYUu+rmucGU28tCztF2B3aYYOD0leLnDqaL5a07VL9mJblZw1l9FCGMvgX5myxC6AXneWQQrGBaZmda9qmsrP95v7j6x7jFEIXvvybJ2nQe0aU07YBliWBjnKCzggdifq05s=
+	t=1788423719; cv=none; b=MkHDyMvg2WEqXn+8y1V7EkeQ+Tg0a1Q2cQmRxJMu24E5vWjjiIXTIsQJvqxxOq+vnHjom0iBga3c9NaU4orsAWL6ycmcbSa9Ub1u1I+bDdeS+k3kJXxc76S5QUvb0+SVhCnz6qOsYIVctVTQseVnmzyMSWgxbfh78XAw76OlByU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788421304; c=relaxed/simple;
-	bh=mT6IunlNmVAACIv/qOnfprsS76yyb9kAy/7Jf1UY23I=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=vGp0bQBdsOv+E5HS4B0O3XHFxVJAYzI0WZbcAGjTnmOzGwy4t5qPa7E2oMG5tgpMLgY6iyDfXhDbhh9WbEotduPrWV1oC2PaUTejwxtOWzBZPBqAVKvNBHEcLkElD0eU7LVJrvd7rJQhaKBClyAajjDfAaknL5X1AtkskZ3I9FA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=XvaTjzYV; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=uYmG0xv0; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1788423719; c=relaxed/simple;
+	bh=jjITHw1T26l6KwPui0ZC+QZoQATrnibNgc1ptfQqAb8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uuPadGj9GSJMfdflsIjjivSbRW3FlGT1HPgVVZpBrUENh0B/VJgwnaDDFCI2ParnK/T7OEhVNX2O6MbuE6KdHj+Q1ya620+W9p1JXLzIyTy+2i2Gyq0oMPgsYCuXjvxySipIwk3/S+NjkbMJVaMRPPiLaU3DtEbMRW/QiaiBM6E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IKrxZNXH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="XvaTjzYV";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="uYmG0xv0"
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1788421297;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=+rrF5e3YgB+atcHD5Gfa4JDkXTz+7YXoVXv9oxsgM/c=;
-	b=XvaTjzYVh0HucbGPiPARvWRn6wVYgsx+Csp2bfua/QOqfVCXtGr02dq9QV/NIgKdrmQttN
-	FruSzRbjGV2ltb8/SOj7JTLix/fJZVbI+j5Ihb3ZDpTm9XgO+CVNAi1KGHNu8modprd4sx
-	vkfb4UP1bfOYEiO25nbrMDeHeIFboyfqD/hgadHhg6C9qPWzibZS6r8QLE9hRF1PQ//5se
-	ouoFxnd7ZLe4sa78VjkPB4220N3XCrJT5IaQiUF3lV/yfjq+0w2UO+nVMsmD0xDcfEP6cw
-	d8JWdATeYQ0teA0PFMluj9KnXp8rrJpvWvmGfu+qMoJuGF9YZd9f/btvsvTkJw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1788421297;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=+rrF5e3YgB+atcHD5Gfa4JDkXTz+7YXoVXv9oxsgM/c=;
-	b=uYmG0xv0qojWcb+hNeKMxC7/rqCyITMqfBa/1k5/2s66l8mXzXZhdsVPFBCJGgk8R1nWYV
-	/D031BwFTFBTL0Bg==
-Date: Thu, 03 Sep 2026 09:41:29 +0200
-Subject: [PATCH v2 14/15] alpha: remove AT_VECTOR_SIZE_ARCH from UAPI
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IKrxZNXH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4170E1F000E9;
+	Thu,  3 Sep 2026 08:21:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788423717;
+	bh=0p9MAmMqYQA+pB3vITqVC9F/6eE2jvI8gIptx42Zmls=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=IKrxZNXHTN0f9gmnSG/t1VXsGHT2QgKcCOBJS0IZ7bMJBjaJf/QTC84q4CilAtIVf
+	 3L1sOIKBxl/m266LpzBQITvbyL5pabZyT1RZgvCakcI1Zf0nzxoerhWMe9Q4s72+lb
+	 3zRM+gxShR6cic2hBlse2WRIZPsvaL4xY5aslfw05KRNhHaMCO4R5+JK8YPTpbPq7Q
+	 Y7LIMc5fw8bkQ6wvpLwML5sVH6VJkSHMJPH4M3TSOQO+VDjfk7253/ikZbWgvyu6sb
+	 7nLqyK8JT3eO6niqBQqEuCwwzRlXK2lNuQZqjjPirPijR9x72CIN8YX469mspH2i2v
+	 7CZNV3dW0o2ZA==
+Date: Thu, 3 Sep 2026 09:21:46 +0100
+From: Will Deacon <will@kernel.org>
+To: Ricardo Robaina <rrobaina@redhat.com>
+Cc: audit@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org, bpf@vger.kernel.org,
+	paul@paul-moore.com, eparis@redhat.com, sgrubb@redhat.com,
+	oleg@redhat.com, richard.henderson@linaro.org, mattst88@gmail.com,
+	linmag7@gmail.com, linux@armlinux.org.uk, catalin.marinas@arm.com,
+	guoren@kernel.org, monstr@monstr.eu, tsbogend@alpha.franken.de,
+	jonas@southpole.se, stefan.kristiansson@saunalahti.fi,
+	shorne@gmail.com, James.Bottomley@hansenpartnership.com,
+	deller@gmx.de, ysato@users.sourceforge.jp, dalias@libc.org,
+	glaubitz@physik.fu-berlin.de, davem@davemloft.net,
+	andreas@gaisler.com, richard@nod.at,
+	anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+	chris@zankel.net, jcmvbkbc@gmail.com, tglx@kernel.org,
+	peterz@infradead.org, luto@kernel.org
+Subject: Re: [PATCH v2 01/13] audit: log all six syscall arguments in the
+ SYSCALL record
+Message-ID: <apkuGoWQwLJ7AcUC@willie-the-truck>
+References: <cover.1788351089.git.rrobaina@redhat.com>
+ <b30076994d49fa393251c836b5a57a725f218572.1788351089.git.rrobaina@redhat.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20260903-at-vector-size-arch-v2-14-5bc32a71e3d8@linutronix.de>
-References: <20260903-at-vector-size-arch-v2-0-5bc32a71e3d8@linutronix.de>
-In-Reply-To: <20260903-at-vector-size-arch-v2-0-5bc32a71e3d8@linutronix.de>
-To: Kees Cook <kees@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
- linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- linux-riscv@lists.infradead.org, loongarch@lists.linux.dev, 
- linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
- linux-mips@vger.kernel.org, sparclinux@vger.kernel.org, 
- linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>, 
- Magnus Lindholm <linmag7@gmail.com>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1788421286; l=1710;
- i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=mT6IunlNmVAACIv/qOnfprsS76yyb9kAy/7Jf1UY23I=;
- b=yYjljrbgHd9g0YvBGpHX18OgBAHjsDzVbGwiInZAXSnDdTlr6s+0cRT5wpLbzZrAcLw7t0bCW
- UZTIpaJMtZoDO1+CQ6vAol3PKC5JWA+jRIyABLT06nkmg8XMLKxb5lc
-X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
- pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b30076994d49fa393251c836b5a57a725f218572.1788351089.git.rrobaina@redhat.com>
 
-There is nothing userspace can do with this value. In the kernel is
-always combined with AT_VECTOR_SIZE_BASE, which is not exposed to
-userspace and also changes from time to time.
+On Wed, Sep 02, 2026 at 11:43:34AM -0300, Ricardo Robaina wrote:
+> The SYSCALL record currently logs only four of the six syscall
+> arguments (a0-a3). The remaining two are captured but silently
+> discarded before reaching the audit context. This leads to the
+> need for auxiliary records when audit-relevant data lands in the
+> 5th or 6th argument of a syscall.
+> 
+> Extend the SYSCALL record to log all six arguments, by adding
+> arguments a4 and a5 (5th and 6th syscall arguments respectively)
+> inline within the existing record. Also add the two new args to
+> the audit rules switch case, so audit rules can filter on them.
+> 
+> Rather than plumbing two more register arguments through every
+> architecture's syscall entry path, change __audit_syscall_entry()
+> to take a pointer to pt_regs and use syscall_get_arguments() to
+> retrieve all six arguments.
+> 
+>  audit-testsuite# make test
+>  audit-testsuite# ausearch -i -m SYSCALL
+>  ...
+>  type=SYSCALL ... syscall=sendto success=yes exit=1088 a0=0x4
+>   a1=0x7ffe43518b60 a2=0x440 a3=0x0 a4=7ffe43518b4c a5=c
+>  type=SYSCALL ... syscall=openat2 success=yes exit=4 a0=0x3
+>   a1=0x7fffc74692c8 a2=0x7fffc7467390 a3=0x18 a4=0 a5=7fffc74674f8
+>  type=SYSCALL ... syscall=openat success=yes exit=3 a0=AT_FDCWD
+>   a1=0x557ced4141a2 a2=O_RDWR|O_NONBLOCK a3=0x0 a4=0 a5=0
+>  ...
+> 
+> Suggested-by: Will Deacon <will@kernel.org>
+> Link: https://lore.kernel.org/audit/CAHC9VhSjEt_-Bsra4AEqWv+Daw5Ff=gqy7dX4Ah11RVhdyCBUQ@mail.gmail.com/T/#t
+> Signed-off-by: Ricardo Robaina <rrobaina@redhat.com>
+> ---
+>  include/linux/audit.h         | 13 ++++---------
+>  include/uapi/linux/audit.h    |  2 ++
+>  kernel/audit.h                |  2 +-
+>  kernel/auditfilter.c          |  2 ++
+>  kernel/auditsc.c              | 19 ++++++++-----------
+>  kernel/entry/syscall-common.c |  4 +---
+>  6 files changed, 18 insertions(+), 24 deletions(-)
+> 
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 45abb3722d30..9ce5962bc537 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -323,8 +323,7 @@ extern int  audit_alloc(struct task_struct *task);
+>  extern void __audit_free(struct task_struct *task);
+>  extern void __audit_uring_entry(u8 op);
+>  extern void __audit_uring_exit(int success, long code);
+> -extern void __audit_syscall_entry(int major, unsigned long a0, unsigned long a1,
+> -				  unsigned long a2, unsigned long a3);
+> +extern void __audit_syscall_entry(int major, struct pt_regs *regs);
+>  extern void __audit_syscall_exit(int ret_success, long ret_value);
+>  extern void __audit_getname(struct filename *name);
+>  extern void __audit_inode(struct filename *name, const struct dentry *dentry,
+> @@ -373,12 +372,10 @@ static inline void audit_uring_exit(int success, long code)
+>  	if (unlikely(audit_context()))
+>  		__audit_uring_exit(success, code);
+>  }
+> -static inline void audit_syscall_entry(int major, unsigned long a0,
+> -				       unsigned long a1, unsigned long a2,
+> -				       unsigned long a3)
+> +static inline void audit_syscall_entry(int major, struct pt_regs *regs)
+>  {
+>  	if (unlikely(audit_context()))
+> -		__audit_syscall_entry(major, a0, a1, a2, a3);
+> +		__audit_syscall_entry(major, regs);
+>  }
 
-Move the symbol to a kernel-internal header.
+Won't this (temporarily) break the build? Maybe you need to introduce a
+new helper e.g. audit_syscall_entry_regs(), then convert everybody over
+to that, then rename it to audit_syscall_entry() at the end to keep the
+series bisectable.
 
-Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Acked-by: Magnus Lindholm <linmag7@gmail.com>
-Reviewed-by: Kees Cook <kees@kernel.org>
----
- arch/alpha/include/asm/auxvec.h      | 7 +++++++
- arch/alpha/include/uapi/asm/auxvec.h | 8 +++-----
- 2 files changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/arch/alpha/include/asm/auxvec.h b/arch/alpha/include/asm/auxvec.h
-new file mode 100644
-index 000000000000..fa90ee4f899c
---- /dev/null
-+++ b/arch/alpha/include/asm/auxvec.h
-@@ -0,0 +1,7 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __ASM_ALPHA_AUXVEC_H
-+#define __ASM_ALPHA_AUXVEC_H
-+
-+#define AT_VECTOR_SIZE_ARCH 4 /* entries in ARCH_DLINFO */
-+
-+#endif /* __ASM_ALPHA_AUXVEC_H */
-diff --git a/arch/alpha/include/uapi/asm/auxvec.h b/arch/alpha/include/uapi/asm/auxvec.h
-index 57cae8780d81..d21b87b6730a 100644
---- a/arch/alpha/include/uapi/asm/auxvec.h
-+++ b/arch/alpha/include/uapi/asm/auxvec.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef __ASM_ALPHA_AUXVEC_H
--#define __ASM_ALPHA_AUXVEC_H
-+#ifndef __UAPI_ASM_ALPHA_AUXVEC_H
-+#define __UAPI_ASM_ALPHA_AUXVEC_H
- 
- /* Reserve these numbers for any future use of a VDSO.  */
- #if 0
-@@ -22,6 +22,4 @@
- #define AT_L2_CACHESHAPE	36
- #define AT_L3_CACHESHAPE	37
- 
--#define AT_VECTOR_SIZE_ARCH 4 /* entries in ARCH_DLINFO */
--
--#endif /* __ASM_ALPHA_AUXVEC_H */
-+#endif /* __UAPI_ASM_ALPHA_AUXVEC_H */
-
--- 
-2.55.0
-
+Will
