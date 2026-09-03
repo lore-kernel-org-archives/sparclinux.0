@@ -1,99 +1,104 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E31E4ACC92;
-	Wed,  2 Sep 2026 17:05:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6040B42BEA4;
+	Thu,  3 Sep 2026 07:41:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788368740; cv=none; b=hCEdwXEj1OCLddjprmhbDz+QaNvMFWn5Fi2s6OnXIpjlWIchzhLrWuwZE3MyZjRKLMP/bfVsj/tTSSt7K7rgmQCchh/CGmCeKFqcKWYZk0hOnpMVNL3S0xG7HWyLfmari9OpqcICwERowZK5VXJimm5tQxMeRTQ049GIbsuM32s=
+	t=1788421290; cv=none; b=tyoqpiBxSE/+S/3k7lwSjdec6qYH1mBR35+tI+L/ga0PASZbMJtyV1wJG5gyxR6/hJm7Oe+u9i68uYIxiFpccwnrmvNSe63scAYHifRpzzkYeipCJMn9npWN1snvI6cIrR9xw4OzLfdmQUOcscL0u5HEdwp9y1fw+KyB1eYbWPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788368740; c=relaxed/simple;
-	bh=Fq3alcNz2zZyFZW1oE90k5toLReb4c0YdTnwRiDWGIk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=uBVPSj7SbVeRcFDN7aN2cQiiUk5/sMHSl8K9nVBcYMyeigHbu0BbNQDTX/E6BkWqsjE67MjZ3+lXfZEt+io80FDpxnlq4jh6fmUtbi3/qwKV6aJrzOECcLleEcvtuk6Ze0YX9YhoeuE9oLhSBpZLSq2MUk7j71P0FCYfGJsFxAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=QnkElQZg; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1788421290; c=relaxed/simple;
+	bh=Nm/6hJEAPks30y7LVA2Wwufq3vVlMHx1IoW0kUFRRys=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=Z4wJztjUsiFoleCM4/mOfvpF7QccTiAhgd8VCf3RkQ6pbIEfgkqDWq4HILfByPXiKXuPIN9SbKit242iA8JUA/BDl803Ve2+yyP0QSztl2qo+VFMHCAvHKyVH0g5ffecm7tR9DUkXAz80bn9lnUCvhw6pwcATk3dDaMzPgD3E4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=zc+fw1vP; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=rh+ETLVc; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="QnkElQZg"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=GYSucsbC9T3wMbj4cbfwLizGeJpBjh0QW5Tk4uOM13M=; b=QnkElQZg9eNKJKc/QXu0FFAlBx
-	yzK8nT+NmTd+NI5P2phRDDlvGM2vHS3yjhks84RMzMD/OHBGL/MjSifPRIZIyAuvi/C0FDQrq82Dg
-	dyiQHf4FKdp7aFUs5rnlG6YUmiimxL6k6lA8BCVT2x9RiLGES1mvtLDNfscA9xblRuIIfPlOmSKQ1
-	ukObAe0z0LF1OiKtF1IFZ6iKvuPubZu67xZg/YpZmDijW3BpbG78/i6LfMjKsv6K9OKtz97fU4sVj
-	Sh/RCkhCtkXAcEx44LEnqZDelFClEmTsCoe+06S/FL/GXpWYjfTO6jSZSIrDmuNdKr/jdvJbvKwzV
-	2uYs3pZA==;
-Received: from [50.53.43.113] (helo=[192.168.254.34])
-	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x1oP1-0000000FO8L-08DK;
-	Wed, 02 Sep 2026 17:05:35 +0000
-Message-ID: <e79a472d-3e7e-4d9f-bf85-b3c1d5bc14c7@infradead.org>
-Date: Wed, 2 Sep 2026 10:05:34 -0700
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="zc+fw1vP";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="rh+ETLVc"
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1788421287;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=HcMZPcEqwvVMhaVCt8MkUvZh7YAwKSLLYydvmnNx69g=;
+	b=zc+fw1vPS28yXzWhjuVq688bLTlDJP+PQOO2TZg5QcxVNPZStsrnS4EMvXTkuI9WChAUF6
+	e98Za95kruhvUKHM3/b34Kuksc7kVeCyI/v89gq/la6051sO7iVJiyemzT0SlIcVMLtp3V
+	LBVntQcEnLcQP4mEFAOmRCGnVFjObZYQoy8t1OzlP6lakHcsrKvjUzVXe8XXr5xuJfGQOC
+	1qK1oo84uH3RvHqkEN4CnRtgprm3+1bwVoDYK5JM2mCOVa3NMbngliORKzy3gImZ0p3Mdn
+	KA4/eGPfFEVefv27hiUMV5YSZZf9/EbNiLhBwaHSRIcgEWjR+hD3IjTxfTw0+w==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1788421287;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=HcMZPcEqwvVMhaVCt8MkUvZh7YAwKSLLYydvmnNx69g=;
+	b=rh+ETLVcunE+DHaXRlcjbRGQypXlRas7Gz8RSxyOEQznbIdmSjOOp7xhZp8qA1klyLJlHr
+	4QVBYU6drJOyTJAg==
+Date: Thu, 03 Sep 2026 09:41:16 +0200
+Subject: [PATCH v2 01/15] MAINTAINERS: exec: Add more auxvec.h variants
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] sparc: NMI: Remove obsolete comment
-To: Manuel Ebner <manuelebnerli@mailbox.org>,
- "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>
-Cc: Bhaskar Chowdhury <unixbhaskar@gmail.com>, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20260902113009.684977-2-manuelebnerli@mailbox.org>
-Content-Language: en-US
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20260902113009.684977-2-manuelebnerli@mailbox.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20260903-at-vector-size-arch-v2-1-5bc32a71e3d8@linutronix.de>
+References: <20260903-at-vector-size-arch-v2-0-5bc32a71e3d8@linutronix.de>
+In-Reply-To: <20260903-at-vector-size-arch-v2-0-5bc32a71e3d8@linutronix.de>
+To: Kees Cook <kees@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+ linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linux-riscv@lists.infradead.org, loongarch@lists.linux.dev, 
+ linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+ linux-mips@vger.kernel.org, sparclinux@vger.kernel.org, 
+ linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1788421286; l=977;
+ i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
+ bh=Nm/6hJEAPks30y7LVA2Wwufq3vVlMHx1IoW0kUFRRys=;
+ b=qmIl+ksPTFbWALcvC6gLtF0MRDI5uk7fAOGtmCm6fQ86AWfo/5KOuP/P3VXL2cXkfCyJKwCbQ
+ KGGjiCPlRFCAaRujs1d1gu5uZskagQtGmtcqSJJWjBWfEVKN728cCnc
+X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
+ pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
+There are quite a few auxvec.h headers. Mark all of them maintained
+as part of 'EXEC & BINFMT API, ELF'.
 
+Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Reviewed-by: Kees Cook <kees@kernel.org>
+---
+ MAINTAINERS | 3 +++
+ 1 file changed, 3 insertions(+)
 
-On 9/2/26 4:30 AM, Manuel Ebner wrote:
-> OProfile has been discontinued as of commit 24880bef417f ("oprofile-removal")
-> 
-> Suggested-by: Randy Dunlap <rdunlap@infradead.org>
-> Reviewed-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-> Signed-off-by: Manuel Ebner <manuelebnerli@mailbox.org>
-
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Thanks.
-
-> ---
-> Bhaskar Chowdhury review doesn't show up in the mailing list, but I got it.
-> 
-> [v2]
->  fixed referenced commit
->  + Suggested-by
->  + Reviewed-by
-> 
-> [v1]
->  https://lore.kernel.org/all/20260830125506.632168-2-manuelebnerli@mailbox.org/
-> 
-> prior discussion
->  https://lore.kernel.org/all/875527abdf9df0393ade872c6df3612ae9945b44.camel@mailbox.org/
-> ---
->  arch/sparc/kernel/nmi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-> index 149adc094..1571d6298 100644
-> --- a/arch/sparc/kernel/nmi.c
-> +++ b/arch/sparc/kernel/nmi.c
-> @@ -41,7 +41,7 @@ static int panic_on_timeout;
->   * <0: the NMI watchdog has not been set up, and cannot be enabled
->   *  0: the NMI watchdog is disabled, but can be enabled
->   */
-> -atomic_t nmi_active = ATOMIC_INIT(0);		/* oprofile uses this */
-> +atomic_t nmi_active = ATOMIC_INIT(0);
->  EXPORT_SYMBOL(nmi_active);
->  static int nmi_init_done;
->  static unsigned int nmi_hz = HZ;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3a19da74d00c..42715aea210b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9808,13 +9808,16 @@ L:	linux-mm@kvack.org
+ S:	Supported
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git for-next/execve
+ F:	Documentation/userspace-api/ELF.rst
++F:	arch/*/include/uapi/asm/auxvec.h
+ F:	fs/*binfmt_*.c
+ F:	fs/Kconfig.binfmt
+ F:	fs/exec.c
+ F:	fs/tests/binfmt_*_kunit.c
+ F:	fs/tests/exec_kunit.c
++F:	include/linux/auxvec.h
+ F:	include/linux/binfmts.h
+ F:	include/linux/elf.h
++F:	include/uapi/asm-generic/auxvec.h
+ F:	include/uapi/linux/auxvec.h
+ F:	include/uapi/linux/binfmts.h
+ F:	include/uapi/linux/elf.h
 
 -- 
-~Randy
+2.55.0
+
