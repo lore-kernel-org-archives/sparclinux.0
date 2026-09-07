@@ -1,64 +1,64 @@
-Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE4CF481A97
-	for <sparclinux@vger.kernel.org>; Mon,  7 Sep 2026 12:01:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4692E472F74
+	for <sparclinux@vger.kernel.org>; Mon,  7 Sep 2026 12:01:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788782465; cv=none; b=qIc/GhNgv/yod6uAWotq/NMLea0D3QLrNnZUDHorqruSlpXJuZP0MrXioS7/0VkNLpOwI1UKYu6FvM1KTWbqLFs56UK3j8n1/U/zddl3l0QfcCvDppRGGlIBMCcsynXeZubAyi/PbvA4SoSEXa/ydLFjKgNrJTfJwiW4END7wdE=
+	t=1788782475; cv=none; b=DdQ1P/K7ruEp2Jn3dZglbSSvpuUFGS3akuZeINbeHV5QUmLIBVwYWI/taPc6S/z4jRV0WW8ds0ah21O2qI/+2/mgVgu/Gv8C8WBxthxyVbpSONW25zF+yg8UFbytO+ADPP49rpGBAL5yrs5yu3Amr/BBg2KONowcaZ+DEhiShZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788782465; c=relaxed/simple;
-	bh=pXIKNBJZ7VpWZJHYVm5d/JqZ2uDmSW/zMvrAvNFtAkI=;
+	s=arc-20240116; t=1788782475; c=relaxed/simple;
+	bh=2mvaxqGopCRhkYAdDaBFx3PErCGUyuXy5ePpn4QaSbw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iEdsU6gnIYb2+8mcaMibf/wXGLpgNpDsTtU+xuOeUfgK69+vtzAaCF/Lr/1AhKhFlUEp1wtH/9u6Kn0LgyW+umg3TpohQ9TQWi1BXBU7pWvwFS6Ok0B4YOCVNOw76ezi/txv9zNOG3B3N06mXTr9Rg4jWH5PLut2Iv4ndTwXdiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FjXhYYma; arc=none smtp.client-ip=209.85.216.46
+	 MIME-Version; b=r/WvLMDs+07b2BDn6KJ0/1ujJ+jgI2/NwccQz74lPaTTJ54XoTYJpps2oXpTPmst2KTlpbF65KKRwi+p/La1/xS5j6EPBYQqsc05D9x6S5rZh7jPKprmKn6PcJAPl+MqrCVxnh+KHATPQiXVdoUAUZgiikQGkNygGvUR/V/UeQE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mOvI+cE8; arc=none smtp.client-ip=209.85.214.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FjXhYYma"
-Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-39b52169dacso1133309a91.3
-        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 05:01:03 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mOvI+cE8"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-2db710396ffso294415ad.1
+        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 05:01:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788782463; x=1789387263; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1788782474; x=1789387274; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=CjnURsU06dXJhEmQk8UgpVeNwhEKlwAdFOshlqNlRoY=;
-        b=FjXhYYmaEauGGLqYWyyOJ4/1TC8ANJ74Q6/9Nj71oEAfnQSQ30dnWvkZjY+AfGgN/X
-         GVkwV7JSgmUdMLSbloQ5YCnjkxV3M7QOceat8zEoHXxL1dWbaiEGcCMHEXmgKWLU7Gvj
-         ThBbirWM4mRg6IibmJC77Ei3CVlRAiQ023ZDyk9Salpi2uhKjiBkXgc0LL3hSA979aO7
-         y44od5gCv39+fodKg7VIdSVbnKgV/ZsxUwA0xPGTWvHd3qEicirEmRI7jwyf+VNFw9K1
-         bTsRz0qnE7Ai24oH3GaTeE+RsTygeF2XX9eCH+KrKq8YdMhdKbXuyirTLwZvGqOMO9dN
-         62Jg==
+        bh=bC1WWh/xuFVa+YUjJaTnVEkwteG3jK4MlszJkiclU94=;
+        b=mOvI+cE8vfQEGFDbnaWVcoxUA+qU/LsF0vRjVeUkl/bbiqqdp/hMSJ/o34CUyryMGN
+         r9hn0NX8w0vTNjNYWp44O+/oWz2yjK9/2ZJAu1mftI22FHrnR57aAVNt3AK2oz9HD5Zw
+         5sEJA1cMpJPkUQ+dOAudUVvQgcXUFLWIYkmWVtzxGHPr6+tWmk+ykRlCJ7efJYdGzRzH
+         tTEvlsLh34Kh45hEToHiqj8Uey/k2N412CWLCVau+oizS7kRB2d+TBQIAhqSBC6EyMbG
+         2hL7skf6LSdvGMihSzydYR5+dGEFDOQmFIQ9h/LyWm86qLKKWlzNnwE3H2wD7mEPopb0
+         j7Yg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788782463; x=1789387263;
+        d=1e100.net; s=20251104; t=1788782474; x=1789387274;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=CjnURsU06dXJhEmQk8UgpVeNwhEKlwAdFOshlqNlRoY=;
-        b=azso2AFHr4QKLKYeFY3ZePBOCslCDHlX8iK00LZvqp+6YTKvltez4PshcgpVXeg84R
-         mDoqkBGXoVpFbSKlVWCK+lqZvLksBVLj067g4CPCm9IJgj022LmAkVtz68S35OrKdGQ3
-         jTfyPFn5lIjzDgOVL4lD4ZQ0IofRyOTfpTdwu5MV0kwJ/1/zqabiy6HgRON8k6yAsAiV
-         s5fEX9Lz2DXfqjKs3EkusQQV/4Sl/zXS9SZFNafSR3Ct+cdg2W/KGQ1YS8J0eL4zKEik
-         Au6ftyYgKt8W+RIyXG5e+qfzgqlW369sAQWcNJg63BQ+Q/dVw3h6SxWiViGYzS22i7//
-         VGDw==
-X-Forwarded-Encrypted: i=1; AKwUvBxwyQpV98kiIqfDFs6qVRf3DmPPfSQYcvgBVYAMfli4oX5thZroxGpaco3qfcZ4yNFINOcEmWzVO4Tx@vger.kernel.org
-X-Gm-Message-State: AFuF++k6frIC7U2yEeu1VJoMcWGdnqNboR0/JUyNLAT3SJlTfWakKZ9u
-	bguZWnvAjat1cPL9nhODdiH0E7mE5OwdOh7cb0HgqB841hWXZazMqae5
-X-Gm-Gg: AYBFou1t/m5RIScngTmevNA6NE1SzJjWn6PHtTgz0bA/qTjP9b0hqMkxIv1psb5MTIE
-	t+1ntjuiTXopRa/VJkeQe/yJBn8caArkRcZJD439v6UK/NbyFaGNVcP78yZlYRsnGEixJLthylg
-	YHwT0WVLh3cY4aG+eqBUnKV/qVNqKFBxWPQcgQuupSwyXXS7oAL4HeA1nvvXPQKnsSGRjgghFc3
-	//B+QseYATQZd9aRxHSTCA0EMO7uByEFJ/Uf9WSoOP+ffuQYYwqBPxHusChJOxR3IKcLDGOyV2h
-	HJXBlzxinkhNWeM6etT6NYWJyWqWa9ZrCdT87/s6jxZJIJ+4Kih+1Hqrk0+3EL8cQL0OFjfogDg
-	jIjnZpU1qc2DIdFa/DTKZJ3tLo1kjUgoM11hz2siz7DVVKJ+Q+vX/mfxvL9NYDxRF7LNb2Igp5L
-	DQZsrJ+R8FWtStKfpFDa0r/2aJVYshqmcubVvRluSLJHxZXjt9AwRDRj0PrRRhS9xVG+gl9VlyY
-	7fcb1sU/X9SSw==
-X-Received: by 2002:a17:90b:3c48:b0:398:e436:384 with SMTP id 98e67ed59e1d1-39b260d335dmr35003952a91.1.1788782463059;
-        Mon, 07 Sep 2026 05:01:03 -0700 (PDT)
+        bh=bC1WWh/xuFVa+YUjJaTnVEkwteG3jK4MlszJkiclU94=;
+        b=L2mbwbtEpkgWPHWDEc8tijp3Laqx59BnEDzGyztJUzPPkJowyk1TcFdaHmqWancXG2
+         JxwXBaxpyWoBHsKCF7V2aesYwz2OnYuS8SpltZi6+V4vtnFTyRq6UBwW5pDQBi9WdCMo
+         05rB0++k5K1gHxp2Fji/JA09GUn4zOHGzg/8t4ZSdI8DY0r5Hjw1ZujqeBPh3/36YVVI
+         L4FDy1ZgHvuQzXojZON9v6Ge1/Uq1Hc6PEbvSIRGC5jfxKRV7wjWN9/HaJiSk5IWGufj
+         wKnf3uX6wZTX4c1OEngt3sSyw1jb1J2hZzfSEfpjOWtQK9hGhQE2xADVNJ7wNIn0etII
+         uG9A==
+X-Forwarded-Encrypted: i=1; AKwUvBzdnnWMlT3u8BnDIIlmVnRidSNnWkOnG6g38hMPmSw7Q8N217gm8NGc95vIYvZUcvgkMV3MbPJ+37q6@vger.kernel.org
+X-Gm-Message-State: AFuF++m4qoKu0IYo0EbZ6wkuSlYDRRtpAA8nM9C2OiuUx/lPDrXbOCpV
+	/0Zg7S25bLPQDcQSIXTkt28dM6pSsaxJl8sIYqvrj0KmNBQPYu4dI8JR
+X-Gm-Gg: AYBFou11vrnd3lfnIFTKyHZcEDUVV0OCsGLb1sCYsFvb15mkXU+a7gZaQ430YdsrEK9
+	C/Izt+Yum3Y6CCi8gMCQ5zqn1iAXB5xdKlWMJbsIYzHSGmGWp2TSbtbYU1MtLcwUwAjnObuMjOy
+	mnwa1lJw9UXQprtYc8nGpW/D8PNhuLoefbG77hR/TVP6xcRmt91GxN0rSvq8dVU1oHJAeUSPZuf
+	wB8nuMSpD7407ULPmqHb/H89QlwceJHOpBilEtpmzqZ/3xC1x0k/XXQAYKSSIZtRqbGWGzx0u7j
+	GFvEW0QalW0qV58LN+M4vEfSEAvXlyRO7twsPB9L89lPgKaaY4+P9HG2+w4JG35VmkVhKGzTfmQ
+	yNiuII1nTE9fAT0gwbDqgYbJgWE+zH6aOXjmcr/XkIyVF7T1AG+zWYSfxitxpizR6RBpQIOmIP7
+	teUPLE9J1a0bgR35RrBorLonYtFqhgJWggJL88iykuaXnPwTEM69awXFCABlP4G+ZZRHPkagtmf
+	Sm9algAoeyX5d9+QEzifP/O
+X-Received: by 2002:a17:90b:5745:b0:396:669c:b5f6 with SMTP id 98e67ed59e1d1-39b0803accdmr31092584a91.12.1788782473281;
+        Mon, 07 Sep 2026 05:01:13 -0700 (PDT)
 Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339885ca07sm31244462eec.1.2026.09.07.05.00.54
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339885ca07sm31244462eec.1.2026.09.07.05.01.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Sep 2026 05:01:02 -0700 (PDT)
+        Mon, 07 Sep 2026 05:01:11 -0700 (PDT)
 From: Hemanth Selam <hemanth.selam@gmail.com>
 To: Alexei Starovoitov <ast@kernel.org>,
 	Daniel Borkmann <daniel@iogearbox.net>,
@@ -89,9 +89,9 @@ Cc: bpf@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org,
 	linux-kselftest@vger.kernel.org,
 	sparclinux@vger.kernel.org
-Subject: [PATCH bpf-next v3 1/7] ARM: net: fix typo "arithmatic" in comment
-Date: Mon,  7 Sep 2026 17:30:37 +0530
-Message-ID: <20260907120043.36894-2-hemanth.selam@gmail.com>
+Subject: [PATCH bpf-next v3 2/7] bpf: fix typos in comments
+Date: Mon,  7 Sep 2026 17:30:38 +0530
+Message-ID: <20260907120043.36894-3-hemanth.selam@gmail.com>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <20260907120043.36894-1-hemanth.selam@gmail.com>
 References: <20260907120043.36894-1-hemanth.selam@gmail.com>
@@ -103,29 +103,52 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Correct "arithmatic" to "Arithmetic", reported by scripts/checkpatch.pl
-using the misspelling list in scripts/spelling.txt.  Only touches comments,
-no code changes.
+Fix typos in comments, reported by scripts/checkpatch.pl using the
+misspelling list in scripts/spelling.txt.  Only touches comments, no code
+changes.
 
 Assisted-by: Cursor:claude-opus-5
 Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
 ---
- arch/arm/net/bpf_jit_32.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/filter.h       | 4 ++--
+ kernel/bpf/reuseport_array.c | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/net/bpf_jit_32.c b/arch/arm/net/bpf_jit_32.c
-index 9ede81afbc50..b1c21c014c9c 100644
---- a/arch/arm/net/bpf_jit_32.c
-+++ b/arch/arm/net/bpf_jit_32.c
-@@ -1346,7 +1346,7 @@ static inline void emit_ldsx_r(const s8 dst[], const s8 src,
- 	arm_bpf_put_reg64(dst, rd, ctx);
- }
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index 00ad8b63aa47..4eff6e601b05 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -147,7 +147,7 @@ struct ctl_table_header;
+ #define BPF_ALU32_IMM(OP, DST, IMM)				\
+ 	BPF_ALU32_IMM_OFF(OP, DST, IMM, 0)
  
--/* Arithmatic Operation */
-+/* Arithmetic Operation */
- static inline void emit_ar_r(const u8 rd, const u8 rt, const u8 rm,
- 			     const u8 rn, struct jit_ctx *ctx, u8 op,
- 			     bool is_jmp64) {
+-/* Endianess conversion, cpu_to_{l,b}e(), {l,b}e_to_cpu() */
++/* Endianness conversion, cpu_to_{l,b}e(), {l,b}e_to_cpu() */
+ 
+ #define BPF_ENDIAN(TYPE, DST, LEN)				\
+ 	((struct bpf_insn) {					\
+@@ -1029,7 +1029,7 @@ static inline u8 *bpf_skb_cb(const struct sk_buff *skb)
+ 	 *
+ 	 * In some socket filter cases, the cb unfortunately needs to be
+ 	 * saved/restored so that protocol specific skb->cb[] data won't
+-	 * be lost. In any case, due to unpriviledged eBPF programs
++	 * be lost. In any case, due to unprivileged eBPF programs
+ 	 * attached to sockets, we need to clear the bpf_skb_cb() area
+ 	 * to not leak previous contents to user space.
+ 	 */
+diff --git a/kernel/bpf/reuseport_array.c b/kernel/bpf/reuseport_array.c
+index 49b8e5a0c6b4..4de08abfd94e 100644
+--- a/kernel/bpf/reuseport_array.c
++++ b/kernel/bpf/reuseport_array.c
+@@ -207,7 +207,7 @@ reuseport_array_update_check(const struct reuseport_array *array,
+ 		return -ENOTSUPP;
+ 
+ 	/*
+-	 * sk must be hashed (i.e. listening in the TCP case or binded
++	 * sk must be hashed (i.e. listening in the TCP case or bound
+ 	 * in the UDP case) and
+ 	 * it must also be a SO_REUSEPORT sk (i.e. reuse cannot be NULL).
+ 	 *
 -- 
 2.48.1
 
