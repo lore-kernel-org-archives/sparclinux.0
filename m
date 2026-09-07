@@ -1,180 +1,282 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+Received: from mail-qk2-f12.google.com (mail-qk2-f12.google.com [74.125.230.204])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBE5B352C3F
-	for <sparclinux@vger.kernel.org>; Mon,  7 Sep 2026 19:37:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF8AA41F7EE
+	for <sparclinux@vger.kernel.org>; Mon,  7 Sep 2026 21:07:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.204
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788809830; cv=pass; b=MUqCLVOoF1J4ErWw2mtGXllAvl/6qPt82M8SGq0frmjo52jNwXKvmc3jyO5aRqRVld+MoBjfgizSObCjqPDysizSaWSoxkIf7sT+zOT8qNdr1wWrwAkNqi4L5ctjGzas24nvixMHjnstkHVJck0C4OMax8S+5XAaJnAWkvsxxJ4=
+	t=1788815274; cv=pass; b=shEz0dJVbsJ+t7IkU9oT33DDm8JE63cIYpLUa5XUYN7wQFDc/L+hV1q3ESohSCGVxeF73/04IOpCSAyMFAmFcQkSYd5Drr+5i3xxVRqtGnCZcDhJ4kX/4z/AyXv0L6JToE+WNLZ8MURzjM1LsFV+3jGrRkiTFjOl66YSLzLe1fg=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788809830; c=relaxed/simple;
-	bh=pAmDg64TOE5VZzyufwgiqVMUbG4l1wO3gZod6MM4Li4=;
+	s=arc-20240116; t=1788815274; c=relaxed/simple;
+	bh=OFnY5O2swjOM6Aa9822KWrZkE4mt65lLa95J2R/BasU=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=tDgwNpnZD68N7QoKPcpLnPZ4tbigFP0n1mHU+M9cyYuCFsKWL3IAUQkfMtuHQC7ebVI05yxg5UV0zZNKobSmPVZ+CrZTqquNke69YraNXfOTdOsrZR15y/0P0TVHBRIhO087kk3joPD71RwPryes8ejTLYXjzxqraSXu4lAhX5U=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kbGzL2Ns; arc=pass smtp.client-ip=209.85.208.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=AOvUEabR7LwAz7BGB5es9frpWU3utFCUps+wAfPmrM0vKGYCoBK82x1GYaU6GhFlTLn5MyR9m77+bSLhG+T6WbHGNjcYD+Su2o2NJDd1DY2S60sYZ5V69mUSWL5gipgISo8raT/pOCd500Xfb9ve73onPmuZknHsrcr9m4biCpg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=gZa1SEFO; arc=pass smtp.client-ip=74.125.230.204
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kbGzL2Ns"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-6a63667b78aso6092882a12.3
-        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 12:37:08 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1788809827; cv=none;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="gZa1SEFO"
+Received: by mail-qk2-f12.google.com with SMTP id d75a77b69052e-53012819c04so378041cf.0
+        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 14:07:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788815270; cv=none;
         d=google.com; s=arc-20260327;
-        b=pzk60llWs9h+xA+sx/yV2jCMr/Cnsdw97V4tAV8VgR6ZwPBaQnxf3Pv8FTGz9cdiNi
-         5t4HuOuP9Aa3ByrDKa2cPYS63RqixXGFUChvSYNRlKkQ9CcFY8StIcaI/rCDdSodX/af
-         /GciCzP6VmrISEuhWfts5qYh39TOZmUJtUmW3snDZEsIUV6oBPZ59yM/I5wd5fTxdXgN
-         Zofdk2/HFSeJAeXuPhCGR5ySKRo/kvZthjVrPm73xENuHixrZwtCQuTmehuxU2N13xF8
-         0hBAMAvat0NiwSdnJFX810OIRl+kD+BFTKe00lwj4Psl7wyH0WncSw/kP/U+c3y/bxeX
-         2LFA==
+        b=QwSKhzyZAnqMujEYBAmad689rx7iR0OZUSdOMGTKuOas8SdrZBG56RbdDhzOrw1383
+         Er/EUuTyQmjwYEbbrUiAf51sQUlaN/0YLfHLtJkYBR2ZnOoUg65Y/Bgk+b52L/3iBFtH
+         3rvYkreV3Ixzgj1uxmTBCot1kjbckXHM5ORCbnIdu8kLraXT4qACsuyIt6pobzvRC8qQ
+         ZSL3KTwFH9+Ey4xYOHqLcgPIuK6aMolleKmu33AEit6fwpLPoP7rNuohzmLhTFwPvf3f
+         9K6ZKeiPMek9hP9A4Wz2QofW+wSnztgruZ2HusePjJcPau5zUwb6U4zbIx5B4NK36MWF
+         RCLA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=rCDQa/mg3a9yMD9wIkpq0CYkOHi539ohf0EULzMvUjA=;
-        fh=PustfUGMGZpSjv16MtNXv8AuPVMTyF8wGK5sNdq0A3U=;
-        b=Ygvc9Wh4FzfouZfshNho15PjFZsTwmhKtLAdM674TrZIZXc9FLbiQglnCtfE4G7Aew
-         FUs1LyIglDYDdfpGDc2+Druc95NKL/T1qj/JxsX9ghklkhY8z56UML5arkq9Fpqa0Gfy
-         6gv4Y/JmDPgZvYJIpb6NX9tJ3obu1RbuVeIOr77rkno/FzOZburyHhPDdJaM9eGqs6Xp
-         gabS/tTMaBgx3ZDBXftem8RADai4iOtrGPopqzM61lbcsGKPlrI1oBPq0zE8TJGVFLzF
-         cW9XLthS6vRqGE/IGfv9pkNEpv4nsWHf9iT+pYdbHomhqK55rkKGElGFw0wa2239n1/d
-         GH3Q==;
+        bh=j33dWXa87ubHe2rcHlgmZCfdvDttwcXovkMGxt/Pcfc=;
+        fh=VTHnKaxMa6BTESCo/yZHTmNhVcG2zm0LBdCZOi0QYWA=;
+        b=UT7xCJaarF5gtKnPpkMBjklryprH7mGizrZ7xhax78pRItZiVM5mU/7v8nQXeb7My7
+         ogXpqs3S1y1FE+lnVhSRHvMMPXEtloZbeeKFfFOnt+IaFu6qXcPHkaWFBnnQE0ftZYJK
+         vWSd7pvkwP3hj59Ad0gzoBCg40lEAfsatE9GMz4efSqyWvQu8cqthBiZiyD+H1SasHa3
+         2jyz7EB8xZewv7KFSflSdSrnGP58ViqsUQUqoGgjttnL/dZmMtI5tqSRff6HJNU8EZHI
+         6zoh65QnV8CpFng25q7Yho/6SHMo/lityP61MRr8uLhGabiNBuuge/fZCnn5Wz+507jH
+         1zyw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788809827; x=1789414627; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1788815270; x=1789420070; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=rCDQa/mg3a9yMD9wIkpq0CYkOHi539ohf0EULzMvUjA=;
-        b=kbGzL2Ns0CHUX3ICTGFl4SwKJZmIKamaMD71JSD7X8oogUBsFR0S/K1fivQSlYOQXy
-         /JeqbVKvO1aXmRVW2pe3LMwILKLcMCCkD5Hve+w1oFyPCn27sTCjbZJBMPexVCs3jUcw
-         Xm38mGZVlotx2PiKMztwu6ENPqjPU3U3LSpKysf1vKsRXIUUCLiRt+4O3nCdnmGdu46W
-         77rsXx6dif9jWTG5xdcEPf1E/zPAjxp/Br/Fz+wkngv6icZ7hZgNFKuXfFdxzxzWh5w/
-         mn1+GRd7lRmN8RQYg1jsloLNAceOKokjcSJ+aP27J+ktNWUgRlTicRNI0+7B+qYvliiV
-         qIdA==
+        bh=j33dWXa87ubHe2rcHlgmZCfdvDttwcXovkMGxt/Pcfc=;
+        b=gZa1SEFOVPdEV/FpjKaPjpj0KNPZ1Iecab4PdgmraoAo2b7ryO2g5NK6tMroCKiFKD
+         8l8A80GfGN6lSE2YxLoxSsbPKgRu+TKEHgFwF27dcpWRyJvnyc+r0DAxKEw1/EFAuzU6
+         KKPJCZaaMjwheVTJN8aQ5vV5MuubXIV3Oe9PyhSD3x1/06QFhB9XcXsN5pZDYd0GXKAd
+         TF6DI3+Mha53Om1+XoVrw/AFKG4dAgedwx4/V9xi0JmbWhdVKLOshxId27o60xDKjUH5
+         IX+y4q4Vm5ctTNthUn9LHNKyNANRCpLkuz0XIHO6E98Md0HMmTHO7f6AR+/XqzAgDxuh
+         oH8g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788809827; x=1789414627;
+        d=1e100.net; s=20251104; t=1788815270; x=1789420070;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=rCDQa/mg3a9yMD9wIkpq0CYkOHi539ohf0EULzMvUjA=;
-        b=jKJGNsfLhR5ZMex1FKOhDEW4kQB0kaqv9dpMzkCJKZO1NgyP4D4bU1zecfm4vHUgZd
-         Vcbh4wug88h0cwtgBTCmyT9D/5xOKd2XZe2Vt8PKlOx7aNRdXaln+pUVZa4sRhW7OjC9
-         cFAjp3F9StohORhVHZqpDdG54ABQh/mDPZoceIfLynaFPA3Gzl7h9RCqgtdkroHPuxw2
-         Xjtp+3YmOhkcC1eaHvYJYVRz0SDXqWyn2mCIsMiTLEaVNmpM75gegpQfvE9ngzXbAtrp
-         N4zKFGYxPLYlKXEWxawXEkvUnzxcO6EatoTylzwvpncEu7PdplYSvXpT0hU3B3qMWJzn
-         JfwQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzMLeTINdVO+n6R6PMjqyZ37KfC//k7KtmNAaT5jcGRMY/ResIBosZSED0l1MJBjdczIsgy7RBnXoGs@vger.kernel.org
-X-Gm-Message-State: AFuF++nd4O0TSl86QPUdhfN4lhLoaCDcorL2vkBgAmb6d+KAbeykjyUn
-	qTbkOGP4nm/DWU/9eeWYclr+WUPR71DQr1F7WgG0H3gpbYhsD6tg1w7Uh23KK/ifCCZZLbZjzOU
-	iEzfNzuu9jTMeXqAAt++g+RR3rJOB5TAsmdtsF1M=
-X-Gm-Gg: AYBFou3Yk1/W4ptw/Nmbd2dbYVQ+GM5hRekxuxmfyF5Hd8BmaNA5FcXJmx4GJQlRySb
-	QearDhTqzc8cZObu5+tJXfXtqD795p6oZo7Bxw2Tr4lvu+F27lx0sBBnfZ77oZVhS0QCFKVWJZZ
-	W9LL5xlPKbbHJ4cuLchDGWesCPM/HppNVTzD+y12wGvNkLT+pylFteElc7ijyRFP9KVaohmXLo8
-	XIJSwIVVqfY5JsKA9hFuMvKl0AKo3pqbPTsY4xgCAAqXwenSUz5LtuJ9CoDPnUl6AoE/NMZS4Hv
-	P3BM/gHdts3Ni8t6BX1trRNuZnj/BirrPcvCdFyuADSOeCF8p5AjNAhT+ijRnFO/av99hn+7Ars
-	=
-X-Received: by 2002:a05:6402:5113:b0:6a7:ee55:dcd7 with SMTP id
- 4fb4d7f45d1cf-6a7ee55dde4mr6871345a12.38.1788809826547; Mon, 07 Sep 2026
- 12:37:06 -0700 (PDT)
+        bh=j33dWXa87ubHe2rcHlgmZCfdvDttwcXovkMGxt/Pcfc=;
+        b=oZFIw5nCCbexdmTGk0s15OpcDXBxktywRNDBuXZJrQagfi0KBYZBh8Sp+tYLsa/eNc
+         MU8khtNzEmrbSxbT4KXM2kXrwfx0NphIpUGXzBg9vCsGq18WQ1TQlVhcbFr/3lfJxZ+E
+         6S4HLNdDDxoyj69JnIBBjWaOgNNLMpW2ewRJOLDgt36GC3E/G1ob9sxKNeAO17c3SVje
+         h4idtnalbMyPtE/QgROoa/J4q/BPcMOZk80zbY2VDcTBYqzkeJsc2kV7STSLofVG22Q8
+         lNfrsGDQMj1m17RxP+d3ZswrYD5Yf/Xi8bL6fwU2D5fGbkTeLA3D6nkc+6drv/nvvCTG
+         n1bQ==
+X-Forwarded-Encrypted: i=1; AKwUvByMKPop6yBX7dEXH7NZ67vE0+fsOB3Dz/fKpTdNg6UC+4A2/X3qa4JwBE7mOWvmBUDZF16/8Bd7RRDm@vger.kernel.org
+X-Gm-Message-State: AFuF++m64/1zvXJxOqCIwdA/y8oiFenOO1zdftnRE0OTvcnZnpDknlE3
+	qNAJjJrWLZuMR4HCvaLH1dmX5umpRToo1v3OeeCtIGmhjpYl9bbRMB1PKvuP/KD6G0RXvHuZQGH
+	aj7AkoY3QMz4K5oU4zEAn9C7M6q1VVrcT09zYkbaq
+X-Gm-Gg: AYBFou1pUbU1w5EAg2BvPWmDFxSdtwx6y9KscYuv/kIwRw7dDZZFKFdlAQDXH140TlX
+	88bx5pmqO5gO6i8ZcfSf+x0/GkuECu3SfvM9/H5jgUYfuWfsVBFCjMMZ+L3/2s0gtbFd2Q1dek5
+	uZAyduF72MbeqJ3tt/DlI6MlRhC+drWES/li+B0WgsweyBemHHk7N8jGDp9HrL9zMT8F/3j+1cY
+	Pb0hfnaslrRW91+xqYZoSikAYJTJ5Yq4dKTMkDQ7ZB0R1EtWmAfQeVK8zl+OPIMrhc/LyQigc1C
+	z4yN2CthEpty3YCqSDgJofKV+u7FAQlHc625HTzG/qE=
+X-Received: by 2002:a05:622a:2589:b0:517:64f6:3365 with SMTP id
+ d75a77b69052e-53065d7943emr35669061cf.4.1788815269129; Mon, 07 Sep 2026
+ 14:07:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260904055359.327050-1-linmag7@gmail.com>
-In-Reply-To: <20260904055359.327050-1-linmag7@gmail.com>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Mon, 7 Sep 2026 21:36:55 +0200
-X-Gm-Features: AcwNN1XKNSsHfM35Gym2RgpjA4w21sbKhoTs4rKY8si_jlYcMqJSokUdV6gGC_M
-Message-ID: <CA+=Fv5SvHh4Tjqchcfofi91ZArOGMROfVkKXDQCGrEwTUrwZgQ@mail.gmail.com>
-Subject: Re: [PATCH 0/2] sparc32: fix SuperSPARC SMP synchronization
-To: davem@davemloft.net, andreas@gaisler.com
-Cc: sam@ravnborg.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org> <20260901-rcu-pagetable-freeing-v1-5-5456a81c8212@kernel.org>
+In-Reply-To: <20260901-rcu-pagetable-freeing-v1-5-5456a81c8212@kernel.org>
+From: Suren Baghdasaryan <surenb@google.com>
+Date: Mon, 7 Sep 2026 14:07:37 -0700
+X-Gm-Features: AcwNN1U8TkUrFVP6EqWbmqC7u-eOkQZui9u0urXe4uY9QHhCrt9ILjWVeJ-SJWo
+Message-ID: <CAJuCfpESe_BXihJh-8FhjQVKzsSpnS4zdMgg3e59byJTc8QViA@mail.gmail.com>
+Subject: Re: [PATCH 05/12] mm: enable MMU_GATHER_RCU_TABLE_FREE for arc,
+ microblaze, xtensa
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, "Liam R. Howlett" <liam@infradead.org>, 
+	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
+	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, Guo Ren <guoren@kernel.org>, 
+	Brian Cain <bcain@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+	Dinh Nguyen <dinguyen@kernel.org>, Simon Schuster <schuster.simon@siemens-energy.com>, 
+	Jonas Bonn <jonas@southpole.se>, 
+	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>, 
+	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Alexandre Ghiti <alex@ghiti.fr>, Russell King <linux@armlinux.org.uk>, Vineet Gupta <vgupta@kernel.org>, 
+	Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
+	Will Deacon <will@kernel.org>, "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
+	Nick Piggin <npiggin@gmail.com>, Peter Zijlstra <peterz@infradead.org>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Richard Henderson <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>, 
+	Magnus Lindholm <linmag7@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Mark Rutland <mark.rutland@arm.com>, Huacai Chen <chenhuacai@kernel.org>, 
+	WANG Xuerui <kernel@xen0n.name>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
+	Richard Weinberger <richard@nod.at>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
+	Johannes Berg <johannes@sipsolutions.net>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+	"H. Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>, Vlastimil Babka <vbabka@kernel.org>, 
+	Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org, 
+	linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-snps-arc@lists.infradead.org, linux-arch@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	loongarch@lists.linux.dev, linux-mips@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-s390@vger.kernel.org, linux-um@lists.infradead.org, 
+	Hugh Dickins <hughd@google.com>, Qi Zheng <qi.zheng@linux.dev>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 4, 2026 at 7:54=E2=80=AFAM Magnus Lindholm <linmag7@gmail.com> =
-wrote:
+On Tue, Sep 1, 2026 at 4:06=E2=80=AFAM Lorenzo Stoakes (ARM) <ljs@kernel.or=
+g> wrote:
 >
-> Fill two gaps in the SuperSPARC/Viking SMP synchronization paths.
+> Each of these architectures directly free page tables without routing the=
+se
+> changes through tlb_remove_ptdesc().
 >
-> This series is based on the three sparc32 relocatable-kernel fixes which
-> honour and derive phys_base and advertise the relocatable image. It does
-> not include those prerequisite patches.
+> The use of tlb_remove_ptdesc() is required for
+> CONFIG_MMU_GATHER_RCU_TABLE_FREE to correctly free page tables under RCU,
+> so simply update these architectures to use these functions.
 >
-> These patches can be found here:
-> Link: https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7=
-@gmail.com/T/#t
+> Since none of the architectures share page tables or do anything unusual,
+> nothing complicated is required here.
 >
-> The SuperSPARC Family User's Manual requires software to keep at most one
-> Demap operation in progress across the system. It also says that an MBus
-> system must ask every processor which can retain a stale translation to
-> perform its own local Demap [1, sections 8.5.3 and 9.8.2]. The Sun-4M
-> architecture specification likewise describes SRMMU flushing as local to
-> a module [2, section 7.1.4]. Patch 1 serializes each complete shootdown o=
-n
-> sun4m and invokes remote CPUs one at a time. sun4d already serializes its
-> Viking Demap operations.
+> Therefore this is simply a mechanical change - convert __pud_free_tlb(),
+> __pmd_free_tlb() and __pte_free_tlb() to use tlb_remove_ptdesc() as
+> required.
 >
-> SuperSPARC maintains I-cache coherence by snooping, but FLUSH is still
-> required after modifying instructions. It drains the writer's unsnoopable
-> store buffer and clears local pipeline and prefetch state [1, sections 7.=
-4
-> and 10.2.5; 3, section A.8.2]. Patch 2 executes FLUSH first on the writer
-> and then on remote CPUs.
+> At the point this is in place, all mmu_gather page table freeing is
+> performed under RCU, and thus MMU_GATHER_RCU_TABLE_FREE is selected for
+> each architecture.
 >
-> The series was tested on a dual-CPU sun4m SPARCstation 20 with TI
-> SuperSPARC processors and Viking/MXCC:
+> This forms part of an overall effort to switch every architecture to this
+> mode.
 >
->   - boot to multi-user with both CPUs online;
->   - 200,000 concurrent mprotect iterations over a shared address space;
->   - 12,000 executable-code rewrites checked on both CPUs;
->   - removing flush_icache_range() reproduced a stale instruction on the
->     first rewrite.
+> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+> ---
+>  arch/arc/Kconfig                      | 1 +
+>  arch/arc/include/asm/pgalloc.h        | 6 +++---
+>  arch/microblaze/Kconfig               | 1 +
+>  arch/microblaze/include/asm/pgalloc.h | 2 +-
+>  arch/xtensa/Kconfig                   | 1 +
+>  arch/xtensa/include/asm/tlb.h         | 2 +-
+>  6 files changed, 8 insertions(+), 5 deletions(-)
 >
-> [1] SuperSPARC Family STP1020 & STP1090 Series User's Manual,
->     Revision 1.0, April 1994.
-> [2] Sun-4M System Architecture, Specification 950-1373-01,
->     Revision 50, July 19, 1991.
-> [3] SuperSPARC II Addendum, Revision 1.3, December 1994.
+> diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
+> index 2ed7186c81c5..7a7542b61823 100644
+> --- a/arch/arc/Kconfig
+> +++ b/arch/arc/Kconfig
+> @@ -47,6 +47,7 @@ config ARC
+>         select HAVE_SYSCALL_TRACEPOINTS
+>         select IRQ_DOMAIN
+>         select LOCK_MM_AND_FIND_VMA
+> +       select MMU_GATHER_RCU_TABLE_FREE
+>         select MODULES_USE_ELF_RELA
+>         select OF
+>         select OF_EARLY_FLATTREE
+> diff --git a/arch/arc/include/asm/pgalloc.h b/arch/arc/include/asm/pgallo=
+c.h
+> index dfae070fe8d5..9b6c37f92e97 100644
+> --- a/arch/arc/include/asm/pgalloc.h
+> +++ b/arch/arc/include/asm/pgalloc.h
+> @@ -72,7 +72,7 @@ static inline void p4d_populate(struct mm_struct *mm, p=
+4d_t *p4dp, pud_t *pudp)
+>         set_p4d(p4dp, __p4d((unsigned long)pudp));
+>  }
 >
-> Magnus Lindholm (2):
->   sparc32: serialize SuperSPARC demap operations
->   sparc32: synchronize SuperSPARC instruction updates
+> -#define __pud_free_tlb(tlb, pmd, addr)  pud_free((tlb)->mm, pmd)
+> +#define __pud_free_tlb(tlb, pmd, addr)  tlb_remove_ptdesc((tlb), virt_to=
+_ptdesc(pmd))
 >
->  arch/sparc/include/asm/cacheflush_32.h |   2 +-
->  arch/sparc/mm/srmmu.c                  | 120 ++++++++++++++++++++++++-
->  arch/sparc/mm/viking.S                 |   4 +
->  3 files changed, 123 insertions(+), 3 deletions(-)
+>  #endif
+>
+> @@ -83,10 +83,10 @@ static inline void pud_populate(struct mm_struct *mm,=
+ pud_t *pudp, pmd_t *pmdp)
+>         set_pud(pudp, __pud((unsigned long)pmdp));
+>  }
+>
+> -#define __pmd_free_tlb(tlb, pmd, addr)  pmd_free((tlb)->mm, pmd)
+> +#define __pmd_free_tlb(tlb, pmd, addr)  tlb_remove_ptdesc((tlb), virt_to=
+_ptdesc(pmd))
+>
+>  #endif
+>
+> -#define __pte_free_tlb(tlb, pte, addr)  pte_free((tlb)->mm, pte)
+> +#define __pte_free_tlb(tlb, pte, addr)  tlb_remove_ptdesc((tlb), page_pt=
+desc(pte))
+>
+>  #endif /* _ASM_ARC_PGALLOC_H */
+> diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
+> index 484ebb3baedf..af7e821e96c1 100644
+> --- a/arch/microblaze/Kconfig
+> +++ b/arch/microblaze/Kconfig
+> @@ -41,6 +41,7 @@ config MICROBLAZE
+>         select PCI_SYSCALL if PCI
+>         select CPU_NO_EFFICIENT_FFS
+>         select MMU_GATHER_NO_RANGE
+> +       select MMU_GATHER_RCU_TABLE_FREE
+>         select SPARSE_IRQ
+>         select ZONE_DMA
+>         select TRACE_IRQFLAGS_SUPPORT
+> diff --git a/arch/microblaze/include/asm/pgalloc.h b/arch/microblaze/incl=
+ude/asm/pgalloc.h
+> index 084a8a0dc239..ffee6a009219 100644
+> --- a/arch/microblaze/include/asm/pgalloc.h
+> +++ b/arch/microblaze/include/asm/pgalloc.h
+> @@ -25,7 +25,7 @@ extern void __bad_pte(pmd_t *pmd);
+>
+>  extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm);
+>
+> -#define __pte_free_tlb(tlb, pte, addr) pte_free((tlb)->mm, (pte))
+> +#define __pte_free_tlb(tlb, pte, addr) tlb_remove_ptdesc((tlb), page_ptd=
+esc(pte))
+>
+>  #define pmd_populate(mm, pmd, pte) \
+>                         (pmd_val(*(pmd)) =3D (unsigned long)page_address(=
+pte))
+> diff --git a/arch/xtensa/Kconfig b/arch/xtensa/Kconfig
+> index f2f9cd9cde50..33c4caee30e2 100644
+> --- a/arch/xtensa/Kconfig
+> +++ b/arch/xtensa/Kconfig
+> @@ -55,6 +55,7 @@ config XTENSA
+>         select HAVE_VIRT_CPU_ACCOUNTING_GEN
+>         select IRQ_DOMAIN
+>         select LOCK_MM_AND_FIND_VMA
+> +       select MMU_GATHER_RCU_TABLE_FREE if MMU
+
+And MMU is required because NOMMU does not perform mmu_gather
+operations, same as in the previous patch? If so, maybe make a note of
+it in the changelog?
+
+>         select MODULES_USE_ELF_RELA
+>         select PERF_USE_VMALLOC
+>         select TRACE_IRQFLAGS_SUPPORT
+> diff --git a/arch/xtensa/include/asm/tlb.h b/arch/xtensa/include/asm/tlb.=
+h
+> index 8c3ceb427018..6fb7b78154f6 100644
+> --- a/arch/xtensa/include/asm/tlb.h
+> +++ b/arch/xtensa/include/asm/tlb.h
+> @@ -16,7 +16,7 @@
+>
+>  #include <asm-generic/tlb.h>
+>
+> -#define __pte_free_tlb(tlb, pte, address)      pte_free((tlb)->mm, pte)
+> +#define __pte_free_tlb(tlb, pte, address)      tlb_remove_ptdesc((tlb), =
+page_ptdesc(pte))
+>
+>  void check_tlb_sanity(void);
 >
 >
-> base-commit: e6de5705a9f0d81f67bdb2917108784b5839cecd
 > --
-> 2.43.0
-
-Hi,
-
-I'll send a v2 of this series soon, simplifying patch 2 to use only
-a local FLUSH.
-
-SuperSPARC maintains instruction-cache coherence through snooping.
-The writer's FLUSH provides the local synchronization needed after
-modifying instructions, including draining its store buffer. Remote
-FLUSH cross-calls are unnecessary.
-
-My earlier justification based on instructions already in a remote
-CPU's pipeline was insufficient: a cross-call cannot prevent an old
-instruction from executing before it arrives. Callers modifying live
-text must themselves arrange safe execution during the update.
-
-The v2 will retain the local FLUSH implementations for
-flush_icache_range() and viking_flush_sig_insns(), while dropping
-the remote cross-calls introduced by patch 2.
-
-Patch 1's TLB demap serialization is unchanged. Cache snooping does
-not invalidate another processor's TLB entries.
-
-Thanks,
-Magnus
+> 2.55.0
+>
