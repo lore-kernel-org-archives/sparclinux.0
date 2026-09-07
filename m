@@ -1,64 +1,64 @@
-Received: from mail-oo1-f46.google.com (mail-oo1-f46.google.com [209.85.161.46])
+Received: from mail-oo1-f51.google.com (mail-oo1-f51.google.com [209.85.161.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4F644756C4
-	for <sparclinux@vger.kernel.org>; Mon,  7 Sep 2026 12:01:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52D50485CEA
+	for <sparclinux@vger.kernel.org>; Mon,  7 Sep 2026 12:01:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788782493; cv=none; b=EAW0/GWZATUjgG0gR1u/zPpXncRI9hLJYmokp/MIVkLbAwVbDaKYKlm2sccyf90mSMDYYPL5lBm3OpqOt/5/88wqrnNm9T0e+fAe26q3TaiONGIvHhTWXYglqERhj3jvkh+uU2mRGm8gqqcT5jCf5O9QDoo6gAGdPbclOB358Jw=
+	t=1788782501; cv=none; b=YDUIFHA+mu+e9EKGVBGCSbMUoA1XLuRRXhaGGkvGmlomTpc0H7beCGLUYM650sAb8JoiDsnW84ihjQuUHl9tnb+KrsWhytazJep7666H3UhaQHhFLf5/ctzBoLEKSN7qsQPOu7kan5y/4hBFeBByvlhR3QWYBCX91YXmzfUO5Y0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788782493; c=relaxed/simple;
-	bh=7dtk/PimTN1tTIbaXYo8FFQym9q4FLwW3xCtKGUgfWQ=;
+	s=arc-20240116; t=1788782501; c=relaxed/simple;
+	bh=UErhiAlzr8WjMoBRENwt/AEHPbueyU1pd5tdq23Ux3s=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rKmPTs+Xo/duIg7skyLdngEFcdqXLc+N18RTXhF80LLYAlnHtCtwM4PrXIX++2tM6/SChh6wD++umbebVyi2/pCcQXaAGSdyxbCs+SMNjnNPRIK5oYnXqRaVEYVyasEHlKBkd75mSjhKDDUavrLuJ53gfS9hO4yUKuLoostOT0U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=p/PhiJ0P; arc=none smtp.client-ip=209.85.161.46
+	 MIME-Version; b=CKh57PeepYBQj+Ij1XUl1wzZYolW21LGmd1VE+gpPyFLPykI3q+POJBp2/eLuY7GBGiHwFnoYRt9rfjQpLq2rMk2uVdF1EK7ON0x/Miv8hBlDO4y4YiZj8XYnearo2au21n/OcpUJtyYrUro/GF2LqQgFjYaoScSVaFkHgXtUuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MKLw3sWI; arc=none smtp.client-ip=209.85.161.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="p/PhiJ0P"
-Received: by mail-oo1-f46.google.com with SMTP id 006d021491bc7-6b128dd0cb1so2162092eaf.3
-        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 05:01:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MKLw3sWI"
+Received: by mail-oo1-f51.google.com with SMTP id 006d021491bc7-6b1c75f0049so2630970eaf.3
+        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 05:01:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788782491; x=1789387291; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1788782499; x=1789387299; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=rfDPZXNcg+Nl7/Ylu6hp6siIi0FsvzwquJx1kpnnIKw=;
-        b=p/PhiJ0PBYt2wgMwniYO4MT996Zl45VIDXDn2PYDpLtIS0xe+eQ4HNYg61LkkTVClY
-         fyuTnd2T7K/pQ4DjXFI81gBBycruasppeTkiDOaiUds+bYZP6SI8Fm+oCo5yjllJ6iWG
-         ampiRSsc/LSJnDU9VFFw/kGDsCk3xJ4wU3JHaWhrkGeY2PvYht/jyTfZcOENcPasttlD
-         bnoX3m1itnamMgSXck43tJpAoIGCSCZM1fnUz96QmQJjwKp6E1iy+QE7yQdEwngTo4Qu
-         PS4XQLHxQ8Y9AXvT7VEtvfs1tk/74riQxAnKmljJByowNb84fB7iRktv4gGhfY3grnQi
-         gQgA==
+        bh=/3KV6RuBnnb3kSlImB7scYqnTaYm6MjcG3VOHCy4kfM=;
+        b=MKLw3sWItGMWoBAJDSwPgLxNFsv4bLhi9OtS/fVxpEzCSQyNSELMl8Fa1ZaETi0Ttp
+         BZeRdVqlc9u9NzQPAK3QebtH7TuDpb2eG3alIPFZE8HvRzDGb7GFu2IJJbBPjQ8iq4h2
+         zxhmYjip+cmDvgUWDOv1BDb/oD4pb6KCe7fZFAKb6amOmcWm5dlLKqFwRYURIiiu2mpO
+         luN4hzCYHHDO91zmaRpsh+X3JSIbHcRfTHfsNj0/bpk/wE1b5C1pQbnY1RgV/uuHSc35
+         QS+FnoqEwAX7aVZq5jWBxQ6w+sesuRcV3TW/lXCEnQkMeGZ0xSdRhw9F8TWQHhWXWnhE
+         CgTQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788782491; x=1789387291;
+        d=1e100.net; s=20251104; t=1788782499; x=1789387299;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=rfDPZXNcg+Nl7/Ylu6hp6siIi0FsvzwquJx1kpnnIKw=;
-        b=I5FMeF3JQFFZO9k80Prdeh+HKaBWKUZmDA+5N7HBy0hYN6VXVULZ+5RlljrhEH36i7
-         hM675pWlEG+LVQrm3olULAyiEfRwHOZUPST3OVNStByziZ5+/SPa1YtCG0QiVqjGVDAb
-         IfKFd4bTH1Lw5PyHpBfAiUdQ8WVmrmpIagYwmhugc6LOJA2dMngGRwmdC+8fLItlDQl0
-         SKM6Az8BeKk/Q+GBDRhjwT32OpUjrQEAPLD6NqEh2AzO8SGM1MYKHPlH/LUoLrx9WYFS
-         30vDmPXOaPJ8nDAcXduE67JjmH4BSfeKFcauhS85e/I6orLwjyVXPzX1+4+NczaLBVIJ
-         B2aw==
-X-Forwarded-Encrypted: i=1; AKwUvBykDLCQhySGmYo3HINwVENOsPKyYQpR0hE1tAbCqk6arO6yUNyjjkUuWIxZFAaOaIy9uEt4na6b6uO0@vger.kernel.org
-X-Gm-Message-State: AFuF++lW+3HGQjBcB2rmjZXvEP8H2PETiBrA621+4Ojy5rznznnYI+TT
-	4agVaQ7Sayc69Sst5WC2Y6fwP6hAFiXr0It+7juHJxBAH/0Z5niI8uG6
-X-Gm-Gg: AYBFou2FRCdlum/gkFDvrgB+U8IKw9BAlrWGtD1AUaEd+s2trpZhoXPgYKWOnNoAXRS
-	vVUHDwND6a+U/YH9cdnp1X68QxodWwgY+/ddrEN4FWIFlh1UeH6sZThRKAXd2+U4U/Mp8ZdQNX6
-	oX8ECk1hvf5CexPDrGY4Vl7NuMe9Kk6D2nHAoM+R2a8y+i32fZCH2lyCSqYaQDrB/jewW99/PiV
-	FGN1KGEGtk4mlUUa71xI/cgw7arbNHUP/bFK4oNlmf5i/1vLFoOp5yLT4lyEp0uvE5WnBLY2GBX
-	2TygehylbcTDDX/OY0Fh0TwuuE7F3z/zkx2dId3YPd8kklXSf16u12HcrNhiyhEM//FUBwH/JKT
-	gMvOJu+SmthxODkEdfv2veDXa7t6y+vmy0ja4DSqHWYBXodUHZ7WP/jWIoE9wdVyRY84EkUx1NU
-	uPg6L6PKwfMzYWSHTEpQYHx8x0FyUrAqdDsHro3g61JiBCyJ0LyC0CQm3UMOzh8l4r1DAzDxGwK
-	FpKfWGSyOzA+g==
-X-Received: by 2002:a05:6820:6ae7:b0:6aa:d13c:a709 with SMTP id 006d021491bc7-6b6fe2aeaf0mr12073907eaf.31.1788782490438;
-        Mon, 07 Sep 2026 05:01:30 -0700 (PDT)
+        bh=/3KV6RuBnnb3kSlImB7scYqnTaYm6MjcG3VOHCy4kfM=;
+        b=QAZzc2xxnzDZLTD2EjDvQx4GTiSC0xISVtol3SxhjDMw9TxgK8is02T6utpNPa6NvN
+         ntSYjofXqlKwYZzzxgGT1mAeebRc01ih5NGO5mH9QazLf/DYKwwfXS7gXwj9X1krfnZS
+         6xTKIsIRPIt57TSiM+9t83r1ZPJYwWy0neqrkjTgLMRPZYPFOdoJlROkUIjlqw9V5xD2
+         GWywGuXdqP+RlhafWKbbAeoEB/P6yztQLx5uhXeu55xTdJPa6YdxtQV6PFLFEPMHSqkH
+         RGgQfuHjsXzlNmmE0RTT4qOI8vRzZ4I+jqRbX9N4ZpjuYym6CHOeEFGfHgSqP0nZGh8J
+         yGUQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwy/yZdS6U72B9SjwsW4dZYRXCcxX6LMcNF7AyofdO3rsQBth0S0kUa6nrw53/06ThL4T+nrMYaC8X8@vger.kernel.org
+X-Gm-Message-State: AFuF++kBVWAzYs0le4aAu6iApC1Jm7BgUnrQTdx/4KqzOV2l4kREGR4E
+	N2gFg42BXKrIzXd93U391M+/Br1weEOH7h99kJSyO4P99JqqFHe6nicy
+X-Gm-Gg: AYBFou1qxikiUYZvyionMj9Q5dDvX1i0cZoQLVFHaoTxBpSvFgIgCYdtusbUJyFNRsT
+	d3oADky6pxh5eb7z4hpm5RL6t6PZ39osYQjNr0vZkTqsmaGQPqmUXzSf6aAcjv8/TqQ+bA6hJRF
+	XFW2Qu+uDAdkfyyAKgVV1sBjmHWove/Xdzgs0cjiWZNWvRcnfjrOMr4BPNSS89hMHPQXJgnWT/K
+	GERqaapcPltMMP3OUvPoVli9oYFZxTnS49YlZ43T2HgQxBWPKyEoczWCzrhmWbMCRHNQyQupQt+
+	Prbg2Lkr+8Ox5WOC7SdKugJq65PrSAMHUM2LBlgZKPyLzusi5IegOFkzgsCIy8bQnY5pJAEBIN7
+	99Qgbw53g3SlHZi6HYTo49JqTmZNjqTktiuxAeZ/ebVMozukwozdh6KKJ1aDpejEnSmQ01h4e5y
+	9DVnzliQEijivUm8lbUlzxgp2v1bAEjtuf22zUIZ9dK1mfIxzNX9HPPibKszvAZc+t2cNSZAQy8
+	YqRgEbJ2FBXvg==
+X-Received: by 2002:a05:6820:c91:b0:6b1:535a:eb8 with SMTP id 006d021491bc7-6b6fa8e02aamr12552198eaf.2.1788782498996;
+        Mon, 07 Sep 2026 05:01:38 -0700 (PDT)
 Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339885ca07sm31244462eec.1.2026.09.07.05.01.22
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339885ca07sm31244462eec.1.2026.09.07.05.01.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Sep 2026 05:01:30 -0700 (PDT)
+        Mon, 07 Sep 2026 05:01:38 -0700 (PDT)
 From: Hemanth Selam <hemanth.selam@gmail.com>
 To: Alexei Starovoitov <ast@kernel.org>,
 	Daniel Borkmann <daniel@iogearbox.net>,
@@ -89,9 +89,9 @@ Cc: bpf@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org,
 	linux-kselftest@vger.kernel.org,
 	sparclinux@vger.kernel.org
-Subject: [PATCH bpf-next v3 4/7] selftests/bpf: fix typos in comments
-Date: Mon,  7 Sep 2026 17:30:40 +0530
-Message-ID: <20260907120043.36894-5-hemanth.selam@gmail.com>
+Subject: [PATCH bpf-next v3 5/7] sparc: net: fix typo "evalute" in comment
+Date: Mon,  7 Sep 2026 17:30:41 +0530
+Message-ID: <20260907120043.36894-6-hemanth.selam@gmail.com>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <20260907120043.36894-1-hemanth.selam@gmail.com>
 References: <20260907120043.36894-1-hemanth.selam@gmail.com>
@@ -103,74 +103,29 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Fix typos in comments, reported by scripts/checkpatch.pl using the
-misspelling list in scripts/spelling.txt.  Only touches comments, no code
-changes.
-
-The subject prefix changed since v1, from "selftests: bpf:" to
-"selftests/bpf:", to match the rest of the history in this directory.
+Correct "evalute" to "evaluate", reported by scripts/checkpatch.pl using
+the misspelling list in scripts/spelling.txt.  Only touches comments, no
+code changes.
 
 Assisted-by: Cursor:claude-opus-5
 Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
 ---
- tools/testing/selftests/bpf/prog_tests/lwt_seg6local.c       | 2 +-
- tools/testing/selftests/bpf/prog_tests/task_local_data.h     | 2 +-
- tools/testing/selftests/bpf/progs/freplace_unreliable_prog.c | 2 +-
- tools/testing/selftests/bpf/progs/verifier_var_off.c         | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/sparc/net/bpf_jit_asm_32.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/bpf/prog_tests/lwt_seg6local.c b/tools/testing/selftests/bpf/prog_tests/lwt_seg6local.c
-index 1b25d5c5f8fb..8b96fb861368 100644
---- a/tools/testing/selftests/bpf/prog_tests/lwt_seg6local.c
-+++ b/tools/testing/selftests/bpf/prog_tests/lwt_seg6local.c
-@@ -13,7 +13,7 @@
-  * IPv6 header with a Segment Routing Header, with segments :
-  *	fd00::1 -> fd00::2 -> fd00::3 -> fd00::4
-  *
-- * 3 fd00::/16 IPv6 addresses are binded to seg6local End.BPF actions :
-+ * 3 fd00::/16 IPv6 addresses are bound to seg6local End.BPF actions :
-  * - fd00::1 : add a TLV, change the flags and apply a End.X action to fc42::1
-  * - fd00::2 : remove the TLV, change the flags, add a tag
-  * - fd00::3 : apply an End.T action to fd00::4, through routing table 117
-diff --git a/tools/testing/selftests/bpf/prog_tests/task_local_data.h b/tools/testing/selftests/bpf/prog_tests/task_local_data.h
-index 8ae4fb2027f7..9f2971fc7cd5 100644
---- a/tools/testing/selftests/bpf/prog_tests/task_local_data.h
-+++ b/tools/testing/selftests/bpf/prog_tests/task_local_data.h
-@@ -243,7 +243,7 @@ static tld_key_t __tld_create_key(const char *name, size_t size, bool dyn_data)
- 		}
- 
- 		/*
--		 * TLD_DEFINE_KEY() is given memory upto a page while at most
-+		 * TLD_DEFINE_KEY() is given memory up to a page while at most
- 		 * TLD_DYN_DATA_SIZE is allocated for tld_create_key()
- 		 */
- 		if (dyn_data) {
-diff --git a/tools/testing/selftests/bpf/progs/freplace_unreliable_prog.c b/tools/testing/selftests/bpf/progs/freplace_unreliable_prog.c
-index 624078abf3de..d7e30ee576c9 100644
---- a/tools/testing/selftests/bpf/progs/freplace_unreliable_prog.c
-+++ b/tools/testing/selftests/bpf/progs/freplace_unreliable_prog.c
-@@ -7,7 +7,7 @@
- 
- SEC("freplace/btf_unreliable_kprobe")
- /* context type is what BPF verifier expects for kprobe context, but target
-- * program has `stuct whatever *ctx` argument, so freplace operation will be
-+ * program has `struct whatever *ctx` argument, so freplace operation will be
-  * rejected with the following message:
-  *
-  * arg0 replace_btf_unreliable_kprobe(struct pt_regs *) doesn't match btf_unreliable_kprobe(struct whatever *)
-diff --git a/tools/testing/selftests/bpf/progs/verifier_var_off.c b/tools/testing/selftests/bpf/progs/verifier_var_off.c
-index a63e33675091..227dea0da3a0 100644
---- a/tools/testing/selftests/bpf/progs/verifier_var_off.c
-+++ b/tools/testing/selftests/bpf/progs/verifier_var_off.c
-@@ -225,7 +225,7 @@ __naked void stack_write_priv_vs_unpriv(void)
- }
- 
- /* Similar to the previous test, but this time also perform a read from the
-- * address written to with a variable offet. The read is allowed, showing that,
-+ * address written to with a variable offset. The read is allowed, showing that,
-  * after a variable-offset write, a privileged program can read the slots that
-  * were in the range of that write (even if the verifier doesn't actually know if
-  * the slot being read was really written to or not.
+diff --git a/arch/sparc/net/bpf_jit_asm_32.S b/arch/sparc/net/bpf_jit_asm_32.S
+index a2e28e0464a3..81430f065ac9 100644
+--- a/arch/sparc/net/bpf_jit_asm_32.S
++++ b/arch/sparc/net/bpf_jit_asm_32.S
+@@ -195,7 +195,7 @@ bpf_error:
+ 	/* Make the JIT program return zero.  The JIT epilogue
+ 	 * stores away the original %o7 into r_saved_O7.  The
+ 	 * normal leaf function return is to use "retl" which
+-	 * would evalute to "jmpl %o7 + 8, %g0" but we want to
++	 * would evaluate to "jmpl %o7 + 8, %g0" but we want to
+ 	 * use the saved value thus the sequence you see here.
+ 	 */
+ 	jmpl	r_saved_O7 + 8, %g0
 -- 
 2.48.1
 
