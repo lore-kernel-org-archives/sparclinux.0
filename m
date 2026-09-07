@@ -1,147 +1,237 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+Received: from mail-qk2-f12.google.com (mail-qk2-f12.google.com [74.125.230.204])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C3B48A8C2
-	for <sparclinux@vger.kernel.org>; Mon,  7 Sep 2026 12:01:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788782518; cv=none; b=FQ6zwSDpe2ly8dhhVlOT68U6KHmhJSDEd326/bh9yrKUTBrXK1yMN+s25mHfdZkDscNKS0HXgsOTZH44lBxQydQgu3PxylgNrJ3Mm+iYduOMdPeyeCg0HiNZrGpGaB1trDSz9WPf3CPo+YHvjYPyezrwcMUr0QlUy088Fpt+9oM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788782518; c=relaxed/simple;
-	bh=kuRqLYU/bVAolAtuT0lNsNPBb3H44v+1z9+WGNYvrCw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Kw4OCSJKxktmdnGkCSE9mDN9YUepq4Uc8wXs/6BuwyMFz6hzJjBypsws6qWtTvP9Dg98dr5j/Odb6O2PpuAf0H/uTTQ25Q9+MGWawUDqOVjELigjkW2HYgPjpEScdhJ/SoSDBXsqZweOxzS8IiX0veRLpt+qQCGTYHWKTt57xTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=llQq4rCN; arc=none smtp.client-ip=209.85.214.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 100B8513542
+	for <sparclinux@vger.kernel.org>; Mon,  7 Sep 2026 16:53:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.204
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788800039; cv=pass; b=MVzwjXnzaOw85CyvgCBqSLXl0dzllxgw8eiwxBo9DtCwQ+PHCA4T/GvZbqE71SskX6mkG5hknIU9E1Orytt7G7oKU87j56FY6pIg9ldNg5w2OFzSa/AF1t80yBLT6Fo3nM9t+iCYjLTLVpA8rDJLFFZKRH9BgYpeHIIR0mETNAE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788800039; c=relaxed/simple;
+	bh=7nZvXQAXFpGDq6OvBtcrjZaQ3gxcarFF2OJUmuf6SHc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=S52C6h4vJNwuoBBF0OVWf0tNg549gh1fzPg/2QyRy4hRAt5Yn1ND+Rv/se3AeJWJi/jzITpO80P3xqcOb2/HcSKy58LVhiliHAF00F89VQpTzyNzAk1MSsMS44nm3BEOO99ejYvl7bt6J9YzZ0pqO5PjWY0FPAcan2reDxvKg8U=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ZOEcfTft; arc=pass smtp.client-ip=74.125.230.204
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="llQq4rCN"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2db59f54ccfso4921405ad.2
-        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 05:01:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ZOEcfTft"
+Received: by mail-qk2-f12.google.com with SMTP id d75a77b69052e-530411c7ee1so368701cf.0
+        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 09:53:57 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788800036; cv=none;
+        d=google.com; s=arc-20260327;
+        b=YcGidDturyfP1ctSpMhQKITOdTzt4hSw6uUOt0bwXsok8qef1JaDKhGwwDjX0KhX5Y
+         /mCitJbVKPsYtrZ3kviGo21opW2QiJSkcYBSXtXeYHJQvrJ8ZqcUvc7YJRSOl0mWlt+z
+         5NyvCw1F3JT7WPg6RVoCBNAJ+yJU9TN9K2tLZCMB4ENybcmUxj0Nw7L6/e34psJzntdB
+         vxeLIgAoMs5EXS4lmysV7n80o4mDpGEPBiftfS86TZGi2EzD62ol7LLNfxgpYOmpUTZg
+         BGpbxeg97Y/ZH62W0VbsyK2CC1sPXGf4OWogY/D/Txnkrnyo4RBKI62Txhb5F+u9Jp70
+         29Aw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=WOgo3zFXzbtiQDjz57z5HXaLiQwAncd9HG4Gw1Bp/lg=;
+        fh=tdWbP57drZovSVRDREILPAdaywkImf1HrJrKq7Rhumk=;
+        b=kB3wtkxs3ilzPgSXPDgoNQP0P0eWcJxKRtkHUjXXkkO8zzi42m9hVRXVkntvVNUo/f
+         jcDMpcZdA2KDNf4GyPGZxwD87sQnqFb9+NauGBL6lwuCvWmDzm5c/K0LMeUAh9ZiA06X
+         RlIjKpQ0bHZ6F+L1xhBcT2hRIwXq5YWdPWRGVzsp4lCSeOZXf93PT3M+309npcu3WV+h
+         BAbuRS6eJK8t0fqwG/d+dixwKe7esXAFkF7pM6+EDyi4z3EQHzIGNGwhMxTlQy4mL4Wx
+         FdRdi3INc+H8c1siILABsvEj58la8zES8gjyc7iaiH7sLd0cYkZ4mVPfbMjP4M0q5jHa
+         Ukng==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788782516; x=1789387316; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=iSdhcylG8upaYgz/wmJd+JoSvai0ylGkPowyAHHfN0o=;
-        b=llQq4rCNDIie0aaplpZeITjsw35VfD5OpFuAUrvDpjn+9fQNpLR8BLGukiX0GUqtpX
-         W5NgF6LTOVNHb2hcAwLOtRsN3/CDPjMxRlVPacxMFhyL24GquF4EHoE0BoL2dac164/y
-         UCjnF7EJptkI1as7n2b4vE5tfvc7LM16CptR9FbRcfElRWMANipKFCod6kA6J/+X1X4O
-         jxYp7syG4fxmIXhyyJpZoA52dQQxuQZ0Lsy8mIf2JgVf8Qmi1eKlwDif4XdixQ1GjjWs
-         /H9vB6agHHoFHXfjQBeLccQtOLlirEta9/fD9zceKkatvAeMl3F7fI8Sy039AkqXUpcr
-         wAsw==
+        d=google.com; s=20251104; t=1788800036; x=1789404836; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=WOgo3zFXzbtiQDjz57z5HXaLiQwAncd9HG4Gw1Bp/lg=;
+        b=ZOEcfTftJhzBn8TSOkOKtoVoBUfs0xbVZP9wHIME5s8DaKMIumqZANXdTWAZZQG4bO
+         PsjF2/5Q7dfdSw5e/4doJHeaSAcrrwzHm5okWijPOCxUqMYTFuITP+L3zhdL7LBMLzBT
+         Jt+SHOoAutj1CLKQTV1FN0mPF2EGxDqFcsLwjlFwQHiJXiI0RuPd1xWARyOCutR3amvc
+         sQxz5M40LQ87mSFr29zXtVACvT1zPuvn5cV0my4RhbsT0V7tcqvEyDMudV1T+uNnLK+a
+         Py2kZwd1qLLizUDEbVxEWP3v9J2sunX74cBomy/fdJ0WlRZ+GPuOIbhrioUU/SARwrl5
+         i5kA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788782516; x=1789387316;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=iSdhcylG8upaYgz/wmJd+JoSvai0ylGkPowyAHHfN0o=;
-        b=sKAo9COpMUcxWAf1aEBKFhiipTZg5u62TCDv4VJtGahgpFMnQaJFaj3xCTp8s0qt8d
-         o99aAeb7VpPcEuWRPvSmaqvWseu17A2FmnhRatl1sJwLgy97WWaQNLHiPwSUnaR8YEu0
-         vrPBQJ+/56nRLVMk1uCPWXsMQ9ciyrLugPJcYdwa0MaBPS+I726bSz3nMiLMLAgNxIK8
-         VGTSP5M3PbJxKF37Zr5fTE1Y1uvstrMvCTx36pfPCRpMKQJbcm+hW5Bo9Cn1Ek30A6Ka
-         WCNGQyRj2N1enHQixqnTPTYn9K8n5VAYzUYmmw3xQ5vfg+5YAIPuJsgpojZP7YhQas3l
-         urDQ==
-X-Forwarded-Encrypted: i=1; AKwUvBx1Kb4KvqJUx10M0GFAUZal9JGQG8svpPtj5Y5cpZsW0Shd1FC17/Z8NLJovdfTVCeR2RU/4ranZ/LQ@vger.kernel.org
-X-Gm-Message-State: AFuF++lQTwoWim3+nXSw8/8V6cFDovdirmclnKjbMCvq6r1Qm0B9PHON
-	YJDZCXdB0HM/DXK7bNAwXhhnXS/QmAx5Zy546HcNFmWJ4Qk5ymerAoUs
-X-Gm-Gg: AYBFou03kaM4vfYYs20Vsf30cELRoBT+NO7vmghC4l8OCPzqqigtTV4mdSpte3DuSnm
-	OcrnLVwIoFPBwSV5sSbGzxpNkqgoGF1LDwJ8sBhDVDuauDs+d0ASIFRnNAH/DArBKW0nsfLv/Af
-	19idxJkU9u60S7l5I3n/kjs6v5wMyg29DxO7M+DJZshyyKAEQW3VJsAoKPtJussTmhCzxCLNdoz
-	NaysbMH4M4CMKnz1tvm+p82XK4ySORg0RyI4lmsLWuwD65gh2GU5K3NYw4W2/BKt9YT5n7pSAPS
-	+bCoCxkcjVQHnxmkQfL+uu2RW/U0BlwekDuQbrXdRhq1nyd4glmNwjUoWnbtgY+VgZfNfiCjF3y
-	HKFkuvbPJmY97TvjClUnYfJJu9z1IrjCEeBIx/YXiSKKWkBc+SXJ8WByckSLoMah3OJQnax/ZoI
-	EnF+S1lpnDLhvMMwGV3+EhZgJ/7C/hm9G4ab4N6dNocW3UM5ovVNzE+r8pQJ4MY5XE+r9IFsupN
-	HzKRbx1uj6vTw==
-X-Received: by 2002:a17:903:3810:b0:2d6:3c22:99bf with SMTP id d9443c01a7336-2db124afcefmr348302995ad.9.1788782516134;
-        Mon, 07 Sep 2026 05:01:56 -0700 (PDT)
-Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339885ca07sm31244462eec.1.2026.09.07.05.01.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Sep 2026 05:01:55 -0700 (PDT)
-From: Hemanth Selam <hemanth.selam@gmail.com>
-To: Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	Jiri Olsa <jolsa@kernel.org>,
-	Emil Tsalapatis <emil@etsalapatis.com>,
-	Ihor Solodrai <ihor.solodrai@linux.dev>,
-	Russell King <linux@armlinux.org.uk>,
-	Puranjay Mohan <puranjay@kernel.org>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Hari Bathini <hbathini@linux.ibm.com>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Naveen N Rao <naveen@kernel.org>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Shuah Khan <shuah@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: bpf@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-kselftest@vger.kernel.org,
-	sparclinux@vger.kernel.org
-Subject: [PATCH bpf-next v3 7/7] selftests/bpf: fix repeated words in comments
-Date: Mon,  7 Sep 2026 17:30:43 +0530
-Message-ID: <20260907120043.36894-8-hemanth.selam@gmail.com>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <20260907120043.36894-1-hemanth.selam@gmail.com>
-References: <20260907120043.36894-1-hemanth.selam@gmail.com>
+        d=1e100.net; s=20251104; t=1788800036; x=1789404836;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=WOgo3zFXzbtiQDjz57z5HXaLiQwAncd9HG4Gw1Bp/lg=;
+        b=N+LMI5I8BBB6wHhGmQUFY7SAr6iXzhASS44nAkOUkNNQ7+SN6BJwgXlgCAHzwUiOJL
+         3poBhk7maCPEeJnZwC9YIERU5B5P+Yk2gEb+HIoXsvzyOqELy+Uz7YVGB0AovNV/9HG1
+         W2E3vtDhusfQTBBgRrqe5zrO4AAlVOdmzdfxBdlSFfUQzjK1daEoU6W9XwXQI3kq/nVD
+         0/C58Ikb8j21qeYaTG2Klx578dF29ivIF+wqsIO9ETjMs1gxHAbZm/423LH8ukjyrX0D
+         4jPX13lxRlCM+ZJodvV7eLNDSLotjOE3LnqL70fTEpVP00QAwSJS9krMtD3B/jWJfWvx
+         o9GA==
+X-Forwarded-Encrypted: i=1; AKwUvBwFB5HvQv3HU7HeWmRcjQWK8eQ9TB6QQ3rW8nns0rZK/oA56WXpwkUWKPiXhD5pzj7V7a/GgQrvopeJ@vger.kernel.org
+X-Gm-Message-State: AFuF++lOjnBpG3SLeP0qBgTLkVaP2cizBUSJjWhV4RjmsEDOUDv71ABQ
+	HoUGmwDXtwYAnCnGKrltKH2ZqoEUYes/m5s3JJwTFbrv+CYZGfI26bFWm+apynGcVEZNTYOglin
+	2/dma+h2MYiLW5zzGxMz9HlexZQ2Qqoj1nY0zyypD
+X-Gm-Gg: AYBFou0l0zvJ0WGfh6LuQATinGz7cne+UhcX7ZyfdXk4HMtj+DPYYR30EYq+GSMdXX1
+	UgKFo77b+A0UTTCEYGVWhV5nRnu8jRkKy0DgRfq/o11lA0ZK4nV0wIrKb7nnAeviqHxtQMnALZI
+	fvbsfuouYmsVRcZEoG42y5r25/oMHwV61j9rWJWQSHDtK/hDtaVcnYpfcm4a/rhI7RC7k0sSLh6
+	aW0YFcgbe4+BSEbcsp7+LdRzRIV66UEklamsCP8j8xjZE4GlRPIk7xT9DMXVwnaJ2WaMLecv/SS
+	nrFWFNgLp/9BiC6XEFOiD98BVFJ2//jQ4r7qSY+b/AQ=
+X-Received: by 2002:a05:622a:28e:b0:52f:8389:29e0 with SMTP id
+ d75a77b69052e-530920caba6mr3560401cf.0.1788800035234; Mon, 07 Sep 2026
+ 09:53:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org>
+ <20260901-rcu-pagetable-freeing-v1-12-5456a81c8212@kernel.org>
+ <apbUpMDJglS99_yK@thinkstation> <apbfzUwBQyxe3P9R@gremlin>
+ <apcH74QsR5I-DIbL@thinkstation> <apcJhtvnd45EkjJI@gremlin>
+In-Reply-To: <apcJhtvnd45EkjJI@gremlin>
+From: Suren Baghdasaryan <surenb@google.com>
+Date: Mon, 7 Sep 2026 09:53:43 -0700
+X-Gm-Features: AcwNN1WRGdFWOzxEbOcmfkztqDuQQAGpor7Xm60pdWlD2DjKNo1Y7S4S7DNXdgs
+Message-ID: <CAJuCfpH_v4YU+hsQDU_yQ4HZDf-2C6DuiJU5PGL+uVAsTwkZug@mail.gmail.com>
+Subject: Re: [PATCH 12/12] mm: change the contract for free_pgtables(), update docs
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Kiryl Shutsemau <kas@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
+	David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, "Liam R. Howlett" <liam@infradead.org>, 
+	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
+	Usama Arif <usama.arif@linux.dev>, Guo Ren <guoren@kernel.org>, Brian Cain <bcain@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Dinh Nguyen <dinguyen@kernel.org>, 
+	Simon Schuster <schuster.simon@siemens-energy.com>, Jonas Bonn <jonas@southpole.se>, 
+	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>, 
+	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Alexandre Ghiti <alex@ghiti.fr>, Russell King <linux@armlinux.org.uk>, Vineet Gupta <vgupta@kernel.org>, 
+	Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
+	Will Deacon <will@kernel.org>, "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
+	Nick Piggin <npiggin@gmail.com>, Peter Zijlstra <peterz@infradead.org>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Richard Henderson <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>, 
+	Magnus Lindholm <linmag7@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Mark Rutland <mark.rutland@arm.com>, Huacai Chen <chenhuacai@kernel.org>, 
+	WANG Xuerui <kernel@xen0n.name>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
+	Richard Weinberger <richard@nod.at>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
+	Johannes Berg <johannes@sipsolutions.net>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+	"H. Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>, Vlastimil Babka <vbabka@kernel.org>, 
+	Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org, 
+	linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-snps-arc@lists.infradead.org, linux-arch@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	loongarch@lists.linux.dev, linux-mips@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-s390@vger.kernel.org, linux-um@lists.infradead.org, 
+	Hugh Dickins <hughd@google.com>, Qi Zheng <qi.zheng@linux.dev>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Drop repeated words in comments, reported by scripts/checkpatch.pl.  Only
-touches comments, no code changes.
+On Tue, Sep 1, 2026 at 10:25=E2=80=AFAM Lorenzo Stoakes (ARM) <ljs@kernel.o=
+rg> wrote:
+>
+> On Tue, Sep 01, 2026 at 06:15:17PM +0100, Kiryl Shutsemau wrote:
+> > On Tue, Sep 01, 2026 at 03:31:26PM +0100, Lorenzo Stoakes (ARM) wrote:
+> > > On Tue, Sep 01, 2026 at 02:57:13PM +0100, Kiryl Shutsemau wrote:
+> > > > On Tue, Sep 01, 2026 at 12:01:32PM +0100, Lorenzo Stoakes (ARM) wro=
+te:
+> > > > > diff --git a/mm/pgtable-generic.c b/mm/pgtable-generic.c
+> > > > > index b91b1a98029c..ff8ff3706485 100644
+> > > > > --- a/mm/pgtable-generic.c
+> > > > > +++ b/mm/pgtable-generic.c
+> > > > > @@ -386,9 +386,21 @@ pte_t *pte_offset_map_rw_nolock(struct mm_st=
+ruct *mm, pmd_t *pmd,
+> > > > >   * be read-only/read-write protected.
+> > > > >   *
+> > > > >   * Note that free_pgtables(), used after unmapping detached vmas=
+, or when
+> > > > > - * exiting the whole mm, does not take page table lock before fr=
+eeing a page
+> > > > > - * table, and may not use RCU at all: "outsiders" like khugepage=
+d should avoid
+> > > > > - * pte_offset_map() and co once the vma is detached from mm or m=
+m_users is zero.
+> > > > > + * exiting the whole mm, does not take the page table lock befor=
+e freeing a
+> > > > > + * table.
+> > > > > + *
+> > > > > + * However, the PMD entry is cleared first, and the table freed =
+only after
+> > > > > + * an RCU grace period, so a walker that mapped the table under
+> > > > > + * rcu_read_lock() stays safe, and the pmd_same() recheck in
+> > > > > + * pte_offset_map_lock() detects the teardown.
+> > > > > + *
+> > > > > + * Therefore it is safe for "outsiders" like khugepaged to use
+> > > > > + * pte_offset_map() and co. for VMAs that might be undergoing pa=
+ge table
+> > > > > + * teardown.
+> > > >
+> > > > Is it strictly true?
+> > > >
+> > > > free_pte_range() clears the pmd without taking the PTL, so the
+> > > > pmd_same() recheck in pte_offset_map_lock() can pass and the pmd ge=
+ts
+> > > > cleared right after.
+> > > >
+> > > > Readers are fine -- __pte_offset_map() holds rcu_read_lock() until
+> > > > pte_unmap(), so the table cannot go away.
+> > > >
+> > > > khugepaged is an odd example here. collapse_pte_mapped_thp() and
+> > > > retract_page_tables() don't rely on this recheck -- they take pmd_l=
+ock()
+> > > > plus the ptl and do their own pmd_same() under both.
+> > > >
+> > > > Can we say walks are safe and leave the write rule where it is?
+> > >
+> > > Hmm yeah, ah page tables, what a rabbit hole of horror :)
+> > >
+> > > I guess this is effectively a reflection of the 'write lock on write,=
+ RCU load
+> > > on read' pattern in RCU itself generally.
+> > >
+> > > So, maybe something like:
+> > >
+> > >  * Note that free_pgtables(), used after unampping detached vmas, or =
+when
+> > >  * exiting the whoel mm, does not take a page table lock before freei=
+ng a page
+> > >  * table.
+> > >  *
+> > >  * As page table freeing itself is RCU-safe, page table readers can s=
+afely run
+> > >  * concurrently with page table teardown. However, writers cannot, as=
+ without
+> > >  * a lock nothing prevents concurrent teardown.
+> > >  */
+> > >
+> > > Instead? What do you think?
+> >
+> > s/whoel/whole/
+>
+> Haha yup the inevitable typo...
 
-The subject prefix changed since v1, from "selftests: bpf:" to
-"selftests/bpf:", to match the rest of the history in this directory.
-
-Assisted-by: Cursor:claude-opus-5
-Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
----
- tools/testing/selftests/bpf/libarena/src/asan.bpf.c | 2 +-
- tools/testing/selftests/bpf/progs/iters.c           | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/tools/testing/selftests/bpf/libarena/src/asan.bpf.c b/tools/testing/selftests/bpf/libarena/src/asan.bpf.c
-index de656b69d13a..fb50ee4ad097 100644
---- a/tools/testing/selftests/bpf/libarena/src/asan.bpf.c
-+++ b/tools/testing/selftests/bpf/libarena/src/asan.bpf.c
-@@ -204,7 +204,7 @@ static __always_inline bool check_asan_args(s8 __arena *addr, size_t size,
- 		goto confirmed_valid;
- 
- 	/*
--	 * Wraparound is possible for values close to the the edge of the
-+	 * Wraparound is possible for values close to the edge of the
- 	 * 4GiB boundary of the arena (last valid address is 1UL << 32 - 1).
- 	 *
- 	 *
-diff --git a/tools/testing/selftests/bpf/progs/iters.c b/tools/testing/selftests/bpf/progs/iters.c
-index c6699159dacd..e44a979270ea 100644
---- a/tools/testing/selftests/bpf/progs/iters.c
-+++ b/tools/testing/selftests/bpf/progs/iters.c
-@@ -1511,7 +1511,7 @@ __naked int checkpoint_states_deletion(void)
- 	 * would get equal to one of the explored states and thus loop
- 	 * exploration would be finished (at-least for a specific path).
- 	 * Verifier evicts explored states with high miss to hit ratio
--	 * to to avoid comparing current state with too many explored
-+	 * to avoid comparing current state with too many explored
- 	 * states per instruction.
- 	 * This test is designed to "stress test" eviction policy defined using formula:
- 	 *
--- 
-2.48.1
-
+Also s/unampping/unmapping please.
+>
+> >
+> > Otherwise, LGTM.
+>
+> Thanks! :)
+>
+> >
+> > --
+> >   Kiryl Shutsemau / Kirill A. Shutemov
+>
+> --
+> Cheers, Lorenzo
