@@ -1,147 +1,226 @@
-Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2304037E5C8
-	for <sparclinux@vger.kernel.org>; Tue,  8 Sep 2026 05:50:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 414F452ED31;
+	Tue,  8 Sep 2026 11:29:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788846606; cv=none; b=VyxUuQZuCGs0QedYKhUCLNp6KpTBj5VmSFTfA6o/3WUW6nE+uQ2PsM+WZdeIGXj9/GI6/zXtnbYt/Wg92HurcwffCj7eHhuLcUekirNAXuhjOaUy6Y/2qGGMFJoV9Ov7O1/sV1QXi67MAiGFRmS2iXB6Dq/uh3zkMnyI5MyUIM0=
+	t=1788866975; cv=none; b=tc+gz0jtlg6Qf6UeBN33QDGLsKOORffOLv8vNQWvu9D0vqM+pUzGkisiS0bJAc+UTFXjwS3g11oqjDa6G4AvsvZ5mnIssgz2RWArdkf25LIMqlVCO2zJXrO2aG8irWJsK8iSOxVkJqs2tVTuz/D5n4o3LyzEaR117y3ITNj8VVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788846606; c=relaxed/simple;
-	bh=kuRqLYU/bVAolAtuT0lNsNPBb3H44v+1z9+WGNYvrCw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sVq1rszQfeKmPbPaM7NXCH3DkdxEjuFrNMfJ/zcKIbOJe6nUyDL/nMK2iXFoIwySYHs/tzJCrhPsuGgX7a8/UuyrN9e7Yj32uAtTioRQxrOLbVMBHOQ60ZlM+scgCo/XUf5T3l030wAKpiW9pJvnNre5UQhMshDxzglMPL3Rh74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XwXXfTsY; arc=none smtp.client-ip=209.85.210.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1788866975; c=relaxed/simple;
+	bh=DJJ3y4HWUdHg21fDTQuBvRfNxO5F30ksapo9ZwKGzO4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SgJ+qervmYWrMYxg0LJ+0/PFUi71RJiEwt0q8tua4P4MChlTsrSHfvA4h6j0iz/GjQqw5dgZKNYkrVU7DhbcMbMxMi+OdTC2uRT4ZvUfXMKCE9DxzGT6goJ4AxGfEdxlqAs/ciyHmuK5Xw9twTHqCdoLVzDIOHwn+2Y5nDfiLBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UaGEuylv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XwXXfTsY"
-Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-8518b3ff3e9so3976152b3a.2
-        for <sparclinux@vger.kernel.org>; Mon, 07 Sep 2026 22:50:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788846604; x=1789451404; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=iSdhcylG8upaYgz/wmJd+JoSvai0ylGkPowyAHHfN0o=;
-        b=XwXXfTsYF9cY8pkPapoKPfNcuODFHqV39MRPPaVSTVQ7sUfNQAzjiBC1pRVbrdsBbJ
-         LUgj3Ryp9o/LvD1CQXZQfaz2zXpEgD/QlfEC0tat+2D+QTKwfG8//8Ch2zgXYbKfndYA
-         Nmiq/pICe1U6XESPT4L8IXwFuWML+RCA/AINdeZ6+adJcUCVLvDKu3lusM6F8U/2392A
-         QsRlMc0aPzKBsP9wWcjTUIH1tBrwdqXSVjKCVsB1GW5enT0YBlWzG+SWwsMhnf5VDuqQ
-         vsUhak5j8tFnxVzKI1pIoutlfrDMEhCs8JE2iTZc+rbp1uZoNC00GF0r58DwVgf3dHvI
-         NkTw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788846604; x=1789451404;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=iSdhcylG8upaYgz/wmJd+JoSvai0ylGkPowyAHHfN0o=;
-        b=IoYWIA2cZGJZNBJZReFxMOs/DSU0NY5GCCNkJ3rUNHMFKeqST/5s7tVwxlg1hNNWao
-         fBMpXuzsTFppAq9+3wZSMu6aD5Groc03LRIW0ikeNZMo0X6ntU3NkfdvHwwq4kocWfQL
-         Xa73M8n+Zc0Mj0iaxHZHfP3iaj6taNfj79UvL0A06CyRd25KLhLyXCLJBeOjWPbzsM8q
-         lFpNaQj4iJJeY4o0r1TOPxfQeReWv6iZ3e5ZdP5yIXeKxHlKbclxHFb59xI7nbeBFaBY
-         JaKpAIsi2hmm97+MAoRxDGhqmq+/cVfimKEl8dfuynLg20+oSYX6BRaNRX2ZSH+aNf1z
-         5PFQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxj6D+3GjpPXHvvnEX+wAiX7KtR3hkWwxZSU1ZzA5sExmqWsboLR1bwI9o7HRBt+Ddr8PiS0vLqsuTB@vger.kernel.org
-X-Gm-Message-State: AFuF++mjikHB9FXt+0gqK/0dbpJ7Q2lAaAw6vlxTsMIXfOp7bmtfBcYQ
-	11KvNg6kz/xr5vRow+V2a5WMVk24PD9jV3j5QogkyL6Sc1gUCT8zqPyY
-X-Gm-Gg: AYBFou2N6stjUuTIG63+3E8HqfTvXeorwei8eJmI2B4479PF4mwUI5TKqTa/A5TVfOb
-	TjHo/zvrsk0sJUtU7nF+NwIgvQvh4g0inct4zcieu5WrDP+tYeJMxZwEFkgeXlB07i4AZoOMEMd
-	UqQAFu4e6xydRwZxCWq3hRMtVsOM+jQMh6gaqB+MZeHbSJaGHU0cU5fFTrLpEKx0xZuGYFhJoV1
-	uf2DXvY82PeO+uoDjAMBoGCYaunEMu8RzArqDo2yUD8Ig9Il+7ZtuKFHkZzaokPtKbHwoMLLzbw
-	m1TcF60EVoLoAIQSN0f69dMzTeAJM8RCQI/N7RVUG2Lhkx9IvihIFf4ySjPLY0RKoHDb2KKB9Vk
-	951b3fIh5HdRb85nu2BwWNDAy9pd0xcWSH38TzseZtc7PckSBAmR1nTJ5RgqP8ovKzNmSUACBP6
-	tlcvFJAzNxEu0eBbCJ2fvox4t6Cgt/tL/KcLAqBFRe0jUvoS2beKfTpIADVva1LkFEMVgoHuz1S
-	4nib9tSDOb0VCrg9smob6il
-X-Received: by 2002:a05:6a21:7989:b0:3da:421e:40f3 with SMTP id adf61e73a8af0-3da421e4978mr36173588637.17.1788846604363;
-        Mon, 07 Sep 2026 22:50:04 -0700 (PDT)
-Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-334fbd5e6f6sm25690109eec.23.2026.09.07.22.49.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Sep 2026 22:50:04 -0700 (PDT)
-From: Hemanth Selam <hemanth.selam@gmail.com>
-To: Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	Jiri Olsa <jolsa@kernel.org>,
-	Emil Tsalapatis <emil@etsalapatis.com>,
-	Ihor Solodrai <ihor.solodrai@linux.dev>,
-	Russell King <linux@armlinux.org.uk>,
-	Puranjay Mohan <puranjay@kernel.org>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Hari Bathini <hbathini@linux.ibm.com>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Naveen N Rao <naveen@kernel.org>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Shuah Khan <shuah@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: bpf@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-kselftest@vger.kernel.org,
-	sparclinux@vger.kernel.org
-Subject: [PATCH bpf-next v4 7/7] selftests/bpf: fix repeated words in comments
-Date: Tue,  8 Sep 2026 11:18:53 +0530
-Message-ID: <20260908054853.13820-8-hemanth.selam@gmail.com>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <20260908054853.13820-1-hemanth.selam@gmail.com>
-References: <20260908054853.13820-1-hemanth.selam@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UaGEuylv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD8561F00A3A;
+	Tue,  8 Sep 2026 11:28:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788866953;
+	bh=wrZchMHbuIO6XXck0lzWb4MFVBIJqfPNOjZp2CkiLAo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=UaGEuylvnKTadsfjaS7bvwU33xN2v3VvG9wjjwlcHZzqg4jRyqMpEEdO03+MvqeIM
+	 0cduj0er10VqGiGsJx7yjqifKpSllSZ3vK2y8omgzwmD0GHCZufWGZlTXVUWUiJ1V9
+	 ryqufjLkVU0NIOGHntM/W5uaFdDur34HOl0mDF/iX8gW88SDJFV9ZGxssqTmrANwpQ
+	 ynMdPQCgyGQbU6JnCqU5u6mlf0Svv7YVwvZzUogSUfvbxLoYO7+FDhTi6mBmpO9DWp
+	 jokGL7RYOK/KgBIS1bsW+dwWJav2y/DtDFT7YQL4WN6vyefxcqOuYZ/U9v7ZU8r1QK
+	 2OBX8O/r781rA==
+Date: Tue, 8 Sep 2026 12:28:51 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+To: Suren Baghdasaryan <surenb@google.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, "Liam R. Howlett" <liam@infradead.org>, 
+	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
+	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, Guo Ren <guoren@kernel.org>, 
+	Brian Cain <bcain@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+	Dinh Nguyen <dinguyen@kernel.org>, Simon Schuster <schuster.simon@siemens-energy.com>, 
+	Jonas Bonn <jonas@southpole.se>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, 
+	Stafford Horne <shorne@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+	Russell King <linux@armlinux.org.uk>, Vineet Gupta <vgupta@kernel.org>, 
+	Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, 
+	Max Filippov <jcmvbkbc@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, 
+	Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Richard Henderson <richard.henderson@linaro.org>, 
+	Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, 
+	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
+	Sven Schnelle <svens@linux.ibm.com>, Richard Weinberger <richard@nod.at>, 
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>, Johannes Berg <johannes@sipsolutions.net>, 
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Vlastimil Babka <vbabka@kernel.org>, 
+	Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-snps-arc@lists.infradead.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-alpha@vger.kernel.org, loongarch@lists.linux.dev, linux-mips@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, 
+	linux-um@lists.infradead.org, Hugh Dickins <hughd@google.com>, Qi Zheng <qi.zheng@linux.dev>
+Subject: Re: [PATCH 05/12] mm: enable MMU_GATHER_RCU_TABLE_FREE for arc,
+ microblaze, xtensa
+Message-ID: <ap_xXoS5XDqJ0mgU@gremlin>
+References: <20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org>
+ <20260901-rcu-pagetable-freeing-v1-5-5456a81c8212@kernel.org>
+ <CAJuCfpESe_BXihJh-8FhjQVKzsSpnS4zdMgg3e59byJTc8QViA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJuCfpESe_BXihJh-8FhjQVKzsSpnS4zdMgg3e59byJTc8QViA@mail.gmail.com>
 
-Drop repeated words in comments, reported by scripts/checkpatch.pl.  Only
-touches comments, no code changes.
+On Mon, Sep 07, 2026 at 02:07:37PM -0700, Suren Baghdasaryan wrote:
+> On Tue, Sep 1, 2026 at 4:06 AM Lorenzo Stoakes (ARM) <ljs@kernel.org> wrote:
+> >
+> > Each of these architectures directly free page tables without routing these
+> > changes through tlb_remove_ptdesc().
+> >
+> > The use of tlb_remove_ptdesc() is required for
+> > CONFIG_MMU_GATHER_RCU_TABLE_FREE to correctly free page tables under RCU,
+> > so simply update these architectures to use these functions.
+> >
+> > Since none of the architectures share page tables or do anything unusual,
+> > nothing complicated is required here.
+> >
+> > Therefore this is simply a mechanical change - convert __pud_free_tlb(),
+> > __pmd_free_tlb() and __pte_free_tlb() to use tlb_remove_ptdesc() as
+> > required.
+> >
+> > At the point this is in place, all mmu_gather page table freeing is
+> > performed under RCU, and thus MMU_GATHER_RCU_TABLE_FREE is selected for
+> > each architecture.
+> >
+> > This forms part of an overall effort to switch every architecture to this
+> > mode.
+> >
+> > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+> > ---
+> >  arch/arc/Kconfig                      | 1 +
+> >  arch/arc/include/asm/pgalloc.h        | 6 +++---
+> >  arch/microblaze/Kconfig               | 1 +
+> >  arch/microblaze/include/asm/pgalloc.h | 2 +-
+> >  arch/xtensa/Kconfig                   | 1 +
+> >  arch/xtensa/include/asm/tlb.h         | 2 +-
+> >  6 files changed, 8 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
+> > index 2ed7186c81c5..7a7542b61823 100644
+> > --- a/arch/arc/Kconfig
+> > +++ b/arch/arc/Kconfig
+> > @@ -47,6 +47,7 @@ config ARC
+> >         select HAVE_SYSCALL_TRACEPOINTS
+> >         select IRQ_DOMAIN
+> >         select LOCK_MM_AND_FIND_VMA
+> > +       select MMU_GATHER_RCU_TABLE_FREE
+> >         select MODULES_USE_ELF_RELA
+> >         select OF
+> >         select OF_EARLY_FLATTREE
+> > diff --git a/arch/arc/include/asm/pgalloc.h b/arch/arc/include/asm/pgalloc.h
+> > index dfae070fe8d5..9b6c37f92e97 100644
+> > --- a/arch/arc/include/asm/pgalloc.h
+> > +++ b/arch/arc/include/asm/pgalloc.h
+> > @@ -72,7 +72,7 @@ static inline void p4d_populate(struct mm_struct *mm, p4d_t *p4dp, pud_t *pudp)
+> >         set_p4d(p4dp, __p4d((unsigned long)pudp));
+> >  }
+> >
+> > -#define __pud_free_tlb(tlb, pmd, addr)  pud_free((tlb)->mm, pmd)
+> > +#define __pud_free_tlb(tlb, pmd, addr)  tlb_remove_ptdesc((tlb), virt_to_ptdesc(pmd))
+> >
+> >  #endif
+> >
+> > @@ -83,10 +83,10 @@ static inline void pud_populate(struct mm_struct *mm, pud_t *pudp, pmd_t *pmdp)
+> >         set_pud(pudp, __pud((unsigned long)pmdp));
+> >  }
+> >
+> > -#define __pmd_free_tlb(tlb, pmd, addr)  pmd_free((tlb)->mm, pmd)
+> > +#define __pmd_free_tlb(tlb, pmd, addr)  tlb_remove_ptdesc((tlb), virt_to_ptdesc(pmd))
+> >
+> >  #endif
+> >
+> > -#define __pte_free_tlb(tlb, pte, addr)  pte_free((tlb)->mm, pte)
+> > +#define __pte_free_tlb(tlb, pte, addr)  tlb_remove_ptdesc((tlb), page_ptdesc(pte))
+> >
+> >  #endif /* _ASM_ARC_PGALLOC_H */
+> > diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
+> > index 484ebb3baedf..af7e821e96c1 100644
+> > --- a/arch/microblaze/Kconfig
+> > +++ b/arch/microblaze/Kconfig
+> > @@ -41,6 +41,7 @@ config MICROBLAZE
+> >         select PCI_SYSCALL if PCI
+> >         select CPU_NO_EFFICIENT_FFS
+> >         select MMU_GATHER_NO_RANGE
+> > +       select MMU_GATHER_RCU_TABLE_FREE
+> >         select SPARSE_IRQ
+> >         select ZONE_DMA
+> >         select TRACE_IRQFLAGS_SUPPORT
+> > diff --git a/arch/microblaze/include/asm/pgalloc.h b/arch/microblaze/include/asm/pgalloc.h
+> > index 084a8a0dc239..ffee6a009219 100644
+> > --- a/arch/microblaze/include/asm/pgalloc.h
+> > +++ b/arch/microblaze/include/asm/pgalloc.h
+> > @@ -25,7 +25,7 @@ extern void __bad_pte(pmd_t *pmd);
+> >
+> >  extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm);
+> >
+> > -#define __pte_free_tlb(tlb, pte, addr) pte_free((tlb)->mm, (pte))
+> > +#define __pte_free_tlb(tlb, pte, addr) tlb_remove_ptdesc((tlb), page_ptdesc(pte))
+> >
+> >  #define pmd_populate(mm, pmd, pte) \
+> >                         (pmd_val(*(pmd)) = (unsigned long)page_address(pte))
+> > diff --git a/arch/xtensa/Kconfig b/arch/xtensa/Kconfig
+> > index f2f9cd9cde50..33c4caee30e2 100644
+> > --- a/arch/xtensa/Kconfig
+> > +++ b/arch/xtensa/Kconfig
+> > @@ -55,6 +55,7 @@ config XTENSA
+> >         select HAVE_VIRT_CPU_ACCOUNTING_GEN
+> >         select IRQ_DOMAIN
+> >         select LOCK_MM_AND_FIND_VMA
+> > +       select MMU_GATHER_RCU_TABLE_FREE if MMU
+>
+> And MMU is required because NOMMU does not perform mmu_gather
+> operations, same as in the previous patch? If so, maybe make a note of
+> it in the changelog?
 
-The subject prefix changed since v1, from "selftests: bpf:" to
-"selftests/bpf:", to match the rest of the history in this directory.
+Right yup. Will update!
 
-Assisted-by: Cursor:claude-opus-5
-Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
----
- tools/testing/selftests/bpf/libarena/src/asan.bpf.c | 2 +-
- tools/testing/selftests/bpf/progs/iters.c           | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+>
+> >         select MODULES_USE_ELF_RELA
+> >         select PERF_USE_VMALLOC
+> >         select TRACE_IRQFLAGS_SUPPORT
+> > diff --git a/arch/xtensa/include/asm/tlb.h b/arch/xtensa/include/asm/tlb.h
+> > index 8c3ceb427018..6fb7b78154f6 100644
+> > --- a/arch/xtensa/include/asm/tlb.h
+> > +++ b/arch/xtensa/include/asm/tlb.h
+> > @@ -16,7 +16,7 @@
+> >
+> >  #include <asm-generic/tlb.h>
+> >
+> > -#define __pte_free_tlb(tlb, pte, address)      pte_free((tlb)->mm, pte)
+> > +#define __pte_free_tlb(tlb, pte, address)      tlb_remove_ptdesc((tlb), page_ptdesc(pte))
+> >
+> >  void check_tlb_sanity(void);
+> >
+> >
+> > --
+> > 2.55.0
+> >
 
-diff --git a/tools/testing/selftests/bpf/libarena/src/asan.bpf.c b/tools/testing/selftests/bpf/libarena/src/asan.bpf.c
-index de656b69d13a..fb50ee4ad097 100644
---- a/tools/testing/selftests/bpf/libarena/src/asan.bpf.c
-+++ b/tools/testing/selftests/bpf/libarena/src/asan.bpf.c
-@@ -204,7 +204,7 @@ static __always_inline bool check_asan_args(s8 __arena *addr, size_t size,
- 		goto confirmed_valid;
- 
- 	/*
--	 * Wraparound is possible for values close to the the edge of the
-+	 * Wraparound is possible for values close to the edge of the
- 	 * 4GiB boundary of the arena (last valid address is 1UL << 32 - 1).
- 	 *
- 	 *
-diff --git a/tools/testing/selftests/bpf/progs/iters.c b/tools/testing/selftests/bpf/progs/iters.c
-index c6699159dacd..e44a979270ea 100644
---- a/tools/testing/selftests/bpf/progs/iters.c
-+++ b/tools/testing/selftests/bpf/progs/iters.c
-@@ -1511,7 +1511,7 @@ __naked int checkpoint_states_deletion(void)
- 	 * would get equal to one of the explored states and thus loop
- 	 * exploration would be finished (at-least for a specific path).
- 	 * Verifier evicts explored states with high miss to hit ratio
--	 * to to avoid comparing current state with too many explored
-+	 * to avoid comparing current state with too many explored
- 	 * states per instruction.
- 	 * This test is designed to "stress test" eviction policy defined using formula:
- 	 *
--- 
-2.48.1
-
+--
+Cheers, Lorenzo
