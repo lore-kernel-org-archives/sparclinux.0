@@ -1,226 +1,193 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 962D0481640;
-	Wed,  9 Sep 2026 08:51:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DBBC38228A;
+	Wed,  9 Sep 2026 09:15:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788943912; cv=none; b=qwk8A5RK1aPcLCvjSWhJdIR43ALyBIxgMDA1I8kh5wkNnMDhIC9rWRa5sS3Q2QZeIm+XR62HOOIoaWDIwjysmV0MEFhbunZ5dlctz+KKtggk+0SaRWZWIlXkoOkwtEeVAh9221WrwIZofv+KDVIBtTCpAILqZTNRS4X8cyej9yc=
+	t=1788945340; cv=none; b=QOub4cdZ8emYTcO9VthKLqF8U5dH1UPcm17eiudkqB2FJPpFNwAS+cdquBxq3/7TX0vQOsYbNZmObxIDTRkvwik3R9joKCL78cWJwpCZaijV4LUPRPhzYTS14ZXHVnkh94DuaMbUKN0fYTEhzRJ9kzFP9L30Zte1hG+nwn0qZw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788943912; c=relaxed/simple;
-	bh=RN6cYJUEQdRxuBEqqYhIPB2SE0TZGxcBuEAXLBMYDtE=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=tEBUr3bwIW7giD2MFYv6xAYbbUcT+p+SKcvir++lxLIvd2xl/hxAKmztNnpE7dL0llb4L/CmPVRAN39sMlEHSeKT1wZQF17680JEhfn8pyPnF6TCus+1HpDqcJhueT5kVo353h+C3ZbFLyNudaU6COtapHy2nN4sE33Fg0kBSoQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=PBnltHou; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=OsR9+ePJ; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1788945340; c=relaxed/simple;
+	bh=JTc8DHP/qtDcpzr4d7+FejFT4BPaNW9X2BggCDjy7mo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QdmC0yBR+bfGd5uVgD/g49zFm0VUChkXg5RXWYLBRZE0MxM0JPrENWge17ebijvVCtEajzyFkV5fwRuKzWX0b2cHmgyKfugK6sPQIM1pC0mnXhHFeVxaKmQLvWNGx6LjeLt0c67Ux39OC8x6DS96aJe0yvTGa8ne//wERFBVz0w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZBusIWCN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="PBnltHou";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="OsR9+ePJ"
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1788943888;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=JMVMS5fB9cOPA4POT3k9FrIUmWVPCjnIMj07aQx41TA=;
-	b=PBnltHouqiLd0vZKnEktzgXmmVWj9E/rgINg+MiWTjeKITcztp+Zs/R13kZurmAKB598p4
-	kddIj8zs+mThxi0y1LOe5Ah2DoBWqyt7r6P+8YyxJlafdIhLoo6yaKWvWFbuwAnV8UJa9+
-	2t63vt1DbGY4E1IaJujjBIhN1MeJAXY+mMvFRhspG6cpN1YGpcKx5eb8u+adsTk7vQ5JjG
-	JFW2Uy4Vy3WyoTXTFZRKk1+zsRveZDTBJT4cK1mWfo7GCoDzh2Y0SX7/53JxGrJvO5p2Tq
-	3VdybOHbhTLd1PX2P6BepZhrOPUVFmlZshdcWktTvhB6XBpzkyhmyJ1t6NAwGA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1788943888;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=JMVMS5fB9cOPA4POT3k9FrIUmWVPCjnIMj07aQx41TA=;
-	b=OsR9+ePJ4YG9lbDvs0TVFng2Lc1FxhDap7d8efI2GntHBjwnUbhw+GFc+EwXBu2WJtvwC4
-	bCPFZo80XHJHmfAA==
-Date: Wed, 09 Sep 2026 10:51:27 +0200
-Subject: [PATCH 14/15] vdso: Add asm-generic/vdso/vsyscall.h
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZBusIWCN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 663111F00A3A;
+	Wed,  9 Sep 2026 09:15:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788945338;
+	bh=WMLhSTvOXcO1Feh9yCp+cQisLkpmflOTkHs5UzK+oYo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=ZBusIWCN+P7dXWHhpmFPOV+S3a+1WBjFc8E4Dla9jSlpOPp0YbEw6Gx5JHAhXq1Ox
+	 TiXg3EpXaAP3k3Pqd9Bz6g1XDxpukb7hScIRCbuFYzAAE9ZeXJgPoRSVLVkd47S8yV
+	 cEgXNJ1BLsteLJG71EFtqgP+7iaieY3+NWjdNpOGfkkQUJzaIqlJ1vr6zii6vaegQU
+	 11zvE33JYF4jAV9m2u1wr+7He/fca+pF80kLQfVQ3aC0AhY7C8DBeR6W0KU4HxftdB
+	 CCPlCymrV0JBKBDoYpHbQGkRz8Nvr39d75+CK9q07cmkNuNrc20M//BPHgZMDCN7fz
+	 6sjd1+/lSbqjg==
+Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
+	by mailfauth.ams.internal (Postfix) with ESMTP id 8E752198003A;
+	Wed,  9 Sep 2026 05:15:16 -0400 (EDT)
+Received: from phl-frontend-04 ([10.202.2.163])
+  by phl-compute-02.internal (MEProxy); Wed, 09 Sep 2026 05:15:32 -0400
+X-ME-Sender: <xms:pCOhapxWpL0GHjdR-LbSmt6pcF7cQoj_8cQ33xSeM7XCtFENM-sJEw>
+    <xme:pCOharWahP24PRQXVvE8eeNQnV55db4J_vp16cj_Z8GibP0d05qa3LF6G7CXPobAn
+    HafKDVhWfjWxnJEZOfi_ZDCv10ZgG4I_C318m3ajUCuz5cvYfve_vGy>
+X-ME-Received: <xmr:pCOhat43rLqB-KpS4v-iRR2MbmJvziGj4K3533xcWcE-RHBMlP2xBju_wd0>
+X-ME-Proxy-Cause: dmFkZTFpC8WONluUuvc7dpKb99eg92DQ33MSjEt2sNv2fC237wiMixhMca33e2LldrnTRH
+    U75C+KLC/q/LoK5zKzpXIyjFwS1b+E/++uY5aiYodIxAbg9BZ6O3CC6cd1SXYaFEulw8KR
+    jAI6ffm11DtQZdknyCWUWVFfuLXw2xt2y4TrUuW5CEhhTR/K3eTVLpp8QK1B0crMmfDXeu
+    uwu487939XxAxC04N1S97FZttc+sKd0M0bqZu5+zU/yY2Z2X+w/t7eOM75eiUIDwrFyGW9
+    VO3+XGBW9eUcOQwzMaEf6se6jBI4E1kU1BTvjozT7XN+z/WzRNjCEoYCcDV/y4SRQAjlN1
+    UJij+//6ITDtj0vpJtsxh3nZgt0K5pHTh0hy5Hu48Cov+xYJKliDjhUO5TEvuCAqjsq3SO
+    OxyGdCaNbHBZZb7IXgcT+pITOfdPxsCPlJyBoTr8Le9pMNL/ZTHnXi+/DIJXF17DMcWZIh
+    YM5LVoGds+47feWKyzGfEzTv1rFYfFtyh3h/v0wuQgBr2xOdBApwONTAMblqFbOLbUS27j
+    NPYBYul31i/zyEEbO83Lgkbp30doOoaMXPcKhFs3Rw8N2hrubUNjgoPgAP5Spz0uSYcxe2
+    FDFitH4FhEvRxWxK0irW8E1NKmcImw4MXKQVOJjCI5K3tVhOemySCLVfbAmA
+X-ME-Proxy: <xmx:pCOhajUqd18ClRcyZhFPHIYrAAp0-S3k_bVdXd6KZXOebWFu8gPWvw>
+    <xmx:pCOhaj7UC-S4UPOWxzOF-A3gNv5YI2PWLCUOMVoriXtNaMxfx7RKrw>
+    <xmx:pCOhaqmC_kf4Hp2GOeEHEjH5DxULoNK2H7t84K4BezfXKcQz_belGg>
+    <xmx:pCOhalZ7HrNwAby95sPa7N21RVub9YHPEGD6aBYbpelxVLHh1XK2sw>
+    <xmx:pCOhauEse5Mk8Ax8FZCi-GcbyLxH-H4DbMf7YweCkQjDO4jCkVmia0fm>
+Feedback-ID: i10464835:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
+ 9 Sep 2026 05:15:14 -0400 (EDT)
+Date: Wed, 9 Sep 2026 10:15:13 +0100
+From: Kiryl Shutsemau <kas@kernel.org>
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ 	David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ 	Baolin Wang <baolin.wang@linux.alibaba.com>,
+ "Liam R. Howlett" <liam@infradead.org>,
+ 	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, 	Barry Song <baohua@kernel.org>,
+ Lance Yang <lance.yang@linux.dev>, 	Usama Arif <usama.arif@linux.dev>,
+ Guo Ren <guoren@kernel.org>, Brian Cain <bcain@kernel.org>,
+ 	Geert Uytterhoeven <geert@linux-m68k.org>,
+ Dinh Nguyen <dinguyen@kernel.org>,
+ 	Simon Schuster <schuster.simon@siemens-energy.com>,
+ Jonas Bonn <jonas@southpole.se>,
+ 	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+ Stafford Horne <shorne@gmail.com>,
+ 	Yoshinori Sato <ysato@users.sourceforge.jp>,
+ Rich Felker <dalias@libc.org>,
+ 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Paul Walmsley <pjw@kernel.org>, 	Palmer Dabbelt <palmer@dabbelt.com>,
+ Albert Ou <aou@eecs.berkeley.edu>, 	Alexandre Ghiti <alex@ghiti.fr>,
+ Russell King <linux@armlinux.org.uk>, 	Vineet Gupta <vgupta@kernel.org>,
+ Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>,
+ 	Max Filippov <jcmvbkbc@gmail.com>, Will Deacon <will@kernel.org>,
+ 	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+ Nick Piggin <npiggin@gmail.com>, 	Peter Zijlstra <peterz@infradead.org>,
+ "David S. Miller" <davem@davemloft.net>,
+ 	Andreas Larsson <andreas@gaisler.com>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ 	Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>,
+ 	Catalin Marinas <catalin.marinas@arm.com>,
+ Mark Rutland <mark.rutland@arm.com>,
+ 	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
+ 	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ 	Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>,
+ 	Michael Ellerman <mpe@ellerman.id.au>,
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+ 	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ 	Alexander Gordeev <agordeev@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ 	Sven Schnelle <svens@linux.ibm.com>,
+ Richard Weinberger <richard@nod.at>,
+ 	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ 	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>,
+ 	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, 	Arnd Bergmann <arnd@arndb.de>,
+ Vlastimil Babka <vbabka@kernel.org>, 	Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, 	Michal Hocko <mhocko@suse.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, 	John Hubbard <jhubbard@nvidia.com>,
+ Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
+ 	linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
+ linux-hexagon@vger.kernel.org, 	linux-m68k@lists.linux-m68k.org,
+ linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org,
+ 	linux-riscv@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
+ 	linux-snps-arc@lists.infradead.org, linux-arch@vger.kernel.org,
+ sparclinux@vger.kernel.org, 	linux-alpha@vger.kernel.org,
+ loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+ 	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-s390@vger.kernel.org, 	linux-um@lists.infradead.org,
+ Hugh Dickins <hughd@google.com>, Qi Zheng <qi.zheng@linux.dev>
+Subject: Re: [PATCH v2 11/12] mm: make userland page table freeing RCU-safe
+Message-ID: <aqEivRP0LmJZcgEx@thinkstation>
+References: <20260908-rcu-pagetable-freeing-v2-0-1f60b64e878e@kernel.org>
+ <20260908-rcu-pagetable-freeing-v2-11-1f60b64e878e@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20260909-vdso-asm-generic-vsyscall-h-v1-14-63ae856cc659@linutronix.de>
-References: <20260909-vdso-asm-generic-vsyscall-h-v1-0-63ae856cc659@linutronix.de>
-In-Reply-To: <20260909-vdso-asm-generic-vsyscall-h-v1-0-63ae856cc659@linutronix.de>
-To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
- Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, 
- linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- loongarch@lists.linux.dev, linux-mips@vger.kernel.org, 
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, 
- sparclinux@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1788943875; l=4765;
- i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=RN6cYJUEQdRxuBEqqYhIPB2SE0TZGxcBuEAXLBMYDtE=;
- b=d6YgCC9mOtzM/HCu/dlX+VOf6yWQ71CH6LOM9NRJDlKLcjm2on0tmi0kD6UBUtMzkFELguk6T
- 12bpP+ouE5+ALngtyStONC+dPoOfbs2V+mh5GeDN2fzMK207HnGAZQL
-X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
- pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260908-rcu-pagetable-freeing-v2-11-1f60b64e878e@kernel.org>
 
-Most architectures' asm/vdso/vsyscall.h do not define any symbols.
+On Tue, Sep 08, 2026 at 01:32:20PM +0100, Lorenzo Stoakes (ARM) wrote:
+> Now every architecture has been converted to support
+> CONFIG_MMU_GATHER_RCU_TABLE_FREE, this configuration option no longer makes
+> any sense to keep around.
+> 
+> Therefore remove it, and remove all the dead code that existed for
+> !CONFIG_MMU_GATHER_RCU_TABLE_FREE architectures previously.
+> 
+> Additionally, CONFIG_MMU_GATHER_TABLE_FREE is no longer necessary, as all
+> architectures instead use CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE when a custom
+> __tlb_remove_table() is required, so remove this too.
+> 
+> A number of architectures only enabled CONFIG_MMU_GATHER_RCU_TABLE_FREE if
+> CONFIG_MMU was set, however the mmu_gather logic only actually does
+> something meaningful if CONFIG_MMU is set (mmu_gather.c is only compiled in
+> this case, for instance).
+> 
+> As a result, there's no need to gate any of this logic on CONFIG_MMU
+> explicitly.
+> 
+> CONFIG_PT_RECLAIM however does have a strict dependency on CONFIG_MMU, so
+> make this dependency explicit.
+> 
+> Additionally, correct comments to remove references to non-RCU page table
+> gathering and make it clear that this is not 'semi-RCU', nor has it been
+> since commit 1fb3d8c20bfa ("mm/mmu_gather: replace IPI with
+> synchronize_rcu() when batch allocation fails").
+> 
+> With this change in place the kernel policy is now that all page tables are
 
-Add an empty asm-generic variant and replace the pointless
-architecture-specific copies.
+You missed s/all/userspace/ from v1.
 
-Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
----
- arch/loongarch/include/asm/vdso/vsyscall.h | 11 -----------
- arch/mips/include/asm/vdso/vsyscall.h      | 13 -------------
- arch/powerpc/include/asm/vdso/vsyscall.h   | 11 -----------
- arch/riscv/include/asm/vdso/vsyscall.h     | 11 -----------
- arch/s390/include/asm/vdso/vsyscall.h      | 13 -------------
- arch/sparc/include/asm/vdso/vsyscall.h     |  6 ------
- arch/x86/include/asm/vdso/vsyscall.h       | 12 ------------
- include/asm-generic/Kbuild                 |  1 +
- include/asm-generic/vdso/vsyscall.h        |  0
- 9 files changed, 1 insertion(+), 77 deletions(-)
+> freed after an RCU grace period, and thus it is now safe to unconditionally
+> perform page table walks under RCU, safe in the knowledge that page tables
+> will not be freed underneath the walker.
 
-diff --git a/arch/loongarch/include/asm/vdso/vsyscall.h b/arch/loongarch/include/asm/vdso/vsyscall.h
-deleted file mode 100644
-index db653780519d..000000000000
---- a/arch/loongarch/include/asm/vdso/vsyscall.h
-+++ /dev/null
-@@ -1,11 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __ASM_VDSO_VSYSCALL_H
--#define __ASM_VDSO_VSYSCALL_H
--
--#ifndef __ASSEMBLER__
--
--#include <vdso/datapage.h>
--
--#endif /* !__ASSEMBLER__ */
--
--#endif /* __ASM_VDSO_VSYSCALL_H */
-diff --git a/arch/mips/include/asm/vdso/vsyscall.h b/arch/mips/include/asm/vdso/vsyscall.h
-deleted file mode 100644
-index f01ab2e15c08..000000000000
---- a/arch/mips/include/asm/vdso/vsyscall.h
-+++ /dev/null
-@@ -1,13 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __ASM_VDSO_VSYSCALL_H
--#define __ASM_VDSO_VSYSCALL_H
--
--#include <asm/page.h>
--
--#ifndef __ASSEMBLER__
--
--#include <vdso/datapage.h>
--
--#endif /* !__ASSEMBLER__ */
--
--#endif /* __ASM_VDSO_VSYSCALL_H */
-diff --git a/arch/powerpc/include/asm/vdso/vsyscall.h b/arch/powerpc/include/asm/vdso/vsyscall.h
-deleted file mode 100644
-index 6a6510fa8217..000000000000
---- a/arch/powerpc/include/asm/vdso/vsyscall.h
-+++ /dev/null
-@@ -1,11 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _ASM_POWERPC_VDSO_VSYSCALL_H
--#define _ASM_POWERPC_VDSO_VSYSCALL_H
--
--#ifndef __ASSEMBLER__
--
--#include <asm/vdso_datapage.h>
--
--#endif /* !__ASSEMBLER__ */
--
--#endif /* _ASM_POWERPC_VDSO_VSYSCALL_H */
-diff --git a/arch/riscv/include/asm/vdso/vsyscall.h b/arch/riscv/include/asm/vdso/vsyscall.h
-deleted file mode 100644
-index db653780519d..000000000000
---- a/arch/riscv/include/asm/vdso/vsyscall.h
-+++ /dev/null
-@@ -1,11 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __ASM_VDSO_VSYSCALL_H
--#define __ASM_VDSO_VSYSCALL_H
--
--#ifndef __ASSEMBLER__
--
--#include <vdso/datapage.h>
--
--#endif /* !__ASSEMBLER__ */
--
--#endif /* __ASM_VDSO_VSYSCALL_H */
-diff --git a/arch/s390/include/asm/vdso/vsyscall.h b/arch/s390/include/asm/vdso/vsyscall.h
-deleted file mode 100644
-index c74c307c320c..000000000000
---- a/arch/s390/include/asm/vdso/vsyscall.h
-+++ /dev/null
-@@ -1,13 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __ASM_VDSO_VSYSCALL_H
--#define __ASM_VDSO_VSYSCALL_H
--
--#ifndef __ASSEMBLER__
--
--#include <linux/hrtimer.h>
--#include <vdso/datapage.h>
--#include <asm/vdso.h>
--
--#endif /* !__ASSEMBLER__ */
--
--#endif /* __ASM_VDSO_VSYSCALL_H */
-diff --git a/arch/sparc/include/asm/vdso/vsyscall.h b/arch/sparc/include/asm/vdso/vsyscall.h
-deleted file mode 100644
-index ff62b291e4eb..000000000000
---- a/arch/sparc/include/asm/vdso/vsyscall.h
-+++ /dev/null
-@@ -1,6 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--
--#ifndef _ASM_SPARC_VDSO_VSYSCALL_H
--#define _ASM_SPARC_VDSO_VSYSCALL_H
--
--#endif /* _ASM_SPARC_VDSO_VSYSCALL_H */
-diff --git a/arch/x86/include/asm/vdso/vsyscall.h b/arch/x86/include/asm/vdso/vsyscall.h
-deleted file mode 100644
-index 65d10f4cc718..000000000000
---- a/arch/x86/include/asm/vdso/vsyscall.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __ASM_VDSO_VSYSCALL_H
--#define __ASM_VDSO_VSYSCALL_H
--
--#ifndef __ASSEMBLER__
--
--#include <vdso/datapage.h>
--#include <asm/vgtod.h>
--
--#endif /* !__ASSEMBLER__ */
--
--#endif /* __ASM_VDSO_VSYSCALL_H */
-diff --git a/include/asm-generic/Kbuild b/include/asm-generic/Kbuild
-index 2bc00c67dc54..b7a388bef6ea 100644
---- a/include/asm-generic/Kbuild
-+++ b/include/asm-generic/Kbuild
-@@ -63,6 +63,7 @@ mandatory-y += trace_clock.h
- mandatory-y += uaccess.h
- mandatory-y += unwind_user.h
- mandatory-y += vdso/clocksource.h
-+mandatory-y += vdso/vsyscall.h
- mandatory-y += vermagic.h
- mandatory-y += vga.h
- mandatory-y += video.h
-diff --git a/include/asm-generic/vdso/vsyscall.h b/include/asm-generic/vdso/vsyscall.h
-new file mode 100644
-index 000000000000..e69de29bb2d1
+
+> @@ -151,24 +148,15 @@
+>   *  This might be useful if your architecture has size specific TLB
+>   *  invalidation instructions.
+>   *
+> - *  MMU_GATHER_TABLE_FREE
+> - *
+> - *  This provides tlb_remove_table(), to be used instead of tlb_remove_page()
+> - *  for page directores (__p*_free_tlb()).
+> - *
+> - *  Useful if your architecture has non-page page directories.
+> + *  Page directories (__p*_free_tlb()) are always freed via tlb_remove_table(),
+> + *  after an RCU grace period (see mm/mmu_gather.c).
+>   *
+> - *  When used, an architecture is expected to provide __tlb_remove_table() or
+> - *  use the generic __tlb_remove_table(), which does the actual freeing of these
+> - *  pages.
+> + * This serialises against software page-table walkers, including architectures
+> + * which do not use IPIs for remote TLB invalidates.
+
+Indentation is broken.
 
 -- 
-2.55.0
-
+  Kiryl Shutsemau / Kirill A. Shutemov
