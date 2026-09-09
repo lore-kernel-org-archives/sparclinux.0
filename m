@@ -1,48 +1,48 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31C4F35AC2F;
-	Wed,  9 Sep 2026 11:08:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D1E7542817;
+	Wed,  9 Sep 2026 11:25:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788952098; cv=none; b=jEsMtSIBuL1ScMg+EquRTHSPDlKaZrh0r9QvAnMV39oWZo4Ju25sLQ58zaTcZULOTdZydb0iGWcxwCfv4RyrhI9MfoGHPzT5Cpo/T7Y1/0aEqP2SIMrAZFZXqS13X8vkIHFlYE65Oypux9SrSV9Ols/qJCyLiaCAc99sDqBWfv0=
+	t=1788953114; cv=none; b=lIAb2VHJqwMVcS9uQqFChkwedFHxHgrF6H+72xhdQ22dRy+sdq5O486RXEfh089hKuCc9K84dPMWd8WXSBR5L2ws7gYsv5INlDm2UjEUfD4LbJ9ChjebglPFSql+BIK+J2anDyMhyhUattYBUVGe4McV6ylNWysRoXqt0aMTu3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788952098; c=relaxed/simple;
-	bh=Pl5KB8Rb6ZjqAl0MGo912TbnPMsPiInnD10TuBslO9I=;
+	s=arc-20240116; t=1788953114; c=relaxed/simple;
+	bh=k9Nd2U2iPKPwFxgxgN1zBGer8nrowwuMplrTHjGrDOY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UzV3yopit99u2onScmKpcbMau51L13fVpRyfvWqZIBqEYElDc+jYZe2w0FBc3eDsI9Wg8HVWfTczTpejZwURhY11VZDqPL4sNu8V2XhjZEv2mfNq2fkt+IdGP+ZrFlUsjExddEgIz6wiNdcDck00HYnaYZE4qUhkQ00ucaNz9ts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QaTpJ5ov; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=DBRPn1W93XkERiVCXwtD+L1zrBJNP19eeVRvoU/2EiNDRFfgsybvrg9FCTzrYPRsP+89cfmUpjJWTALmDzHo/IgdY1Ndvg3ILntAkz6yFU1YYYzO9wsGjhddICcKZ4aeUnFGsIEYqwzzMFNO46Z4vuckQiTGPgIyZuWw+QGUGTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YCsVcikz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QaTpJ5ov"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4F9D1F00AC4;
-	Wed,  9 Sep 2026 11:07:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YCsVcikz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA8571F00A3D;
+	Wed,  9 Sep 2026 11:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788952097;
-	bh=n4mPQZ86gp5FDwQ4tHqlyfsOtYqdqNDLvVyVaC4A/Fo=;
+	s=k20260515; t=1788953112;
+	bh=inNJzZhlDskfV4tobMRa6NUvX+KktI2JxAaJsuypEcU=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=QaTpJ5ovoTiEG+gXq4D4QRjJgrK/QkDaAvE4t9yf2p1CDXfWR+kPkM4RvUM0qdfPJ
-	 YQ3u5ytOfaVK2InZ/CGWXhSaMh2xZGgB5cMzAuvnJWAkL0XnASM+7IEN4Mh5mQR/v/
-	 23xVaM73u8uzFcGxU4t1Ngaq+BDhm428o54Sxl6mcGruZx3hwkdRUas8xhLW+8np6o
-	 1FCSepWEU5Qtr1gN3/1lPqwwWSfxlmy6GHgFq4rT9aBoF8CazzfpBWEzsvaBIQ/txk
-	 czLEOp1wjtukmiYmMeK+KJpQGgy7iNAEV7FZIokob8wTGUUDEcjvf9Oxi9V03vXvLr
-	 Iqy39qtZl8jxA==
-Date: Wed, 9 Sep 2026 12:07:52 +0100
+	b=YCsVcikzxNnvBT0Y3c5qUMcZq6CnjiF9LAucMz9KUDz/X8rycnl20TJiMBuTV44C6
+	 ciuJ5X0Mary0o+RdhTl8tWHSISMo1lGTn+IXwhIQfs7dZg1NC//UvrgDFVVFH2BXXg
+	 wGSvIxQ/NBgeVTkoO77PEhxG5tF/kt0hk770YdbvA7jzYldeFCi6gaAA3Ie47dGZ4o
+	 rDioSU8ROD/U0Ex4wV585kl0B6XRkVhfL48+PBTUa/l0vXguhxnOvt9I9np0ualYy6
+	 L7k5zESC+bnaJX5hWbMNkzgmSv0XEtgXO0Eiy5hQl/cIt/eJwNjq2z/FZB7YFfjxHL
+	 0pO6lgM9ge/7g==
+Date: Wed, 9 Sep 2026 12:24:48 +0100
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: Kiryl Shutsemau <kas@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>, 
 	Baolin Wang <baolin.wang@linux.alibaba.com>, "Liam R. Howlett" <liam@infradead.org>, 
 	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
 	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
-	Usama Arif <usama.arif@linux.dev>, Guo Ren <guoren@kernel.org>, Brian Cain <bcain@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Dinh Nguyen <dinguyen@kernel.org>, 
-	Simon Schuster <schuster.simon@siemens-energy.com>, Jonas Bonn <jonas@southpole.se>, 
-	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>, 
-	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Alexandre Ghiti <alex@ghiti.fr>, Russell King <linux@armlinux.org.uk>, 
-	Vineet Gupta <vgupta@kernel.org>, Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, 
+	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, Guo Ren <guoren@kernel.org>, 
+	Brian Cain <bcain@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+	Dinh Nguyen <dinguyen@kernel.org>, Simon Schuster <schuster.simon@siemens-energy.com>, 
+	Jonas Bonn <jonas@southpole.se>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, 
+	Stafford Horne <shorne@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+	Russell King <linux@armlinux.org.uk>, Vineet Gupta <vgupta@kernel.org>, 
+	Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, 
 	Max Filippov <jcmvbkbc@gmail.com>, Will Deacon <will@kernel.org>, 
 	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, 
 	Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, 
@@ -71,9 +71,9 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, 
 	linux-um@lists.infradead.org, Hugh Dickins <hughd@google.com>, Qi Zheng <qi.zheng@linux.dev>
 Subject: Re: [PATCH v2 00/12] mm: make userland page table freeing RCU-safe
-Message-ID: <aqE-ABWDmw26OGK2@gremlin>
+Message-ID: <aqFBXNYGa5cktCeJ@gremlin>
 References: <20260908-rcu-pagetable-freeing-v2-0-1f60b64e878e@kernel.org>
- <aqEl9zv8M_o1yW62@thinkstation>
+ <20260908141543.8180b60400d38b70d249949b@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -82,24 +82,45 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aqEl9zv8M_o1yW62@thinkstation>
+In-Reply-To: <20260908141543.8180b60400d38b70d249949b@linux-foundation.org>
 
-On Wed, Sep 09, 2026 at 10:26:03AM +0100, Kiryl Shutsemau wrote:
-> On Tue, Sep 08, 2026 at 01:32:09PM +0100, Lorenzo Stoakes (ARM) wrote:
+On Tue, Sep 08, 2026 at 02:15:43PM -0700, Andrew Morton wrote:
+> On Tue, 08 Sep 2026 13:32:09 +0100 "Lorenzo Stoakes (ARM)" <ljs@kernel.org> wrote:
+>
 > > The majority of architectures in the kernel defer page table freeing until
 > > an RCU grace period has elapsed, this series converts all remaining
 > > architectures to do so too and eliminates CONFIG_MMU_GATHER_RCU_TABLE_FREE
 > > altogether.
+> >
+> > This is important because it enables safe lockless page table walking under
+> > RCU alone.
+> >
+> > Doing so allows for reduced lock contention, avoids lock ordering concerns
+> > and enables fast, efficient and correct page table walking as a result.
+> >
+> > Additionally it removes a bunch of code and architecture-specific behaviour
+> > which is always a beneficial thing to do.
 >
-> Apart from few nitpicks, the patchset looks good to me:
->
-> Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+> Thanks.  It's early and unreviewed, but this is mainly an
+> if-it-compiles-its-good thing, so I'll add it for exposure to the
+> build/checker universe.
 
-Thanks! :)
+Yeah largely, and I have done additional testing for cases which need it.
 
 >
-> --
->   Kiryl Shutsemau / Kirill A. Shutemov
+> > However some arches required extra attention - sh-X2, m68k-motorola and
+> > sparc32.
+>
+> OK.  Please lmk later if you think additional reviewer/tester attention
+> is desirable in these areas.
+
+Only really the fancier sparc32 setup which can't be emulated [there's a call
+out in the cover for that one!] :) though sashiko found an issue with that that
+is now fixed.
+
+The other two I boot tested locally under emulation with no issues :)
+
+>
 
 --
 Cheers, Lorenzo
