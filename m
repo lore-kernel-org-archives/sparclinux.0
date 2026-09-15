@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFF2E4A99B5;
-	Tue, 15 Sep 2026 11:37:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E33354AA1C9;
+	Tue, 15 Sep 2026 11:37:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789472263; cv=none; b=Jm0miXCRDXqzvEML82FcFSQu+fV0XgXxaecrTZlNO5oGqxQHyIW33UBCo22gIM04+M/EEFp/BX15zpGtPQSM6ttsjk0J3zWHBtuHoGOwzKQDQ21gPa1IDa6NqyMoUSV2HcYXIQQH6xHcBmRp6aY5K7helPB1seq6oY1QGCZPVY0=
+	t=1789472272; cv=none; b=Bmi1QF0kGmP9EWutiRQzW3rbXH0WkHqv4z0fW7v6QafB7vc3Q8ew9aq1DCz0hfqAkMBp+QOYw3S3Jv23pN0sVZNnLPk29TSwk2RMN51vZ1a4SDpHPQm96SV//xDM2k8AULAtQ53xJSIHRwdM4jH/biN0qDZb2rAQhA9V/ck8vkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789472263; c=relaxed/simple;
-	bh=Tx0MTQ1YnVtsCJithyQQ1YlkyHM6SB+QGz8po6KWPTc=;
+	s=arc-20240116; t=1789472272; c=relaxed/simple;
+	bh=SzeXPqGJtllJZEGwqHGcwxzZWYTunmeJfrbckytXGkI=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ow3rGa0cUOUL44cQX/2/NQN3CcVVbKE5c/8unYHPFkck3IG+UAA/OMNBK5wFKFHPydAkpEjoGLry0DarkMxA2hpPZxSSjxQYtWpS6tslgp3EJmCSRbahZMMA2/nk4zZTJz18FD5U6d3u2GVFyvFThgane5J2q21epHyJe5r0fcY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SMo47o/J; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=hAmzsmQHbiXSBSUSw4WoHKrV+SZJ/Tv1qNl6BFZpxOKMVuREZL0BU9W219DwbKcmjNFn4/yAOLd4FAS7M7vTeJ33mJZsSaqdtp4CFP2p8qd+iI5H5wd767bBpEomv6qRWhrqtJXDxQKqFepvelXGLbuoriS49Sc1DzQ+jMBtiLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nIsDG6ms; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SMo47o/J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00B071F00893;
-	Tue, 15 Sep 2026 11:37:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nIsDG6ms"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDE2E1F00898;
+	Tue, 15 Sep 2026 11:37:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789472261;
-	bh=tjgNPx3x7WII2tr/AwvmAnEJWXGOM0OeaxbIcUanKyI=;
+	s=k20260515; t=1789472269;
+	bh=GNDTkXQI7mGdcVaT7SDrw9M8MIqod2XUSoHG2zw3J2w=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=SMo47o/JPxKGY6qTNLRWBziEbn+58IX3nPctPMC7Rjv/4Cm+o+BJijIJnYVe8zJNi
-	 wtm2ogfTwLSXwVXiRa8BwU676bAhTFIUDdSLL7QWmD6wZs73V9DyEUOfRDrJ+IY403
-	 kqv0bmOC18w9ruJeugOg/OVAFQjR9gpxqiygmBT/TwoeVymZyVDEbKq6Hd3l29gwkE
-	 6gMLb1D7frbGbL+XuuTzjEeBT25eZX3KvVOEPtQdK5AuDh5R02exf0Wm9bz+fe67Iz
-	 hw49+A+yqFYEMWzyNlTUmA/r+VKXbFFAqeFAkxdiB9zM9A5cJNU9ykZ66qrgX/f5g4
-	 5B2mHT5wBqVHQ==
+	b=nIsDG6msZxm9ifdIIaNBb4DSvDwZjxBexDpBy0k5+c0EEQRfRNHCnvgHTIY4Q0gZ4
+	 5Y4GAqy+82PffLbcvJlnpDdJKam2a1RZ/lmTtWzv5yc2Qa3CGs1EC2lgotUwdrCtPN
+	 R+e8tN55H2q/lzjefH/7MqxCwUMd/aRzXVOqaq/JIPnIQz/fh1lk4mDieRcetKm0Vz
+	 We6QD5SZZpeWs1skjtjC95uTXtri2f8p0027MOwC2PJ2AtBz1eyxEa8oFwDdJ/4IbQ
+	 1oi4l5RBwZ4QhEmCd9i4/Ab6QCou55Lo2D/xSrTRR5npBOhYvLPf8mp8Z+7okOyPo6
+	 hMky5BV0f8Xcg==
 From: Christian Brauner <brauner@kernel.org>
-Date: Tue, 15 Sep 2026 13:31:35 +0200
-Subject: [PATCH RFC POC 49/50] iommufd: stop putting descriptors back on
- failure
+Date: Tue, 15 Sep 2026 13:31:36 +0200
+Subject: [PATCH RFC POC 50/50] Drivers: hv: mshv: stop putting descriptors
+ back on failure
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260915-work-fd-reserve-unify-folded-v1-49-4d5217d6b246@kernel.org>
+Message-Id: <20260915-work-fd-reserve-unify-folded-v1-50-4d5217d6b246@kernel.org>
 References: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
 In-Reply-To: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
 To: Linus Torvalds <torvalds@linux-foundation.org>
@@ -61,12 +61,12 @@ Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jann Horn <jannh@google.com>,
  kexec@lists.infradead.org, linux-hyperv@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-db0b7
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3656; i=brauner@kernel.org;
- h=from:subject:message-id; bh=Tx0MTQ1YnVtsCJithyQQ1YlkyHM6SB+QGz8po6KWPTc=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSt1Kk3WbDjFvN29pT3Xq7896z8vX2FtjvvefB1xQfue
- XsWsk4o7yhlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZiI3CuGf/rLHM5NDdh5MSei
- 56otb6TCFq/HRZ/fcG4J0t5of2Rr5hxGhp4HVV1b2aIEtkx5uGOb3IS1967+fbb6v6rTAdk7ocz
- G3mwA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3018; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=SzeXPqGJtllJZEGwqHGcwxzZWYTunmeJfrbckytXGkI=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSt1KmPkjZIUeG9e+1R07epv8QvrSgMsrt/1D2tpUnF+
+ Ty/n9jUjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIlo3mb4Hx4+8+W/E5svyCgt
+ bpvwatmUgujlCXflfc2DLyvdmH/HYCPDH44Jiw0OZie7VZtm8ZzaXLrdzmx2uNpNg59n94iEL7/
+ iyAIA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
@@ -74,119 +74,107 @@ Rely on the fd exit path machinery.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- drivers/iommu/iommufd/eventq.c | 39 +++++++++++++++++----------------------
- 1 file changed, 17 insertions(+), 22 deletions(-)
+ drivers/hv/mshv_root_main.c | 27 +++++++--------------------
+ drivers/hv/mshv_vtl_main.c  | 20 +++++---------------
+ 2 files changed, 12 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/iommu/iommufd/eventq.c b/drivers/iommu/iommufd/eventq.c
-index 747dd5155121..f5fdc6cdf0a1 100644
---- a/drivers/iommu/iommufd/eventq.c
-+++ b/drivers/iommu/iommufd/eventq.c
-@@ -412,9 +412,9 @@ static int iommufd_eventq_fops_release(struct inode *inode, struct file *filep)
- 		.release = iommufd_eventq_fops_release,                        \
- 	})
+diff --git a/drivers/hv/mshv_root_main.c b/drivers/hv/mshv_root_main.c
+index cc2cfce2aefd..c95cee0bae85 100644
+--- a/drivers/hv/mshv_root_main.c
++++ b/drivers/hv/mshv_root_main.c
+@@ -1072,8 +1072,6 @@ mshv_partition_ioctl_create_vp(struct mshv_partition *partition,
+ 	struct mshv_vp *vp;
+ 	struct page *intercept_msg_page, *register_page, *ghcb_page;
+ 	struct hv_stats_page *stats_pages[2];
+-	struct file *file;
+-	int fd;
+ 	long ret;
  
--static int iommufd_eventq_init(struct iommufd_eventq *eventq, char *name,
--			       struct iommufd_ctx *ictx,
--			       const struct file_operations *fops)
-+static const struct fd_slot *iommufd_eventq_init(struct iommufd_eventq *eventq, char *name,
-+				struct iommufd_ctx *ictx,
-+				const struct file_operations *fops)
- {
- 	struct file *filep;
+ 	if (copy_from_user(&args, arg, sizeof(args)))
+@@ -1148,19 +1146,14 @@ mshv_partition_ioctl_create_vp(struct mshv_partition *partition,
+ 	if (ret)
+ 		goto put_partition;
  
-@@ -425,14 +425,14 @@ static int iommufd_eventq_init(struct iommufd_eventq *eventq, char *name,
- 	/* The filep is fput() by the core code during failure */
- 	filep = anon_inode_getfile(name, fops, eventq, O_RDWR);
- 	if (IS_ERR(filep))
--		return PTR_ERR(filep);
-+		return ERR_CAST(filep);
- 
- 	eventq->ictx = ictx;
- 	iommufd_ctx_get(eventq->ictx);
- 	eventq->filep = filep;
- 	refcount_inc(&eventq->obj.users);
- 
--	return get_unused_fd_flags(O_CLOEXEC);
-+	return fd_prepare(O_CLOEXEC);
- }
- 
- static const struct file_operations iommufd_fault_fops =
-@@ -442,7 +442,7 @@ int iommufd_fault_alloc(struct iommufd_ucmd *ucmd)
- {
- 	struct iommu_fault_alloc *cmd = ucmd->cmd;
- 	struct iommufd_fault *fault;
--	int fdno;
-+	const struct fd_slot *fdno;
- 	int rc;
- 
- 	if (cmd->flags)
-@@ -458,22 +458,19 @@ int iommufd_fault_alloc(struct iommufd_ucmd *ucmd)
- 
- 	fdno = iommufd_eventq_init(&fault->common, "[iommufd-pgfault]",
- 				   ucmd->ictx, &iommufd_fault_fops);
--	if (fdno < 0)
--		return fdno;
-+	if (IS_ERR(fdno))
-+		return PTR_ERR(fdno);
- 
- 	cmd->out_fault_id = fault->common.obj.id;
--	cmd->out_fault_fd = fdno;
-+	cmd->out_fault_fd = fd_prepare_fd(fdno);
- 
- 	rc = iommufd_ucmd_respond(ucmd, sizeof(*cmd));
- 	if (rc)
--		goto out_put_fdno;
-+		return rc;
- 
--	fd_install(fdno, fault->common.filep);
-+	fd_stage(fdno, fault->common.filep);
- 
- 	return 0;
--out_put_fdno:
--	put_unused_fd(fdno);
--	return rc;
- }
- 
- int iommufd_fault_iopf_handler(struct iopf_group *group)
-@@ -506,7 +503,7 @@ int iommufd_veventq_alloc(struct iommufd_ucmd *ucmd)
- 	struct iommu_veventq_alloc *cmd = ucmd->cmd;
- 	struct iommufd_veventq *veventq;
- 	struct iommufd_viommu *viommu;
--	int fdno;
-+	const struct fd_slot *fdno;
- 	int rc;
- 
- 	if (cmd->flags || cmd->__reserved ||
-@@ -543,24 +540,22 @@ int iommufd_veventq_alloc(struct iommufd_ucmd *ucmd)
- 
- 	fdno = iommufd_eventq_init(&veventq->common, "[iommufd-viommu-event]",
- 				   ucmd->ictx, &iommufd_veventq_fops);
--	if (fdno < 0) {
--		rc = fdno;
-+	if (IS_ERR(fdno)) {
-+		rc = PTR_ERR(fdno);
- 		goto out_abort;
+-	fd = get_unused_fd_flags(O_RDWR | O_CLOEXEC);
+-	if (fd < 0) {
+-		ret = fd;
++	FD_PREPARE(fdf, O_RDWR | O_CLOEXEC,
++		   anon_inode_getfile("mshv_vp", &mshv_vp_fops, vp,
++				      O_RDWR | O_CLOEXEC));
++	if (IS_ERR(fdf)) {
++		ret = PTR_ERR(fdf);
+ 		goto remove_debugfs_vp;
  	}
  
- 	cmd->out_veventq_id = veventq->common.obj.id;
--	cmd->out_veventq_fd = fdno;
-+	cmd->out_veventq_fd = fd_prepare_fd(fdno);
+-	file = anon_inode_getfile("mshv_vp", &mshv_vp_fops, vp,
+-				  O_RDWR | O_CLOEXEC);
+-	if (IS_ERR(file)) {
+-		ret = PTR_ERR(file);
+-		goto put_unused_vp_fd;
+-	}
+-
+ 	/* already exclusive with the partition mutex for all ioctls */
+ 	partition->pt_vp_count++;
+ 	/*
+@@ -1171,17 +1164,11 @@ mshv_partition_ioctl_create_vp(struct mshv_partition *partition,
+ 	 */
+ 	smp_store_release(&partition->pt_vp_array[args.vp_index], vp);
  
- 	rc = iommufd_ucmd_respond(ucmd, sizeof(*cmd));
- 	if (rc)
--		goto out_put_fdno;
-+		goto out_abort;
+-	/*
+-	 * fd_install() is the userspace-visibility commit point.  Must be the
+-	 * last operation that can fail or be observed.
+-	 */
+-	fd_install(fd, file);
+-	ret = fd;
++	/* The syscall exit installs the file; nothing after this can fail. */
++	ret = fd_prepare_fd(fdf);
  
- 	iommufd_object_finalize(ucmd->ictx, &veventq->common.obj);
--	fd_install(fdno, veventq->common.filep);
-+	fd_stage(fdno, veventq->common.filep);
- 	goto out_unlock_veventqs;
+ 	goto out;
  
--out_put_fdno:
--	put_unused_fd(fdno);
- out_abort:
- 	iommufd_object_abort_and_destroy(ucmd->ictx, &veventq->common.obj);
- out_unlock_veventqs:
+-put_unused_vp_fd:
+-	put_unused_fd(fd);
+ remove_debugfs_vp:
+ 	mshv_debugfs_vp_remove(vp);
+ put_partition:
+diff --git a/drivers/hv/mshv_vtl_main.c b/drivers/hv/mshv_vtl_main.c
+index 6e3c11c68171..f14203d76da1 100644
+--- a/drivers/hv/mshv_vtl_main.c
++++ b/drivers/hv/mshv_vtl_main.c
+@@ -114,29 +114,19 @@ static long
+ mshv_ioctl_create_vtl(void __user *user_arg, struct device *module_dev)
+ {
+ 	struct mshv_vtl *vtl;
+-	struct file *file;
+-	int fd;
+ 
+ 	vtl = kzalloc_obj(*vtl);
+ 	if (!vtl)
+ 		return -ENOMEM;
+ 
+-	fd = get_unused_fd_flags(O_CLOEXEC);
+-	if (fd < 0) {
+-		kfree(vtl);
+-		return fd;
+-	}
+-	file = anon_inode_getfile("mshv_vtl", &mshv_vtl_fops,
+-				  vtl, O_RDWR);
+-	if (IS_ERR(file)) {
+-		put_unused_fd(fd);
++	FD_PREPARE(fdf, O_CLOEXEC,
++		   anon_inode_getfile("mshv_vtl", &mshv_vtl_fops, vtl, O_RDWR));
++	if (IS_ERR(fdf)) {
+ 		kfree(vtl);
+-		return PTR_ERR(file);
++		return PTR_ERR(fdf);
+ 	}
+ 	vtl->module_dev = module_dev;
+-	fd_install(fd, file);
+-
+-	return fd;
++	return fd_prepare_fd(fdf);
+ }
+ 
+ static long
 
 -- 
 2.53.0
