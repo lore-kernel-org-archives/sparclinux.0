@@ -1,51 +1,52 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10716390C9E;
-	Tue, 15 Sep 2026 12:21:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53AD44A0F09;
+	Tue, 15 Sep 2026 12:21:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789474863; cv=none; b=lfBvNSLvqg1A7a1zmU2sISv+n6KRb21kMcWHYs+zVhQ5Z/hFog0AHOHLkuKLvI6huSv3xLxH6uxnlJdHj8/wk0/PbUruj5ZtXd2sL5Ellel3eb4UUM27oaRK/kKC8OjBz/cQoeYPRu+wMOeo0l5MKQT1uyx5uFRInjWdtcWjOT4=
+	t=1789474870; cv=none; b=EISV6MIume40W4xCgi90vCRrjKpM9WVVgwxTv+qu0rChXv7jWq8I/pjf0deImsirUIwr/v+YwFDundSbIqhZSGQEfINx3IpEdA1C0kifX5NdVIpBWQkUzuwz0WL8oaS5YWF8rTOioHq3fejoeKOiyXy5jTGUI3kKW6pSVX9j4N0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789474863; c=relaxed/simple;
-	bh=vonrQofTMqh1TZ5f0j9SBLxkepNFIrQaGLKCiSWoy/A=;
+	s=arc-20240116; t=1789474870; c=relaxed/simple;
+	bh=zfyJBviruOrXl2JCvdG1FvDmNuy7BpjW1g6Twwn8tGo=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=g3dw9vwb4GBGQUmvrFzNC7MX+YdGvRGVNpotyvV99izrx/lIy7rCJXyfbFJmaHgPLcH1JTSC7uPN144KYhzsO62VqWXzsONIXQCWcTGIFcMrPtkBv4dpa0QGHtDjA7/mfL+ohwmTipLbYXm4k2xVy7YX8HRgSSHbP9cemXvbYec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A/LXiHVz; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=VKr35TxouesJHnMNVTws9BGX7q6XJzfkWaHZg1vJ9l6q8NDnCJdVT1uQs/1QOJ9BN1fYFo/ZsJQ6HE2nrnNwcT1CkAt/AFtbjF0dfIZ60Id+kP8fmHbLjzknB7N3ZOZ20XbtPKdKUcnEs8YU4CiUDuyzioqKPKHAZp3l09VXvnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gObKfAKF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A/LXiHVz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDCFD1F00893;
-	Tue, 15 Sep 2026 12:20:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gObKfAKF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 373A11F00893;
+	Tue, 15 Sep 2026 12:21:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789474861;
-	bh=vonrQofTMqh1TZ5f0j9SBLxkepNFIrQaGLKCiSWoy/A=;
+	s=k20260515; t=1789474869;
+	bh=zfyJBviruOrXl2JCvdG1FvDmNuy7BpjW1g6Twwn8tGo=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=A/LXiHVzihnaMdFTMhS3rVKx/wDAkjfj2gDEj8DTAYNjfOe6DG+9Ca/cCtFyPhPE8
-	 y77qZBSfSC9sS4k/RUcIcuvRnjcCwtLvS7YSZE1xN5GAlkblWsWACrRhYCN5wIFKor
-	 zT8EpjnA5d63Lul165thqtWkMhkC99tbZwqRFOqKxO0tRQPj3pAlGire6kQh45O8b2
-	 eS2NZ8W+DwDtB+jiWr5CwIe6sK7rjGmOKgcSbUdZiQO/XTHrxK9zTNOllt/wu/a1To
-	 v55MzO0WPliGPDb7kJyu1DDpQ4ZeGJMNQLBjGR50wccFbjBl7QsDZheHlcTEqD3nHg
-	 F55P5vgYAJ68w==
+	b=gObKfAKFXTY0hrJS7QZn4qiNIiTIRIBlMSNnER3mXV89dBb57+qlUdDcC7JXNusYj
+	 DN3AV6iDTkMMLCKiEUO0tLOW3BC8L8HfDFUz39G5Pai9HhjjNkui+WJehHBvCAlYI6
+	 l1+furIrRu5FFpirKDF9oXFfJBGjua8Iyd0PslloNxEu3qlU5WfgMOvXrxDBbQLMUU
+	 Hqf4H4ziX5u2zvxCwKkGT4L9W/w3y3hNNkeb0JCCYiu0nrv5MgfHg4dM1guzvKexB6
+	 ypTSTOfhsabV+KeBEgLsJEWgU6XLC9cNbo4Q/j9aFrVeLGZ92YWgG0nY7ceyp4UFja
+	 rQpYWXr+PJ5lQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH RFC POC 48/50] misc: fastrpc: install the dma-buf
- descriptor when the ioctl returns
+Subject: Re: [PATCH RFC POC 49/50] iommufd: stop putting descriptors back on
+ failure
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Linus Torvalds" <torvalds@linux-foundation.org>, "Christian Brauner" <brauner@kernel.org>
-Cc: =?utf-8?b?Q2hyaXN0aWFuIEJyYXVuZXIgKEFtdXRhYmxlKQ==?= <brauner@kernel.org>, sparclinux@vger.kernel.org, linux-csky@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-hyperv@vger.kernel.org, "Oleg
- Nesterov" <oleg@redhat.com>, linux-alpha@vger.kernel.org, io-uring@vger.kernel.org, bpf@vger.kernel.org, "Peter
- Zijlstra" <peterz@infradead.org>, linux-um@lists.infradead.org, linux-snps-arc@lists.infradead.org, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, "Michael
- S. Tsirkin" <mst@redhat.com>, "Jan Kara" <jack@suse.cz>, linux-hexagon@vger.kernel.org, "Jens
- Axboe" <axboe@kernel.dk>, "Eugenio Perez" <eperezma@redhat.com>, "Ingo
- Molnar" <mingo@redhat.com>, linux-mm@kvack.org, linux-gpio@vger.kernel.org, linux-mips@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-openrisc@vger.kernel.org, kexec@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, linux-m68k@lists.linux-m68k.org, virtualization@lists.linux.dev, "Jann
- Horn" <jannh@google.com>, "Alexander Viro" <viro@zeniv.linux.org.uk>, "David
- Airlie" <airlied@redhat.com>, linux-fsdevel@vger.kernel.org
-In-Reply-To: <20260915-work-fd-reserve-unify-folded-v1-48-4d5217d6b246@kernel.org>
+To: "Christian Brauner" <brauner@kernel.org>, "Linus Torvalds" <torvalds@linux-foundation.org>
+Cc: linux-openrisc@vger.kernel.org, virtualization@lists.linux.dev, kexec@lists.infradead.org, linux-fsdevel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, io-uring@vger.kernel.org, linux-csky@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, "David
+ Airlie" <airlied@redhat.com>, "Ingo Molnar" <mingo@redhat.com>, "Jann Horn" <jannh@google.com>, linux-kernel@vger.kernel.org, "Peter
+ Zijlstra" <peterz@infradead.org>, linux-mm@kvack.org, bpf@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, sparclinux@vger.kernel.org, "Eugenio
+ Perez" <eperezma@redhat.com>, linux-arm-msm@vger.kernel.org, linux-gpio@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-parisc@vger.kernel.org, "Jens
+ Axboe" <axboe@kernel.dk>, =?utf-8?b?Q2hyaXN0aWFuIEJyYXVuZXIgKEFtdXRhYmxl?=
+ =?utf-8?b?KQ==?= <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>, "Alexander
+ Viro" <viro@zeniv.linux.org.uk>, linux-m68k@lists.linux-m68k.org, linux-um@lists.infradead.org, "Oleg
+ Nesterov" <oleg@redhat.com>, linux-snps-arc@lists.infradead.org, linux-hyperv@vger.kernel.org, "Michael
+ S. Tsirkin" <mst@redhat.com>
+In-Reply-To: <20260915-work-fd-reserve-unify-folded-v1-49-4d5217d6b246@kernel.org>
 References: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
- <20260915-work-fd-reserve-unify-folded-v1-48-4d5217d6b246@kernel.org>
+ <20260915-work-fd-reserve-unify-folded-v1-49-4d5217d6b246@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 15 Sep 2026 12:20:59 +0000
-Message-Id: <20260915122059.CDCFD1F00893@smtp.kernel.org>
+Date: Tue, 15 Sep 2026 12:21:06 +0000
+Message-Id: <20260915122107.373A11F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -60,5 +61,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260915-work-fd-re=
-serve-unify-folded-v1-0-4d5217d6b246@kernel.org?part=3D48
+serve-unify-folded-v1-0-4d5217d6b246@kernel.org?part=3D49
 
