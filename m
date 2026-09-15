@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17EB64C4F76;
-	Tue, 15 Sep 2026 11:34:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD0F64C753A;
+	Tue, 15 Sep 2026 11:34:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789472090; cv=none; b=pWeB3nPdEpEyxX+wX8VI0eaN/70CO4wJ/SsJ68glcPe+TwkqyB5eW1/UJXopOOpFJZk+n3LGyxHO6O1tZvMe9OCNV6FlMxeqv3FUrhNfAr8yCY93hLwfMGT3S2VT23U3TJxn2Y8qxHDsF0iprub65hK4M2fkhV6a0MLrev/Z1rI=
+	t=1789472099; cv=none; b=d6GboCMbtVjPUSKCK65a0Cy1I7axsnNk3mrUGUK+Qdru3AjlNuoY2jTq5UVJYPLisesE4IdpxHh1eejXZHEBblGedWHcbFq+sHnNv1s7e3qJF3rjTxUvA0SGwua2BXsKxzTeJ7EO4vyOG7M9NAFu6npRBhZmrZpJMSZUAbhh6EQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789472090; c=relaxed/simple;
-	bh=Uhm5pGuH1u5xvAiYltqyiEc1yitYtbQkVnEw911bZpc=;
+	s=arc-20240116; t=1789472099; c=relaxed/simple;
+	bh=0aF43DhxqkdJzKcsExOwjxx4MBfkynUOKohe+cP6pHo=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=mL/cRSHSberk093ha/o/WeCnvcIQa947mGMITRqCGnLgCBaa/ndj09HnvsiHcSqZKNQSmnh3X7SK5paC4KGYziuc/V0au9pI0HaZUqoSy/htruUkRSkYrF4HelO8EQtKtKVkpbY3ceNkqTYLLuqWIBsnR2iHilVIBjuDCgMN6PY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Flsbpaaf; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=VF0Eto5gienEMNFVGt7gimvxRqAaagZ2fMkA82UTV6Dmri+UNkQORCe7hzuPWmajgZuNKCuM8PI7QCMvMya5eu3sQlIVP242CP4y/mh67GSIBM++LZ/93PODL6u3Al20tB0Wl/BqYDAg7YaulspKNkznM3nnFz+p0qsSakQqT74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dILdN8rE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Flsbpaaf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A3EE1F0089A;
-	Tue, 15 Sep 2026 11:34:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dILdN8rE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 047041F00893;
+	Tue, 15 Sep 2026 11:34:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789472087;
-	bh=hTcFPD5nJ4+2LMtt0zaRlcDz8pb9ncWK9jLD+CuAEYQ=;
+	s=k20260515; t=1789472095;
+	bh=Cxkt5ZZmGkjFd539Cl9RA+9e8VT0n+2aqKlnDvtva3g=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=FlsbpaafsIOIgMpG7HCaM1DGGB+32ZzKmdnN26bxlcjfIBYeSqjg7SV0fHdam08z6
-	 UPHMCKlmukOmWEHllUecx7o++e5Lh3XRpN7AoTUW08gMYmF+pJlT/fJIqly9PGTq+Q
-	 uS8J8PziF121Z3kDQMB072y+lW4FQwZm+xGXX0ts1HmNDiDLjcAfccLqn5D3mHANLN
-	 CqNXVBrP5dfz3b/gqBl92UwVJ+JI45K95UWmPc4kdiJc8xu1YSfVfi7VzrYDrKL8fJ
-	 epFtYGN9LUEdiCXHagpzqxt2EfM73ZpJkAjsDTURRWezAHawT/pR7B3JghREyKTwwX
-	 W4GQ4hx051nWA==
+	b=dILdN8rEl6D0AvNs+ADrv4qyz7XFz7x4boFlXmBNHuzp8dsfrNxC3GxAas+GJFMv+
+	 KJnK0aX5JPblFXsMNwsHCIlkZII+0cYJLUL4usXBn+tv30sxD+kVeBTY5hcwuU5iTw
+	 MXYhBhYyk8HliVAWPS90CFPCshSX6kinnV9G6S3iAxfflAZBj+c9/TE3CiaFW3hDG7
+	 dRdxg6OcMTB4GCjwlFFQl9XbyBURQfFnRT9yVIi6yc8yWO4+AzWpSl0LOZwVL0qtIE
+	 Rv5L8GTAkHFUQiQIsfVM5d6ZEM2JM2QT8a+Fnw1EggkywbFsnu2tEM8H3ZlrtZibQk
+	 qheZhWDLwLoTQ==
 From: Christian Brauner <brauner@kernel.org>
-Date: Tue, 15 Sep 2026 13:31:13 +0200
-Subject: [PATCH RFC POC 27/50] drm/amdkfd: stop collecting CRIU dma-buf
- descriptors for a final install
+Date: Tue, 15 Sep 2026 13:31:14 +0200
+Subject: [PATCH RFC POC 28/50] drm/msm: install the out-fence descriptor
+ when the ioctl returns
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260915-work-fd-reserve-unify-folded-v1-27-4d5217d6b246@kernel.org>
+Message-Id: <20260915-work-fd-reserve-unify-folded-v1-28-4d5217d6b246@kernel.org>
 References: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
 In-Reply-To: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
 To: Linus Torvalds <torvalds@linux-foundation.org>
@@ -61,12 +61,12 @@ Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jann Horn <jannh@google.com>,
  kexec@lists.infradead.org, linux-hyperv@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-db0b7
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5171; i=brauner@kernel.org;
- h=from:subject:message-id; bh=Uhm5pGuH1u5xvAiYltqyiEc1yitYtbQkVnEw911bZpc=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSt1KnLvXpYsF3fqHGS4YdPk5Xs9qW0bU/n3sgcUJuWL
- yu8Wl+zo5SFQYyLQVZMkcWh3SRcbjlPxWajTA2YOaxMIEMYuDgFYCLz5jIynODjjVis7j19ziS2
- AGmxAyL/v9W4StwoyMiZ+y5dYVWsNSPDvtpDpbc/Xihcun6Paoagrpdv5G6xV3U64XVmjU+13Lp
- ZAA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3900; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=0aF43DhxqkdJzKcsExOwjxx4MBfkynUOKohe+cP6pHo=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSt1KkrWhO2ocr+XsOZ92nMd0VvHVZ7Ky7587iN4qmUy
+ EPVDqtUOkpZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACZixcnwT519/+ba76oz/vy5
+ vmjf+l1Wu2z2blt9XNlWNjDylNSVxs0Mf2WKlse//zVlb82qCaECXSHqTPxv9vQ9tHvbvedgQGZ
+ ROgcA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
@@ -74,170 +74,118 @@ Rely on the fd exit path machinery.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- drivers/gpu/drm/amd/amdkfd/kfd_chardev.c | 67 +++++++-------------------------
- 1 file changed, 13 insertions(+), 54 deletions(-)
+ drivers/gpu/drm/msm/msm_gem_submit.c | 22 +++++++++-------------
+ drivers/gpu/drm/msm/msm_gem_vma.c    | 22 +++++++++-------------
+ 2 files changed, 18 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-index 7fcfc150a7fc..158abe7e3da6 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-@@ -1988,11 +1988,10 @@ static uint32_t get_process_num_bos(struct kfd_process *p)
- 	return num_of_bos;
- }
- 
--static int criu_get_prime_handle(struct kgd_mem *mem,
--				 int flags, u32 *shared_fd,
--				 struct file **file)
-+static int criu_get_prime_handle(struct kgd_mem *mem, int flags, u32 *shared_fd)
- {
- 	struct dma_buf *dmabuf;
-+	const struct fd_slot *fd;
+diff --git a/drivers/gpu/drm/msm/msm_gem_submit.c b/drivers/gpu/drm/msm/msm_gem_submit.c
+index 5862db05297a..4ddfd07c1480 100644
+--- a/drivers/gpu/drm/msm/msm_gem_submit.c
++++ b/drivers/gpu/drm/msm/msm_gem_submit.c
+@@ -558,7 +558,7 @@ int msm_ioctl_gem_submit(struct drm_device *dev, void *data,
+ 	struct drm_syncobj **syncobjs_to_reset = NULL;
+ 	struct sync_file *sync_file = NULL;
+ 	unsigned cmds_to_parse;
+-	int out_fence_fd = -1;
++	const struct fd_slot *out_fence_fd = NULL;
+ 	unsigned i;
  	int ret;
  
- 	ret = amdgpu_amdkfd_gpuvm_export_dmabuf(mem, &dmabuf);
-@@ -2001,38 +2000,17 @@ static int criu_get_prime_handle(struct kgd_mem *mem,
- 		return ret;
+@@ -601,9 +601,9 @@ int msm_ioctl_gem_submit(struct drm_device *dev, void *data,
+ 	ring = gpu->rb[queue->ring_nr];
+ 
+ 	if (args->flags & MSM_SUBMIT_FENCE_FD_OUT) {
+-		out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
+-		if (out_fence_fd < 0) {
+-			ret = out_fence_fd;
++		out_fence_fd = fd_prepare(O_CLOEXEC);
++		if (IS_ERR(out_fence_fd)) {
++			ret = PTR_ERR(out_fence_fd);
+ 			goto out_post_unlock;
+ 		}
+ 	}
+@@ -777,6 +777,8 @@ int msm_ioctl_gem_submit(struct drm_device *dev, void *data,
+ 		sync_file = sync_file_create(submit->user_fence);
+ 		if (!sync_file)
+ 			ret = -ENOMEM;
++		else
++			fd_stage(out_fence_fd, sync_file->file);
  	}
  
--	ret = get_unused_fd_flags(flags);
--	if (ret < 0) {
-+	fd = fd_prepare(flags);
-+	if (IS_ERR(fd)) {
-+		ret = PTR_ERR(fd);
- 		pr_err("dmabuf create fd failed, ret:%d\n", ret);
--		goto out_free_dmabuf;
-+		dma_buf_put(dmabuf);
-+		return ret;
- 	}
- 
--	*shared_fd = ret;
--	*file = dmabuf->file;
-+	/* Installed or dropped with the ioctl's result, nothing to put back. */
-+	*shared_fd = fd_stage(fd, dmabuf->file);
- 	return 0;
--
--out_free_dmabuf:
--	dma_buf_put(dmabuf);
--	return ret;
--}
--
--static void commit_files(struct file **files,
--			 struct kfd_criu_bo_bucket *bo_buckets,
--			 unsigned int count,
--			 int err)
--{
--	while (count--) {
--		struct file *file = files[count];
--
--		if (!file)
--			continue;
--		if (err) {
--			fput(file);
--			put_unused_fd(bo_buckets[count].dmabuf_fd);
--		} else {
--			fd_install(bo_buckets[count].dmabuf_fd, file);
--		}
+ 	if (ret)
+@@ -814,15 +816,9 @@ int msm_ioctl_gem_submit(struct drm_device *dev, void *data,
+ out_unlock:
+ 	mutex_unlock(&queue->lock);
+ out_post_unlock:
+-	if (ret) {
+-		if (out_fence_fd >= 0)
+-			put_unused_fd(out_fence_fd);
+-		if (sync_file)
+-			fput(sync_file->file);
+-	} else if (sync_file) {
+-		fd_install(out_fence_fd, sync_file->file);
+-		args->fence_fd = out_fence_fd;
 -	}
- }
++	/* A staged sync file and its descriptor are dropped on return. */
++	if (!ret && sync_file)
++		args->fence_fd = fd_prepare_fd(out_fence_fd);
  
- static int criu_checkpoint_bos(struct kfd_process *p,
-@@ -2043,7 +2021,6 @@ static int criu_checkpoint_bos(struct kfd_process *p,
- {
- 	struct kfd_criu_bo_bucket *bo_buckets;
- 	struct kfd_criu_bo_priv_data *bo_privs;
--	struct file **files = NULL;
- 	int ret = 0, pdd_index, bo_index = 0, id;
- 	void *mem;
+ 	if (!IS_ERR_OR_NULL(submit)) {
+ 		msm_gem_submit_put(submit);
+diff --git a/drivers/gpu/drm/msm/msm_gem_vma.c b/drivers/gpu/drm/msm/msm_gem_vma.c
+index c11d021581e0..77d365566732 100644
+--- a/drivers/gpu/drm/msm/msm_gem_vma.c
++++ b/drivers/gpu/drm/msm/msm_gem_vma.c
+@@ -1441,7 +1441,7 @@ msm_ioctl_vm_bind(struct drm_device *dev, void *data, struct drm_file *file)
+ 	struct drm_syncobj **syncobjs_to_reset = NULL;
+ 	struct sync_file *sync_file = NULL;
+ 	struct dma_fence *fence;
+-	int out_fence_fd = -1;
++	const struct fd_slot *out_fence_fd = NULL;
+ 	int ret, nr_bos = 0;
+ 	unsigned i;
  
-@@ -2057,12 +2034,6 @@ static int criu_checkpoint_bos(struct kfd_process *p,
- 		goto exit;
+@@ -1479,9 +1479,9 @@ msm_ioctl_vm_bind(struct drm_device *dev, void *data, struct drm_file *file)
  	}
  
--	files = kvcalloc(num_bos, sizeof(struct file *), GFP_KERNEL);
--	if (!files) {
--		ret = -ENOMEM;
--		goto exit;
+ 	if (args->flags & MSM_VM_BIND_FENCE_FD_OUT) {
+-		out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
+-		if (out_fence_fd < 0) {
+-			ret = out_fence_fd;
++		out_fence_fd = fd_prepare(O_CLOEXEC);
++		if (IS_ERR(out_fence_fd)) {
++			ret = PTR_ERR(out_fence_fd);
+ 			goto out_post_unlock;
+ 		}
+ 	}
+@@ -1565,6 +1565,8 @@ msm_ioctl_vm_bind(struct drm_device *dev, void *data, struct drm_file *file)
+ 		sync_file = sync_file_create(job->fence);
+ 		if (!sync_file)
+ 			ret = -ENOMEM;
++		else
++			fd_stage(out_fence_fd, sync_file->file);
+ 	}
+ 
+ 	if (ret)
+@@ -1593,15 +1595,9 @@ msm_ioctl_vm_bind(struct drm_device *dev, void *data, struct drm_file *file)
+ out_unlock:
+ 	mutex_unlock(&queue->lock);
+ out_post_unlock:
+-	if (ret) {
+-		if (out_fence_fd >= 0)
+-			put_unused_fd(out_fence_fd);
+-		if (sync_file)
+-			fput(sync_file->file);
+-	} else if (sync_file) {
+-		fd_install(out_fence_fd, sync_file->file);
+-		args->fence_fd = out_fence_fd;
 -	}
--
- 	for (pdd_index = 0; pdd_index < p->n_pdds; pdd_index++) {
- 		struct kfd_process_device *pdd = p->pdds[pdd_index];
- 		struct amdgpu_bo *dumper_bo;
-@@ -2105,7 +2076,7 @@ static int criu_checkpoint_bos(struct kfd_process *p,
- 				ret = criu_get_prime_handle(kgd_mem,
- 						bo_bucket->alloc_flags &
- 						KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE ? DRM_RDWR : 0,
--						&bo_bucket->dmabuf_fd, &files[bo_index]);
-+						&bo_bucket->dmabuf_fd);
- 				if (ret)
- 					goto exit;
- 			} else {
-@@ -2156,8 +2127,6 @@ static int criu_checkpoint_bos(struct kfd_process *p,
- 	*priv_offset += num_bos * sizeof(*bo_privs);
++	/* A staged sync file and its descriptor are dropped on return. */
++	if (!ret && sync_file)
++		args->fence_fd = fd_prepare_fd(out_fence_fd);
  
- exit:
--	commit_files(files, bo_buckets, bo_index, ret);
--	kvfree(files);
- 	kvfree(bo_buckets);
- 	kvfree(bo_privs);
- 	return ret;
-@@ -2504,8 +2473,7 @@ static int criu_restore_memory_of_gpu(struct kfd_process_device *pdd,
- 
- static int criu_restore_bo(struct kfd_process *p,
- 			   struct kfd_criu_bo_bucket *bo_bucket,
--			   struct kfd_criu_bo_priv_data *bo_priv,
--			   struct file **file)
-+			   struct kfd_criu_bo_priv_data *bo_priv)
- {
- 	struct kfd_process_device *pdd;
- 	struct kgd_mem *kgd_mem;
-@@ -2557,7 +2525,7 @@ static int criu_restore_bo(struct kfd_process *p,
- 	if (bo_bucket->alloc_flags
- 	    & (KFD_IOC_ALLOC_MEM_FLAGS_VRAM | KFD_IOC_ALLOC_MEM_FLAGS_GTT)) {
- 		ret = criu_get_prime_handle(kgd_mem, DRM_RDWR,
--					    &bo_bucket->dmabuf_fd, file);
-+					    &bo_bucket->dmabuf_fd);
+ 	if (!IS_ERR_OR_NULL(job)) {
  		if (ret)
- 			return ret;
- 	} else {
-@@ -2574,7 +2542,6 @@ static int criu_restore_bos(struct kfd_process *p,
- {
- 	struct kfd_criu_bo_bucket *bo_buckets = NULL;
- 	struct kfd_criu_bo_priv_data *bo_privs = NULL;
--	struct file **files = NULL;
- 	int ret = 0;
- 	uint32_t i = 0;
- 
-@@ -2588,12 +2555,6 @@ static int criu_restore_bos(struct kfd_process *p,
- 	if (!bo_buckets)
- 		return -ENOMEM;
- 
--	files = kvcalloc(args->num_bos, sizeof(struct file *), GFP_KERNEL);
--	if (!files) {
--		ret = -ENOMEM;
--		goto exit;
--	}
--
- 	ret = copy_from_user(bo_buckets, (void __user *)args->bos,
- 			     args->num_bos * sizeof(*bo_buckets));
- 	if (ret) {
-@@ -2619,7 +2580,7 @@ static int criu_restore_bos(struct kfd_process *p,
- 
- 	/* Create and map new BOs */
- 	for (; i < args->num_bos; i++) {
--		ret = criu_restore_bo(p, &bo_buckets[i], &bo_privs[i], &files[i]);
-+		ret = criu_restore_bo(p, &bo_buckets[i], &bo_privs[i]);
- 		if (ret) {
- 			pr_debug("Failed to restore BO[%d] ret%d\n", i, ret);
- 			goto exit;
-@@ -2634,8 +2595,6 @@ static int criu_restore_bos(struct kfd_process *p,
- 		ret = -EFAULT;
- 
- exit:
--	commit_files(files, bo_buckets, i, ret);
--	kvfree(files);
- 	kvfree(bo_buckets);
- 	kvfree(bo_privs);
- 	return ret;
 
 -- 
 2.53.0
