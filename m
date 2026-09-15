@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8835E4D90B5;
-	Tue, 15 Sep 2026 11:35:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A64F4E66A1;
+	Tue, 15 Sep 2026 11:35:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789472157; cv=none; b=siIkRFu9Ng8kaAuBB6CyUk+E0exi3f78kxXvc27Wlw2HfE+wFK084yQ+ztzBQjQzNIUrlbINBLeadDj6htqmPIs1f/1yfqAh+fht190O8sV9ebBJfyVaA6NByv7gx2fRxe8tOYSqMHpfWf2/AJ6BIgRmjyNguEVA1mFbMoPvY2Y=
+	t=1789472161; cv=none; b=LlybUZ/TMRzIFwY4W9VPwfjGo4tD89q3K5T9yuTVISw6dUp4g6wCoou0X9XXVxpvMguRHt7VnSIK6GEifaR0jI+mPHCeBd5t40cvQxtY0YrkCcauaZVkohoNtEJ26kmanGe2zVnQrr6lHnsYi71Wtpu0EjUe8Pv8afFVIqHkvJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789472157; c=relaxed/simple;
-	bh=QV1nvuOZOTXbG885TIwwr0E5buagCxFnNDHDpDWzkd0=;
+	s=arc-20240116; t=1789472161; c=relaxed/simple;
+	bh=06X+neGC1JeQjfUMZrHZWaV7oELS9OsBJ6UQD7zSi4E=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=C3HvDXen9hazl/vKSMa2c5SPhfn+dzOlgdJuzKoHuNTr8n6wPoh/ZSIigFqro3qvwwEI18AXMWwuKt/oBhhkU3E7mRdgA1UYvwKn1nv3tnROUHdpeGjKQy0T+pWN0KxrKpPBR6RmvkFgT7RVuB6YOLpwI0DDjSDkNGqv3FWloTA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MdYtXPMr; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=VLpXBoynM+VWiJoho2iRz3DT2+NBopl3Z1AxeFif8n6qpkNNzvDoDCA0JiVPFubHmxATyFm2fzwgMg7GJk/hQ4odqvFMvNskm6//w2S54W3LjjiL8MUtdOLd78WhPPYtI3GM2zSrT5dg2K8lP+cMlbrL51WSUfC8JAsSFATrcRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DP7k+2oY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MdYtXPMr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FDC21F00898;
-	Tue, 15 Sep 2026 11:35:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DP7k+2oY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B05B1F000FF;
+	Tue, 15 Sep 2026 11:35:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789472150;
-	bh=RYwvcYgPe7F+yniz25uY8kYzwfi4Dpf3GuV+JDSn+cI=;
+	s=k20260515; t=1789472158;
+	bh=b40qx/awPhHY3pAbyOLJ2VCQCA5LCLOxDhc9IZ5eVmE=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=MdYtXPMryZ+6SAlSbL19CQpX3Z64/AWWELS/WUVzAp8Xg1GKcwta2ZBYcN6wG36Mt
-	 as5Dtg1uHZx0++57+0zFQf62SXXotYbTuzCZx9KtLUQmxwarrRVEc5GHr8NgTGLTnD
-	 fm7wTaE+frwG78TGBDzq5+X5mT91CNgxDsAlIIvj/82S1VRyMtU0YNLM25MFctgbyo
-	 vTKRbl5GQlZXJ0hhVYRlwEl093ozZ6/IECB99aVD24EC0zmPYaRRHVzNiU6egwU8ae
-	 gX3+hqTSVslPaF8dAefZoz9w+FElBtfBAJO7mXAQPx7QPzbOBB9Xhv3/9TzLihtFHy
-	 3qlJrcB+1giaw==
+	b=DP7k+2oYU08PDg3XHLYvBCrc74ArLylq263ZQfhfXbqRVkmDQErCOMCCjVwzRS3TV
+	 Y8Y1vhMdhR6mX1rzdLqcAsmQNs12N3hdTVztl8RasOi+yrl66kgtJvAm30HiqkZulb
+	 BeZJvaqfhTtzMk7k9vathecezVTk0f7HRyPRJBoxuaSPdxLiJQMLNsbQRaHiPb0ydM
+	 Bs/kN8QurhjzxM80pFu9PHszrjXHegO9Dn6LZ3pRg5VWri7b/KneuctABvHx5t6aU8
+	 tZLPUAdsUnZNPuONncunNV8jM+2yLhEhGWV0UDmSzPkb9+7dEf6jOyeVoYut8bPYY5
+	 6Fs/9ju++IrEA==
 From: Christian Brauner <brauner@kernel.org>
-Date: Tue, 15 Sep 2026 13:31:21 +0200
-Subject: [PATCH RFC POC 35/50] ALSA: compress: install the task descriptors
- when the ioctl returns
+Date: Tue, 15 Sep 2026 13:31:22 +0200
+Subject: [PATCH RFC POC 36/50] nitro_enclaves: install the enclave
+ descriptor when the ioctl returns
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260915-work-fd-reserve-unify-folded-v1-35-4d5217d6b246@kernel.org>
+Message-Id: <20260915-work-fd-reserve-unify-folded-v1-36-4d5217d6b246@kernel.org>
 References: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
 In-Reply-To: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
 To: Linus Torvalds <torvalds@linux-foundation.org>
@@ -61,12 +61,12 @@ Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jann Horn <jannh@google.com>,
  kexec@lists.infradead.org, linux-hyperv@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-db0b7
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2232; i=brauner@kernel.org;
- h=from:subject:message-id; bh=QV1nvuOZOTXbG885TIwwr0E5buagCxFnNDHDpDWzkd0=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSt1Kk7NZFnW/2OMo2T/F2ffljdXrzpyBybxa2xOhV3m
- 5euvTinqKOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAidmKMDD3u79olF+/8fDpn
- 05GGxJ924Sr7JVZeMFmoxWl14Jl/rCQjQzvbH6/0789fvC17P2P1pnCZsljB76s+Sl9/e0W5ZEW
- eETMA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2840; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=06X+neGC1JeQjfUMZrHZWaV7oELS9OsBJ6UQD7zSi4E=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSt1Knzubs1YsvpZZZH3i8+78BV7P4vtpYxKWmuZeMPN
+ v7juhcdO0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACYi/YThf2b/jhn+T+e6nmr7
+ eXfahbUvovRN4zg2RHUHPFri9vTunR6G/1ElTBHnt53eUxYocDY8j1mnxvWvpfIKaanlW1376r2
+ dWQE=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
@@ -74,62 +74,80 @@ Rely on the fd exit path machinery.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- sound/core/compress_offload.c | 24 +++++++++++-------------
- 1 file changed, 11 insertions(+), 13 deletions(-)
+ drivers/virt/nitro_enclaves/ne_misc_dev.c | 33 ++++++++++++-------------------
+ 1 file changed, 13 insertions(+), 20 deletions(-)
 
-diff --git a/sound/core/compress_offload.c b/sound/core/compress_offload.c
-index 23d62fede06e..94bc226f8db9 100644
---- a/sound/core/compress_offload.c
-+++ b/sound/core/compress_offload.c
-@@ -1065,7 +1065,8 @@ static u64 snd_compr_seqno_next(struct snd_compr_stream *stream)
- static int snd_compr_task_new(struct snd_compr_stream *stream, struct snd_compr_task *utask)
+diff --git a/drivers/virt/nitro_enclaves/ne_misc_dev.c b/drivers/virt/nitro_enclaves/ne_misc_dev.c
+index c91300a73f50..93c3f00f5443 100644
+--- a/drivers/virt/nitro_enclaves/ne_misc_dev.c
++++ b/drivers/virt/nitro_enclaves/ne_misc_dev.c
+@@ -1589,7 +1589,7 @@ static const struct file_operations ne_enclave_fops = {
+ static int ne_create_vm_ioctl(struct ne_pci_dev *ne_pci_dev, u64 __user *slot_uid)
  {
- 	struct snd_compr_task_runtime *task;
--	int retval, fd_i, fd_o;
-+	int retval;
-+	const struct fd_slot *fd_i, *fd_o;
+ 	struct ne_pci_dev_cmd_reply cmd_reply = {};
+-	int enclave_fd = -1;
++	const struct fd_slot *enclave_fd = NULL;
+ 	struct file *enclave_file = NULL;
+ 	unsigned int i = 0;
+ 	struct ne_enclave *ne_enclave = NULL;
+@@ -1647,9 +1647,9 @@ static int ne_create_vm_ioctl(struct ne_pci_dev *ne_pci_dev, u64 __user *slot_ui
+ 		goto free_cpumask;
+ 	}
  
- 	if (stream->runtime->total_tasks >= stream->runtime->fragments)
- 		return -EBUSY;
-@@ -1080,29 +1081,26 @@ static int snd_compr_task_new(struct snd_compr_stream *stream, struct snd_compr_
- 	if (retval < 0)
- 		goto cleanup;
- 	/* similar functionality as in dma_buf_fd(), but ensure that both
--	   file descriptors are allocated before fd_install() */
-+	   file descriptors are reserved before either is staged */
- 	if (!task->input || !task->input->file || !task->output || !task->output->file) {
- 		retval = -EINVAL;
- 		goto free_driver_task;
+-	enclave_fd = get_unused_fd_flags(O_CLOEXEC);
+-	if (enclave_fd < 0) {
+-		rc = enclave_fd;
++	enclave_fd = fd_prepare(O_CLOEXEC);
++	if (IS_ERR(enclave_fd)) {
++		rc = PTR_ERR(enclave_fd);
+ 
+ 		dev_err_ratelimited(ne_misc_dev.this_device,
+ 				    "Error in getting unused fd [rc=%d]\n", rc);
+@@ -1664,7 +1664,7 @@ static int ne_create_vm_ioctl(struct ne_pci_dev *ne_pci_dev, u64 __user *slot_ui
+ 		dev_err_ratelimited(ne_misc_dev.this_device,
+ 				    "Error in anon inode get file [rc=%d]\n", rc);
+ 
+-		goto put_fd;
++		goto free_cpumask;
  	}
--	fd_i = get_unused_fd_flags(O_WRONLY|O_CLOEXEC);
--	if (fd_i < 0) {
--		retval = fd_i;
-+	fd_i = fd_prepare(O_WRONLY|O_CLOEXEC);
-+	if (IS_ERR(fd_i)) {
-+		retval = PTR_ERR(fd_i);
- 		goto free_driver_task;
- 	}
--	fd_o = get_unused_fd_flags(O_RDONLY|O_CLOEXEC);
--	if (fd_o < 0) {
--		retval = fd_o;
--		put_unused_fd(fd_i);
-+	fd_o = fd_prepare(O_RDONLY|O_CLOEXEC);
-+	if (IS_ERR(fd_o)) {
-+		retval = PTR_ERR(fd_o);
- 		goto free_driver_task;
- 	}
- 	/* keep dmabuf reference until freed with task free ioctl */
- 	get_dma_buf(task->input);
- 	get_dma_buf(task->output);
--	fd_install(fd_i, task->input->file);
--	fd_install(fd_o, task->output->file);
--	utask->input_fd = fd_i;
--	utask->output_fd = fd_o;
-+	utask->input_fd = fd_stage(fd_i, task->input->file);
-+	utask->output_fd = fd_stage(fd_o, task->output->file);
- 	list_add_tail(&task->list, &stream->runtime->tasks);
- 	stream->runtime->total_tasks++;
- 	return 0;
+ 
+ 	rc = ne_do_request(pdev, SLOT_ALLOC,
+@@ -1688,27 +1688,20 @@ static int ne_create_vm_ioctl(struct ne_pci_dev *ne_pci_dev, u64 __user *slot_ui
+ 
+ 	list_add(&ne_enclave->enclave_list_entry, &ne_pci_dev->enclaves_list);
+ 
+-	if (copy_to_user(slot_uid, &ne_enclave->slot_uid, sizeof(ne_enclave->slot_uid))) {
+-		/*
+-		 * As we're holding the only reference to 'enclave_file', fput()
+-		 * will call ne_enclave_release() which will do a proper cleanup
+-		 * of all so far allocated resources, leaving only the unused fd
+-		 * for us to free.
+-		 */
+-		fput(enclave_file);
+-		put_unused_fd(enclave_fd);
++	fd_stage(enclave_fd, enclave_file);
+ 
++	/*
++	 * The failed ioctl drops the descriptor and with it the only reference
++	 * to 'enclave_file', so ne_enclave_release() does a proper cleanup of
++	 * all so far allocated resources.
++	 */
++	if (copy_to_user(slot_uid, &ne_enclave->slot_uid, sizeof(ne_enclave->slot_uid)))
+ 		return -EFAULT;
+-	}
+-
+-	fd_install(enclave_fd, enclave_file);
+ 
+-	return enclave_fd;
++	return fd_prepare_fd(enclave_fd);
+ 
+ put_file:
+ 	fput(enclave_file);
+-put_fd:
+-	put_unused_fd(enclave_fd);
+ free_cpumask:
+ 	free_cpumask_var(ne_enclave->vcpu_ids);
+ 	for (i = 0; i < ne_enclave->nr_parent_vm_cores; i++)
 
 -- 
 2.53.0
