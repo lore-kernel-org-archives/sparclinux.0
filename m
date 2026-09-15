@@ -1,65 +1,60 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D97D241A504;
-	Tue, 15 Sep 2026 11:52:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A8E04A9D4D;
+	Tue, 15 Sep 2026 11:54:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789473141; cv=none; b=CuBLtBF5VCBK4zscqB0FmHq/4PMqZYPBS2xjPzqReJ/ogiqdpIwwLYEWIsviDz7rUAuaTlQzjNnMQ4PLlOR6bXt7lghY/cbO2hOT8k1tj/MVYgkOZ3QQVYOq8P93OwM2T0sk6fSIR87aO2nAhmolCDb8f+JgCHl0GEf21G3nHOE=
+	t=1789473248; cv=none; b=CZpZhMt72gSR+bWtaxghE7o3rP/L3fpVOLc5ydKGzY5XJgmx1r2aLMTbsIf02V3yQpIkbSe/HhUI9k31IFOX4JulEfdb+3uHjrjgGHd6knXh6bZiESDMRK7z7L+spxqxzGSSrn1gWNk7ihxq9XKOK0cSW2HYf3NKskx51gP+aRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789473141; c=relaxed/simple;
-	bh=ekDoF5aUkaIqLM1AvgKs+prcUXxdZryD2GdHfQi8iAA=;
+	s=arc-20240116; t=1789473248; c=relaxed/simple;
+	bh=AG30xjDiMKCtDyqoUWBdTqe2A6YC7BdfmCSY6YO8TME=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=SFy9DQbhI8cLINzzSCbtKGDENwPKJVzVPAu6JkfqvuTzgNYtUSuKuLlkOuHn0gp8Sq0tlceMgHFzmeAx7Z8L6c87+9ZwfiMfp7zRHtIHj49vz3Xhhk7BPDc0td2IruAZeMF206gLwnZ89KpIZgCaqffU2QmpWFROlwvm3iAfOWY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gD24zazr; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=l2QSUYSF17+lhmXIk3R583PfvO4uYhGziXMrcUdf3K2r3op6OT/N71OZO0jiD0Xx8rtth8+bXMj0mXCfFQbGUNg4Qt2xira1EGen6h5MyYLq8u89194Uqrc0PlvMTsd5cfwYE+6hFYS1s3qR6MeOyy+TLAsBOJ934Et07U5+SWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jxGdVbxm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gD24zazr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F289F1F000FF;
-	Tue, 15 Sep 2026 11:52:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jxGdVbxm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F0B31F00893;
+	Tue, 15 Sep 2026 11:54:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789473139;
-	bh=ekDoF5aUkaIqLM1AvgKs+prcUXxdZryD2GdHfQi8iAA=;
+	s=k20260515; t=1789473246;
+	bh=AG30xjDiMKCtDyqoUWBdTqe2A6YC7BdfmCSY6YO8TME=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=gD24zazrk8TigMiCd5ASn+dm6txgjVpHa5zvxMTtUFRuPgLF3PTUXkAm0k3tzbTVQ
-	 kW4KsfY0HBGQif9CYx1pshd5pTSxWeoqAtmTVWdPBVqC5Vn35qXuEvnFfVWf0GTUKh
-	 RUU6SoJAkl5L0Kq8QF9Rmz6Bec1Ua+EO9EvYsJxPA1pHKVceE0vbNalGCUnepaasCe
-	 DK9cR0VwmXUnDDchOmLvDyG+u5nXi3gO659qnVPIeiexcntK9tyLliM401L/8g63N3
-	 plW5ukJMt7+DcxaIYWdMgQ+GjvsoPq80PE5u4Yrt6L+3cW6+83I52c5iJrh0Haefuc
-	 0OjHhKSvx0zPw==
+	b=jxGdVbxmN8Kp7YM+vv1k+Lwtl83KHaJbgpKLbkY5B9ndglNTkZCcuaHvygk/C/p23
+	 gtc5IvLgRXflsaT/JbeYSUg8MT7dnkGaEESjkiYYG1vk2eMg5A4bJo85Hl9wv/nzeS
+	 eGLkK/gZnGZt5sYUblxipqPSDfZOU6WkQWeqEOXj7sSr5LV4NAo/AueirSWL/XnsKl
+	 hRst8P2ASZag12PNEDM5uHg4yR4m5hctoI8grNV4iMcvJNyl1ZXEvQ3SkS6D43rgW5
+	 SD5U4o/63gzEV7FOsh2ZQJJdmW/ba916cBMFpTju6k1xEUWXrbdXF1KZviyBg5srWx
+	 +dlhemDHcpIKQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH RFC POC 02/50] entry: commit fds on syscall exit
+Subject: Re: [PATCH RFC POC 12/50] nios2: commit fds on syscall exit
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Linus Torvalds" <torvalds@linux-foundation.org>, "Christian Brauner" <brauner@kernel.org>
-Cc: linux-um@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-csky@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, virtualization@lists.linux.dev,
- =?utf-8?b?Q2hyaXN0aWFuIEJyYXVuZXIgKEFtdXRhYmxlKQ==?= <brauner@kernel.org>, "Peter
- Zijlstra" <peterz@infradead.org>, "Alexander Viro" <viro@zeniv.linux.org.uk>, "Michael
- S. Tsirkin" <mst@redhat.com>, linux-hyperv@vger.kernel.org, "Oleg Nesterov" <oleg@redhat.com>, "Eugenio
- Perez" <eperezma@redhat.com>, linux-mm@kvack.org, linux-gpio@vger.kernel.org, linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-m68k@lists.linux-m68k.org, kexec@lists.infradead.org, "Jan
- Kara" <jack@suse.cz>, io-uring@vger.kernel.org, sparclinux@vger.kernel.org, "David
- Airlie" <airlied@redhat.com>, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-snps-arc@lists.infradead.org, "Jens
- Axboe" <axboe@kernel.dk>, "Ingo Molnar" <mingo@redhat.com>, linux-kernel@vger.kernel.org, bpf@vger.kernel.org, "Jann
- Horn" <jannh@google.com>, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, dri-devel@lists.freedesktop.org
-In-Reply-To: <20260915-work-fd-reserve-unify-folded-v1-2-4d5217d6b246@kernel.org>
+To: "Christian Brauner" <brauner@kernel.org>, "Linus Torvalds" <torvalds@linux-foundation.org>
+Cc: linux-arm-msm@vger.kernel.org, linux-um@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, virtualization@lists.linux.dev, "Jens
+ Axboe" <axboe@kernel.dk>, linux-hyperv@vger.kernel.org, io-uring@vger.kernel.org, "Michael
+ S. Tsirkin" <mst@redhat.com>, linux-arm-kernel@lists.infradead.org, "Alexander
+ Viro" <viro@zeniv.linux.org.uk>, linux-csky@vger.kernel.org, sparclinux@vger.kernel.org,
+ =?utf-8?b?Q2hyaXN0aWFuIEJyYXVuZXIgKEFtdXRhYmxlKQ==?= <brauner@kernel.org>, linux-gpio@vger.kernel.org, "Ingo
+ Molnar" <mingo@redhat.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-m68k@lists.linux-m68k.org, "David
+ Airlie" <airlied@redhat.com>, dri-devel@lists.freedesktop.org, "Eugenio
+ Perez" <eperezma@redhat.com>, bpf@vger.kernel.org, linux-snps-arc@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, linux-fsdevel@vger.kernel.org, "Jan
+ Kara" <jack@suse.cz>, "Peter Zijlstra" <peterz@infradead.org>, kexec@lists.infradead.org, "Jann
+ Horn" <jannh@google.com>, linux-openrisc@vger.kernel.org, "Oleg Nesterov" <oleg@redhat.com>, kvm@vger.kernel.org
+In-Reply-To: <20260915-work-fd-reserve-unify-folded-v1-12-4d5217d6b246@kernel.org>
 References: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
- <20260915-work-fd-reserve-unify-folded-v1-2-4d5217d6b246@kernel.org>
+ <20260915-work-fd-reserve-unify-folded-v1-12-4d5217d6b246@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 15 Sep 2026 11:52:17 +0000
-Message-Id: <20260915115217.F289F1F000FF@smtp.kernel.org>
+Date: Tue, 15 Sep 2026 11:54:04 +0000
+Message-Id: <20260915115405.0F0B31F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 
-> Reserving a descriptor with fd_prepare() marks the task with
-> SYSCALL_WORK_FD_SLOTS. The syscall exit path already tests the
-> syscall work bits so a syscall that deferred nothing pays nothing new
-> and one that did takes the slow path. syscall_exit_work() commits the
-> reservations before audit and ptrace.
->=20
-> Architectures without the generic entry code grow TIF_FD_SLOTS bit in
-> their syscall exit work in the following patches.
+> Add TIF_FD_SLOTS and test it once the untraced system call has had
+> its return code translated into the r2 and r7 pair userspace sees.
 >=20
 > Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
@@ -67,5 +62,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260915-work-fd-re=
-serve-unify-folded-v1-0-4d5217d6b246@kernel.org?part=3D2
+serve-unify-folded-v1-0-4d5217d6b246@kernel.org?part=3D12
 
