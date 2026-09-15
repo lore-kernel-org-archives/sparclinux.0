@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841EB4F0543;
-	Tue, 15 Sep 2026 11:36:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F0B486647;
+	Tue, 15 Sep 2026 11:36:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789472168; cv=none; b=Ewc3fXUcIYI2xXekio6oaEgInWPQFp2bNWhKZXRiEFAxQ/wdzXWXgFvPfqo7LAPSgA0gpWjbTYXvWkGg1RhmCXxZOubEmL1DukPvRycFho+Q+UdeULWpXszXnah3o31io0gUPhBvmRZRyY1iR2yAJ3vCjioXOvFb6Zf/C00CR8s=
+	t=1789472175; cv=none; b=A9vYIBzj7K0SzCFLv35fkHke8lnFKdwb+n+22xz2zRfO/+0uUVGcUoGbTIPxLNPuihLtcl6kRwZ7VNxMTmobMDSj6ziscSg3WedhwDIWie0mPdR1ReVdyyz3P3bwdAvE5r0kc+Yj8IjZi7UcLITet+TL5Xje2lzqkExe4Fsf8ho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789472168; c=relaxed/simple;
-	bh=WL6iBvGKSQMcLT8fyxBve2m38vKajd88XKUitLJDfoo=;
+	s=arc-20240116; t=1789472175; c=relaxed/simple;
+	bh=gBId4KwT9HjrpRN/GtoshdJN45hNk2Km5XhUS+Rx/dQ=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=qV80s87RLhZ/sNAjav0RoQ/Qc1XmKUL1QEQvtZdQeqlFq3Mm+ICgPsWLG19Udp5/XPU7KnUUIDs9xWjpTryKB9GpDlR1pboYRgYo431hT+MQVLeYTR6y0JRnUy9tvKZKR52kXd1bsxi9xFloZN+0b5DWm5ESb7iBbaCknElH8Ds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OMJ+b7mB; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=ToDB89T5I4VlHXyELwjxMRX8K2FxwUrRc8W9T2XuVx9MekMPPxCaL0Ue1iprIJeQ1T+ugtxhoNoAiIbqIesW0d61hBW+7OKG0Y+qbUg7OWC1V8/kr/yl99CVucVP4AKpziIXpFy3qm+1EAs/neMv0KqPTxbWiEWoT+vwaRPY/us=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fXxOaBNd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OMJ+b7mB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFA1E1F00898;
-	Tue, 15 Sep 2026 11:35:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fXxOaBNd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6F6B1F000FF;
+	Tue, 15 Sep 2026 11:36:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789472166;
-	bh=o2lQ5Ka+5N2KnUU5FmxbFpjzBp5OWSe8vXNiFGVP9wo=;
+	s=k20260515; t=1789472174;
+	bh=SUM43IO6qNWvRdNooAPnPsLAAH/RcolhMgr+hyP1MvM=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=OMJ+b7mBI0Q8O65xdljhCPY3wAhJtYK6vRviUYwoOTOfvpAhVhrNZ1kCsXQAqmv7v
-	 3GuPhfOQ15Waw0FL/v7cPGU1CKFB0vIzNSBGpVjd2qBgP1hQ3swVBB0qsd708/I1v5
-	 vg/o9z55oXEAHcBz+9R03GejIoqfhheuysEBDKH6SjqNuu/M7QucGgMkPeQdb5GX9n
-	 uQNmyO/vVkhVONQwgr/tUv50HwF7x4nXtsyG+xs9H48A8Y+g/iDSD50VrmcEX/KGAo
-	 6x7qUbImLs8LGWOMAtx7W/94RYq1+vZrklFF1JGznEjJF5X02jojdwcWqWCWnxH6Bc
-	 DQcVPuaGmWDvQ==
+	b=fXxOaBNdJwFX/Lk/E/kRGTURHefQKpPPy4SOimei8WnuQFymjQ54Osu1qX23oVPTQ
+	 m0A8Uo6l6w4qKA2hJ3urgORqbpweOp4clPRtYTGkNID+oymAFlp8BwoOHfWgXjq00g
+	 2jaCNdDGKnUTjAY9tG8l6AGYNW5fihLVRuWziN2I32TvRehjGk6CF4lsh9F7JKNwM8
+	 v5WKv5XKjGiJgpuTC+6woLjedYHaONUBygXryBe6w8FmgPTi4h5Mt5Fbn+0QCTmLSc
+	 1dRRPZi0WCjS5bVpj31Cm7wGEaPUy3iJpp2OQokIUXhIHQiwa1Leonc8PLtC/JB8/R
+	 gVXIBaAx596pQ==
 From: Christian Brauner <brauner@kernel.org>
-Date: Tue, 15 Sep 2026 13:31:23 +0200
-Subject: [PATCH RFC POC 37/50] tpm: vtpm_proxy: install the server
- descriptor when the ioctl returns
+Date: Tue, 15 Sep 2026 13:31:24 +0200
+Subject: [PATCH RFC POC 38/50] perf: stop putting the event descriptor back
+ on failure
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260915-work-fd-reserve-unify-folded-v1-37-4d5217d6b246@kernel.org>
+Message-Id: <20260915-work-fd-reserve-unify-folded-v1-38-4d5217d6b246@kernel.org>
 References: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
 In-Reply-To: <20260915-work-fd-reserve-unify-folded-v1-0-4d5217d6b246@kernel.org>
 To: Linus Torvalds <torvalds@linux-foundation.org>
@@ -61,12 +61,12 @@ Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jann Horn <jannh@google.com>,
  kexec@lists.infradead.org, linux-hyperv@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-db0b7
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2398; i=brauner@kernel.org;
- h=from:subject:message-id; bh=WL6iBvGKSQMcLT8fyxBve2m38vKajd88XKUitLJDfoo=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSt1KkLDfGbfS6nzTDW3+CR3ZeWem2mM3pd9c9eC2/x8
- KvW8xPoKGVhEONikBVTZHFoNwmXW85TsdkoUwNmDisTyBAGLk4BmMhPNYb/Ude3PmqXNzFcrfTk
- c5TA/YXTT8zPT3uZ3v9yqU5S93XBRYwM/34c1tN5sX7LjoD5b9gnnuLVilnzKtv7cqb0mf/eLA+
- 5+AA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2461; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=gBId4KwT9HjrpRN/GtoshdJN45hNk2Km5XhUS+Rx/dQ=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSt1Knz3yduOPXT6cQYVeXHZzbnqs7Zqcayytk3qHiay
+ eV9UyYIdpSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEwk7jIjw7OGE8fOrTS3bVvT
+ 7m02I8bx3+9MntLGq9z1gtyNvPx5jAz/fe684tNnVrol8LfYa7a9+/c7fcJ8jXoa4n6P/MXywr1
+ 5AA==
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
@@ -74,81 +74,85 @@ Rely on the fd exit path machinery.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- drivers/char/tpm/tpm_vtpm_proxy.c | 30 +++++++++---------------------
- 1 file changed, 9 insertions(+), 21 deletions(-)
+ kernel/events/core.c | 31 +++++++++++--------------------
+ 1 file changed, 11 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/char/tpm/tpm_vtpm_proxy.c b/drivers/char/tpm/tpm_vtpm_proxy.c
-index b81fd2a537df..8eb87044596a 100644
---- a/drivers/char/tpm/tpm_vtpm_proxy.c
-+++ b/drivers/char/tpm/tpm_vtpm_proxy.c
-@@ -531,8 +531,8 @@ static struct file *vtpm_proxy_create_device(
- 				 struct vtpm_proxy_new_dev *vtpm_new_dev)
- {
- 	struct proxy_dev *proxy_dev;
--	int rc, fd;
- 	struct file *file;
-+	int rc;
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index a6c8e38a3110..54834a7aca53 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -13924,7 +13924,7 @@ SYSCALL_DEFINE5(perf_event_open,
+ 	struct file *event_file = NULL;
+ 	struct task_struct *task = NULL;
+ 	struct pmu *pmu;
+-	int event_fd;
++	const struct fd_slot *event_fd;
+ 	int move_group = 0;
+ 	int err;
+ 	int f_flags = O_RDWR;
+@@ -13990,9 +13990,9 @@ SYSCALL_DEFINE5(perf_event_open,
+ 	if (flags & PERF_FLAG_FD_CLOEXEC)
+ 		f_flags |= O_CLOEXEC;
  
- 	if (vtpm_new_dev->flags & ~VTPM_PROXY_FLAGS_ALL)
- 		return ERR_PTR(-EOPNOTSUPP);
-@@ -544,20 +544,15 @@ static struct file *vtpm_proxy_create_device(
- 	proxy_dev->flags = vtpm_new_dev->flags;
+-	event_fd = get_unused_fd_flags(f_flags);
+-	if (event_fd < 0)
+-		return event_fd;
++	event_fd = fd_prepare(f_flags);
++	if (IS_ERR(event_fd))
++		return PTR_ERR(event_fd);
  
- 	/* setup an anonymous file for the server-side */
--	fd = get_unused_fd_flags(O_RDWR);
--	if (fd < 0) {
--		rc = fd;
-+	FD_PREPARE(fdf, O_RDWR,
-+		   anon_inode_getfile("[vtpms]", &vtpm_proxy_fops, proxy_dev,
-+				      O_RDWR));
-+	if (IS_ERR(fdf)) {
-+		rc = PTR_ERR(fdf);
- 		goto err_delete_proxy_dev;
+ 	/*
+ 	 * Event creation should be under SRCU, see perf_pmu_unregister().
+@@ -14001,15 +14001,11 @@ SYSCALL_DEFINE5(perf_event_open,
+ 
+ 	CLASS(fd, group)(group_fd);     // group_fd == -1 => empty
+ 	if (group_fd != -1) {
+-		if (!is_perf_file(group)) {
+-			err = -EBADF;
+-			goto err_fd;
+-		}
++		if (!is_perf_file(group))
++			return -EBADF;
+ 		group_leader = fd_file(group)->private_data;
+-		if (group_leader->state <= PERF_EVENT_STATE_EXIT) {
+-			err = -ENODEV;
+-			goto err_fd;
+-		}
++		if (group_leader->state <= PERF_EVENT_STATE_EXIT)
++			return -ENODEV;
+ 		if (flags & PERF_FLAG_FD_OUTPUT)
+ 			output_event = group_leader;
+ 		if (flags & PERF_FLAG_FD_NO_GROUP)
+@@ -14018,10 +14014,8 @@ SYSCALL_DEFINE5(perf_event_open,
+ 
+ 	if (pid != -1 && !(flags & PERF_FLAG_PID_CGROUP)) {
+ 		task = find_lively_task_by_vpid(pid);
+-		if (IS_ERR(task)) {
+-			err = PTR_ERR(task);
+-			goto err_fd;
+-		}
++		if (IS_ERR(task))
++			return PTR_ERR(task);
  	}
-+	file = fd_prepare_file(fdf);
  
--	file = anon_inode_getfile("[vtpms]", &vtpm_proxy_fops, proxy_dev,
--				  O_RDWR);
--	if (IS_ERR(file)) {
--		rc = PTR_ERR(file);
--		goto err_put_unused_fd;
--	}
--
--	/* from now on we can unwind with put_unused_fd() + fput() */
- 	/* simulate an open() on the server side */
- 	vtpm_proxy_fops_open(file);
+ 	if (task && group_leader &&
+@@ -14298,8 +14292,7 @@ SYSCALL_DEFINE5(perf_event_open,
+ 	 * This ensures destruction of the group leader will find
+ 	 * the pointer to itself in perf_group_detach().
+ 	 */
+-	fd_install(event_fd, event_file);
+-	return event_fd;
++	return fd_stage(event_fd, event_file);
  
-@@ -566,16 +561,13 @@ static struct file *vtpm_proxy_create_device(
- 
- 	vtpm_proxy_work_start(proxy_dev);
- 
--	vtpm_new_dev->fd = fd;
-+	vtpm_new_dev->fd = fd_prepare_fd(fdf);
- 	vtpm_new_dev->major = MAJOR(proxy_dev->chip->dev.devt);
- 	vtpm_new_dev->minor = MINOR(proxy_dev->chip->dev.devt);
- 	vtpm_new_dev->tpm_num = proxy_dev->chip->dev_num;
- 
- 	return file;
- 
--err_put_unused_fd:
--	put_unused_fd(fd);
--
- err_delete_proxy_dev:
- 	vtpm_proxy_delete_proxy_dev(proxy_dev);
- 
-@@ -640,13 +632,9 @@ static long vtpmx_ioc_new_dev(struct file *file, unsigned int ioctl,
- 		return PTR_ERR(vtpm_file);
- 
- 	if (copy_to_user(vtpm_new_dev_p, &vtpm_new_dev,
--			 sizeof(vtpm_new_dev))) {
--		put_unused_fd(vtpm_new_dev.fd);
--		fput(vtpm_file);
-+			 sizeof(vtpm_new_dev)))
- 		return -EFAULT;
--	}
- 
--	fd_install(vtpm_new_dev.fd, vtpm_file);
- 	return 0;
+ err_context:
+ 	put_pmu_ctx(event->pmu_ctx);
+@@ -14316,8 +14309,6 @@ SYSCALL_DEFINE5(perf_event_open,
+ err_task:
+ 	if (task)
+ 		put_task_struct(task);
+-err_fd:
+-	put_unused_fd(event_fd);
+ 	return err;
  }
  
 
