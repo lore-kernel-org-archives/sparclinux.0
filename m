@@ -1,156 +1,151 @@
-Received: from fout-a2-smtp.messagingengine.com (fout-a2-smtp.messagingengine.com [103.168.172.145])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed2-f34.google.com (mail-ed2-f34.google.com [74.125.228.98])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154E83812F6;
-	Thu, 17 Sep 2026 05:56:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.145
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A733D091A
+	for <sparclinux@vger.kernel.org>; Thu, 17 Sep 2026 07:59:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.98
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789624586; cv=none; b=pNh65hvcceXssJ+MNte2ogsAfoBAjGhSI5wtU5mZyhAYFfwimHjqJMqgPKjInPqBEIeS8TOn6cxrgqG/wPRmw5KnOHtd4+pEDFDm8DLRs6DNnCqwhDQ4RM6PdJWjXaugKK5IptBMYo8/6Fo2DlEFLA9OaQGepG0jUydWb6PABVM=
+	t=1789631953; cv=none; b=lkezYT8kgbk1ib+RI8e77Ssj5jAyRP9NN/f11+IxkWaZjjyyBxiNFi6LF1fEIkDoRU03o12NYGBrOfv170tpSEOqjhrHbVS4LQ8jeTRi61KF3IILaQvtSncgZF6Hc5wV6jXOszc9AvHIZ+5zdJe+wKm5BEF9QP2QyX32KBuQlS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789624586; c=relaxed/simple;
-	bh=Mbwi+hAEJ2TOuE5pCiU68p6QpU+CXNObLTPMmeKgryc=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=IgML+dkT5c5Rt/8s51jUv/A/ov/QBG8mC/dXiRmCJGzMwr8lU7LU0gnfdfmhuASIuUi0EYhvbOpKaTyrm1yZhz8DSQj3hLN9rKCxOPpaFSbKTWXxVYLxG0wEfoM6E1IiWz75FxZWuMjNTeJoD+8y7GCOntIf/4jg8g8NaEuiQSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=GGbp4G/u; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=eBKaRa1q; arc=none smtp.client-ip=103.168.172.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1789631953; c=relaxed/simple;
+	bh=HzxMf9+8T6QPlATP3+kPcAW2ULqoRkB/P0Uf3YNk5yM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=o7tGjKT7eOrNWj0qRNhRkfX9y5IbOWtBKsJt/UEQeNs7Nrh8MdgK0yMVDHWAVOOTrclMGfZ+E4kUa/8wPvHJDhROWxopPuFqSo9X0OwyPEcSIKADE0QOhHT1XuMHZwbyiiEjyhlXnQjcmVtFcfyqhIWu6mQNi2MMcS3vfLPMdqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=huv7/E1q; arc=none smtp.client-ip=74.125.228.98
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="GGbp4G/u";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="eBKaRa1q"
-Received: from ams-compute-02.internal (ams-compute-02.internal [10.64.2.62])
-	by mailfout.phl.internal (Postfix) with ESMTP id 05937EC0118;
-	Thu, 17 Sep 2026 01:56:21 -0400 (EDT)
-Received: from ams-imap-03 ([10.64.2.23])
-  by ams-compute-02.internal (MEProxy); Thu, 17 Sep 2026 01:56:23 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm3; t=1789624581;
-	 x=1789710981; bh=E6Vg3bpUqSz3Pj9xg3oQSweER3Z7QxD7M1oDqjqbTDE=; b=
-	GGbp4G/u+roLCBBW1X5LxaPuo76yNpQDClMQMHkJmJCuirPtxMNGj1jajS/PTGfN
-	JVK1YQbrVgyHcM5r88NM4U1E5do7xAG78NOL+9CDBRjuk4KEDE8BSVNmyWM2arDJ
-	ra6+Btxidwe4vTBDTMhblROGwZLbytUpIx8EtmlM6yA6jtQGaTqKRX4Dcxb4n3au
-	NnEUSdf3EDdHJlXkS0zp+WeWiCdYUBSaP3a2dk6oKO2VhmXUl2wKRWIPoO0ogHee
-	CTESVdKNA7pcf9Jyz9Bi4fAR7ZK+I+rZuCxYMynFJmHpCV8DV2WexIiE75gl9N76
-	+rV/p9tZhFNfaPbak9I0QQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1789624581; x=
-	1789710981; bh=E6Vg3bpUqSz3Pj9xg3oQSweER3Z7QxD7M1oDqjqbTDE=; b=e
-	BKaRa1qijVXP/ajZuMAbyukMZKAFqJbMTTD1l4SzixYv2o9ux9k5SpwWP6shuZi6
-	865rELRDQkGVQ560bbGAEs54IVn96qd4TZC64dVV29s6tGRKoIBB1oCprIIIaEBd
-	R0a7/WhCklnf2k3mcDGVJbRtWfJVKB5iZwosgZAiPT+EpCM7CHbR1Vy+4iS8wX36
-	9LE9fv8WA5KCuoK1eq0iy9Nvfsm/+T+u996e9rpT3cllfrv7U3tMxNRiMsRo48MS
-	Gs8UoeIwlWQsI4PPWOdU3eoVd3Kcq8wnnb8EGn6UcR8ip06o0H13XQAPCaNsXY8a
-	SC8VoEXEyTHTEalfPb/FA==
-X-ME-Sender: <xms:AIGranrIsNzd-n5_Y_lgDm8e4SveGD4WDkkQG1exaPyHNwyfIvTZbA>
-    <xme:AIGrasfLaUOrMTpyOBaiZ89PwG8J6Edhypf-kwZqr_K80-fhGBuGj5T1N5bvggTAM
-    hNpTkii2-BASlIC_B0jMI20PaaeEPo5rxYuOFCVD9hYmZKqVFtADLNk>
-X-ME-Proxy-Cause: dmFkZTFlx2cT7GLNvlNJEzNcY+Amz1Ciq+yjddF3pMcq3/zZLoLLD2H82cYq+2SeOYQV9f
-    vehC8tp9xFp5qadWLjh+qiCAyw47Ch69MWx66qZr1l/WAmg0WrvOpJumDcq+uMYLgMnaui
-    vaVxLdO2W1cWqVPF2UQHOQ36xm/wSftcKi+Ca//GEsMgqK0MrQF4x4me01uH4IRb68jYyZ
-    OJUk4XkunCR4+ds+tTViycw2avGqXhI22CM1Gdy9ZkMp0uMjDt0GHh5BtN/7tM6ztMugOO
-    92nCc5FFXjf//UTJ5Y2mBwu5H/nqaISdKHJ3PiRgUtwGCanRvVJS3KCcsANToDdrbd1uIU
-    UB3LfmT1/5WcpFhho/ss8YDyEuTq93o6YW96Fvy/GopTRZ6mFe/jVCl8NbTSToGxqkDZbs
-    ae8Ec1jmx/4fmaS8R2dq6A2nJe2Bu44omcwh+Uc9+lks0BIAHWfdBfCpP3a9aU9ElZQ42V
-    tzgYuvZzo4kLrFFQuxbRatLhcsKUYLu2bsEuApzGxJOJcwFxJT6tGlg7ICwRL9cxg2d27W
-    PEw7JxMlTUJXiJY/M9hMFCSD+ao51qh4AO9SuMAYNv1dFuqTFP0fTJGZ9uIE1md1Gcy6sP
-    Gu4Im/oJu2smgsG47SdCFaov6IfT7eJU7LO6HoFrSlZ85HOX4lBZdHSlbcXw
-X-ME-Proxy: <xmx:A4GraqsT-7Y_-7Pi_lEQa9ygymHWBMqAV-q_z0fAlD7Xl_MrRPlTuw>
-    <xmx:A4Grav504RveMCKeSbDWGAtYZXxblOBcBDM643TN_YWDjAcwkhNOLA>
-    <xmx:A4Gralh0Ju2t_GxhEHoVaLRYJnMALJOoo5IhfOlSiHGY4nVCRFoeaw>
-    <xmx:A4GrahlpmG0IUBEpT0yA3bHiuuRcQz4vCKr1JaFc3Ko2r-rZJiVgpw>
-    <xmx:BYGrat3f9YzO4JP-AGGLy-4_Rp9eLrex7DBQngPe_b2S_5s8Oivy7jAX>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.ams.internal (Postfix, from userid 501)
-	id A4D9532A0084; Thu, 17 Sep 2026 01:56:16 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="huv7/E1q"
+Received: by mail-ed2-f34.google.com with SMTP id 4fb4d7f45d1cf-6a9dfe4dfc0so889857a12.0
+        for <sparclinux@vger.kernel.org>; Thu, 17 Sep 2026 00:59:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789631949; x=1790236749; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=GOfKLa1W7BWMMHOij1kNXtl7XucEhCyieOIZlA8fo3k=;
+        b=huv7/E1qv4mSBia1m5TrNhiFYEtn8QmwbBv2I9RqnBZKu1MDuvEWEvZitGzT+78nwh
+         rhhRkfylBXu/eXedEhVsNC+qU3jhsdLh6CzwNDhsruCPWtKSKQi1BgPjGVhwFpDwPdbl
+         Kb7QzUJC6F/acykt876juwDnHZNzXU/KUjE3ckB2FND/gGcLOQVP6RU0a1qKezyqc334
+         GxAT1oIBRlCkcNOyxHZOF0J8GMbcCkUQLsT69XPnPaegWd0ymjRYpqm3EeVW9Ey22jca
+         X+DRowM9fwsb3Md1boQkA2zBFELHId32ViGUiIqo4NsRVzsqE8yDIXNF7vW03MDYa1Uj
+         jQlg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789631949; x=1790236749;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=GOfKLa1W7BWMMHOij1kNXtl7XucEhCyieOIZlA8fo3k=;
+        b=X3imNSbluYlr4TIzdAMcvaG28pz01OPrY/EIiG24tGH3dKa63lVfANe/FC3zhsOdqh
+         3J1CZnDjKa+kz7/DhPEGZlo4M6WTG77u4NveJvpJJ3pLbubr6XH9FbrcC0wBlzuOEqw/
+         Jd6WxQxqlJTqTa7uvbfa6t0yG8M0C+LrXRiscNJVTPVG18lBAGjEt7C35EB8BZGXDxsD
+         Knsq6carLLJgO0zATc+AC1K5ax6SOscl5/8WAu2F7eVM3RfMLShTsLsHkzWrFwekwoqT
+         E4Wc8ueuGntIbG8aU6b0MityfU8djAVhSmiy7Civcmq+QMktSX1KuFiEiTiwCgBZMHhw
+         DVEQ==
+X-Forwarded-Encrypted: i=1; AKwUvByHi++kyND9twcSJf9tW0juloCWrYHSrDmzlW10Y+5+Qoy8P5gBGzV/1TaOkoWNWo91E2B7bGSXSuyl@vger.kernel.org
+X-Gm-Message-State: AFuF++lg0VdyiIR1ybp+lIBS4hYcD9ntFD6Mh/0tJzQ1LKrf7KRLzrBf
+	hUYBDllZPgQbGIg+R9ggBVi2E2qrrhqV+rWyw4Udr/OVzQkFckdgpbcF
+X-Gm-Gg: AYBFou3Ly3NY/Peg2TOL1JZp1BTH2eAwcLS4IlmXe5CgRaTSTmRKwlgqczGb65nJb3e
+	75z/HPRzIlpkCVootIqDmSOCO/kVKRw5p/TXsqB+8n4wqJ5GAP6uzvPkenhW7gPDaIKKdkyaZRd
+	kd7mrcYKlK6o3uo1JQkCqcKDjcry8fqeK0OEVNLHvlg000zyN4MnL4x8DMaxX7Xxlzth7ep4JQj
+	zbizOTIWttYvgZkIdYhBDxvR6mSNzCu+iYvTr23EGOJnSpw7Io2N4IL7ShB6VW5tbw+vwJRyHsd
+	faknSKtE0MCWs7ZOVqx32cFxGsMZdAN8MGwbRARRn+0WST2QOxGN85u5NR1Dnh+x3WN63ZFZR1q
+	bex0dkKD2trcQbB94j1ae4g6GCOFEL7BDj+B2sNHmTNyFnUunf85j4prRifvUMijYiYWma0sqDV
+	Nq0gsoFupM2qLogXyDGHTVaOTDZ9FcVNd7fNP/bMcj1sWMh0o1wIIy6WQjHfOtl6Kcnr3A8XmeC
+	IB9OqksJajFLn+orWnT0h7jP7kgE0dlM+MZ4oTiag==
+X-Received: by 2002:a17:907:6d1e:b0:c29:5af0:3b44 with SMTP id a640c23a62f3a-c29e52e0551mr377872566b.41.1789631949444;
+        Thu, 17 Sep 2026 00:59:09 -0700 (PDT)
+Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c29de453ea0sm250287766b.11.2026.09.17.00.59.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 17 Sep 2026 00:59:09 -0700 (PDT)
+From: Magnus Lindholm <linmag7@gmail.com>
+To: davem@davemloft.net,
+	andreas@gaisler.com
+Cc: sam@ravnborg.org,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linmag7@gmail.com
+Subject: [PATCH v2 0/2] sparc32: SuperSPARC SMP synchronization fixes
+Date: Thu, 17 Sep 2026 09:57:03 +0200
+Message-ID: <20260917075842.784996-1-linmag7@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AA0MNwphKERR
-Date: Thu, 17 Sep 2026 07:55:56 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: "Christian Brauner" <brauner@kernel.org>, linux-kernel@vger.kernel.org,
- linux-kbuild@vger.kernel.org, kernel-dev@igalia.com,
- "Masami Hiramatsu" <mhiramat@kernel.org>,
- "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
- linux-alpha@vger.kernel.org, linux-s390@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, soc@lists.linux.dev,
- linux-mips@vger.kernel.org, sparclinux@vger.kernel.org
-Message-Id: <5aedf90f-d30d-4f55-b066-dd8fdf3ff8f9@app.fastmail.com>
-In-Reply-To: <6fa4e1e3-c023-465c-9490-ce2f18ffaa91@igalia.com>
-References: <20260828-tonyk-syscall_table-v6-0-fdd358456cf1@igalia.com>
- <95b693c0-ca51-4355-99ba-2b37a1ab2169@app.fastmail.com>
- <6fa4e1e3-c023-465c-9490-ce2f18ffaa91@igalia.com>
-Subject: Re: [PATCH v6 00/13] syscalls: Add a shared table for all archs
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 17, 2026, at 00:19, Andr=C3=A9 Almeida wrote:
-> Em 15/09/2026 04:45, Arnd Bergmann escreveu:
->> On Sat, Aug 29, 2026, at 01:19, Andr=C3=A9 Almeida wrote:
->
-> Thanks for testing! I believe I found a simple solution for this. I=20
-> modified syscall_o32.tbl and can confirm it triggers a rebuild now:
->
-> diff --git a/arch/mips/kernel/syscalls/Makefile=20
-> b/arch/mips/kernel/syscalls/Makefile
-> index aaa5443ea906..9e31d1ce5015 100644
-> --- a/arch/mips/kernel/syscalls/Makefile
-> +++ b/arch/mips/kernel/syscalls/Makefile
-> @@ -40,10 +40,10 @@ src_n32 :=3D $(src)/syscall_n.tbl
->   src_n64 :=3D $(src)/syscall_n.tbl
->   src_o32 :=3D $(src)/syscall_o32.tbl
->
-> -$(kapi)/unistd_nr_%.h: $(systbl_common) $(sysnr) FORCE
-> +$(kapi)/unistd_nr_%.h: $(systbl_common) $(src_%) $(sysnr) FORCE
->          $(call if_changed,sysnr)
->
-> -$(kapi)/syscall_table_%.h: $(systbl) $(systbl_common) FORCE
-> +$(kapi)/syscall_table_%.h: $(systbl) $(systbl_common) $(src_%) FORCE
->          $(call if_changed,systbl)
+Fill two gaps in the SuperSPARC/Viking SMP synchronization paths.
 
-I had tried the same thing already, but in my testing, it did
-not rebuild after changing the syscall_n.tbl file, only the=20
-syscall_o32.tbl file. Can you verify that your change rebuilds
-all nine files in the correct cases?
+This series is based on the three sparc32 relocatable-kernel fixes which
+honour and derive phys_base and advertise the relocatable image. It does
+not include those prerequisite patches.
 
->> The rt_sigtimedwait and ustat entries had a typo that caused a link
->> error, but I did not check if there were any additional mistakes that
->> caused incorrect output data without causing a link failure.
->>=20
->
-> Ops, my bad. I had another round comparing the tables, and I found=20
-> another case that needed a fix:
->
-> diff --git a/arch/mips/kernel/syscalls/syscall_n.tbl=20
-> b/arch/mips/kernel/syscalls/syscall_n.tbl
-> index e3d278f715b7..1882527053af 100644
-> --- a/arch/mips/kernel/syscalls/syscall_n.tbl
-> +++ b/arch/mips/kernel/syscalls/syscall_n.tbl
-> @@ -43,7 +43,7 @@
->   33     common  pause                           sys_pause
->   34     common  nanosleep                       sys_nanosleep=20
-> sys_nanosleep_time32
->   35     common  getitimer                       sys_getitimer=20
-> compat_sys_getitimer
-> -36     common  setitimer                       sys_setitimer=20
-> compat_setitimer
-> +36     common  setitimer                       sys_setitimer=20
-> compat_sys_setitimer
->   37     common  alarm                           sys_alarm
->   38     common  getpid                          sys_getpid
->   39     common  sendfile                        sys_sendfile64=20
-> compat_sys_sendfile
+These patches can be found here:
+Link: https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.com/T/#t
 
-Looks good, thanks for checking this one.
+The SuperSPARC Family User's Manual requires software to keep at most one
+Demap operation in progress across the system. It also says that an MBus
+system must ask every processor which can retain a stale translation to
+perform its own local Demap [1, sections 8.5.3 and 9.8.2]. The Sun-4M
+architecture specification likewise describes SRMMU flushing as local to
+a module [2, section 7.1.4]. Patch 1 serializes each complete shootdown on
+sun4m and invokes remote CPUs one at a time. sun4d already serializes its
+Viking Demap operations.
 
-    Arnd
+SuperSPARC maintains I-cache coherence by snooping, so no remote processor
+needs to be told about modified instructions. FLUSH is still required on the
+processor that wrote them: the store buffer is not snooped, so FLUSH is what
+pushes them into the coherent hierarchy [1, sections 7.4 and 10.2.5; 3,
+section A.8.2]. Patch 2 supplies that local FLUSH on two Viking paths that
+performed none at all, viking_flush_sig_insns() was an empty stub, and
+flush_icache_range() was defined as do { } while (0).
+
+Tested on a dual-CPU sun4m SPARCstation 20, TI SuperSPARC-II with
+Viking/MXCC:
+
+  - boot to multi-user with both CPUs online;
+  - 200,000 concurrent mprotect iterations over a shared address space
+    (patch 1);
+  - 40,000 executable-code rewrites, each replacement executed on the
+    writing CPU and on the other CPU, with each CPU taking a turn as the
+    writer (patch 2).
+
+An earlier revision measured a stale instruction on the first rewrite with
+no flush at all, but that was on a kernel predating this series, where the
+whole Viking icache path was inert. On a patched kernel the same control is
+intermittent, so it is not offered as evidence for anything here; the
+argument for the shape of patch 2 is in its changelog.
+
+Changes in v2:
+
+  - patch 2 no longer cross-calls remote CPUs. Hardware snooping maintains
+    instruction-cache coherence on the other processors; both FLUSH
+    operations are now local. Callers modifying live text must arrange
+    safe execution during the update. A later cross-call cannot prevent an
+    old instruction from executing before it arrives, and cannot by itself
+    make an otherwise unsafe concurrent text modification safe.
+  - patch 2 no longer routes Viking sig_insns through the SMP wrapper, so
+    that path retains the local-only behaviour mainline already had.
+  - patch 1 is unchanged. It is a TLB shootdown: MBus cache coherence does not
+    make a peer discard a virtual TLB entry, so each processor must still
+    demap its own.
+
+[1] SuperSPARC Family STP1020 & STP1090 Series User's Manual,
+    Revision 1.0, April 1994.
+[2] Sun-4M System Architecture, Specification 950-1373-01,
+    Revision 50, July 19, 1991.
+[3] SuperSPARC II Addendum, Revision 1.3, December 1994.
+
+Magnus Lindholm (2):
+  sparc32: serialize SuperSPARC demap operations
+  sparc32: synchronize SuperSPARC instruction updates
+
+ arch/sparc/include/asm/cacheflush_32.h |   2 +-
+ arch/sparc/mm/srmmu.c                  |  98 +++++++++++++++++++++++++
+ arch/sparc/mm/viking.S                 |   5 +
+ 3 files changed, 104 insertions(+), 1 deletion(-)
+
+-- 
+2.43.0
