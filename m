@@ -1,62 +1,64 @@
-Received: from mail-ed2-f34.google.com (mail-ed2-f34.google.com [74.125.228.98])
+Received: from mail-ed2-f12.google.com (mail-ed2-f12.google.com [74.125.228.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A733D091A
-	for <sparclinux@vger.kernel.org>; Thu, 17 Sep 2026 07:59:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.98
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C2473D6472
+	for <sparclinux@vger.kernel.org>; Thu, 17 Sep 2026 07:59:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789631953; cv=none; b=lkezYT8kgbk1ib+RI8e77Ssj5jAyRP9NN/f11+IxkWaZjjyyBxiNFi6LF1fEIkDoRU03o12NYGBrOfv170tpSEOqjhrHbVS4LQ8jeTRi61KF3IILaQvtSncgZF6Hc5wV6jXOszc9AvHIZ+5zdJe+wKm5BEF9QP2QyX32KBuQlS4=
+	t=1789631954; cv=none; b=oTUI1PqDxpSn5ck/UJSK+ATf3X5vtOz/4pxBTKEJ/Zm9cw40nzEVxSLAQHoq27R0r5lzKoeoofvZcD/sWLLqKqn9RVJEG7fl2cPJhAa4oqyjZGf4f+uTLmGFCW5tQXdNz9k0QKjSt9IcAx45aNwGhoX0MUujPIlO3kN6EdWMSNQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789631953; c=relaxed/simple;
-	bh=HzxMf9+8T6QPlATP3+kPcAW2ULqoRkB/P0Uf3YNk5yM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=o7tGjKT7eOrNWj0qRNhRkfX9y5IbOWtBKsJt/UEQeNs7Nrh8MdgK0yMVDHWAVOOTrclMGfZ+E4kUa/8wPvHJDhROWxopPuFqSo9X0OwyPEcSIKADE0QOhHT1XuMHZwbyiiEjyhlXnQjcmVtFcfyqhIWu6mQNi2MMcS3vfLPMdqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=huv7/E1q; arc=none smtp.client-ip=74.125.228.98
+	s=arc-20240116; t=1789631954; c=relaxed/simple;
+	bh=IfxzcSEtq1pgI6DFXYGLlGfpA7qo4ehpMPHvD1FGewQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=T1NHCixpblww7S2rne/cbTGL4DO34wzBJsuGekeoIHVBXoVZ/qKXnoR9TAmmyAsWg7UiOsiogNvmsimHEAjl24OjfLOfZvicqFUgkhhzxTAx+S6lEtPVWvsl5QUV7bmchJXPjJ11flKx6i4b+bTv93CTwq0U4FTwufSALMbDyCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hUzpwnmD; arc=none smtp.client-ip=74.125.228.76
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="huv7/E1q"
-Received: by mail-ed2-f34.google.com with SMTP id 4fb4d7f45d1cf-6a9dfe4dfc0so889857a12.0
-        for <sparclinux@vger.kernel.org>; Thu, 17 Sep 2026 00:59:11 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hUzpwnmD"
+Received: by mail-ed2-f12.google.com with SMTP id 4fb4d7f45d1cf-6a60591ae52so995786a12.0
+        for <sparclinux@vger.kernel.org>; Thu, 17 Sep 2026 00:59:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789631949; x=1790236749; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=GOfKLa1W7BWMMHOij1kNXtl7XucEhCyieOIZlA8fo3k=;
-        b=huv7/E1qv4mSBia1m5TrNhiFYEtn8QmwbBv2I9RqnBZKu1MDuvEWEvZitGzT+78nwh
-         rhhRkfylBXu/eXedEhVsNC+qU3jhsdLh6CzwNDhsruCPWtKSKQi1BgPjGVhwFpDwPdbl
-         Kb7QzUJC6F/acykt876juwDnHZNzXU/KUjE3ckB2FND/gGcLOQVP6RU0a1qKezyqc334
-         GxAT1oIBRlCkcNOyxHZOF0J8GMbcCkUQLsT69XPnPaegWd0ymjRYpqm3EeVW9Ey22jca
-         X+DRowM9fwsb3Md1boQkA2zBFELHId32ViGUiIqo4NsRVzsqE8yDIXNF7vW03MDYa1Uj
-         jQlg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789631949; x=1790236749;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1789631950; x=1790236750; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=GOfKLa1W7BWMMHOij1kNXtl7XucEhCyieOIZlA8fo3k=;
-        b=X3imNSbluYlr4TIzdAMcvaG28pz01OPrY/EIiG24tGH3dKa63lVfANe/FC3zhsOdqh
-         3J1CZnDjKa+kz7/DhPEGZlo4M6WTG77u4NveJvpJJ3pLbubr6XH9FbrcC0wBlzuOEqw/
-         Jd6WxQxqlJTqTa7uvbfa6t0yG8M0C+LrXRiscNJVTPVG18lBAGjEt7C35EB8BZGXDxsD
-         Knsq6carLLJgO0zATc+AC1K5ax6SOscl5/8WAu2F7eVM3RfMLShTsLsHkzWrFwekwoqT
-         E4Wc8ueuGntIbG8aU6b0MityfU8djAVhSmiy7Civcmq+QMktSX1KuFiEiTiwCgBZMHhw
-         DVEQ==
-X-Forwarded-Encrypted: i=1; AKwUvByHi++kyND9twcSJf9tW0juloCWrYHSrDmzlW10Y+5+Qoy8P5gBGzV/1TaOkoWNWo91E2B7bGSXSuyl@vger.kernel.org
-X-Gm-Message-State: AFuF++lg0VdyiIR1ybp+lIBS4hYcD9ntFD6Mh/0tJzQ1LKrf7KRLzrBf
-	hUYBDllZPgQbGIg+R9ggBVi2E2qrrhqV+rWyw4Udr/OVzQkFckdgpbcF
-X-Gm-Gg: AYBFou3Ly3NY/Peg2TOL1JZp1BTH2eAwcLS4IlmXe5CgRaTSTmRKwlgqczGb65nJb3e
-	75z/HPRzIlpkCVootIqDmSOCO/kVKRw5p/TXsqB+8n4wqJ5GAP6uzvPkenhW7gPDaIKKdkyaZRd
-	kd7mrcYKlK6o3uo1JQkCqcKDjcry8fqeK0OEVNLHvlg000zyN4MnL4x8DMaxX7Xxlzth7ep4JQj
-	zbizOTIWttYvgZkIdYhBDxvR6mSNzCu+iYvTr23EGOJnSpw7Io2N4IL7ShB6VW5tbw+vwJRyHsd
-	faknSKtE0MCWs7ZOVqx32cFxGsMZdAN8MGwbRARRn+0WST2QOxGN85u5NR1Dnh+x3WN63ZFZR1q
-	bex0dkKD2trcQbB94j1ae4g6GCOFEL7BDj+B2sNHmTNyFnUunf85j4prRifvUMijYiYWma0sqDV
-	Nq0gsoFupM2qLogXyDGHTVaOTDZ9FcVNd7fNP/bMcj1sWMh0o1wIIy6WQjHfOtl6Kcnr3A8XmeC
-	IB9OqksJajFLn+orWnT0h7jP7kgE0dlM+MZ4oTiag==
-X-Received: by 2002:a17:907:6d1e:b0:c29:5af0:3b44 with SMTP id a640c23a62f3a-c29e52e0551mr377872566b.41.1789631949444;
-        Thu, 17 Sep 2026 00:59:09 -0700 (PDT)
+        bh=UATMPshT3EDYBa+P/NZwWbUVnJgOPrL98pDmUHIgP9M=;
+        b=hUzpwnmDDBp2PCZfxCQci0uBD+uhso3cfJ/4rL7UPAQ4Tmwi67wyzLFMTOF8vXdNhN
+         powdlcVwD8D8YdCCX1VcwHHyReQntGTZlqknbQvD80YTLJJc7qkVhFMFC8zfBhB7afNh
+         CHYO/jJ6ZPwnk8D+TqMMgfIqLJXzNUxs92x0AIgYDFwimkdVbsBwmV3Lue3QU8JZt0eP
+         HqlXh8HPWQg8TzqkE0KwlCfVynR2OR5Sko3INjx/744iQGEeuKVFG+abspJXbKiP5fPB
+         iKSeVcY8PzXB6g0oaR3Su78vIaVMFI4aTL0xLUExa5bv261Jq1UE6b9EkzQKhvaQabpQ
+         gBCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789631950; x=1790236750;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=UATMPshT3EDYBa+P/NZwWbUVnJgOPrL98pDmUHIgP9M=;
+        b=u1dS9IYDxoOVcmSNUHO4FAirWyT95TTWYm3a25I3NTGhdXeORI6FXXTCgaqNL/nMvx
+         MFhz8DNZvFzrDq5hedZBmwMhib4lUND/Z7+/UhGIeUgfZKv4cnKGntLSj2tKKeCsgPId
+         ZBwaPZrh6ibLw8Vnod6/bg/35p0cOjECKldGYCJaOviAR1wMs4ts9935MpKQb0nJLPlL
+         8bU0lPjAttE4hjhh6l57/TZWNdTM90qPbNHAL61fU2DhZwRjYOsvi+P5BWAt8X+05yJN
+         ZbB8YzpFZr9CdOvGO5gq6zMH7751i48j5D0UYxZ5V2QLwSxPFaQWhwRdMzgL0id2WuiM
+         wKVg==
+X-Forwarded-Encrypted: i=1; AKwUvBzwTG/b1FYKuKAXSeuChpdli36Yo5SqSZ+2Bz3yUwtDJ+zu9Hxf6SlTQ95yiDQ5RIlYq8/AqtWcqrSe@vger.kernel.org
+X-Gm-Message-State: AFuF++nGlDlJYSFySlSy8mfuNQOsftgtZ7HI5LYmFKh4ttNl0kkk2RT4
+	a7i+nRBB8q17Qc8e5WoVMW0dg0OJ0zk+kWYLHClfp961he4eo+KCp1g87T416g==
+X-Gm-Gg: AYBFou1RuVrLqDu/RJoujj2NXBx/70K2K9NDhXs9aNcg2JMj+1DGgOGoNT0ms+8C0We
+	Qp/G4mSpbs5WUBlfd+bW5tAy+U+1a5o65Ppqe2+lmTNyHW54+gRQWuhfyi3GdEeWZHl8Kn5omZw
+	FQSZ48noqU7XmWt4ElbHJ/rYBzMZPi4hjB5ne1VnocQyT7YJC+FHxJb/SEjAL/PR9uYd2Fr0mD2
+	aiM3ZWOzjDo0gF/GuGREweOIkdUqFDvXbzXQhNEblwArhdTHq/b9MaN9uP7Nl6+QOKl/3IvIXmQ
+	dISho5kWHW6XLTdKQtjrcYfyWSTaiAq+A6ECjVGtmF8fbCzjJrExjEGIhjaPtGl39CcwO7NQY6s
+	qN6dz1LDTnnxaRV8a9JUaBq0CDBLcX2eVf8feDlMSyUdl6ka2+LL3PY9hloeia5jgMowAwQ3oOH
+	DzTdWBkIL3ZEu9eUMTvWEc9HpvKV6pwSH+qsn+aGQrS04j/hGqeeHaecL4UYQGaK0GNqMzxYm7X
+	HI6UsI9xdCtGGlG0MuqZYBnALNZcAB5TSoZfQo/2Co=
+X-Received: by 2002:a05:6402:2350:b0:6a6:58e:f84b with SMTP id 4fb4d7f45d1cf-6aa22391b30mr7746199a12.9.1789631950466;
+        Thu, 17 Sep 2026 00:59:10 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c29de453ea0sm250287766b.11.2026.09.17.00.59.08
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c29de453ea0sm250287766b.11.2026.09.17.00.59.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Sep 2026 00:59:09 -0700 (PDT)
+        Thu, 17 Sep 2026 00:59:10 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -64,10 +66,12 @@ Cc: sam@ravnborg.org,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linmag7@gmail.com
-Subject: [PATCH v2 0/2] sparc32: SuperSPARC SMP synchronization fixes
-Date: Thu, 17 Sep 2026 09:57:03 +0200
-Message-ID: <20260917075842.784996-1-linmag7@gmail.com>
+Subject: [PATCH v2 1/2] sparc32: serialize SuperSPARC demap operations
+Date: Thu, 17 Sep 2026 09:57:04 +0200
+Message-ID: <20260917075842.784996-2-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260917075842.784996-1-linmag7@gmail.com>
+References: <20260917075842.784996-1-linmag7@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -76,76 +80,168 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Fill two gaps in the SuperSPARC/Viking SMP synchronization paths.
+SuperSPARC requires software to guarantee that only one Demap operation
+is in progress across the system. On MBus, each processor which may
+retain a stale translation must perform its own local Demap.
 
-This series is based on the three sparc32 relocatable-kernel fixes which
-honour and derive phys_base and advertise the relocatable image. It does
-not include those prerequisite patches.
+A lock around each local operation is not safe on sun4m. Cross-call
+callbacks run at interrupt level 15, so they can interrupt a CPU even
+while spin_lock_irqsave() protects its local Demap. If the callback then
+takes the same lock, it deadlocks against the interrupted owner.
 
-These patches can be found here:
-Link: https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.com/T/#t
+Serialize each complete shootdown at the initiating CPU instead. Invoke
+remote CPUs one at a time with lock-free callbacks, perform the
+initiator's local Demap last, and release the lock only after the entire
+operation is complete.
 
-The SuperSPARC Family User's Manual requires software to keep at most one
-Demap operation in progress across the system. It also says that an MBus
-system must ask every processor which can retain a stale translation to
-perform its own local Demap [1, sections 8.5.3 and 9.8.2]. The Sun-4M
-architecture specification likewise describes SRMMU flushing as local to
-a module [2, section 7.1.4]. Patch 1 serializes each complete shootdown on
-sun4m and invokes remote CPUs one at a time. sun4d already serializes its
-Viking Demap operations.
+sun4m_cross_call() waits for the target CPU to complete its callback.
+Singleton cross-calls therefore serialize the actual Demap operations,
+not merely their dispatch.
 
-SuperSPARC maintains I-cache coherence by snooping, so no remote processor
-needs to be told about modified instructions. FLUSH is still required on the
-processor that wrote them: the store buffer is not snooped, so FLUSH is what
-pushes them into the coherent hierarchy [1, sections 7.4 and 10.2.5; 3,
-section A.8.2]. Patch 2 supplies that local FLUSH on two Viking paths that
-performed none at all, viking_flush_sig_insns() was an empty stub, and
-flush_icache_range() was defined as do { } while (0).
+sun4d already serializes Viking TLB flushes around its broadcast Demap
+operations, so this wrapper is needed only for sun4m.
 
-Tested on a dual-CPU sun4m SPARCstation 20, TI SuperSPARC-II with
-Viking/MXCC:
+This is independent of MBus cache coherence. MBus Level 2 and the MXCC
+coherence protocol describe physical cache-block transactions; they do
+not make an MBus peer discard a virtual TLB entry.
 
-  - boot to multi-user with both CPUs online;
-  - 200,000 concurrent mprotect iterations over a shared address space
-    (patch 1);
-  - 40,000 executable-code rewrites, each replacement executed on the
-    writing CPU and on the other CPU, with each CPU taking a turn as the
-    writer (patch 2).
+This follows SuperSPARC Family User's Manual sections 8.5.3 and 9.8.2;
+Sun-4M System Architecture section 7.1.4; MBus Interface Specification,
+Level 2 Overview; and MXCC Addendum section B.2, Multiprocessor Cache
+Coherence Support.
 
-An earlier revision measured a stale instruction on the first rewrite with
-no flush at all, but that was on a kernel predating this series, where the
-whole Viking icache path was inert. On a patched kernel the same control is
-intermittent, so it is not offered as evidence for anything here; the
-argument for the shape of patch 2 is in its changelog.
+Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+---
+ arch/sparc/mm/srmmu.c | 88 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 88 insertions(+)
 
-Changes in v2:
-
-  - patch 2 no longer cross-calls remote CPUs. Hardware snooping maintains
-    instruction-cache coherence on the other processors; both FLUSH
-    operations are now local. Callers modifying live text must arrange
-    safe execution during the update. A later cross-call cannot prevent an
-    old instruction from executing before it arrives, and cannot by itself
-    make an otherwise unsafe concurrent text modification safe.
-  - patch 2 no longer routes Viking sig_insns through the SMP wrapper, so
-    that path retains the local-only behaviour mainline already had.
-  - patch 1 is unchanged. It is a TLB shootdown: MBus cache coherence does not
-    make a peer discard a virtual TLB entry, so each processor must still
-    demap its own.
-
-[1] SuperSPARC Family STP1020 & STP1090 Series User's Manual,
-    Revision 1.0, April 1994.
-[2] Sun-4M System Architecture, Specification 950-1373-01,
-    Revision 50, July 19, 1991.
-[3] SuperSPARC II Addendum, Revision 1.3, December 1994.
-
-Magnus Lindholm (2):
-  sparc32: serialize SuperSPARC demap operations
-  sparc32: synchronize SuperSPARC instruction updates
-
- arch/sparc/include/asm/cacheflush_32.h |   2 +-
- arch/sparc/mm/srmmu.c                  |  98 +++++++++++++++++++++++++
- arch/sparc/mm/viking.S                 |   5 +
- 3 files changed, 104 insertions(+), 1 deletion(-)
-
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 444295c20b94..ea0cc3683ad2 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -1590,6 +1590,33 @@ static void smp_flush_tlb_all(void)
+ 	local_ops->tlb_all();
+ }
+ 
++/* Serialize complete sun4m Viking shootdowns; remote callbacks must not lock. */
++static DEFINE_SPINLOCK(viking_tlb_lock);
++
++static void smp_viking_flush_tlb_xcall(void *func, unsigned long arg1,
++					  unsigned long arg2,
++					  unsigned long arg3)
++{
++	int cpu;
++
++	for_each_online_cpu(cpu) {
++		if (cpu == smp_processor_id())
++			continue;
++		sparc32_ipi_ops->cross_call(func, *cpumask_of(cpu),
++					    arg1, arg2, arg3, 0);
++	}
++}
++
++static void smp_viking_flush_tlb_all(void)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&viking_tlb_lock, flags);
++	smp_viking_flush_tlb_xcall(local_ops->tlb_all, 0, 0, 0);
++	local_ops->tlb_all();
++	spin_unlock_irqrestore(&viking_tlb_lock, flags);
++}
++
+ static bool any_other_mm_cpus(struct mm_struct *mm)
+ {
+ 	return cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids;
+@@ -1617,6 +1644,25 @@ static void smp_flush_tlb_mm(struct mm_struct *mm)
+ 	}
+ }
+ 
++static void smp_viking_flush_tlb_mm(struct mm_struct *mm)
++{
++	unsigned long flags;
++
++	if (mm->context != NO_CONTEXT) {
++		spin_lock_irqsave(&viking_tlb_lock, flags);
++		if (any_other_mm_cpus(mm)) {
++			smp_viking_flush_tlb_xcall(local_ops->tlb_mm,
++						     (unsigned long)mm, 0, 0);
++			if (atomic_read(&mm->mm_users) == 1 &&
++			    current->active_mm == mm)
++				cpumask_copy(mm_cpumask(mm),
++					     cpumask_of(smp_processor_id()));
++		}
++		local_ops->tlb_mm(mm);
++		spin_unlock_irqrestore(&viking_tlb_lock, flags);
++	}
++}
++
+ static void smp_flush_cache_range(struct vm_area_struct *vma,
+ 				  unsigned long start,
+ 				  unsigned long end)
+@@ -1645,6 +1691,24 @@ static void smp_flush_tlb_range(struct vm_area_struct *vma,
+ 	}
+ }
+ 
++static void smp_viking_flush_tlb_range(struct vm_area_struct *vma,
++				       unsigned long start,
++				       unsigned long end)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long flags;
++
++	if (mm->context != NO_CONTEXT) {
++		spin_lock_irqsave(&viking_tlb_lock, flags);
++		if (any_other_mm_cpus(mm))
++			smp_viking_flush_tlb_xcall(local_ops->tlb_range,
++						     (unsigned long)vma,
++						     start, end);
++		local_ops->tlb_range(vma, start, end);
++		spin_unlock_irqrestore(&viking_tlb_lock, flags);
++	}
++}
++
+ static void smp_flush_cache_page(struct vm_area_struct *vma, unsigned long page)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -1667,6 +1731,23 @@ static void smp_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
+ 	}
+ }
+ 
++static void smp_viking_flush_tlb_page(struct vm_area_struct *vma,
++				      unsigned long page)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long flags;
++
++	if (mm->context != NO_CONTEXT) {
++		spin_lock_irqsave(&viking_tlb_lock, flags);
++		if (any_other_mm_cpus(mm))
++			smp_viking_flush_tlb_xcall(local_ops->tlb_page,
++						     (unsigned long)vma,
++						     page, 0);
++		local_ops->tlb_page(vma, page);
++		spin_unlock_irqrestore(&viking_tlb_lock, flags);
++	}
++}
++
+ static void smp_flush_page_to_ram(unsigned long page)
+ {
+ 	/* Current theory is that those who call this are the one's
+@@ -1721,6 +1802,13 @@ void __init load_mmu(void)
+ 	}
+ 
+ 	if (poke_srmmu == poke_viking) {
++		if (sparc_cpu_model == sun4m) {
++			smp_cachetlb_ops.tlb_all = smp_viking_flush_tlb_all;
++			smp_cachetlb_ops.tlb_mm = smp_viking_flush_tlb_mm;
++			smp_cachetlb_ops.tlb_range = smp_viking_flush_tlb_range;
++			smp_cachetlb_ops.tlb_page = smp_viking_flush_tlb_page;
++		}
++
+ 		/* Avoid unnecessary cross calls. */
+ 		smp_cachetlb_ops.cache_all = local_ops->cache_all;
+ 		smp_cachetlb_ops.cache_mm = local_ops->cache_mm;
 -- 
 2.43.0
+
