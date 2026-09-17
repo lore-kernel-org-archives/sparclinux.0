@@ -1,88 +1,84 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 950C33859D4;
-	Thu, 17 Sep 2026 15:16:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFF454E73A7
+	for <sparclinux@vger.kernel.org>; Thu, 17 Sep 2026 16:01:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789658209; cv=none; b=FsBYzzx1hzv/ctdM4rAYDZZQN63T1pxVTdzKsvgd5iYiqKDoHDRCmrj0Ne3Ztbf+BMS6Qois9KBR/fUdm5khFUm04qPXerdkxvXrhLhXXpRyFC2EpiXzlUjH7w+wuaRgWIiE4gJaHwbbto2oGozgEPivjCTzHWhapd7YZrBWmak=
+	t=1789660886; cv=none; b=YE2Fz/Dym47BUCcDMz+gwA+zqN8N01wPLiWi6vISrra4+szH6xsTtWI5cGyZQYMwzvu62OT6vSWDNwq0PGeF3pEwzBIF3NxdzBlrWdRB3W4oI0TfBKgSzRFu3wAaWVglBfPJ/FE5F6FDAvTTB7G/4n0l5HlRfhLkM3efYBqNodk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789658209; c=relaxed/simple;
-	bh=ctArWGu44S3wRR5JrZsCQaWBlGMqztUdNyeGuW/ZhnA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pm766+WBs6KjnmNhuV2YFrdteY2XalDlEAb50dM/p+ycK8p73DZTcw/NTEhg/wn8ox2qG0sw05DMsz5nOPEWjLdB51aIAeFxaX+/5IpBHDrKbeNBAGyDBr2EOvW+QiarJ9hSlJHedq+IptgwZvSKou8l7NhIev86QQrgbhQUNTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=LtRirBrs; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	s=arc-20240116; t=1789660886; c=relaxed/simple;
+	bh=Zl7XEDEzyGFjQ8NnXy+A8Z96YlY800L0M+pR+Mfnr7c=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=m506AS/DQmt3cF8ymQb1ENJKzvtOzOTKuJEnzsJ1G8Wwn9pkljRlZyzgVcDgVsBWILJH70iKP4alJyqvU/OedMrWi/2MuCStSlz7ZRCUX+txOl/WCj1AvqNOBQ9pxPP00rEED4ql8zopmMI9xCbY0Ju0XlUSzqrLHSU5EUWiHOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=b3SGjnQa; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="LtRirBrs"
-From: Stian Halseth <stian@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1789658180;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="b3SGjnQa"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1789660883;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=RmUlCX8Jqu1rhSBhVQ90b9ktotpN47dsHDJt9sDAdTE=;
-	b=LtRirBrsK6/3TgPp4manmjmL+PHPaD25/9NUg0Kts0RMbsmWZftfO+P650H1ZqMHZ+D6N8
-	WeNEiYDx8VyE3e5TpbCdBsIYCnBAM3dw2e6PVn5smozE0OkwrsTlcHgkdQP251rFWpw28J
-	GeM/BFFki82zMk4Z4aap1wlPaUuibZE=
-To: brauner@kernel.org,
-	viro@zeniv.linux.org.uk
-Cc: jack@suse.cz,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	schwab@suse.de,
-	fweimer@redhat.com,
-	Stian Halseth <stian@itx.no>
-Subject: [PATCH 0/2] fs: honor FOP_UNSIGNED_OFFSET in llseek and positional I/O
-Date: Thu, 17 Sep 2026 17:16:12 +0200
-Message-ID: <20260917151614.376867-1-stian@itx.no>
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=AxqSSuC6j5VlzBVquLjSQshKehqZsLbhTW+tuSGZqqk=;
+	b=b3SGjnQaE/eT97eSayHaCdn57dIs0bi8f+fvnNROGasIFDfQn6rRKaRnxp/jfl9Hcx1M/i
+	1Qw9/SJc/JScj6kZULdHHfn0qbSEBInIYZVwd3nVNJKWakAkaA8DHk7Yq2nWKM3vIoUCIC
+	N36B44e8BJ/aDXZ16Gr4MkQty5wGihg=
+Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-186-rncYLlFTPy2Lq00Orktw_w-1; Thu,
+ 17 Sep 2026 12:01:19 -0400
+X-MC-Unique: rncYLlFTPy2Lq00Orktw_w-1
+X-Mimecast-MFC-AGG-ID: rncYLlFTPy2Lq00Orktw_w_1789660878
+Received: from mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.111])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id DD834193E8AD;
+	Thu, 17 Sep 2026 16:01:17 +0000 (UTC)
+Received: from fweimer-oldenburg.csb.redhat.com (headnet05.pony-001.prod.iad2.dc.redhat.com [10.2.32.117])
+	by mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 860F018004D2;
+	Thu, 17 Sep 2026 16:01:15 +0000 (UTC)
+From: Florian Weimer <fweimer@redhat.com>
+To: Stian Halseth <stian@itx.no>
+Cc: brauner@kernel.org,  viro@zeniv.linux.org.uk,  jack@suse.cz,
+  linux-fsdevel@vger.kernel.org,  linux-kernel@vger.kernel.org,
+  sparclinux@vger.kernel.org,  schwab@suse.de
+Subject: Re: [PATCH 0/2] fs: honor FOP_UNSIGNED_OFFSET in llseek and
+ positional I/O
+In-Reply-To: <20260917151614.376867-1-stian@itx.no> (Stian Halseth's message
+	of "Thu, 17 Sep 2026 17:16:12 +0200")
+References: <20260917151614.376867-1-stian@itx.no>
+Date: Thu, 17 Sep 2026 18:01:13 +0200
+Message-ID: <lhuo6dv50l2.fsf@oldenburg.str.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.111
 
-Two generic VFS bugs found while fixing pldd(1) on sparc64, where
-userspace is mapped above 2^63 so file positions on /proc/PID/mem have
-the top bit set.
+* Stian Halseth:
 
-FOP_UNSIGNED_OFFSET declares a file's offsets unsigned, and vfs_llseek(),
-rw_verify_area() and the mmap path honor it.  Two sets of syscall
-wrappers do not:
+> Tested on an UltraSPARC T4: pread(), preadv(), pwrite(), pwritev() and
+> lseek() on /proc/PID/mem at positions above 2^63 return the correct data
+> and offset; a negative position on a regular file or a pipe still fails
+> with EINVAL and position 0 on a pipe with ESPIPE, as before; and the
+> stock pldd(1) works again.  On other architectures the change is a no-op
+> for every file without FOP_UNSIGNED_OFFSET, and userspace addresses
+> never set the top bit, so the new paths are only reachable by passing
+> a bogus position to /proc/PID/mem or /dev/mem, which then fails in the
+> driver instead of the wrapper.
 
-  1. sys_llseek() takes a negative result from vfs_llseek() for an error
-     and returns it truncated to int without filling *result.
-  2. pread64/pwrite64/preadv/pwritev reject a negative position before
-     looking up the file.
+For lseek, aren't some file offsets (the top 4095 bytes or so just
+before 2**64) ambiguous as error indicators?  You would have to use
+_llseek when accessing /proc/PID/mem.
 
-Both patches only change behavior for a file with FOP_UNSIGNED_OFFSET
-and a position with the top bit set.  Today that is /proc/PID/mem,
-/dev/mem, the sparc ADI driver and the DRM/accel device files; for all
-of them lseek() followed by read() at that position already works, so
-the wrappers now match it.
-
-Tested on an UltraSPARC T4: pread(), preadv(), pwrite(), pwritev() and
-lseek() on /proc/PID/mem at positions above 2^63 return the correct data
-and offset; a negative position on a regular file or a pipe still fails
-with EINVAL and position 0 on a pipe with ESPIPE, as before; and the
-stock pldd(1) works again.  On other architectures the change is a no-op
-for every file without FOP_UNSIGNED_OFFSET, and userspace addresses
-never set the top bit, so the new paths are only reachable by passing
-a bogus position to /proc/PID/mem or /dev/mem, which then fails in the
-driver instead of the wrapper.
-
-The glibc side is https://sourceware.org/bugzilla/show_bug.cgi?id=34641;
-
-Stian Halseth (2):
-  fs: fix llseek() result for files with unsigned offsets
-  fs: allow positional I/O on files with unsigned offsets
-
- fs/read_write.c | 38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
-
--- 
-2.43.0
+Thanks,
+Florian
 
