@@ -1,132 +1,145 @@
 Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1F574AC176;
-	Tue, 22 Sep 2026 20:02:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EBB547F787;
+	Tue, 22 Sep 2026 20:15:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790107364; cv=none; b=tlWQ0FUb7WaFzaPE4YmhDgyIN52U6t/Dswerr4V5zde4HAlCM+t3OMRNridapQTRQkwsRMXgxblirB8gNvcOzKH2hfvGZBl+l6ybB4YrF083gH0FHDuNhDMsH6xAX5DGLLVZ9r8/6kxe1q1tuO0fjVPJoovQQX5chRBQbnw0Sl4=
+	t=1790108138; cv=none; b=qZRJX8h1/UqNoPymktLT4G8oqn/njaiFklhLbIKztgfr8Lw3unNft4EpFbZFtcSW3rZ29aCHR/tMK/cMyF1OfsAsYkKyeJLwlS0gtR6E2EfRuLMpLzC29/IwSSRYQ60kmG3I21pn+XegB99TACTb6nkJMPbSZLCB114jOELEfDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790107364; c=relaxed/simple;
-	bh=kZzIuUZdeJtjUZxs3xOer06DEMom4RwITwG3trbOWvM=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=L8ST9QDr5HI6VXebWUYUGaZ0CJ2vmO8r9uPwbK7w/iIMXpqo1HZY5Qe8SgUeuI4bW5qAh8s4T/ombM2h5prt+mvgXncX9lv1q4Tv0NbR6ecFM7iT4tmCC2b9USs8H612C+iv4FO4VYOs3Ebe+MoxD+j+oBgiXoTEwKGpDH4MJmE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=O0enwL+c; arc=none smtp.client-ip=91.189.121.228
+	s=arc-20240116; t=1790108138; c=relaxed/simple;
+	bh=NLI0n+prMzRh+tfAyXqEWiVCATVhAudCFhUKu5BcrxQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MhffQYL5/sk7FuN4LtOm8YwmR2wSdtFPkAJvl1kdJCij3QYymgtq1naiKyJfQlE5NqDU7mDQTXTDllo+pkcd6cuYcmzmFbihCn51vCW6yZPc9qEGK+f35b9QdeMOc/V/Rf1b+zUqj2r+9ekMxtRBU0y4w+KMUna4+/C6XIg3Inc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=FXbCCn7E; arc=none smtp.client-ip=91.189.121.228
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="O0enwL+c"
-Message-ID: <a0bee581f87dba8e40ea0055ef8c6a5cfed72ec5.camel@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1790107347;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kZzIuUZdeJtjUZxs3xOer06DEMom4RwITwG3trbOWvM=;
-	b=O0enwL+c0Vv/+BdkiN0wZ4PjNopcuZb142YrD1j+YDvic7cn+iGmeALgGInw+8GntH8Vz4
-	ntSBA11l0KIGldaIGabCSdJjoiCsJH7vbnn1Gt3HG0aESkedPsQLX+DjQnne/bzTl/tZLe
-	sm2M6022473gsE8sQFZZwaJDZ2X1KQs=
-Subject: Re: [RFC PATCH 0/2] perf: user stack dump on sparc64 needs an arch
- hook
+	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="FXbCCn7E"
 From: Stian Halseth <stian@itx.no>
-To: Magnus Lindholm <linmag7@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, 
- Andreas Larsson <andreas@gaisler.com>, "David S. Miller"
- <davem@davemloft.net>, Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung
- Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Alexander
- Shishkin <alexander.shishkin@linux.intel.com>,  Jiri Olsa
- <jolsa@kernel.org>, Ian Rogers <irogers@google.com>, Adrian Hunter
- <adrian.hunter@intel.com>,  James Clark <james.clark@linaro.org>,
- linux-perf-users@vger.kernel.org, sparclinux@vger.kernel.org, 
- linux-kernel@vger.kernel.org
-Date: Tue, 22 Sep 2026 22:02:26 +0200
-In-Reply-To: <CA+=Fv5RnsBXnxb2JHfZ2kXkYB7fz3KLS3+oHtx==z9W93WRANA@mail.gmail.com>
-References: <20260922135653.1622301-1-stian@itx.no>
-	 <CA+=Fv5RnsBXnxb2JHfZ2kXkYB7fz3KLS3+oHtx==z9W93WRANA@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-ce6TdhinF5bXGGN2lfMu"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
+	t=1790108129;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=fGM3Svgttye+yoHj2CHDj+6iSFEIryi89MVZNx+shC0=;
+	b=FXbCCn7E0r5Qt+AuMm8+PZMDE0zSBWLYBMIDQOzgbzIQF4z06H9pg1NH/RExLyQeo9JAbw
+	z5Ei39bw3TzIZFIJ5/Ho8+9o1rimfOLMwjDSG6ifzJrG81cv/lMNRWDQ0TA0Px0w4EUYJb
+	pqBW/yuOvOgd43mhGdHznJX/03WzzMI=
+To: Peter Zijlstra <peterz@infradead.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	"David S. Miller" <davem@davemloft.net>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>,
+	Namhyung Kim <namhyung@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Jiri Olsa <jolsa@kernel.org>,
+	Ian Rogers <irogers@google.com>,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	James Clark <james.clark@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Magnus Lindholm <linmag7@gmail.com>,
+	linux-perf-users@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Stian Halseth <stian@itx.no>
+Subject: [RFC PATCH v2 0/3] perf: sparc64 user regs and stack dump, with an arch hook
+Date: Tue, 22 Sep 2026 22:15:04 +0200
+Message-ID: <20260922201507.1719668-1-stian@itx.no>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
+This adds HAVE_PERF_REGS and HAVE_PERF_USER_STACK_DUMP to sparc64, so
+that perf record --call-graph dwarf and elfutils' eu-stackprof work
+there.
 
---=-ce6TdhinF5bXGGN2lfMu
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+One piece does not fit in arch code. The user stack dump copies the
+stack as it is in memory and assumes the call chain is there. On sparc
+it may not be: the sampled register window's %l/%i registers, which
+hold the frame pointer and return address the unwinder starts from
+(the CFI after `save` defines the CFA in terms of %i6), stay in the
+register file until a window spills. The kernel already deals with
+this wherever it exposes user stack memory: perf_callchain_user() on
+sparc calls flushw_user() before walking the chain, and ptrace does
+the same. The stack dump has no arch entry point where that could
+happen, and I found no correct sparc-only place:
 
-Hi Magnus, thanks for the testing and feedback.
+- flushing in the sparc PMU interrupt handler misses software events
+  (cpu-clock, tracepoints), which reach perf_event_overflow() without
+  passing through it;
+- perf_user_stack_pointer() is private to kernel/events/internal.h;
+- perf_reg_abi() is called at the right time but is a query, and a
+  flush as a side effect of it would be wrong.
 
-Almost done with a v2.
+Patch 1 therefore adds a no-op hook in the style of
+perf_arch_misc_flags(), perf_arch_prepare_ustack(), called from
+perf_prepare_sample() when PERF_SAMPLE_STACK_USER is requested and
+user regs exist. Patch 2 is the sparc64 implementation and its user.
+Patch 3 teaches tools/perf the sparc registers and DWARF unwinding
+from the dump. The matching elfutils changes, which make eu-stackprof
+work, are attached to the tracking issue as patches against current
+elfutils main:
 
-It has some minor changes based on the AI bot feedback, and my comments
-to you below.
+  https://github.com/sparclinux/issues/issues/99
 
+Tested on an UltraSPARC T4-1 on 7.3-rc4: register values check out
+against known contents, --call-graph dwarf unwinds correctly for both
+cycles and cpu-clock, eu-stackprof unwinds the same chains, and perf
+stat/record/record -g are unchanged.
 
-On Tue, 2026-09-22 at 19:04 +0200, Magnus Lindholm wrote:
->=20
-> Very nice series, thanks for working on this!
->=20
-> I built and booted the series on a sparc64 box and haven't
-> noticed any regressions so far.
->=20
-> I also smoke-tested the new interfaces from 64-bit userspace with a
-> small standalone C program using perf_event_open() and software
-> cpu-clock events. The register-only, stack-only, and combined
-> register/stack tests all passed. The test does not use tools/perf or
-> request PERF_SAMPLE_CALLCHAIN. I haven't tested end-to-end DWARF
-> unwinding yet.
->=20
-> I see that you plan to post the userspace changes once the hook is
-> settled. Could you include the tools/perf support in the next
-> revision,
-> or post it as a follow-up or linked companion series? Having that
-> available, along with a link to the matching elfutils changes, would
-> make testing easier and let us exercise the intended DWARF unwinding
-> use case directly.
-Yes, I originally planned to post tools/perf after I got some feedback
-on the first patches.=C2=A0Especially since it touches some generic code
-that I'm not too familiar with, and I half expect that I have to
-rewrite some of it based on maintainer feedback :-)
+Changes since v1:
+- Patch 2: truncate a 32-bit task's values only for user_mode(regs),
+  so kernel-mode PERF_SAMPLE_REGS_INTR registers stay intact
+  (sashiko review).
+- Patch 2: document that the stack dump starts at the biased %sp.
+- Patch 2: mark sparc ok in Documentation/features for perf-regs and
+  perf-stackdump (Magnus).
+- Patch 3 (tools/perf) added (Magnus).
 
-But since its "just" a RFC patch at this point, I guess I can post the
-full series to allow end-to-end testing.=C2=A0
+v1: https://lore.kernel.org/all/20260922135653.1622301-1-stian@itx.no/
 
-I have mainly focused on the first patches, and the rest was done a bit
-faster as a means to validate the "core" changes. It works (TM). I'm
-looking through it now, but I probably make a second thorough review of
-the entire final series, once the I know what changes I need to make.
+Stian Halseth (3):
+  perf/core: Let an arch prepare the user stack before it is dumped
+  sparc64: Support PERF_SAMPLE_REGS_USER and PERF_SAMPLE_STACK_USER
+  perf tools: Support sparc user register samples and dwarf unwinding
 
-I will publish and link to the elfutils changes as well.
->=20
-> Also, could you update the sparc entries from TODO to ok in:
->=20
-> =C2=A0 Documentation/features/perf/perf-regs/arch-support.txt
-> =C2=A0 Documentation/features/perf/perf-stackdump/arch-support.txt
->=20
-> Those updates would fit naturally in patch 2 alongside the
-> HAVE_PERF_REGS and HAVE_PERF_USER_STACK_DUMP selections.
-Yes, agree.
+ .../features/perf/perf-regs/arch-support.txt  |  2 +-
+ .../perf/perf-stackdump/arch-support.txt      |  2 +-
+ arch/sparc/Kconfig                            |  2 +
+ arch/sparc/include/asm/perf_event.h           |  3 +
+ arch/sparc/include/uapi/asm/perf_regs.h       | 33 +++++++++
+ arch/sparc/kernel/Makefile                    |  2 +-
+ arch/sparc/kernel/perf_regs.c                 | 65 +++++++++++++++++
+ include/linux/perf_event.h                    |  7 ++
+ kernel/events/core.c                          |  2 +
+ tools/arch/sparc/include/uapi/asm/perf_regs.h | 33 +++++++++
+ tools/perf/arch/sparc/include/perf_regs.h     | 18 +++++
+ tools/perf/check-headers.sh                   |  1 +
+ tools/perf/util/dwarf-regs-arch/Build         |  1 +
+ .../util/dwarf-regs-arch/dwarf-regs-sparc.c   | 12 ++++
+ tools/perf/util/dwarf-regs.c                  |  4 ++
+ tools/perf/util/include/dwarf-regs.h          |  1 +
+ tools/perf/util/perf-regs-arch/Build          |  1 +
+ .../util/perf-regs-arch/perf_regs_sparc.c     | 69 +++++++++++++++++++
+ tools/perf/util/perf_regs.c                   | 18 +++++
+ tools/perf/util/perf_regs.h                   |  5 ++
+ tools/perf/util/unwind-libdw.c                | 41 ++++++++++-
+ 21 files changed, 318 insertions(+), 4 deletions(-)
+ create mode 100644 arch/sparc/include/uapi/asm/perf_regs.h
+ create mode 100644 arch/sparc/kernel/perf_regs.c
+ create mode 100644 tools/arch/sparc/include/uapi/asm/perf_regs.h
+ create mode 100644 tools/perf/arch/sparc/include/perf_regs.h
+ create mode 100644 tools/perf/util/dwarf-regs-arch/dwarf-regs-sparc.c
+ create mode 100644 tools/perf/util/perf-regs-arch/perf_regs_sparc.c
 
+-- 
+2.55.0
 
-
---=20
-Best regards
-Stian Halseth
-=E2=80=8B
-
---=-ce6TdhinF5bXGGN2lfMu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTK1ph9OaYoND1R57zoeAEuJe36VgUCarLe0gAKCRDoeAEuJe36
-VrF2AP9wAbZZ670xm9KEuNDWUdcFAEZen5+BsV7bqBE6LmuepAD/djcN0afRxg98
-8YMFwB67dCMOAsM9yvxZCdUyP207Qwc=
-=pRuN
------END PGP SIGNATURE-----
-
---=-ce6TdhinF5bXGGN2lfMu--
