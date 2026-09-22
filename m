@@ -1,160 +1,162 @@
-Received: from mail-oa2-f12.google.com (mail-oa2-f12.google.com [74.125.231.76])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C89E55C328
-	for <sparclinux@vger.kernel.org>; Tue, 22 Sep 2026 15:37:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3103955C1D5;
+	Tue, 22 Sep 2026 15:37:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790091463; cv=none; b=PXJXvfwOhiV7tNFtbnq0M5Uf/gh1oz3/Iou3X4Oei2F40LUnb1M7oSgPz2Ga8voUQOlhRc4hu5DT7onFnHkxgaOyZ3FnaBZmdWaYldTwCefMRJysU3/BOajd/w0KDqxYbdE2WtiATu3Va1rUW44nUUzXLwL8lTaIWDqEEaetKm4=
+	t=1790091464; cv=none; b=epzAVfxYyFNEiuP7ZTgVmtv96xyFAHDQcuzSBZLKno3FFd9hHTR/NZjN0Ud/fR1+mnieo0Zztd/skUKTw/i+uXXze+kD43JzhoshnZokcL2ukaOWOk8IdzF1RxwBRswiY4CWXtQ00bBB0DwfArNn1zmjXfb1iYT+2VIqLIMPeEk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790091463; c=relaxed/simple;
-	bh=9j8uXUnA6bXnx9uTLBHlFkCr+HVGmoerQr5AJpiH/L0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=k+ZY7nXRt07jk8zTnpjtG7gpiMf3FY36lgvDCO6H6vxPKYqcgkjF6RE+lM760J9lLblNSMgM1bo6r3I6DCsqXDOrd4ql/eqUrcDU0aTYRjG2LRF45YrnJagL0sjojSDPUrekPrA1fYW4prbcm7L/nvEaPJeO4zqsgGO+mcNgZiU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lkqbFoJl; arc=none smtp.client-ip=74.125.231.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790091464; c=relaxed/simple;
+	bh=Ejk+F/Wux5yTvQzPF878nAZnzdraz7QYUlz/y227QJE=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=aKTDlLRj6WJ168zhyn8jU+0CkTqHHPAhCi2EoIA/xVzgsS5a1k/Jo5W7CR9PqoSlZyVqF9AviDScWholowT3yzUcr/OxAv9XGfmGJIhd0ieWKMUuhYMDrYzHB0cQdt0JAzE2kw9ZnG9oSXv1sdip9+0jJ95Rx5412YxlhskSW6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UNlcNUEG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lkqbFoJl"
-Received: by mail-oa2-f12.google.com with SMTP id 586e51a60fabf-466cc9b2f1dso17008fac.0
-        for <sparclinux@vger.kernel.org>; Tue, 22 Sep 2026 08:37:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790091459; x=1790696259; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=OuS5hhU7FDu24KRBC5uojc0lwdkfcW0XUMfKz4eA9iA=;
-        b=lkqbFoJlzNednpOMFIRJ0HAv/3ZRwJBOoi0Yn1nAJxt/4uLUIgw9JnTMlTCxHb2HdC
-         vZ3KLcD4Iu3biiQJppVLtnZQjnBtGi9jWy0L/6QHDcgNl8OXvXQ1inTWaYmdu4G61WMB
-         W36Gvfiuyq4/W+bNKVsOP+wkMWdQs9oGtDBmzIRDb+BCntMOoaduHwNvA144gBtnm8UH
-         yZN7PGCmB7Vza/mRg4Xo1h/WLLHi6Z4qj+FHaSOODu7Nur5xt8mwYvMOnmhVrq0vSbXp
-         2tmVRJGSk3Z46tIsrOqkuGm7OZBGbCUAvuKRzf+HxxtZGst+xuoKYavQ4HFE+LdRqWHo
-         ZG9g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790091459; x=1790696259;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=OuS5hhU7FDu24KRBC5uojc0lwdkfcW0XUMfKz4eA9iA=;
-        b=fT2xSqQYCzD7b7No7WcO/u5QAn+efJTJS54G8CunRMqDqeMyvQ/2CoJjDfk2Rvy+YV
-         b3co/+0TULRFXLXHU+5VlbnOfwdHRlR9F0un4JiNzPBwplSNscEHUPDrNgQMGWA93tAN
-         SY4NWO/0O9KBfEQPI15emVa88bK6iqcFniBKehGgog70wQQO+yY/YNDw5F1c/puBkyeA
-         X+oXghwz0zfBMYAOPQNGaol7EhZEIliZMTTahp23aE7kWQXZO4ZDLhyMH5vesozeCLyw
-         vqu2UbZbnMBfI7a4gltEEw/dPAmSsNEClqHqfyq4ninVlmPLLDhemioRzG8al9ve1PbH
-         cMuQ==
-X-Gm-Message-State: AFuF++mcD5KB/c/KheAJW+h39yGY78hnFE6WU5ipyao55hxzS68Nvxe8
-	wI9c9GNUaKGyPxlSljuV/5qqQIHCmBd/fFPk9dvwIQononZpx8QKy9++
-X-Gm-Gg: AYBFou05wZLR1S5cGiEsokMil0YE+JaJeP78+6oJGQY8cG7EoC9Xfir9X4z8f6iAH+K
-	vuIZfwn2FBmyp2JxpSCxlHiETgDtoY2A2eQwax6+v9OzBzluEnmXPZuujOtaBtELMDkJ8eh3PTJ
-	gFvt2/RypvZslvObci29PRiVJN22dEBEpQA6oBda3KJH8pi0BaYHvPhtrwqZyxJShDXRaWJmUuI
-	bGKPRDzvywvCuRBT+qYNAkqVWFRmJLOBlJkWaIRpAzKWQh7y3Qx3PiLuPLPlV5iZXL4eSRPWq+L
-	eJPLbHdDz1lDzBlKw503Dr1qWOpIOuZk8p0yJeea8fKspcEBDeSkCGgocqIIssC+0Sbm3ZJnRDH
-	9tLI6gslPjsCPc+GJwAK6JPOAvx8y0axax0q+yV/A9+xAm362iYhcceWDKI6uy/uH884Uy1kpPE
-	QwhLGP+yey6nl+AGh29QqyL9bhtFwwIl8B9iAaiQxHSwUacd08sA51dZ3csg/KgmYSU7fcgiGIb
-	Wxud50qemjXx1QpmMTrEz5EPuq6zTg2LbPItmsM
-X-Received: by 2002:a05:6870:a24b:b0:470:e96b:43e6 with SMTP id 586e51a60fabf-48fe435c714mr1114720fac.18.1790091459206;
-        Tue, 22 Sep 2026 08:37:39 -0700 (PDT)
-Received: from archlinux.lan ([136.34.156.120])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-48fbedb167bsm1318833fac.5.2026.09.22.08.37.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Sep 2026 08:37:38 -0700 (PDT)
-From: Danish Khateeb <danishkhateeb03@gmail.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Danish Khateeb <danishkhateeb03@gmail.com>
-Subject: [PATCH] sparc64: mm: use kmap_local_page() in copy_{user_,}highpage()
-Date: Tue, 22 Sep 2026 10:37:36 -0500
-Message-ID: <20260922153736.74167-1-danishkhateeb03@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UNlcNUEG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DA911F000FF;
+	Tue, 22 Sep 2026 15:37:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790091462;
+	bh=dWYqXXcVhqhum5QoL45NNyuXa4EfpjGCy/961eqdzvI=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc;
+	b=UNlcNUEGwtkyvsYR4zmSeGCvMkPLe+/ezusdX20O1bWYskX7cvdvIJuhhjuVtChmb
+	 L5+b54M4DXoNchVsv0nJ54pnhIsdEfA5oI47YpiDtjUztTpT4qzogzlKrUnLoaDon0
+	 Hi/50oU8SeABFn/+BsGw1RL0cXsZ9uni0c7ibjurbKnftlBLuqaA2M5V5zWFn9PE1b
+	 n2j5Mady9bfFc8fKJ22XaOT4EwjJPIZOiQbv+8Od9Wmuwkvc0lPJh+Kjy/qRzctIDv
+	 BhT9VIJmX/JVBTgDo4khmxS4qLbtj4ncYW3ywiP/LSPDFHak7FA0nynQk8qUTpmRo7
+	 4FhJkMkThxUjw==
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Date: Tue, 22 Sep 2026 16:35:34 +0100
+Subject: [PATCH v4 03/12] mm: enable MMU_GATHER_RCU_TABLE_FREE for MMU
+ riscv
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260922-rcu-pagetable-freeing-v4-3-fe1ad1f1e303@kernel.org>
+References: <20260922-rcu-pagetable-freeing-v4-0-fe1ad1f1e303@kernel.org>
+In-Reply-To: <20260922-rcu-pagetable-freeing-v4-0-fe1ad1f1e303@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+ Baolin Wang <baolin.wang@linux.alibaba.com>, 
+ "Liam R. Howlett" <liam@infradead.org>, Nico Pache <nico.pache@linux.dev>, 
+ Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+ Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
+ Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, 
+ Guo Ren <guoren@kernel.org>, Brian Cain <bcain@kernel.org>, 
+ Geert Uytterhoeven <geert@linux-m68k.org>, 
+ Dinh Nguyen <dinguyen@kernel.org>, 
+ Simon Schuster <schuster.simon@siemens-energy.com>, 
+ Jonas Bonn <jonas@southpole.se>, 
+ Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, 
+ Stafford Horne <shorne@gmail.com>, Rich Felker <dalias@libc.org>, 
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+ Russell King <linux@armlinux.org.uk>, Vineet Gupta <vgupta@kernel.org>, 
+ Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, 
+ Max Filippov <jcmvbkbc@gmail.com>, Will Deacon <will@kernel.org>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
+ Nick Piggin <npiggin@gmail.com>, Peter Zijlstra <peterz@infradead.org>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ Richard Henderson <richard.henderson@linaro.org>, 
+ Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>, 
+ Catalin Marinas <catalin.marinas@arm.com>, 
+ Mark Rutland <mark.rutland@arm.com>, Huacai Chen <chenhuacai@kernel.org>, 
+ WANG Xuerui <kernel@xen0n.name>, 
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+ Michael Ellerman <mpe@ellerman.id.au>, 
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+ Alexander Gordeev <agordeev@linux.ibm.com>, 
+ Christian Borntraeger <borntraeger@linux.ibm.com>, 
+ Sven Schnelle <svens@linux.ibm.com>, Richard Weinberger <richard@nod.at>, 
+ Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
+ Johannes Berg <johannes@sipsolutions.net>, 
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+ Arnd Bergmann <arnd@arndb.de>, Vlastimil Babka <vbabka@kernel.org>, 
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+ Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+ Yoshinori Sato <ysato@users.sourceforge.jp>, 
+ Shakeel Butt <shakeel.butt@linux.dev>, Jonathan Corbet <corbet@lwn.net>, 
+ Randy Dunlap <rdunlap@infradead.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+ linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+ linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org, 
+ linux-sh@vger.kernel.org, linux-riscv@lists.infradead.org, 
+ linux-arm-kernel@lists.infradead.org, linux-snps-arc@lists.infradead.org, 
+ linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, 
+ linux-alpha@vger.kernel.org, loongarch@lists.linux.dev, 
+ linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+ linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, 
+ linux-um@lists.infradead.org, Hugh Dickins <hughd@google.com>, 
+ Qi Zheng <qi.zheng@linux.dev>, linux-doc@vger.kernel.org, 
+ "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1601; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=Ejk+F/Wux5yTvQzPF878nAZnzdraz7QYUlz/y227QJE=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLI2LchuC1lS+yl/saWZ4KXsS/+f/mMRKmHc9UBbod6B2
+ YU98CxHRykLgxgXg6yYIsvzL+L7g0TC5nVe8HeDmcPKBDKEgYtTACYiP5Phv+8ioR33clR2yb5m
+ l1T66KMtEtO5qfBsf+mk6EU66XL/njAy7OdZ56cxmWV7qvxM/cnbUvUPnrh05fThTHmL9/6/nNY
+ oMgEA
+X-Developer-Key: i=ljs@kernel.org; a=openpgp;
+ fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-kmap_atomic() is deprecated in favour of kmap_local_page(), as described
-in Documentation/mm/highmem.rst.
+Currently riscv gates MMU_GATHER_RCU_TABLE_FREE on CONFIG_SMP and
+CONFIG_MMU.
 
-sparc64 has its own copy_user_highpage() and copy_highpage(), so that it
-can copy ADI tags along with the data. Apart from that they are copies
-of the generic helpers in <linux/highmem.h>, which were converted to
-kmap_local_page() in commit d2c20e51e396 ("mm/highmem: remove deprecated
-kmap_atomic").
+Commit 69be3fb111e7 ("riscv: enable MMU_GATHER_RCU_TABLE_FREE for SMP &&
+MMU") enabled CONFIG_MMU_GATHER_RCU_TABLE_FREE for CONFIG_SMP, CONFIG_MMU
+riscv builds.
 
-sparc64 has no HIGHMEM, so both mappings are just page_address(), and
-all that kmap_atomic() adds is disabling preemption and page faults
-around the copy. Neither is needed. copy_page() is memcpy(). On sun4u,
-copy_user_page() disables preemption itself while it uses its temporary
-TLB mappings, as clear_user_page() does, and the generic
-clear_user_highpage() has called sparc64's clear_user_page() under
-kmap_local_page() since that same commit. On sun4v, copy_user_page() is
-patched to routines that copy through the linear mapping. No user
-memory is touched, and the ADI tags are copied after the unmap, by
-physical address.
+This is expressly for the safety of GUP-fast walkers (CONFIG_HAVE_GUP_FAST
+is enabled if CONFIG_MMU is enabled).
 
-Convert both functions to kmap_local_page() and kunmap_local(), like
-the generic helpers.
+Naturally a single core system does not encounter issues with software page
+table walkers being correctly synchronised across cores, as there is only a
+single core.
 
-Assisted-by: LLM sparse
-Signed-off-by: Danish Khateeb <danishkhateeb03@gmail.com>
+However, CONFIG_PREEMPT_RCU is still available on a riscv UP system, so for
+a future RCU-only page table walker, this guarantee is required to prevent
+concurrent page table teardown.
+
+All page table freeing is already done via tlb_remove_ptdesc() so the
+conditions of CONFIG_MMU_GATHER_RCU_TABLE_FREE are already met.
+
+This forms part of an overall effort to switch every architecture to this
+mode.
+
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 ---
+ arch/riscv/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Notes:
-    Tested under QEMU (sun4u) with CONFIG_PREEMPT, CONFIG_DEBUG_PREEMPT,
-    lockdep and CONFIG_DEBUG_ATOMIC_SLEEP. copy_user_highpage() through COW
-    after fork() (with both the child and the parent writing), the first
-    write to a MAP_PRIVATE file mapping and COW of a hugetlb page: 3332
-    copies. copy_highpage() through page migration by
-    /proc/sys/vm/compact_memory, set up so that the test pages were among
-    the ~37500 pages migrated. Every word of every copied test page was
-    checked, and kprobes counted the calls. No warnings. With a CPU-bound
-    task competing, the patched kernel was preempted inside the memcpy() of
-    a migration, which could not happen before. sun4v is not tested, as
-    QEMU cannot boot Linux there.
+diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+index 505eed4af932..3529ed1861ce 100644
+--- a/arch/riscv/Kconfig
++++ b/arch/riscv/Kconfig
+@@ -208,7 +208,7 @@ config RISCV
+ 	select IRQ_FORCED_THREADING
+ 	select KASAN_VMALLOC if KASAN
+ 	select LOCK_MM_AND_FIND_VMA
+-	select MMU_GATHER_RCU_TABLE_FREE if SMP && MMU
++	select MMU_GATHER_RCU_TABLE_FREE if MMU
+ 	select MODULES_USE_ELF_RELA if MODULES
+ 	select OF
+ 	select OF_EARLY_FLATTREE
 
- arch/sparc/mm/init_64.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 103db4683b16..5af327e5aa64 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -3072,11 +3072,11 @@ void copy_user_highpage(struct page *to, struct page *from,
- {
- 	char *vfrom, *vto;
- 
--	vfrom = kmap_atomic(from);
--	vto = kmap_atomic(to);
-+	vfrom = kmap_local_page(from);
-+	vto = kmap_local_page(to);
- 	copy_user_page(vto, vfrom, vaddr, to);
--	kunmap_atomic(vto);
--	kunmap_atomic(vfrom);
-+	kunmap_local(vto);
-+	kunmap_local(vfrom);
- 
- 	/* If this page has ADI enabled, copy over any ADI tags
- 	 * as well
-@@ -3106,11 +3106,11 @@ void copy_highpage(struct page *to, struct page *from)
- {
- 	char *vfrom, *vto;
- 
--	vfrom = kmap_atomic(from);
--	vto = kmap_atomic(to);
-+	vfrom = kmap_local_page(from);
-+	vto = kmap_local_page(to);
- 	copy_page(vto, vfrom);
--	kunmap_atomic(vto);
--	kunmap_atomic(vfrom);
-+	kunmap_local(vto);
-+	kunmap_local(vfrom);
- 
- 	/* If this platform is ADI enabled, copy any ADI tags
- 	 * as well
-
-base-commit: 93f51579e7df248780214094418f205253383cc5
 -- 
 2.55.0
 
