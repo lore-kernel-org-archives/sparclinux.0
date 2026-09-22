@@ -1,134 +1,85 @@
-Received: from mail-oi2-f43.google.com (mail-oi2-f43.google.com [74.125.231.235])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46B9B38DC6C
-	for <sparclinux@vger.kernel.org>; Tue, 22 Sep 2026 02:31:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.235
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FF424D9F86
+	for <sparclinux@vger.kernel.org>; Tue, 22 Sep 2026 07:29:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790044277; cv=none; b=h78CpgsXODlKOacyDO+uqZtqRxrTXRnSimj1Pu6DnsyPo6CsQDL2yd/NeVexBlW6mFeg6D09IyS5RIgfwhJq6Q388PTxhRlacFg3qoH05kSNMtrDnSQEAxqmBWP5E3uuz6/khX6wnSTCIMUadzrCSHza7Y3OhVGT5heAwc3qtRo=
+	t=1790062144; cv=none; b=pg/xlSi8jItuRzPNkyXZYWLGyv1pbwskD+LhuoiM2An1HVEF4lZAXF5XNFxtjSRyZHXRY98Cwn6U2LFtSUejzoA/CAxDwpSnsiqrzQP/XmQxv282XAXufeDI98xPVfK05RhR0fu6O0rmK3aLWRauokZ7wdNQKdn9+gqw0KDxdpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790044277; c=relaxed/simple;
-	bh=k3uI38McaBBwdCNJHLmxYV0OO7ZSK15O+198iKJMWk8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WFsijzRpmBzo6uNpA86YjkMVAo3+ZokmO/PY8E7IE0RPvQCDM0kkk0l4RyCkJ20Tub+wCLg1kqj4GTEP5d6Z43oq+n70jg20HlD0w8RDyRt6hEpJvHm8g7a5sE7++Vg+7VKe64qEu/Oj5xNbF/1EIdjcYOeZBvzZtXun7Rj00ME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Zf+K4YCG; arc=none smtp.client-ip=74.125.231.235
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790062144; c=relaxed/simple;
+	bh=XPp/PcjFWgVB5+Bw5ABOkUP0IsKJws4n3xxxAV9CNdE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=X7XClfi4sVynAhg9fwgT/b6sGZDHBqa/BcDrkt2hWzd8wUndU1QZqcX9xOIH3q9xvCGPx/mz2OYHIccMwZ8JTwpNDYl4lLUzsCxHVhHdHajrb0DZrer40tQZykfYv6BGhLqJfg4jCDcqJmTg44XkxoSguC2CZsyP5a7jkJAyYA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=I3s/AH7F; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Zf+K4YCG"
-Received: by mail-oi2-f43.google.com with SMTP id 46e09a7af769-80199394f52so1986480a34.3
-        for <sparclinux@vger.kernel.org>; Mon, 21 Sep 2026 19:31:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790044275; x=1790649075; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=fPinNBMlDf+SVY9DzF+R+UP82SJBRH5lBM7N0iCV2os=;
-        b=Zf+K4YCGtPSlWKAS9ChF4CK/ypowMzexliLuNTcAPn+m5zDoeVrZSB37+j5fW1WV6E
-         iezjmWpJPtoXefrIpp1dqVRyKIuWWruXJAmlEZYDIWKRm8gBArFGt8GZnqJCpyhebHqB
-         YBjoriZnUzStObQqbFCJG4GFn5NLhqjp1QoTucdldMahqENyzBq1Cn5g1DN/BF03mrIf
-         hEif2CamcP/kkR0QpBQLtvVrNj0SDc3zAsymyMA0LHXpIL1FnV8FBQQ7iZxYjCerf5Rc
-         IAPfzPepowVQeSmDsLEHwBji9aGJSB/3qExQRPBlr2ajV2UIROOAIYsSo9WTaIXsBn77
-         ih8g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790044275; x=1790649075;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=fPinNBMlDf+SVY9DzF+R+UP82SJBRH5lBM7N0iCV2os=;
-        b=pdCXGXJeVbZdwdGd91Oo2rSSOvP7w3XIqroAbfx8cEWUCzMXpGuUawa8+LFNJzLGA8
-         n9BLHPdd4eyjwT+isoxRIycCNdol2Mtz5o7Sv1r3dNRVtoytsHsLTqjEsvvkWgnETFRK
-         PcNGwgT0X1yHMN/3pc8KzHKwRsES43hPr5No02fnUJjqIBvHOMNZyJmhXGxE9XPzxGrT
-         LWwjYPV4kEjnmxNHbWSNsidzOAlv/8sIFSa96G8IgSOrZ4+r1zmunr4+JLR31rr8aYiv
-         uMg0JUDhxjSxBuGIyVkhX5NiuqqqnCYuWqt/7PI6Z5UZVbPoVa43M/+6BCjh7wyxbn2V
-         eh+A==
-X-Gm-Message-State: AFuF++lg/qD+4+K36eoNaTQBc+xGyAqhe4l+j5uXozAQbHxfdhmIsK0o
-	/DG6O8kIHlWKEtHUe5iAuPxDFBGwhQVT4RYR8Gk3ykgbdaCOBBuGUokUz8IFsodZ
-X-Gm-Gg: AYBFou3g7hJA4FchX6rkXPsqfN5SP9B08HLZhWCzeAXing0DcNXqcrhUX3Ja8wgmmzb
-	bzn7nPEj8VnxXTztO961gaFDDPMB/6N6bXlaYp1wi3qc6WASisdSlhShq9t0+zjYeBggvDqEArO
-	nIKrZSVw1zXLcX/wVO/e7c2/OpZck/knHI+8jvy8PZHkz8Z6ti8d0zAtDEkf8A3xic2f0BAy15q
-	+fXtipcRcsdySoW+qNOn2ZTy5RPJfWgcFYxEoZbf56PTwqjJtR6NJI/7zmtgsBSXVro8/qFJ/4q
-	2MqXCQMf46D5ANGGLMJtieXTCyf4BX/5D/OhrQdnW5edoqNN8mwLGwbJP0iVlXg+4ja9yubZnv7
-	Covjo4Df1Vf4oYbu88E1cifcEsSrJKlBDEM7oje2tWQmTQvpHseo5Zx5AmsxE/Eo69kzIdXDw3+
-	b/zy3YuaXHOaKkxLXOIPAy9yQPi9eLHvWR8cy2fyiO70nCpoEbNBT8xmxeh9T4YvMhRLkE+EgQn
-	TLZDLoByiSit84tsw7rCIvf4k1kI5OUD0k34cX0
-X-Received: by 2002:a05:6830:71a3:b0:806:621a:e71 with SMTP id 46e09a7af769-80de38f0d07mr12983273a34.31.1790044274956;
-        Mon, 21 Sep 2026 19:31:14 -0700 (PDT)
-Received: from archlinux.lan ([136.34.156.120])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-814e6396f1fsm662102a34.16.2026.09.21.19.31.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Sep 2026 19:31:13 -0700 (PDT)
-From: Danish Khateeb <danishkhateeb03@gmail.com>
-To: Andreas Larsson <andreas@gaisler.com>,
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="I3s/AH7F"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1790062141;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1nV4OYi178lUeQW0YjjIgpTN9nSwgzP2y4G9yO7aqk0=;
+	b=I3s/AH7FZF4OFVZL5DNi0A0QoodJQ6tLy1xdVRBBM0hCJ7T9AVT6FHQAQJD/4ow5no4UWy
+	1OoLU/yRZSeKAGF08HV+rh6EtLLEbHqQmDDMyS35OGLLIy42ehpOLdm42NcGZjlw1PH8oa
+	fCLp8bQ7E90r9jLwtttpoDybtJ5TQ4g=
+Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-387-JtQeQhCuOTOpX21smiv1SA-1; Tue,
+ 22 Sep 2026 03:28:57 -0400
+X-MC-Unique: JtQeQhCuOTOpX21smiv1SA-1
+X-Mimecast-MFC-AGG-ID: JtQeQhCuOTOpX21smiv1SA_1790062136
+Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id E74F0180A94D;
+	Tue, 22 Sep 2026 07:28:55 +0000 (UTC)
+Received: from fedora (headnet03.pony-001.prod.iad2.dc.redhat.com [10.2.32.114])
+	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id 0492D1956041;
+	Tue, 22 Sep 2026 07:28:52 +0000 (UTC)
+Received: by fedora (nbSMTP-1.00) for uid 1000
+	oleg@redhat.com; Tue, 22 Sep 2026 09:28:55 +0200 (CEST)
+Date: Tue, 22 Sep 2026 09:28:51 +0200
+From: Oleg Nesterov <oleg@redhat.com>
+To: Danish Khateeb <danishkhateeb03@gmail.com>
+Cc: Andreas Larsson <andreas@gaisler.com>,
 	"David S. Miller" <davem@davemloft.net>,
 	Peter Zijlstra <peterz@infradead.org>,
-	Oleg Nesterov <oleg@redhat.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>
-Cc: sparclinux@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Danish Khateeb <danishkhateeb03@gmail.com>
-Subject: [PATCH] sparc64: uprobes: use kmap_local_page() in copy_to_page()
-Date: Mon, 21 Sep 2026 21:31:11 -0500
-Message-ID: <20260922023111.49951-1-danishkhateeb03@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	Masami Hiramatsu <mhiramat@kernel.org>, sparclinux@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] sparc64: uprobes: use kmap_local_page() in copy_to_page()
+Message-ID: <arIuM7PdJ9gi222t@redhat.com>
+References: <20260922023111.49951-1-danishkhateeb03@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260922023111.49951-1-danishkhateeb03@gmail.com>
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
 
-kmap_atomic() is deprecated in favour of kmap_local_page(), as described
-in Documentation/mm/highmem.rst.
+On 09/21, Danish Khateeb wrote:
+>
+> --- a/arch/sparc/kernel/uprobes.c
+> +++ b/arch/sparc/kernel/uprobes.c
+> @@ -33,10 +33,10 @@ unsigned long uprobe_get_swbp_addr(struct pt_regs *regs)
+>  static void copy_to_page(struct page *page, unsigned long vaddr,
+>  			 const void *src, int len)
+>  {
+> -	void *kaddr = kmap_atomic(page);
+> +	void *kaddr = kmap_local_page(page);
+>  
+>  	memcpy(kaddr + (vaddr & ~PAGE_MASK), src, len);
+> -	kunmap_atomic(kaddr);
+> +	kunmap_local(kaddr);
+>  }
 
-The generic uprobes code and arch_uprobe_copy_ixol() on arm, arm64, mips
-and riscv were converted in v7.0, see commit a491c02c2770 ("uprobes: use
-kmap_local_page() for temporary page mappings") and the arch patches that
-came with it. sparc64 was not part of that series: its
-arch_uprobe_copy_ixol() writes the XOL slot through a copy_to_page()
-helper, which still uses kmap_atomic().
-
-The mapping only covers a memcpy() of one instruction into the XOL page,
-so it needs neither the pagefault_disable() nor the preempt_disable()
-implied by kmap_atomic(). Uprobes is only built for sparc64, which has
-no HIGHMEM, so kmap_local_page() is just page_address() here and the
-only effect is that the copy no longer runs with page faults and
-preemption disabled.
-
-Tested under QEMU (sun4u) with CONFIG_PREEMPT, CONFIG_DEBUG_PREEMPT,
-lockdep and CONFIG_DEBUG_ATOMIC_SLEEP: a test program put a uprobe and a
-uretprobe on one of its own functions, then called it 1000 times in one
-child process and 100 times in another. Every call returned the right
-value, all 1100 returns went through the uretprobe trampoline, and a
-kprobe counted 1102 calls to arch_uprobe_copy_ixol(): one per hit, plus
-the trampoline for each of the two XOL areas. No kernel warnings while
-it ran.
-
-Assisted-by: LLM sparse
-Signed-off-by: Danish Khateeb <danishkhateeb03@gmail.com>
----
- arch/sparc/kernel/uprobes.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/uprobes.c b/arch/sparc/kernel/uprobes.c
-index c8cac64e9988..1b54f9e72e8c 100644
---- a/arch/sparc/kernel/uprobes.c
-+++ b/arch/sparc/kernel/uprobes.c
-@@ -33,10 +33,10 @@ unsigned long uprobe_get_swbp_addr(struct pt_regs *regs)
- static void copy_to_page(struct page *page, unsigned long vaddr,
- 			 const void *src, int len)
- {
--	void *kaddr = kmap_atomic(page);
-+	void *kaddr = kmap_local_page(page);
- 
- 	memcpy(kaddr + (vaddr & ~PAGE_MASK), src, len);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- }
- 
- /* Fill in the xol area with the probed instruction followed by the
-
-base-commit: 93f51579e7df248780214094418f205253383cc5
--- 
-2.55.0
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 
