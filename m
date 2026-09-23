@@ -1,282 +1,198 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888C3498904
-	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 20:34:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9CB957C706
+	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 20:38:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.174
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790195646; cv=pass; b=VU8yKXCNGpCMKvbi20ItTFyV6vxiOPUa6R8EBq3MlgQLhLEo3BSpTrN0Onc5ydFYgbWexrzhDqHGZbOJNeAWhcpHcA+oxpgYfqHXE0aUpkSoNuU8zCiKY1nWiP3AkDem+tvAGg9fFTZY3U3qT0oIcX8k9z6WGA9VFZTPS3m0Pzw=
+	t=1790195930; cv=pass; b=oG32KyVsEGC0LEDRo4TfFT7asFcYvcW3XVh45DV0bsv62CjOkUDbVXGzRo4dxy014oBFpruD27ZMKOS5Kcp8thSfnkuxPLC5q79odSaLnvFsK4146R2ueR7+FB5sFRUVlUu493AqmNSjHDPevrOoAKHax3dDXDcuipelait9MDk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790195646; c=relaxed/simple;
-	bh=x2KsbWxNcXzDGrxUjPtXA6JMUYxlGrwEtnlKXN9TOj8=;
+	s=arc-20240116; t=1790195930; c=relaxed/simple;
+	bh=1323NqL3CnlUce5XBrIJSLy43Ws8JZBp7hMlzmPHrRc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dEjoByb7c3rRhP20Agv1XHf801wRbInQjVNpZa6mDC/GVnZ1XqwWP7u1vatt6QjjXaDis5D0EfmMerXpOoNi1W6VAhr5GxvJbXW1iYjp0Y3T5NdHY5bZavBXADLQlW1l0MpwD2HQjH7nLC1AsKpI25krdo1XBFm7AtfgWGCAshU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=MSzf5flg; arc=pass smtp.client-ip=209.85.214.176
+	 To:Cc:Content-Type; b=u/Waf/dsWnneCSUrWU7tPgzD6ngkonM+imWdbnz8DmQEIJf4UYr0WfW7/gJ+NTaURo2X1hYsrEUjoP7ClT8knwZ5yfAaAGu+eDdoePxX9giw3uNSNl/+a2dK/VNLLc+QLU9oPB+ypY+ytMTD9c2U0EjG0JF2LfPCM2IALKgTE5g=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=UTK9jh5A; arc=pass smtp.client-ip=209.85.214.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="MSzf5flg"
-Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2d8facae850so23385ad.0
-        for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 13:34:02 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790195642; cv=none;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="UTK9jh5A"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2d3b445a84fso4925ad.1
+        for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 13:38:40 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790195917; cv=none;
         d=google.com; s=arc-20260327;
-        b=D79U6Q2EKGVe/CmELtf6ibqC8GBmF/i5BXdmye/sa/0cn8gr062d65Jh7mkOQBeQe0
-         IH+exOG0aGWqmhlJDDmbccCeiJ3Q0/6XZgKri4XeWSt/mZ84vHcNfx9Qn5BOVBO+QZd2
-         5keIAr5WM5jZhp8JywWZRkEIlPTk4sj/4ThAOq0hd5zlxuhJWyzic3SFB0skCX9aI5gr
-         XVTu45y+PbUyvhabztE2PP4FzQ35KLM/FkcmBZAGpME4Gx0gH0VU/dDuuaMGQWB6DLXw
-         0GazMIuo97SkC0kZEDUJ7BeakDSiM3+znVLxwjM+4PRJui491PZbwctD3RU1UakDq99r
-         l0pw==
+        b=eCOEaSNn+n3wkQwUtS3r+1mZqUGPJrj47qAA+qM1Dk8RO7p59/43HP1tpjVAEPF5Yj
+         W0i8lgDsi5uUP6M/h0Ho/eKb/6dXM7Oez3E936FN12ECA6C44TprqFThqQ63XcK/3IoX
+         u6QfFbWEqEPN0/7p6UvWaQ8lST/oBLp1M1lh+2iiTV+vFMOiwZ1w6LYfyLE+c/ao6st8
+         FdOWLfyCeRlbHjo+MW2CEzNS3327CJwmr/jnWU2UU+HE/j1G8UV9UoLYUIJ9bLRokf7l
+         gr8yLeJqDUV/Q084YFcdnJuxjamZvpZzye9hMPbahTy2VHlJh0RsrLJ5xV3uA7IaIZo6
+         rH/g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=6iRjbWXUWKdI5T5j70ZPijMzoSc0FwXFiL+Py7PH7F4=;
-        fh=bsH0hRMLpa4Cj4Sc05RztbsX8UNBxqUwsLHWRq6WEiI=;
-        b=NhVTIZP/CYt/j5T6gFlxTFA0pRFNKrp+QLlwJe5pE+iHaZHxB1WUPf2JoLF4g7c55p
-         d3woP9HelpyIx7x7dTHb95iReBGWAGfOwKAvTHCFF1Zjn4Ks4oxOuoM00c4lxnTKpmxe
-         UN0tcYUaly9tC5gFx0LyjdSi1qhs7XWD6pxIbYShrhfNz6WOZBb5kN/16mBEai7IsBQn
-         aXGpGerIKIrcOi7Fa0thTVJdccr0Vkbn6ae0Sp2jslGKvZKXQJbjwGp/C1bf3q9wNtMW
-         xkk/HJdc81tF09l5hvogzmb//z+ZQYDjxJ+Y/mp90qod1D6VMSFEmhkI+S2GZ7Snkf3r
-         jgSw==;
+        bh=J915CxCyoQiRvBpeSoeKGmPezPQTdfg1IocPf7kC9Cw=;
+        fh=aRZzTM2FCWaGqq1IRacTUTe4a9SVpbvmueJOHI9Hmrg=;
+        b=Mm3iZvAOl8YT0cMnFcDGTZU5jFziO1y2cGd+3rCHcCfVbHzrmyTm47AuzQQs3UOkfV
+         LaHy+l3o/9eGzolpbHD7Eejl3G6xtWsSFHp1+uLoskiUyhD1wgfMj9mJQS4VUCYwy2Bv
+         BzTteMl4de4X8cyAu3mK+4O7hTrITg2lX8McXtfP7YFAlUc5eNB/Fa+EoPzT0LeR2Gee
+         oUGCh5GB003Q26M+j97u4prTuqlg/7lMwWbGFjoS5EEkuKRx5gWvsuqVPrJk07wfN3OA
+         oKujVk1bB7Kr8XcYhvS1SejeoMfDV6i8SsIBNFWtMoXF8/QAohAeLK3pZupgJj25QFRU
+         /g4w==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1790195642; x=1790800442; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1790195917; x=1790800717; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=6iRjbWXUWKdI5T5j70ZPijMzoSc0FwXFiL+Py7PH7F4=;
-        b=MSzf5flgQ4zcxUOOnu+OwR/YRC6E51dPDWsedFPaYZOIZ6+ZD+BPxm6ghQskoHsS7V
-         +WhBoa5GMSF4LYMPBI+KytXB7ORnu/bv9DCM0i7TLxEaQTFdXh/L54pQrVinMtTw4uxc
-         tBjS39jspT6+vRG6ts7g6gmp/S4Ea0E0Ea2FX7FA0Au/XA/2BwxI8n1REMZISPWem501
-         HLuujeOAKEXlfahxMq4O4x38CfM9tLv8roRG5eYaOutFLwxG9lIIVtwbr1drN8WAn3OP
-         tItAl9W34ejYNVFOa2Ui3oCbbF12XR9xOWY0IlidTGHKlpsdQ9qbVq21MFPCfX/+/UXc
-         7zkw==
+        bh=J915CxCyoQiRvBpeSoeKGmPezPQTdfg1IocPf7kC9Cw=;
+        b=UTK9jh5AVVPYAgpwE98Cq9VszKtqOjO+4QCEih0/J4NpXCRWlSJkfsCe+vtjnlDbHG
+         69baWXT6tHwAlZUtTDrb0ednkMLW9EazC9un0TgODObSjX1m1bDrOoruD1+Qp5GkiJ57
+         BEx42dvy0cFvkDs+5EToZCljzI0uv/yHO1YWJxKEFEDXVco+Wqy9mfifTwRE3gCzQyd2
+         TWjES3E8euDKKfC98Tt9NVFz/DIUjuT0s6YGKaRfjaMx73+GTZhHWO2xWqkPlOIfBir6
+         AkEmVGx8sKXkY/rfSg8SV6nQVsdapJOEHDAw+SniHjszsJ3FLI0OIq+khZshgZ4kJcIv
+         p3pA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790195642; x=1790800442;
+        d=1e100.net; s=20260707; t=1790195917; x=1790800717;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=6iRjbWXUWKdI5T5j70ZPijMzoSc0FwXFiL+Py7PH7F4=;
-        b=P5gamRqlAK0f73lZ03ftAU7Z9r2O8EVkymT/ifB7Oj6H1lSMNvwZaRyFeyeLuHbFN6
-         6QDGWNoEYimabEcFsUUan9t0cUNt1iCRGqcDFEqRzV5Z4QJWDT1MkioIv7HDApZGkCA3
-         ziA84oMneumcWQBxIPFdRzA+ILZRewVtV0YoKc+27oYgA01/NM3sqVSzoAvNpBA27JN+
-         owYRsmNOGUU1hOY2g0I9qK/SSiQWPc79fhtoOoJFqZjIGYp5/aZvHCxGKNWl2y/E0jVT
-         nViXcNK0VfNgg63NzPUQcoorDCOx5yyZhKfTntYRxeJFwTJUj5B8E32uGBHTKi1TKydO
-         xztA==
-X-Forwarded-Encrypted: i=1; AKwUvBzzc63Lenyryy834eM+Ey8fOGNV45e/46seWYt3hKMmevwCNGTqZ981ZwCaDrlgejCeD+Dda+qYr1nI@vger.kernel.org
-X-Gm-Message-State: AFuF++nyqummlYuF78linROb/fXPYp0XgQwFQzFW1BSF2JXtvrQsajd3
-	asGAU6gfDSULSkh8MBuR86EHK5UTbUFsUfkewL1ZgimNJfTy2bFo4GVgPvoZ1PssBhr2DYFMrEe
-	5bcxCP0nitzF/v62GotH0jQjdL1/T8YlTFM29D7wz
-X-Gm-Gg: AYBFou39T031T4vKGIzX53uwB4fdL/yqiNbm3uYufzTyVMIcTMJyzlEDVwUK8YJdr9N
-	xdD/GQzES7Rfi/2AhDd31wEOoE83WAxhVT2vkMWktjcj2UJbGBLIPZFRTp92zKykmvv51eX6ncE
-	CAdHDzf1O2CblV3dDWi1psXkOkacgHVwvwaHv40X5aDa0Z86PQy4gd3KOsFnDOvuFTRkPxUDgrQ
-	52bCt6Oxe+vRractvGYbcwAhrOabdA/zkvYjKSYBKbnsS3+QIZL8iB11PxIz2V+fyy6SXXHf2mJ
-	7xBOoLAhLUYwEjVMzgazajGB3WvOOqR6DVIRA6PNCtPtz/vxjBVAdYrsQ/n6FK7f1XlMquBVvAc
-	7h6qLReXotEXfCr8f9vBU
-X-Received: by 2002:a17:902:f543:b0:2d5:db38:800f with SMTP id
- d9443c01a7336-2df7b3e1e8emr1773735ad.14.1790195640940; Wed, 23 Sep 2026
- 13:34:00 -0700 (PDT)
+        bh=J915CxCyoQiRvBpeSoeKGmPezPQTdfg1IocPf7kC9Cw=;
+        b=p4R+ewIi6bvKetc+BfghMSKEtvKSEvkBmqgIu3KNeDCJ7Bo+eCnM+YBO9O5/cnPinB
+         wDMAaJsQwRv0l5TdW9rK+NQsBZ8WlBsX3duD7/6Ogk4ARhQkenTCJ6FQSKeQcnjDv/nX
+         ilgxAe7hVuyCIQgAJ0DKbMYlhzkSAl3J1uzv4inv8HB9LwgqA7S7tKQe4a5TXTYZJ0w/
+         XkqfRHHJ/W0lvOzOOjOzqWKFfxwUV/zpF5ccSf4HGS9eOG6NFi4wKKmInc5yw79RDuDK
+         3xtfjpIi7KNjtkQTsmLDiOsuamG4+l2lGrWQoT4Qehmlb2jXz8EHxiEWAAF6CVeUbdtE
+         NmCQ==
+X-Forwarded-Encrypted: i=1; AKwUvBz7zWeMtiNZOWjJmsGI+eoAq70aiocQUUf2E/jumac3oHwdYzAqyDr2rUpRup0eV339wDkFrvOfXv2s@vger.kernel.org
+X-Gm-Message-State: AFuF++laO0KEpvd3dsKBVVBKhJFrY3E/lgaZi4+Ha6DW7PcvR4DXOFNj
+	CiVhiS+AKddXpF3oLkIF7TiwlEf8jX6mDA0sqU/00E7njYNk5wlFP3FxFpZmeqGSbjkvHCQ9iJz
+	CTsuZMDHRNaJjO8WDpssySHiF9HL5XBL7NJMzNLXl
+X-Gm-Gg: AYBFou3s78FaHdJyucpWhLT5ulueecPr7dyfOUyqSJjUMf78XY1TpWSaTGiDNgF/UgY
+	x+n2UF7imUICctXkRrsuEsZMX4boqgp7IjwSVsKTTAjrzP0QtNjAuO3qCloC1HvKiYybuZnzsc4
+	BDOhtdtz7k/0/7K/iLEtMl6vjndzYRcYfchi2k/omMeb8ysxr9l2w/5CfNKzLqWTGovfOC/1GiW
+	9mp3FCE3gpqyZsMhdcb4eKnOdsys2SKJow9j2zSKu9vybIlJwbFKbu7C6p7J2QELHJeLQI+3K35
+	D1FM1KQHJW+6VLYJnleKwXGyLc2Nw3DIkvj/lDaECz8HcWdb3Dj2f3bMJZIfkDrfJvFQHaVYLl4
+	7AWD5EOrheQ==
+X-Received: by 2002:a17:903:3546:b0:2d5:db3d:1a43 with SMTP id
+ d9443c01a7336-2df7b543459mr2096965ad.16.1790195916082; Wed, 23 Sep 2026
+ 13:38:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260923193432.2489729-1-stian@itx.no>
-In-Reply-To: <20260923193432.2489729-1-stian@itx.no>
+References: <20260923090429.2026529-1-stian@itx.no>
+In-Reply-To: <20260923090429.2026529-1-stian@itx.no>
 From: Ian Rogers <irogers@google.com>
-Date: Wed, 23 Sep 2026 13:33:48 -0700
-X-Gm-Features: AcwNN1UT7NrgvcNDp1sJnOfbIhVSfmmWr9VKa8r6V-od56OMd3RrgE8WhcMyDkE
-Message-ID: <CAP-5=fX2M6ndLGh5GKjiP2eK=tCp_LpE1iVjDH+Nkz5jJVpxqw@mail.gmail.com>
-Subject: Re: [PATCH] perf unwind-libdw: Fix reading the stack of a 32-bit task
+Date: Wed, 23 Sep 2026 13:38:22 -0700
+X-Gm-Features: AclHuK9IEgUm7kI4_piSGvTKV7diZ2jvf8wc2SM-hRRU78_gdW8Ka0g33Qc7YwM
+Message-ID: <CAP-5=fW4bzmy5_6a-8YucOy7JGKg+izRbq+7TaOGKV5aG0oYcw@mail.gmail.com>
+Subject: Re: [RFC PATCH v3 0/3] perf: sparc64 user regs and stack dump, with
+ arch hooks
 To: Stian Halseth <stian@itx.no>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, 
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, 
+	Andreas Larsson <andreas@gaisler.com>, "David S. Miller" <davem@davemloft.net>, 
+	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
 	Mark Rutland <mark.rutland@arm.com>, 
 	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
 	Adrian Hunter <adrian.hunter@intel.com>, James Clark <james.clark@linaro.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Magnus Lindholm <linmag7@gmail.com>, 
 	linux-perf-users@vger.kernel.org, sparclinux@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 23, 2026 at 12:34=E2=80=AFPM Stian Halseth <stian@itx.no> wrote=
-:
+On Wed, Sep 23, 2026 at 2:04=E2=80=AFAM Stian Halseth <stian@itx.no> wrote:
 >
-> memory_read() hands libdw 8 bytes whatever the sampled task's ABI. For a
-> 32-bit task libdw keeps the low 32 bits (__libdwfl_frame_reg_set()), so
-> on a big-endian machine each word read from the stack or a DSO is the
-> one at addr + 4, and unwinding stops at the first frame restored from
-> the stack. On sparc the 8-byte load from a stack address that is only
-> 4-byte aligned even traps, and perf dies with SIGBUS. Read 4 bytes for a
-> PERF_SAMPLE_REGS_ABI_32 sample.
+> This adds HAVE_PERF_REGS and HAVE_PERF_USER_STACK_DUMP to sparc64, so
+> that perf record --call-graph dwarf and elfutils' eu-stackprof work
+> there.
 >
-> A recording of the other byte order has each sample swapped in 8-byte
-> units when it is read (perf_event__all64_swap()), which leaves the
-> 4-byte words of a 32-bit stack dump reversed and paired up wrongly.
-> Undo the swap of the unit holding the word and swap the word itself, as
-> __evsel__parse_sample() does for PERF_SAMPLE_CPU.
+> Two things about the user stack dump do not fit in arch code. The
+> sampled register window's %l/%i registers, which hold the frame pointer
+> and return address the unwinder starts from, stay in the register file
+> until a window spills. The kernel already flushes them wherever it
+> exposes user stack memory (perf_callchain_user(), ptrace), but the stack
+> dump has no arch entry point where that could happen. And a 64-bit
+> sparc stack pointer is biased by 2047, so a dump that starts at the
+> register value begins 2047 bytes below the frame, and is empty when that
+> page has never been touched.
 >
-> Suggested-by: Ian Rogers <irogers@google.com>
-> Signed-off-by: Stian Halseth <stian@itx.no>
+> Patch 1 therefore adds two hooks in the style of perf_arch_misc_flags(),
+> both no-ops by default. Patch 2 is the sparc64 implementation and their
+> user. Patch 3 teaches tools/perf the sparc registers and DWARF unwinding
+> from the dump. The matching elfutils changes are attached to the
+> tracking issue:
+>
+>   https://github.com/sparclinux/issues/issues/99
+>
+> Tested on an UltraSPARC T4-1 on 7.3-rc4: register values check out
+> against known contents, --call-graph dwarf unwinds correctly for both
+> cycles and cpu-clock, as does eu-stackprof, and perf stat/record/record
+> -g are unchanged. Starting the dump at the stack's actual address
+> matters in practice: with the dump at the biased register value, 94% of
+> the user samples of xz -T4 had an empty stack dump; with this series,
+> none do.
+>
+> Changes since v2:
+> - Patch 1: add perf_arch_user_stack_pointer(), so an arch can start the
+>   dump at the stack's actual address (sashiko review).
+> - Patch 2: drop %g0 from the uapi, as trap entry does not save it; the
+>   PC takes its slot, as on mips and loongarch (sashiko review).
+> - Patch 2: start the dump at %sp + 2047 for a 64-bit stack (sashiko
+>   review).
+> - Patch 3: follow both, and comment the max_dwarf_reg adjustment (Ian).
+>   Drop the memcpy() change to memory_read(), which the unbiased dump
+>   start makes unnecessary.
+>
+> v2: https://lore.kernel.org/all/20260922201507.1719668-1-stian@itx.no/
+> v1: https://lore.kernel.org/all/20260922135653.1622301-1-stian@itx.no/
+>
+> Stian Halseth (3):
+>   perf/core: Let an arch prepare and locate the user stack dump
+>   sparc64: Support PERF_SAMPLE_REGS_USER and PERF_SAMPLE_STACK_USER
+>   perf tools: Support sparc user register samples and dwarf unwinding
+
+For the series:
 
 Reviewed-by: Ian Rogers <irogers@google.com>
 
 Thanks!
 Ian
 
-> ---
-> Ian raised the cross-endian case in review of the sparc64 perf_regs
-> series:
-> https://lore.kernel.org/all/CAP-5=3DfUuRm3dWra4a-6eNF3F=3DtafcHvvDipqmDEX=
-N5+ti-sW0A@mail.gmail.com/
+>  .../features/perf/perf-regs/arch-support.txt  |  2 +-
+>  .../perf/perf-stackdump/arch-support.txt      |  2 +-
+>  arch/sparc/Kconfig                            |  2 +
+>  arch/sparc/include/asm/perf_event.h           |  5 ++
+>  arch/sparc/include/uapi/asm/perf_regs.h       | 34 +++++++++
+>  arch/sparc/kernel/Makefile                    |  2 +-
+>  arch/sparc/kernel/perf_regs.c                 | 74 +++++++++++++++++++
+>  include/linux/perf_event.h                    | 11 +++
+>  kernel/events/core.c                          |  2 +
+>  kernel/events/internal.h                      |  2 +-
+>  tools/arch/sparc/include/uapi/asm/perf_regs.h | 34 +++++++++
+>  tools/perf/arch/sparc/include/perf_regs.h     | 18 +++++
+>  tools/perf/check-headers.sh                   |  1 +
+>  tools/perf/util/dwarf-regs-arch/Build         |  1 +
+>  .../util/dwarf-regs-arch/dwarf-regs-sparc.c   | 12 +++
+>  tools/perf/util/dwarf-regs.c                  |  4 +
+>  tools/perf/util/include/dwarf-regs.h          |  1 +
+>  tools/perf/util/perf-regs-arch/Build          |  1 +
+>  .../util/perf-regs-arch/perf_regs_sparc.c     | 67 +++++++++++++++++
+>  tools/perf/util/perf_regs.c                   | 18 +++++
+>  tools/perf/util/perf_regs.h                   |  5 ++
+>  tools/perf/util/unwind-libdw.c                | 37 ++++++++++
+>  22 files changed, 331 insertions(+), 4 deletions(-)
+>  create mode 100644 arch/sparc/include/uapi/asm/perf_regs.h
+>  create mode 100644 arch/sparc/kernel/perf_regs.c
+>  create mode 100644 tools/arch/sparc/include/uapi/asm/perf_regs.h
+>  create mode 100644 tools/perf/arch/sparc/include/perf_regs.h
+>  create mode 100644 tools/perf/util/dwarf-regs-arch/dwarf-regs-sparc.c
+>  create mode 100644 tools/perf/util/perf-regs-arch/perf_regs_sparc.c
 >
-> Tested with 32-bit sparc programs (static, dynamic and multithreaded) on
-> top of that series, with a local change so perf recognises sparc32plus
-> binaries: natively on sparc64 perf died with SIGBUS before and unwinds
-> complete chains after; cross-endian on x86 no call chain was complete
-> before and all are after. 64-bit unwinding is unchanged in both.
->
-> Words read from a DSO rather than the stack dump are still not swapped
-> for a recording of the other byte order, whatever the word size, as
-> before this change.
->
->  tools/perf/util/unwind-libdw.c | 46 ++++++++++++++++++++++++++++------
->  1 file changed, 39 insertions(+), 7 deletions(-)
->
-> diff --git a/tools/perf/util/unwind-libdw.c b/tools/perf/util/unwind-libd=
-w.c
-> index 4ccfcc7c2dfc..d49901b1571e 100644
-> --- a/tools/perf/util/unwind-libdw.c
-> +++ b/tools/perf/util/unwind-libdw.c
-> @@ -4,6 +4,7 @@
->  #include <elfutils/libdw.h>
->  #include <elfutils/libdwfl.h>
->  #include <inttypes.h>
-> +#include <byteswap.h>
->  #include <errno.h>
->  #include "debug.h"
->  #include "dso.h"
-> @@ -17,6 +18,8 @@
->  #include <linux/types.h>
->  #include <linux/zalloc.h>
->  #include "event.h"
-> +#include "evsel.h"
-> +#include "memswap.h"
->  #include "perf_regs.h"
->  #include "callchain.h"
->  #include "util/env.h"
-> @@ -203,9 +206,10 @@ static bool get_thread(Dwfl *dwfl __maybe_unused, pi=
-d_t tid, void *arg,
->  }
->
->  static int access_dso_mem(struct unwind_info *ui, Dwarf_Addr addr,
-> -                         Dwarf_Word *data)
-> +                         Dwarf_Word *data, size_t len)
->  {
->         struct addr_location al;
-> +       union u64_swap u;
->         ssize_t size;
->         struct dso *dso;
->
-> @@ -218,15 +222,38 @@ static int access_dso_mem(struct unwind_info *ui, D=
-warf_Addr addr,
->         if (!dso)
->                 goto out_fail;
->
-> -       size =3D dso__data_read_addr(dso, al.map, ui->machine, addr, (u8 =
-*) data, sizeof(*data));
-> +       size =3D dso__data_read_addr(dso, al.map, ui->machine, addr, (u8 =
-*)&u, len);
->
->         addr_location__exit(&al);
-> -       return !(size =3D=3D sizeof(*data));
-> +       if (size !=3D (ssize_t)len)
-> +               return 1;
-> +       *data =3D len =3D=3D sizeof(u32) ? u.val32[0] : u.val64;
-> +       return 0;
->  out_fail:
->         addr_location__exit(&al);
->         return -1;
->  }
->
-> +/*
-> + * libdw expects a 32-bit task's words zero-extended.  A recording of th=
-e
-> + * other byte order was swapped in 8-byte units when it was read (see
-> + * perf_event__all64_swap()), so a 4-byte word is picked out of its unit=
- with
-> + * that swap undone, as for PERF_SAMPLE_CPU in __evsel__parse_sample().
-> + */
-> +static Dwarf_Word stack_word(struct stack_dump *stack, int offset, size_=
-t len,
-> +                            bool swapped)
-> +{
-> +       union u64_swap u;
-> +
-> +       if (len =3D=3D sizeof(u64))
-> +               return *(Dwarf_Word *)&stack->data[offset];
-> +       if (!swapped)
-> +               return *(u32 *)&stack->data[offset];
-> +
-> +       u.val64 =3D bswap_64(*(u64 *)&stack->data[offset & ~7]);
-> +       return bswap_32(u.val32[(offset & 4) / 4]);
-> +}
-> +
->  static bool memory_read(Dwfl *dwfl __maybe_unused, Dwarf_Addr addr, Dwar=
-f_Word *result,
->                         void *arg)
->  {
-> @@ -234,11 +261,16 @@ static bool memory_read(Dwfl *dwfl __maybe_unused, =
-Dwarf_Addr addr, Dwarf_Word *
->         struct unwind_info *ui =3D dwfl_ui_ti->ui;
->         struct stack_dump *stack =3D &ui->sample->user_stack;
->         u64 start, end;
-> +       bool swapped;
-> +       size_t len;
->         int offset;
->         int ret;
->
->         if (!ui->sample->user_regs)
->                 return false;
-> +       len =3D ui->sample->user_regs->abi =3D=3D PERF_SAMPLE_REGS_ABI_32=
- ?
-> +             sizeof(u32) : sizeof(u64);
-> +       swapped =3D ui->sample->evsel && ui->sample->evsel->needs_swap;
->
->         ret =3D perf_reg_value(&start, ui->sample->user_regs,
->                              perf_arch_reg_sp(ui->e_machine));
-> @@ -248,11 +280,11 @@ static bool memory_read(Dwfl *dwfl __maybe_unused, =
-Dwarf_Addr addr, Dwarf_Word *
->         end =3D start + stack->size;
->
->         /* Check overflow. */
-> -       if (addr + sizeof(Dwarf_Word) < addr)
-> +       if (addr + len < addr)
->                 return false;
->
-> -       if (addr < start || addr + sizeof(Dwarf_Word) > end) {
-> -               ret =3D access_dso_mem(ui, addr, result);
-> +       if (addr < start || addr + len > end) {
-> +               ret =3D access_dso_mem(ui, addr, result, len);
->                 if (ret) {
->                         pr_debug("unwind: access_mem 0x%" PRIx64 " not in=
-side range"
->                                  " 0x%" PRIx64 "-0x%" PRIx64 "\n",
-> @@ -263,7 +295,7 @@ static bool memory_read(Dwfl *dwfl __maybe_unused, Dw=
-arf_Addr addr, Dwarf_Word *
->         }
->
->         offset  =3D addr - start;
-> -       *result =3D *(Dwarf_Word *)&stack->data[offset];
-> +       *result =3D stack_word(stack, offset, len, swapped);
->         pr_debug("unwind: access_mem addr 0x%" PRIx64 ", val %lx, offset =
-%d\n",
->                  addr, (unsigned long)*result, offset);
->         return true;
->
-> base-commit: edd8a9fe2eca009599e013a29c421c7a6b5ad1b9
 > --
 > 2.55.0
 >
