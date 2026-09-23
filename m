@@ -1,38 +1,38 @@
-Received: from mta0.migadu.com (out-152.mta0.migadu.com [91.218.175.152])
+Received: from mta0.migadu.com (out-16.mta0.migadu.com [91.218.175.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AFB8463B7E
-	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 07:24:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.152
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922A9469846
+	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 08:05:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790148261; cv=none; b=rV1qo3OZ9boyIsOv+SEE5PCUDxMc3jr49+gje4X9VAnaOEOS65PBMSVLzD7TLROiY8TDip6R2dwNzPZ88ENxDtBbnxhLjWGtuMf6y8AzjOOPBtuRfUB6b9PJ2ZDWVgjJqsnLyRAmJCk8VPd3f1r0hqDt5Y1bE44WGttziuYSh3s=
+	t=1790150750; cv=none; b=V6qX2ERnePospnGMa2SD1VHCeSFA5s4rqJLKXCnzpVQX/yLPlbLMwIYA+Wiwl/gEk4H0nxtdQlRs4V+t5E3mQ5daDmL9hT/OVeS2Ap0wq/X4tn2po7ZeS8p7kQUf6Ea6ReNY8/6ZX98TKAPC5DcDh3ATSZ60cKl9PP3MQLm24l4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790148261; c=relaxed/simple;
-	bh=jtYR83JV3L8wH6uuzBN56BU8b17HKc/GBiTiWGypKto=;
+	s=arc-20240116; t=1790150750; c=relaxed/simple;
+	bh=5BGZTHY8kFe6g0IgkeIcnp2oHzMTIKE0zyxoC0cn6HM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=SF162utGtWxxs8znYXg+B5h0aL/owa+NHSOkLd0GCleTbTUGIJL2XeWzJOkKXghv/KfzgULzEEj2IIGdnKrYFeCd9OmtrDot2pd8i5o55ooWCNHt3wjgVwvVv283b4v3KCOsxBGqza42Gh9F9e1iFDparpVP4tUu02GXuFh/7vE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Ya7O6uxM; arc=none smtp.client-ip=91.218.175.152
+	 MIME-Version:Content-Type; b=gKsrk8l4E1wX/O7WLwWPJx6dpJV1nGsUKX4DNQvS3mtM4EHdfBfRAFMMyiRgXVlQUKxsJJvcw+MuxE2wB6UIy7yOhrHDEXre4i2SVOILKaDmTyv3AJWpMK3ZxAcQDS3oGU7VGZMC9AZv/4bDW2FiiEfPj3xOlZxmHsWLI+2b15U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=WWzI1t7T; arc=none smtp.client-ip=91.218.175.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Ya7O6uxM"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="WWzI1t7T"
 X-Envelope-To: sparclinux@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=jtYR83JV3L8wH6uuzBN56BU8b17HKc/GBiTiWGypKto=;
+DKIM-Signature: a=rsa-sha256; bh=5BGZTHY8kFe6g0IgkeIcnp2oHzMTIKE0zyxoC0cn6HM=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1790148255; v=1; x=1790753055;
- b=Ya7O6uxMDXsoIxAHGYKKSITTwA08fzJXVN+tsHz6UMdoU8VjhwXHoLv4C5k0HnclGmMpd9Wm
- Dapmum73VLUMnbL/c8qhkj0TNsLe+QeWaGGrHPyj2B9wmIoNZ8sAdS8kBn6j0MTqo24sSv/2KFi
- 67L4B5PeDZz+Yrtf/00SBF2I=
+ t=1790150746; v=1; x=1790755546;
+ b=WWzI1t7TTqFw2wr0jDkPbtN7TwQkuQvfOO3Aoft9mKRYRiQ8BJkP6zHsQzDXqVepu6W5cjvb
+ tfHsZBOIWQv3UyolWYXTaga2Up9GF8hClSUeIYphsrLfUFaHgusY8nU/X1vFS5NizsI0/JMz8p6
+ fN5aMOPIlrRM1utL1VgA1DNQ=
 X-Envelope-To: sparclinux@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 37f5cbda674b2a55;
-	Wed, 23 Sep 2026 07:24:07 +0000
-X-Mizu-Trace-ID: 37f5cbda674b2a55
+Received: by smtp.migadu.com with ESMTPS id 0dc515f7c86dd02d;
+	Wed, 23 Sep 2026 08:05:34 +0000
+X-Mizu-Trace-ID: 0dc515f7c86dd02d
 X-Migadu-Flow: FLOW_OUT
 From: Lance Yang <lance.yang@linux.dev>
-To: ljs@kernel.org,
-	akpm@linux-foundation.org
-Cc: david@kernel.org,
+To: ljs@kernel.org
+Cc: akpm@linux-foundation.org,
+	david@kernel.org,
 	ziy@nvidia.com,
 	baolin.wang@linux.alibaba.com,
 	liam@infradead.org,
@@ -76,7 +76,7 @@ Cc: david@kernel.org,
 	chenhuacai@kernel.org,
 	kernel@xen0n.name,
 	tsbogend@alpha.franken.de,
-	James.Bottomley@hansenpartnership.com,
+	James.Bottomley@HansenPartnership.com,
 	deller@gmx.de,
 	maddy@linux.ibm.com,
 	mpe@ellerman.id.au,
@@ -129,12 +129,12 @@ Cc: david@kernel.org,
 	hughd@google.com,
 	qi.zheng@linux.dev,
 	linux-doc@vger.kernel.org
-Subject: Re: [PATCH v4 01/12] mm/khugepaged: deposit a newly allocated page table on collapse
-Date: Wed, 23 Sep 2026 15:24:00 +0800
-Message-ID: <20260923072400.3028-1-lance.yang@linux.dev>
+Subject: Re: [PATCH v4 04/12] mm: enable MMU_GATHER_RCU_TABLE_FREE for MMU arm
+Date: Wed, 23 Sep 2026 16:05:23 +0800
+Message-ID: <20260923080523.9480-1-lance.yang@linux.dev>
 X-Mailer: git-send-email 2.49.0
-In-Reply-To: <arN7q5nHz7iebA_e@gremlin>
-References: <arN7q5nHz7iebA_e@gremlin>
+In-Reply-To: <20260922-rcu-pagetable-freeing-v4-4-fe1ad1f1e303@kernel.org>
+References: <20260922-rcu-pagetable-freeing-v4-4-fe1ad1f1e303@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -145,120 +145,68 @@ Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 
-On Wed, Sep 23, 2026 at 08:14:01AM +0100, Lorenzo Stoakes (ARM) wrote:
->Andrew - would it be possible to make one quick fix up below?
+On Tue, Sep 22, 2026 at 04:35:35PM +0100, Lorenzo Stoakes (ARM) wrote:
+>Commit a0ad5496b2b3 ("arm: mm: enable HAVE_RCU_TABLE_FREE logic") enabled
+>CONFIG_MMU_GATHER_RCU_TABLE_FREE (then named HAVE_RCU_TABLE_FREE) for SMP
+>arm architectures with LPAE enabled.
 >
->On Tue, Sep 22, 2026 at 04:35:32PM +0100, Lorenzo Stoakes (ARM) wrote:
->> collapse_huge_page() deposits a PTE page table on PMD collapse in order
->> that it can be utilised for subsequent split operations, meaning that those
->> operations do not need to perform an allocation (as they are in a context
->> where it might be unwise).
->>
->> However the PTE page table which is deposited is the one which is currently
->> mapped by the PMD entry that is in the process of being collapsed.
->>
->> Once deposited, the PTE page table may be used in a split of any other
->> unrelated PMD entry.
->>
->> This is currently not an issue as this operation is performed with VMA/mmap
->> write lock + anon rmap locks held, so ordinary page table walkers will
->> never accidentally end up walking the wrong thing, and GUP-fast is
->> protected by an IPI via tlb_remove_table_sync_one().
->>
->> However, the series to which this commit belongs implements RCU-safe page
->> table traversal, at which point this becomes problematic.
->>
->> This can be resolved by using pte_offset_map_lock() which gates on a PTE
->> PTL and a pmd_same() check, but lockless walks are unsafe as things stand.
->>
->> Resolve this by simply allocating a new, zeroed, PTE page table to deposit
->> at the point of collapse.
->>
->> This path is already costly and an allocation has already been performed
->> for the huge folio, so this allocation is statistical noise in terms of
->> performance and memory usage at this point.
->>
->> With this PTE page table deposited, RCU-free the existing PTE page table
->> so it is safe for page table walkers to traverse within a grace period.
->>
->> This also brings this deposit case in line with all other page table
->> deposit logic which deposit a fresh page table.
->>
->> Additionally, this was the only place in the kernel that displaced a page
->> table like this, so eliminating it also helps consistency.
->>
->> An edge case for deposit exists for powerpc and its hash-based MMU - it
->> stores hash slot data in deposited page tables and zeroes them on withdraw,
->> so a zeroed deposited page table works correctly for it.
->>
->> Since khugepaged runs as a kernel thread, do a little dance in
->> alloc_deposit_pte() to correctly charge the allocation.
->>
->> This is already done for the folio allocation via alloc_charge_folio() but
->> no such wrapper exists for a page table allocation.
->>
->> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
->> ---
->>  mm/khugepaged.c | 32 ++++++++++++++++++++++++++++++--
->>  1 file changed, 30 insertions(+), 2 deletions(-)
->>
->> diff --git a/mm/khugepaged.c b/mm/khugepaged.c
->> index f49a6710933b..dab421f8233e 100644
->> --- a/mm/khugepaged.c
->> +++ b/mm/khugepaged.c
->> @@ -1278,6 +1278,23 @@ static enum scan_result alloc_charge_folio(struct folio **foliop, struct mm_stru
->>  	return SCAN_SUCCEED;
->>  }
->>
->> +static pgtable_t alloc_deposit_pte(struct mm_struct *mm)
->> +{
->> +	/*
->> +	 * khugepaged is run from a kernel thread, so need to manually set the
->> +	 * correct memcg so the allocation gets charged correctly.
->> +	 */
->> +	struct mem_cgroup *memcg = get_mem_cgroup_from_mm(mm);
->> +	struct mem_cgroup *old_memcg = set_active_memcg(memcg);
->> +	pgtable_t pgtable;
->> +
->> +	pgtable = pte_alloc_one(mm);
->> +
->> +	set_active_memcg(old_memcg);
->> +	mem_cgroup_put(memcg);
->> +	return pgtable;
->> +}
->> +
->>  /*
->>   * collapse_huge_page() expects the mmap_lock to be unlocked before entering and
->>   * will always return with the lock unlocked, to avoid holding the mmap_lock
->> @@ -1293,7 +1310,7 @@ static enum scan_result collapse_huge_page(struct mm_struct *mm, unsigned long s
->>  	LIST_HEAD(compound_pagelist);
->>  	pmd_t *pmd, _pmd;
->>  	pte_t *pte = NULL;
->> -	pgtable_t pgtable;
->> +	pgtable_t pgtable = NULL;
->>  	struct folio *folio;
->>  	spinlock_t *pmd_ptl, *pte_ptl;
->>  	enum scan_result result = SCAN_FAIL;
->> @@ -1310,6 +1327,12 @@ static enum scan_result collapse_huge_page(struct mm_struct *mm, unsigned long s
->>  		goto out_nolock;
->>  	}
->>
->> +	if (is_pmd_order(order)) {
->> +		pgtable = alloc_deposit_pte(mm);
->> +		if (!pgtable)
->> +			goto out_nolock;
+>Regardless of whether CONFIG_ARM_LPAE is enabled or not, the same page
+>table freeing functions __pte_free_tlb() and __pmd_free_tlb() are used.
 >
->Fixup is here:
+>Non-LPAE PMD page tables are folded into the PGD and freed by
+>pgd_free() (PGD freeing is not part of mmu_gather page table freeing in any
+>case), so this is a noop in this case.
 >
->-		if (!pgtable)
->-			goto out_nolock;
->+		if (!pgtable) {
->+			result = SCAN_ALLOC_HUGE_PAGE_FAIL;
->+			goto out_nolock;
->+		}
+>Since commit 358d1c39c82a ("arm: convert various functions to use ptdescs")
+>both LPAE and non-LPAE PTE page table freeing uses tlb_remove_ptdesc().
 >
->Thanks!
+>Thus all page table freeing is performed under RCU with
+>CONFIG_MMU_GATHER_RCU_TABLE_FREE enabled for LPAE and non-LPAE and thus it
+>need not be gated on LPAE.
+>
+>A UP arm system can set CONFIG_PREEMPT_RCU, so a future pure RCU page
+>table walker requires MMU_GATHER_RCU_TABLE_FREE to be enabled on UP as
+>well, even if concurrent GUP fast is not possible there.
+>
+>Therefore, it is both safe and desirable to set
+>CONFIG_MMU_GATHER_RCU_TABLE_FREE for all MMU arm architectures (nommu does
+>not perform mmu_gather operations).
+>
+>This forms part of an overall effort to switch every architecture to this
+>mode.
+>
+>Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+>Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+>---
 
-With that applied,
+Tested under heavy page-table teardown load on qemu-system-arm,
+with and without ARM_LPAE. No issues seen :D
 
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+
+Also, feel free to add:
+
+Acked-by: Lance Yang <lance.yang@linux.dev>
+
+
+> arch/arm/Kconfig | 2 +-
+> 1 file changed, 1 insertion(+), 1 deletion(-)
+>
+>diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+>index 408aa58a2a5b..72b9afc6ae10 100644
+>--- a/arch/arm/Kconfig
+>+++ b/arch/arm/Kconfig
+>@@ -134,7 +134,7 @@ config ARM
+> 	select HAVE_PERF_REGS
+> 	select HAVE_PERF_USER_STACK_DUMP
+> 	select HAVE_POSIX_CPU_TIMERS_TASK_WORK
+>-	select MMU_GATHER_RCU_TABLE_FREE if SMP && ARM_LPAE
+>+	select MMU_GATHER_RCU_TABLE_FREE if MMU
+> 	select HAVE_REGS_AND_STACK_ACCESS_API
+> 	select HAVE_RSEQ
+> 	select HAVE_RUST if CPU_LITTLE_ENDIAN && CPU_32v7 && !KASAN
+>
+>-- 
+>2.55.0
+>
+>
