@@ -1,64 +1,64 @@
 Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B627857ED95
-	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 20:19:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB9CC57EDAA
+	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 20:19:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.140
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790194767; cv=none; b=VgT4MUDpaP0jPhDpe37GA7+h1asS2MrTXtfTPFE3l+jaaaqJXsCVvvE5lWLxKg8HgkyKerp2fpvGrKo0OoA2GE+beRcts2/Rlzofo8xUvpc3Xkpc37aRjTMcTfoSiVla8v9E2/DubIZMABhKn9KXl+CKj7/W/XMkY177JS2Hg8Y=
+	t=1790194770; cv=none; b=hE1Lqh3/4kjGvC+yZqwez/DlJbgoB+c8TFHjfrug3Ct1tIo5nkyAFt+wCqvHOZQTNvakvW9/G38D19kWYjq7sO9862Q0R8H6QzXzcgvstNfv+U0g3zLMf8NcCZkkuk6J6o0c0NPgG43bNammeSCpSaiiWQkk5BMx20LHvsXRPXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790194767; c=relaxed/simple;
-	bh=ZcPIw4eZTdDBlXCbqQEro1ebWfUuQCWYfKDFEL48bSQ=;
+	s=arc-20240116; t=1790194770; c=relaxed/simple;
+	bh=AC8oylFdwQ8cFzwdlHbb126te9vtXzziDP7/wP1B/5E=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bz87vBchVot8PTwc1SqJsmQJF12Nw46pSSL2sDwUyEHGjTLnTMkjov0vfL9EgMdZcykA4BOuZqXEng2WFXT4xQO+M9xHmTJaDDQI2t4Y1Oo53clZidU3u4RQJn/VSVU3Rqn55Xs1zQpAhT3G2Sin+FdPDU8FhiuffcibBmCxdrc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UWz2s6kn; arc=none smtp.client-ip=74.125.228.140
+	 MIME-Version; b=mhJc+ZvSwEG9ibN58G9+oPB4Hw7+RKaBXQLVDIjpAT+ivm9NTd9hBwADsk6lIMxeM+UOZdRoHrXTFz+XnzoEnSfFrNfcLZJjFVUJXo+/UpGyVIt1S5CYjVUrbjIE/RnSTBHHB/ZDw/oGfkoVGP8jj3DKMsuWMYn5bjjvj92w7+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GOZM/cQ+; arc=none smtp.client-ip=74.125.228.140
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UWz2s6kn"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f55efe5so220657166b.2
-        for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 13:19:21 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GOZM/cQ+"
+Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f55efebso215725566b.1
+        for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 13:19:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790194759; x=1790799559; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790194763; x=1790799563; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=frtoc8QloQCQUfk7NjWI4KUj8MMQjADBvRstAE5cfJw=;
-        b=UWz2s6knK/FiqzFI0Q+UtTuvme6C9omqr1NYZk2QOuVvx4+Q4TIJ5Pm9JBDtFiSbdr
-         nWSe5M9C0mM0x1Md+zf9Cz2VQ3xnknhUOBZX/RSe1lCtXXXsd/SM/rccMbauQF4TsgDj
-         biFMlmCv5RsMtXXcTq49wUzB3GWkH9qZx/prPJR0ayrjavjom5NR4FusfQPSw4siqDWp
-         5Yr0bXQ9uGEbFlNiuYGr1WP0CjcwGL09CPV151WI6pOvfrJTquNVm/ZeXctBAUDZJz3i
-         Imq6k/ygfRHXrqz44G2XYFbLj5veG1m3kL+GzB2T90QlEFL57H4Bg+o58DhUiSDzRdEq
-         5I4g==
+        bh=TSFltJ3k/9xOW9Dlp3D0ImCoh69p5cGuVhZZbL+BLyM=;
+        b=GOZM/cQ+o7m6jYlRgzO8Aw2YVG3SM9pBEaWRxwuq0Li9EuVL2YVsS2tTFFFp1XFW+v
+         FqNNtBe6pIhFtC/PMIBhKUNKu41wpn8rItDcoEZGH6WvawP+E6GzRVday4TiZKHrbrOh
+         ZaRK2ip8mt4PnAk403cXOx3BDaQ8O2DqddzaDatfv3fVaYulVECGVyNg7gToRfyaFWVF
+         oDBx24VoYI5Q8y7NkSc6poe1gqobw2dSN8FlU7e1izq2S5Xg2bkrHvlt9zR4SJLqrF1K
+         07acmlfmIzA1syW1ZVhv7xoBP8eM4A17AfHZpqg+iU4q1MW6evgRo7yvR5wGd+jtOWlS
+         jMCQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790194759; x=1790799559;
+        d=1e100.net; s=20260707; t=1790194763; x=1790799563;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=frtoc8QloQCQUfk7NjWI4KUj8MMQjADBvRstAE5cfJw=;
-        b=W7zaxCUqjzpvXbcStssxlulVKjZ71bke8eiIj1GTQlzxCrEV0dH/ohJ/QhnXQl++AP
-         5J8Fv73wU5ch16HEhiHSK44iEhFf+GMWNaMBHmqVgLSe9oWnqDHYLL0QUVqBtJOBcwdh
-         K2JDTwA/crPcNf0BHCrlhXzQSD17poMk4CSRCAwZXEnjYvqUYTF3d1jSsLiMrpOmlGxm
-         fWRQwNBmgfydZ1UtAuyQDNI44FX8LPZAcUZoO9GSpeFFX9iHgLZbrWXKS5aP3lTB994g
-         JPfez568DwjEKHWjwTWbXVC3xY3EvlObr1wdZkYZHdGY9DN2OE1KmJWSliVNCw8TdsFm
-         7z3A==
-X-Forwarded-Encrypted: i=1; AKwUvBz0waoeSaiKi5rB3a+LPi8/RM1ergvNVGCU5N4opN9taFCTMyzIyWpSfXJgUMc8vRxTOIGysPckAdUr@vger.kernel.org
-X-Gm-Message-State: AFuF++lIzHsE1PMEsjLoQ6lf863AVFsCD1UFPN6Z86Gn4OQDUEQq/NT6
-	8kRnyUyD9r7mNea5UfRoG5drDHv2VfChWWElVyJno2/3nlWp8iaIxEau
-X-Gm-Gg: AYBFou3V7u/f6sdimjjX+xN92t0LawCV2PsmYElUSy7hsaL4uwJeiQFzOcvh8dLFZ0h
-	b7hJycsVKoihrVwbgq+NCfPu9I4gFNzWPk4DMOwtRyRBiCT0sHxMzJktjGboccMF9WOQFkyvJ+l
-	s8SMneYmg7JBAMrEARtesV7KQH9U9BgT7GmYu8fIyeMvi9cZ4YrG6FgwhjkfA8AwJZHVW+0OhjO
-	HggA4I6nWdNRJIL5s+VEx3QoK1iEdAOoDgx5/gCtx8DBYooscT9xrTGz9Ni6yATibdVMwnh4lSJ
-	RjYUp9opUGnNtSAGkQU9EmMrP0p/Z7eMx9uXXF1cR6seobU0TT9lcGgIflxelYoFk2DGfURfegn
-	1QZ2C/PrM1XfkB32qQ+/dH70EImMkIrhltuqG1yYMDvwkaU4WwCDGkb01t1HZZtwuFuFkbi7tOC
-	jJQU4DzbnJ/yRgdtOtXFHkK0YAnyXoqZ83KwQXCW1N/FeLVPMgBfdRsRJpGU0I3fLqpJWP3yvKH
-	kyr6cZGwiHufGqpBvCUeu1klm93cD44ENRWuyYh6GfGaRtBUQE=
-X-Received: by 2002:a17:907:9811:b0:c2a:46a2:5b57 with SMTP id a640c23a62f3a-c2ac2375464mr19975466b.10.1790194759459;
-        Wed, 23 Sep 2026 13:19:19 -0700 (PDT)
+        bh=TSFltJ3k/9xOW9Dlp3D0ImCoh69p5cGuVhZZbL+BLyM=;
+        b=pNr0Beacv5PJPPMu2psFRP6uHA4yf1W86UklzZKcMJj9awdu6PWChKcFCPMnOq6ujh
+         Rs3gtPC7siNakHjgQfT3hIHxBuQ8OFiOMtXhBU9gAmM7WwFD9X1e34TAPhlawftWqUNt
+         FsdJhQ09huHBHtlLubmcHu8SEao5EOHSDoumokb1INloNK+hIUvu3rq2dHzLbAX1B6nn
+         H8KpyRkcCX++U/QZDm+Vf65RhWxLSYfzBFVvsAv3KkTfWyKhxHldTLcUuZm1kYl3PwAH
+         WSHRasB7aE90cvLTlWwRrV67Z7hfZhVboKtdpX79Kv/mabIjicCf4BxaTXt3yz9uZCXo
+         EtTA==
+X-Forwarded-Encrypted: i=1; AKwUvBwq3G2u3QVY3c05eYf5897RdBT3p7JNJzbaf9+IRG8Goa1vm3cXtXC7SqxJiWn+8YF2vj/M9VRjDmjK@vger.kernel.org
+X-Gm-Message-State: AFuF++mN+7gcFmO2qszaX88G1c0QycU8LPykiAyeX+GeH4b8GEM5dJ5Q
+	si8vMvy8VNM2qx1yIWTeSLolvAN+LqQmVnehLCvOM8B5Kuf3i2529/PX
+X-Gm-Gg: AYBFou356FX+yC+x5RYzQ/srZ+26Gc6qwSdEB/TqysWUKMG/4DG4Yy6LGct+aewAqQb
+	HIA3o4yhKA1QtqW+iE8SdepmTKI8gnw7xvL5A3AIopOGgS8B3jV84JK5CMhcYdXjXyjHLnJka66
+	Bq/NRgEqnmzp+Gfjps18Sgt+yKjIjZtOfZ2fWisw7zNo9/Nv/Ku6gS+e69PPz3WQ7TyKgUmJMy2
+	AJI4ouf2nR2vbFw5Zpd55NIiuR0AMz0fkWYmLgT7Hl6zeYSUiNvbMS4dVS16xhyZy5t83VxMeE7
+	GC2lU8jGOjMAK8vyK7PI+vf1Oyx59mBl2uLrTqB3eds26XBjvWlsg8hUFdEHPaK0sgJThlRQ3s+
+	psLC9HZk4X3HwRvoLi2aitfwkoO+cF9oVaO2RnQjJ++1YL3SbvOYWDM1xRE0NdKLFo9jt3SvQOZ
+	ymikruHf/sXOqND9aGZ/FkTwzqRsOJi0hzo3ooKA1ViOIciugjthCqXwEIU2iPCslH/HdNg0P7P
+	F7xMGyX2nJtJVJ89gUywZM2YcPHthrVY2l7myyM
+X-Received: by 2002:a17:907:c23:b0:c2a:704c:8c75 with SMTP id a640c23a62f3a-c2ac25123f2mr22944766b.39.1790194762351;
+        Wed, 23 Sep 2026 13:19:22 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2aae63dc17sm183626966b.33.2026.09.23.13.19.18
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2aae63dc17sm183626966b.33.2026.09.23.13.19.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Sep 2026 13:19:19 -0700 (PDT)
+        Wed, 23 Sep 2026 13:19:22 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -66,9 +66,9 @@ Cc: sam@ravnborg.org,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linmag7@gmail.com
-Subject: [RFC PATCH 2/5] sparc32: add a kernel assisted compare-and-swap
-Date: Wed, 23 Sep 2026 22:17:18 +0200
-Message-ID: <20260923201830.865553-3-linmag7@gmail.com>
+Subject: [RFC PATCH 5/5] sparc32: document the compare-and-swap trap ABI
+Date: Wed, 23 Sep 2026 22:17:21 +0200
+Message-ID: <20260923201830.865553-6-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260923201830.865553-1-linmag7@gmail.com>
 References: <20260923201830.865553-1-linmag7@gmail.com>
@@ -80,350 +80,209 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Pre-v9 sparc has no compare-and-swap instruction, so userspace can only
-emulate one with a lock, and neither place to put that lock works. A lock
-private to a process cannot serialise against another process operating on
-the same page. A lock kept inside the object, what glibc did before
-2019, ldstub on the top byte of the word, is correct across processes but
-costs value bits, so it cannot implement the full-width operations a
-current compiler emits calls to. A lock owned by the kernel has neither
-problem. parisc solves the same problem the same way with its LWS
-compare-and-swap.
+The trap is userspace ABI rather than an internal kernel facility, so
+write down what it promises: the instruction and trap type, the register
+convention, the failure cases, what the AT_HWCAP bit means, and the limits
+a caller has to work within.
 
-Add trap type 0x91 for this. Dispatch follows the existing do_hw_divzero
-pattern of reaching C rather than doing the work in trap assembly. The
-ABI is
+Several of those limits are easy to miss. Replacing the __atomic_* helper
+symbols does not by itself route every atomic write through the trap,
+because the compiler can expand some of them inline and covering libc's
+own uses is a different scope from covering application code built with
+atomic builtins. The service is one aligned 32-bit word, which is not the
+same as general byte and halfword atomics. The guarantee is indivisibility
+of that one word and no ordering beyond it. And futex_robust_unlock()
+currently writes the futex word without taking the lock the trap uses, so
+that one kernel path is outside the guarantee.
 
-	%o0	word aligned user address
-	%o1	expected value
-	%o2	new value
-
-returning the value found at the address in %o0, the previously observed
-value, as __sync_val_compare_and_swap does, with the carry bit set and an
-errno in %o0 on failure.
-
-The number is SP_TRAP_CAS in asm/traps.h, where the other software trap
-numbers already live, since this one is userspace ABI from now on. The
-instruction userspace executes is ta 0x11, not ta 0x91: sparc forms the
-trap type by adding 0x80 to the software trap number, which is also why
-the Linux system call is SP_TRAP_LINUX 0x90 and glibc issues ta 0x10.
-
-David Miller prototyped the same idea in 2016 on software trap 0x23,
-discovered through the get-kernel-features call and implemented first on
-sparc64 [2]. This is a different ABI rather than that one finished:
-0x11 follows the Linux syscall trap immediately, discovery is AT_HWCAP,
-and sparc64 compat mode is not supported.
-
-Where the cpu implements the instruction the lock is not used at all and
-the swap is performed directly, with the user data ASI so that the kernel
-reaches the word the same way a binary built for that cpu does. Choosing
-on the hardware rather than on a build option is what keeps the two in
-step: such a binary uses casa inline and never takes this trap, so a
-kernel serialising on a lock would exclude nothing against it.
-
-Otherwise the lock array is used. It is hashed on address bits that lie
-inside the page offset, so the same physical word reached through
-different virtual addresses selects the same lock. asm/futex_32.h uses
-the same array, so a compare-and-swap from userspace and one performed by
-the futex code exclude each other.
-
-Page faults are disabled while the lock is held, since faulting there
-would take the mmap lock with interrupts off; on failure the lock is
-dropped, the page is faulted in with fault_in_safe_writeable(), not
-fault_in_writeable(), which may modify the target memory while probing it
-and the operation is retried.
-
-One consequence constrains the caller rather than the kernel: where the
-lock is used an ordinary store does not take it, so userspace must build
-every atomic write from this service, or those writes are not atomic
-against it. Andreas Larsson made the same point about
-kernel-emulated casa in 2016 [1]. Documentation/arch/sparc/cas-trap.rst
-states that, and the width and compiler-integration limits, as part of
-the ABI.
-
-Link: https://inbox.sourceware.org/libc-alpha/5810C1A3.9030504@gaisler.com/ [1]
-Link: https://inbox.sourceware.org/libc-alpha/20161107.113825.631166023186879199.davem@davemloft.net/ [2]
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
- arch/sparc/include/asm/cas_32.h     | 23 +++++++
- arch/sparc/include/uapi/asm/traps.h |  3 +-
- arch/sparc/kernel/Makefile          |  1 +
- arch/sparc/kernel/cas_32.c          | 96 +++++++++++++++++++++++++++++
- arch/sparc/kernel/entry.S           | 17 +++++
- arch/sparc/kernel/ttable_32.S       |  9 +--
- arch/sparc/lib/casa_32.S            | 12 ++++
- 7 files changed, 156 insertions(+), 5 deletions(-)
- create mode 100644 arch/sparc/kernel/cas_32.c
+ Documentation/arch/sparc/cas-trap.rst | 163 ++++++++++++++++++++++++++
+ Documentation/arch/sparc/index.rst    |   1 +
+ 2 files changed, 164 insertions(+)
+ create mode 100644 Documentation/arch/sparc/cas-trap.rst
 
-diff --git a/arch/sparc/include/asm/cas_32.h b/arch/sparc/include/asm/cas_32.h
-index 3658ff71fa70..400be2b9f628 100644
---- a/arch/sparc/include/asm/cas_32.h
-+++ b/arch/sparc/include/asm/cas_32.h
-@@ -2,9 +2,32 @@
- #ifndef _SPARC_CAS_32_H
- #define _SPARC_CAS_32_H
- 
-+#include <linux/spinlock.h>
- #include <linux/types.h>
- 
-+struct pt_regs;
-+
-+asmlinkage void handle_sparc32_cas(struct pt_regs *regs, unsigned long pc,
-+				   unsigned long npc, unsigned long psr);
-+
- /* Returns 0 and stores the value found in *prev, or -EFAULT. */
- int __sparc32_casa(u32 *addr, u32 oldval, u32 newval, u32 *prev);
- 
-+/* The same on a user address, using the user data ASI. */
-+int __sparc32_casa_user(u32 __user *addr, u32 oldval, u32 newval, u32 *prev);
-+
-+#define SPARC32_ATOMIC_LOCKS	256
-+
-+extern raw_spinlock_t sparc32_atomic_locks[SPARC32_ATOMIC_LOCKS];
-+
-+/* Hash on page-offset bits only, so one physical word maps to one lock
-+ * through any virtual address.  asm/futex_32.h must hash identically.
-+ */
-+static inline raw_spinlock_t *sparc32_atomic_lock(const void __user *uaddr)
-+{
-+	unsigned long ua = (unsigned long)uaddr;
-+
-+	return &sparc32_atomic_locks[(ua >> 2) & (SPARC32_ATOMIC_LOCKS - 1)];
-+}
-+
- #endif /* _SPARC_CAS_32_H */
-diff --git a/arch/sparc/include/uapi/asm/traps.h b/arch/sparc/include/uapi/asm/traps.h
-index 43fe5b8fe8be..3e4d1c0c5a94 100644
---- a/arch/sparc/include/uapi/asm/traps.h
-+++ b/arch/sparc/include/uapi/asm/traps.h
-@@ -81,6 +81,7 @@
- #define SP_TRAP_SOLARIS 0x88         /* Solaris System Call */
- #define SP_TRAP_NETBSD  0x89         /* NetBSD System Call */
- #define SP_TRAP_LINUX   0x90         /* Linux System Call */
-+#define SP_TRAP_CAS     0x91         /* Compare and swap, issued as "ta 0x11" */
- 
- /* Names used for compatibility with SunOS */
- #define ST_SYSCALL              0x00
-@@ -104,7 +105,7 @@
- 	 (level > SP_TRAP_BADFL && level < SP_TRAP_CPEXP) || \
- 	 (level > SP_TRAP_DMM && level < SP_TRAP_IMM) || \
- 	 (level > SP_TRAP_IMM && level < SP_TRAP_SUNOS) || \
--	 (level > SP_TRAP_LINUX && level < SP_TRAP_KBPT1))
-+	 (level > SP_TRAP_CAS && level < SP_TRAP_KBPT1))
- 
- /* Is this a Hardware trap? */
- #define HW_TRAP_P(level) ((level > 0) && (level < SP_TRAP_SUNOS))
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index 497b5714fa8f..7ae9ab4082ca 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -18,6 +18,7 @@ CFLAGS_REMOVE_pcr.o := -pg
- endif
- 
- obj-y                   := head_$(BITS).o
-+obj-$(CONFIG_SPARC32)   += cas_32.o
- obj-$(CONFIG_SPARC64)   += urtt_fill.o
- obj-$(CONFIG_SPARC32)   += entry.o wof.o wuf.o
- obj-$(CONFIG_SPARC32)   += etrap_32.o
-diff --git a/arch/sparc/kernel/cas_32.c b/arch/sparc/kernel/cas_32.c
+diff --git a/Documentation/arch/sparc/cas-trap.rst b/Documentation/arch/sparc/cas-trap.rst
 new file mode 100644
-index 000000000000..de9822dc80b9
+index 000000000000..f09d81e8f1ed
 --- /dev/null
-+++ b/arch/sparc/kernel/cas_32.c
-@@ -0,0 +1,96 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Kernel assisted compare-and-swap for pre-v9 sparc.
-+ */
++++ b/Documentation/arch/sparc/cas-trap.rst
+@@ -0,0 +1,163 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
-+#include <linux/kernel.h>
-+#include <linux/spinlock.h>
-+#include <linux/uaccess.h>
-+#include <linux/pagemap.h>
++=================================
++The sparc32 compare-and-swap trap
++=================================
 +
-+#include <asm/ptrace.h>
-+#include <asm/cas_32.h>
-+#include <asm/cpu_type.h>
++Pre-v9 sparc has no compare-and-swap instruction.  A lock held inside one
++process cannot make a word atomic against another process mapping the same
++page, and a lock kept inside the word itself costs value bits, so the kernel
++performs the operation instead.  parisc provides the same service for the same
++reason.
 +
-+raw_spinlock_t sparc32_atomic_locks[SPARC32_ATOMIC_LOCKS] = {
-+	[0 ... (SPARC32_ATOMIC_LOCKS - 1)] =
-+		__RAW_SPIN_LOCK_UNLOCKED(sparc32_atomic_locks)
-+};
++Interface
++=========
 +
-+/* Report errors in the carry bit as the syscall path does, then step over
-+ * the trapping instruction.
-+ */
-+static void cas_return(struct pt_regs *regs, unsigned long value, bool error)
-+{
-+	regs->u_regs[UREG_I0] = value;
-+	if (error)
-+		regs->psr |= PSR_C;
-+	else
-+		regs->psr &= ~PSR_C;
++``ta 0x11`` - software trap 0x11, trap type 0x91, ``SP_TRAP_CAS`` in
++``asm/traps.h`` - asks the kernel to compare and swap one 32-bit word:
 +
-+	regs->pc = regs->npc;
-+	regs->npc = regs->npc + 4;
-+}
++=======  =========================================
++``%o0``  word aligned user address
++``%o1``  expected value
++``%o2``  new value
++=======  =========================================
 +
-+/* Trap type SP_TRAP_CAS; the ABI is in
-+ * Documentation/arch/sparc/cas-trap.rst.
-+ */
-+asmlinkage void handle_sparc32_cas(struct pt_regs *regs, unsigned long pc,
-+				   unsigned long npc, unsigned long psr)
-+{
-+	u32 __user *uaddr = (u32 __user *)regs->u_regs[UREG_I0];
-+	u32 oldval = regs->u_regs[UREG_I1];
-+	u32 newval = regs->u_regs[UREG_I2];
-+	raw_spinlock_t *lock;
-+	unsigned long flags;
-+	u32 val;
-+	int err;
++On return the carry bit is clear and ``%o0`` holds the value that was found at
++the address.  The caller compares it against what it expected to learn whether
++the swap happened; there is no separate success flag.
 +
-+	if (unlikely((unsigned long)uaddr & 3)) {
-+		cas_return(regs, EINVAL, true);
-+		return;
-+	}
++Registers
++---------
 +
-+	if (unlikely(!access_ok(uaddr, sizeof(u32)))) {
-+		cas_return(regs, EFAULT, true);
-+		return;
-+	}
++``%o0`` is read and written.  ``%o1`` and ``%o2`` are read and are not
++modified.  Every other windowed and global register is preserved across the
++trap.  The integer condition codes are written - that is how success and
++failure are reported - and must be treated as clobbered.
 +
-+	if (sparc32_has_casa) {
-+		/* No lock needed: casa is atomic against userspace's own. */
-+		if (likely(!__sparc32_casa_user(uaddr, oldval, newval, &val)))
-+			cas_return(regs, val, false);
-+		else
-+			cas_return(regs, EFAULT, true);
-+		return;
-+	}
++An inline-assembly wrapper therefore wants ``%o0`` as an in/out operand,
++``%o1`` and ``%o2`` as inputs, and both ``"cc"`` and ``"memory"`` in the
++clobber list, the latter so the compiler does not move accesses across the
++operation.
 +
-+	lock = sparc32_atomic_lock(uaddr);
++On failure the carry bit is set and ``%o0`` holds an error number:
 +
-+retry:
-+	/* A fault must not take the mmap lock under a raw spinlock, so make
-+	 * it -EFAULT here and fault the page in after dropping the lock.
-+	 */
-+	raw_spin_lock_irqsave(lock, flags);
-+	pagefault_disable();
++==========  =========================================
++``EINVAL``  the address is not word aligned
++``EFAULT``  the memory access could not be completed
++==========  =========================================
 +
-+	err = __get_user(val, uaddr);
-+	if (!err && val == oldval)
-+		err = __put_user(newval, uaddr);
++A successful return does not establish that the mapping is writable.  On the
++software path the kernel writes only when the comparison succeeds, so a
++mismatching value on a read-only mapping can be returned without the kernel
++ever discovering that the mapping could not be written.  The two
++implementations are not required to agree about an invalid operand: pass an
++aligned word in memory that is both readable and writable.
 +
-+	pagefault_enable();
-+	raw_spin_unlock_irqrestore(lock, flags);
++The operation is atomic against another process issuing the same trap, against
++the futex operations in ``asm/futex_32.h``, and - on a cpu that implements
++``casa`` - against a binary using that instruction directly.
 +
-+	if (likely(!err)) {
-+		cas_return(regs, val, false);
-+		return;
-+	}
++The service guarantees an indivisible compare-and-swap on the addressed word
++under the participation rules below.  It does not provide any additional
++acquire, release or full-barrier guarantee for other memory locations.
++Userspace must supply whatever ordering the operation it is implementing
++requires.
 +
-+	/* fault_in_writeable() may modify the target memory. */
-+	if (fault_in_safe_writeable((char __user *)uaddr, sizeof(u32))) {
-+		cas_return(regs, EFAULT, true);
-+		return;
-+	}
++One kernel path does not participate.  ``futex_robust_unlock()`` clears the
++futex word through ``unsafe_atomic_store_release_user()``, for which sparc32
++uses the generic definition - ultimately a plain user store.  On a no-casa SMP
++system that store does not acquire the lock this trap uses, so it can land
++between the trap's load and its conditional store, and the compare-and-swap
++then overwrites the unlock while still reporting success.
 +
-+	goto retry;
-+}
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index ea51ef52c952..cad48f0a0835 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -644,6 +644,23 @@ do_cp_exception:
++On no-casa SMP systems the non-PI robust-unlock operations
++``FUTEX_UNLOCK_WAKE_LIST32`` and ``FUTEX_UNLOCK_BITSET_LIST32``, including
++their private variants, therefore do not serialise with the software-CAS lock
++domain.  Their store can race with a trap-based compare-and-swap, and equally
++with the lock-backed operations in ``asm/futex_32.h``, which take the lock but
++still load and store separately.
++
++The integration point for this store remains an open question for review.
++
++What userspace has to do as well
++================================
++
++On a cpu without ``casa`` the kernel does the swap under a lock of its own, and
++**an ordinary store does not take that lock**::
++
++	trap                        another thread's plain store
++
++	lock
++	read word -> A
++	                            store B -> word
++	write C -> word
++	unlock
++
++``B`` is lost, and no ordering of an atomic compare-and-swap and an atomic
++store makes that a legal outcome.
++
++So userspace using this service to build atomic operations must build *every*
++atomic write from it, not just compare-and-exchange: an atomic store and an
++atomic exchange each become a compare-and-swap retry loop.  An implementation
++that routes read-modify-writes through the trap but leaves atomic stores as
++plain stores is not atomic, and the failure is silent.
++
++This does not apply to a cpu that has ``casa``, where the kernel uses the
++instruction and userspace can too.
++
++Replacing the ``__atomic_*`` helpers is not sufficient
++-----------------------------------------------------
++
++Providing replacement ``__atomic_store_4`` and ``__atomic_exchange_4`` symbols
++does not by itself route every atomic write through the trap.  gcc can expand
++an atomic store to a plain store, a 32-bit atomic exchange to ``swap``, and an
++atomic test-and-set to ``ldstub`` on v8.  ``swap`` and ``ldstub`` are
++themselves atomic, but they do not take the kernel's lock and so do not exclude
++against its separate read and write.  A call the compiler never emits cannot be
++intercepted.
++
++Two different integration scopes follow from that, and they are not
++interchangeable.  Changing libc's internal atomic macros covers libc's own
++uses.  It does not change application code compiled with atomic builtins; that
++needs compiler support - the possibility Andreas Larsson raised in 2019 - or a
++build that avoids the inline expansions.
++
++One aligned word is not general byte and halfword atomics
++--------------------------------------------------------
++
++The service operates on one naturally aligned 32-bit word.  A byte or halfword
++atomic synthesised by read-modify-writing its containing word is not safe
++merely because every atomic on the target uses the trap::
++
++	word:  [ atomic byte A | ordinary byte B | ... ]
++
++	cpu 0                             cpu 1
++
++	read the whole word under the lock
++	                                  plain store to B
++	write the whole word back,
++	  including the old B
++
++The ordinary writer of the neighbouring object ``B`` has no reason to
++participate, and its store is lost.  Byte and halfword atomics built this way
++need either width-aware accesses sharing this lock domain, or storage rules
++that give the atomic object its containing word to itself.
++
++Availability
++============
++
++``AT_HWCAP`` carries ``HWCAP_SPARC_CASTRAP`` (0x10000000) when the kernel
++implements the trap.  Userspace must consult it rather than probing, because
++there is no safe way to probe:
++
++- on a kernel without this support the trap is fatal;
++- on sparc64 a 32-bit process reads its hwcap word from ``asm/elf_64.h``, where
++  the bit is reserved and always clear, and ``ta 0x11`` there is not an illegal
++  instruction but the old 64-bit system call trap.
++
++The bit describes the kernel service, not the hardware.  It is set whether or
++not the cpu has ``casa``, because a binary built for plain v8 cannot use that
++instruction even on a cpu that has it.  A binary that does have ``casa``
++available - one built for LEON3 - should use it inline and ignore the bit
++entirely; the kernel uses the instruction too where it exists, so the two agree
++on the same word.
+diff --git a/Documentation/arch/sparc/index.rst b/Documentation/arch/sparc/index.rst
+index ae884224eec2..3a7d6df91a84 100644
+--- a/Documentation/arch/sparc/index.rst
++++ b/Documentation/arch/sparc/index.rst
+@@ -7,6 +7,7 @@ Sparc Architecture
  
- 	RESTORE_ALL
+    console
+    adi
++   cas-trap
  
-+	/* This routine handles the compare-and-swap trap, type 0x91. */
-+	.align	4
-+	.globl	do_sparc32_cas
-+do_sparc32_cas:
-+	SAVE_ALL
-+
-+	wr	%l0, PSR_ET, %psr		! re-enable traps
-+	WRITE_PAUSE
-+
-+	add	%sp, STACKFRAME_SZ, %o0
-+	mov	%l1, %o1
-+	mov	%l2, %o2
-+	call	handle_sparc32_cas
-+	 mov	%l0, %o3
-+
-+	RESTORE_ALL
-+
- 	/* This routine handles Hardware Divide By Zero Exceptions. */
- 	.align	4
- 	.globl	do_hw_divzero
-diff --git a/arch/sparc/kernel/ttable_32.S b/arch/sparc/kernel/ttable_32.S
-index e79fd786fbbb..0408f0dbae68 100644
---- a/arch/sparc/kernel/ttable_32.S
-+++ b/arch/sparc/kernel/ttable_32.S
-@@ -89,7 +89,8 @@ t_bad89:BAD_TRAP(0x89)                      /* Net-B.S. System Call          */
- t_bad8a:BAD_TRAP(0x8a) BAD_TRAP(0x8b) BAD_TRAP(0x8c) BAD_TRAP(0x8d) BAD_TRAP(0x8e)
- t_bad8f:BAD_TRAP(0x8f)
- t_linux:LINUX_SYSCALL_TRAP                  /* Linux System Call             */
--t_bad91:BAD_TRAP(0x91) BAD_TRAP(0x92) BAD_TRAP(0x93) BAD_TRAP(0x94) BAD_TRAP(0x95)
-+t_cas:	TRAP_ENTRY(0x91, do_sparc32_cas)  /* Compare and swap             */
-+t_bad92:BAD_TRAP(0x92) BAD_TRAP(0x93) BAD_TRAP(0x94) BAD_TRAP(0x95)
- t_bad96:BAD_TRAP(0x96) BAD_TRAP(0x97) BAD_TRAP(0x98) BAD_TRAP(0x99) BAD_TRAP(0x9a)
- t_bad9b:BAD_TRAP(0x9b) BAD_TRAP(0x9c) BAD_TRAP(0x9d) BAD_TRAP(0x9e) BAD_TRAP(0x9f)
- t_getcc:GETCC_TRAP                          /* Get Condition Codes           */
-@@ -186,7 +187,7 @@ trapbase_cpu1:
- 	BAD_TRAP(0x87) BAD_TRAP(0x88) BAD_TRAP(0x89)
- 	BAD_TRAP(0x8a) BAD_TRAP(0x8b) BAD_TRAP(0x8c)
- 	BAD_TRAP(0x8d) BAD_TRAP(0x8e) BAD_TRAP(0x8f)
--	LINUX_SYSCALL_TRAP BAD_TRAP(0x91)
-+	LINUX_SYSCALL_TRAP TRAP_ENTRY(0x91, do_sparc32_cas)
- 	BAD_TRAP(0x92) BAD_TRAP(0x93) BAD_TRAP(0x94)
- 	BAD_TRAP(0x95) BAD_TRAP(0x96) BAD_TRAP(0x97) BAD_TRAP(0x98) BAD_TRAP(0x99)
- 	BAD_TRAP(0x9a) BAD_TRAP(0x9b) BAD_TRAP(0x9c) BAD_TRAP(0x9d) BAD_TRAP(0x9e)
-@@ -286,7 +287,7 @@ trapbase_cpu2:
- 	BAD_TRAP(0x86) BAD_TRAP(0x87) BAD_TRAP(0x88)
- 	BAD_TRAP(0x89) BAD_TRAP(0x8a) BAD_TRAP(0x8b) BAD_TRAP(0x8c)
- 	BAD_TRAP(0x8d) BAD_TRAP(0x8e) BAD_TRAP(0x8f)
--	LINUX_SYSCALL_TRAP BAD_TRAP(0x91)
-+	LINUX_SYSCALL_TRAP TRAP_ENTRY(0x91, do_sparc32_cas)
- 	BAD_TRAP(0x92) BAD_TRAP(0x93) BAD_TRAP(0x94)
- 	BAD_TRAP(0x95) BAD_TRAP(0x96) BAD_TRAP(0x97) BAD_TRAP(0x98) BAD_TRAP(0x99)
- 	BAD_TRAP(0x9a) BAD_TRAP(0x9b) BAD_TRAP(0x9c) BAD_TRAP(0x9d) BAD_TRAP(0x9e)
-@@ -385,7 +386,7 @@ trapbase_cpu3:
- 	BAD_TRAP(0x89) BAD_TRAP(0x8a) BAD_TRAP(0x8b) BAD_TRAP(0x8c)
- 	BAD_TRAP(0x8d) BAD_TRAP(0x8e) BAD_TRAP(0x8f)
- 	LINUX_SYSCALL_TRAP
--	BAD_TRAP(0x91) BAD_TRAP(0x92) BAD_TRAP(0x93) BAD_TRAP(0x94)
-+	TRAP_ENTRY(0x91, do_sparc32_cas) BAD_TRAP(0x92) BAD_TRAP(0x93) BAD_TRAP(0x94)
- 	BAD_TRAP(0x95) BAD_TRAP(0x96) BAD_TRAP(0x97) BAD_TRAP(0x98) BAD_TRAP(0x99)
- 	BAD_TRAP(0x9a) BAD_TRAP(0x9b) BAD_TRAP(0x9c) BAD_TRAP(0x9d) BAD_TRAP(0x9e)
- 	BAD_TRAP(0x9f)
-diff --git a/arch/sparc/lib/casa_32.S b/arch/sparc/lib/casa_32.S
-index 67df9ea439ce..c277f1f1f795 100644
---- a/arch/sparc/lib/casa_32.S
-+++ b/arch/sparc/lib/casa_32.S
-@@ -22,6 +22,17 @@ ENTRY(__sparc32_casa)
- 	 clr	%o0
- ENDPROC(__sparc32_casa)
+    oradax/oracle-dax
  
-+/* The same on a user address; ASI 0x0a is user data, as userspace uses. */
-+ENTRY(__sparc32_casa_user)
-+	/* nop + .balignl: LEON errata GRLIB-TN-0010 and TN-0011. */
-+	nop
-+	.balignl 16, 0x01000000
-+4:	casa	[%o0] 0x0a, %o1, %o2
-+	st	%o2, [%o3]
-+	retl
-+	 clr	%o0
-+ENDPROC(__sparc32_casa_user)
-+
- 	.section .fixup,#alloc,#execinstr
- 	.align	4
- 2:	retl
-@@ -31,4 +42,5 @@ ENDPROC(__sparc32_casa)
- 	.section __ex_table,#alloc
- 	.align	4
- 	.word	1b, 2b
-+	.word	4b, 2b
- 	.previous
 -- 
 2.43.0
 
