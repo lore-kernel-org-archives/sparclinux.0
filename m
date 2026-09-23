@@ -1,288 +1,282 @@
-Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB9CC57EDAA
-	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 20:19:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.140
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790194770; cv=none; b=hE1Lqh3/4kjGvC+yZqwez/DlJbgoB+c8TFHjfrug3Ct1tIo5nkyAFt+wCqvHOZQTNvakvW9/G38D19kWYjq7sO9862Q0R8H6QzXzcgvstNfv+U0g3zLMf8NcCZkkuk6J6o0c0NPgG43bNammeSCpSaiiWQkk5BMx20LHvsXRPXA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790194770; c=relaxed/simple;
-	bh=AC8oylFdwQ8cFzwdlHbb126te9vtXzziDP7/wP1B/5E=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mhJc+ZvSwEG9ibN58G9+oPB4Hw7+RKaBXQLVDIjpAT+ivm9NTd9hBwADsk6lIMxeM+UOZdRoHrXTFz+XnzoEnSfFrNfcLZJjFVUJXo+/UpGyVIt1S5CYjVUrbjIE/RnSTBHHB/ZDw/oGfkoVGP8jj3DKMsuWMYn5bjjvj92w7+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GOZM/cQ+; arc=none smtp.client-ip=74.125.228.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888C3498904
+	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 20:34:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.176
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790195646; cv=pass; b=VU8yKXCNGpCMKvbi20ItTFyV6vxiOPUa6R8EBq3MlgQLhLEo3BSpTrN0Onc5ydFYgbWexrzhDqHGZbOJNeAWhcpHcA+oxpgYfqHXE0aUpkSoNuU8zCiKY1nWiP3AkDem+tvAGg9fFTZY3U3qT0oIcX8k9z6WGA9VFZTPS3m0Pzw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790195646; c=relaxed/simple;
+	bh=x2KsbWxNcXzDGrxUjPtXA6JMUYxlGrwEtnlKXN9TOj8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dEjoByb7c3rRhP20Agv1XHf801wRbInQjVNpZa6mDC/GVnZ1XqwWP7u1vatt6QjjXaDis5D0EfmMerXpOoNi1W6VAhr5GxvJbXW1iYjp0Y3T5NdHY5bZavBXADLQlW1l0MpwD2HQjH7nLC1AsKpI25krdo1XBFm7AtfgWGCAshU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=MSzf5flg; arc=pass smtp.client-ip=209.85.214.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GOZM/cQ+"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f55efebso215725566b.1
-        for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 13:19:26 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="MSzf5flg"
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2d8facae850so23385ad.0
+        for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 13:34:02 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790195642; cv=none;
+        d=google.com; s=arc-20260327;
+        b=D79U6Q2EKGVe/CmELtf6ibqC8GBmF/i5BXdmye/sa/0cn8gr062d65Jh7mkOQBeQe0
+         IH+exOG0aGWqmhlJDDmbccCeiJ3Q0/6XZgKri4XeWSt/mZ84vHcNfx9Qn5BOVBO+QZd2
+         5keIAr5WM5jZhp8JywWZRkEIlPTk4sj/4ThAOq0hd5zlxuhJWyzic3SFB0skCX9aI5gr
+         XVTu45y+PbUyvhabztE2PP4FzQ35KLM/FkcmBZAGpME4Gx0gH0VU/dDuuaMGQWB6DLXw
+         0GazMIuo97SkC0kZEDUJ7BeakDSiM3+znVLxwjM+4PRJui491PZbwctD3RU1UakDq99r
+         l0pw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=6iRjbWXUWKdI5T5j70ZPijMzoSc0FwXFiL+Py7PH7F4=;
+        fh=bsH0hRMLpa4Cj4Sc05RztbsX8UNBxqUwsLHWRq6WEiI=;
+        b=NhVTIZP/CYt/j5T6gFlxTFA0pRFNKrp+QLlwJe5pE+iHaZHxB1WUPf2JoLF4g7c55p
+         d3woP9HelpyIx7x7dTHb95iReBGWAGfOwKAvTHCFF1Zjn4Ks4oxOuoM00c4lxnTKpmxe
+         UN0tcYUaly9tC5gFx0LyjdSi1qhs7XWD6pxIbYShrhfNz6WOZBb5kN/16mBEai7IsBQn
+         aXGpGerIKIrcOi7Fa0thTVJdccr0Vkbn6ae0Sp2jslGKvZKXQJbjwGp/C1bf3q9wNtMW
+         xkk/HJdc81tF09l5hvogzmb//z+ZQYDjxJ+Y/mp90qod1D6VMSFEmhkI+S2GZ7Snkf3r
+         jgSw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790194763; x=1790799563; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=TSFltJ3k/9xOW9Dlp3D0ImCoh69p5cGuVhZZbL+BLyM=;
-        b=GOZM/cQ+o7m6jYlRgzO8Aw2YVG3SM9pBEaWRxwuq0Li9EuVL2YVsS2tTFFFp1XFW+v
-         FqNNtBe6pIhFtC/PMIBhKUNKu41wpn8rItDcoEZGH6WvawP+E6GzRVday4TiZKHrbrOh
-         ZaRK2ip8mt4PnAk403cXOx3BDaQ8O2DqddzaDatfv3fVaYulVECGVyNg7gToRfyaFWVF
-         oDBx24VoYI5Q8y7NkSc6poe1gqobw2dSN8FlU7e1izq2S5Xg2bkrHvlt9zR4SJLqrF1K
-         07acmlfmIzA1syW1ZVhv7xoBP8eM4A17AfHZpqg+iU4q1MW6evgRo7yvR5wGd+jtOWlS
-         jMCQ==
+        d=google.com; s=20251104; t=1790195642; x=1790800442; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=6iRjbWXUWKdI5T5j70ZPijMzoSc0FwXFiL+Py7PH7F4=;
+        b=MSzf5flgQ4zcxUOOnu+OwR/YRC6E51dPDWsedFPaYZOIZ6+ZD+BPxm6ghQskoHsS7V
+         +WhBoa5GMSF4LYMPBI+KytXB7ORnu/bv9DCM0i7TLxEaQTFdXh/L54pQrVinMtTw4uxc
+         tBjS39jspT6+vRG6ts7g6gmp/S4Ea0E0Ea2FX7FA0Au/XA/2BwxI8n1REMZISPWem501
+         HLuujeOAKEXlfahxMq4O4x38CfM9tLv8roRG5eYaOutFLwxG9lIIVtwbr1drN8WAn3OP
+         tItAl9W34ejYNVFOa2Ui3oCbbF12XR9xOWY0IlidTGHKlpsdQ9qbVq21MFPCfX/+/UXc
+         7zkw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790194763; x=1790799563;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=TSFltJ3k/9xOW9Dlp3D0ImCoh69p5cGuVhZZbL+BLyM=;
-        b=pNr0Beacv5PJPPMu2psFRP6uHA4yf1W86UklzZKcMJj9awdu6PWChKcFCPMnOq6ujh
-         Rs3gtPC7siNakHjgQfT3hIHxBuQ8OFiOMtXhBU9gAmM7WwFD9X1e34TAPhlawftWqUNt
-         FsdJhQ09huHBHtlLubmcHu8SEao5EOHSDoumokb1INloNK+hIUvu3rq2dHzLbAX1B6nn
-         H8KpyRkcCX++U/QZDm+Vf65RhWxLSYfzBFVvsAv3KkTfWyKhxHldTLcUuZm1kYl3PwAH
-         WSHRasB7aE90cvLTlWwRrV67Z7hfZhVboKtdpX79Kv/mabIjicCf4BxaTXt3yz9uZCXo
-         EtTA==
-X-Forwarded-Encrypted: i=1; AKwUvBwq3G2u3QVY3c05eYf5897RdBT3p7JNJzbaf9+IRG8Goa1vm3cXtXC7SqxJiWn+8YF2vj/M9VRjDmjK@vger.kernel.org
-X-Gm-Message-State: AFuF++mN+7gcFmO2qszaX88G1c0QycU8LPykiAyeX+GeH4b8GEM5dJ5Q
-	si8vMvy8VNM2qx1yIWTeSLolvAN+LqQmVnehLCvOM8B5Kuf3i2529/PX
-X-Gm-Gg: AYBFou356FX+yC+x5RYzQ/srZ+26Gc6qwSdEB/TqysWUKMG/4DG4Yy6LGct+aewAqQb
-	HIA3o4yhKA1QtqW+iE8SdepmTKI8gnw7xvL5A3AIopOGgS8B3jV84JK5CMhcYdXjXyjHLnJka66
-	Bq/NRgEqnmzp+Gfjps18Sgt+yKjIjZtOfZ2fWisw7zNo9/Nv/Ku6gS+e69PPz3WQ7TyKgUmJMy2
-	AJI4ouf2nR2vbFw5Zpd55NIiuR0AMz0fkWYmLgT7Hl6zeYSUiNvbMS4dVS16xhyZy5t83VxMeE7
-	GC2lU8jGOjMAK8vyK7PI+vf1Oyx59mBl2uLrTqB3eds26XBjvWlsg8hUFdEHPaK0sgJThlRQ3s+
-	psLC9HZk4X3HwRvoLi2aitfwkoO+cF9oVaO2RnQjJ++1YL3SbvOYWDM1xRE0NdKLFo9jt3SvQOZ
-	ymikruHf/sXOqND9aGZ/FkTwzqRsOJi0hzo3ooKA1ViOIciugjthCqXwEIU2iPCslH/HdNg0P7P
-	F7xMGyX2nJtJVJ89gUywZM2YcPHthrVY2l7myyM
-X-Received: by 2002:a17:907:c23:b0:c2a:704c:8c75 with SMTP id a640c23a62f3a-c2ac25123f2mr22944766b.39.1790194762351;
-        Wed, 23 Sep 2026 13:19:22 -0700 (PDT)
-Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2aae63dc17sm183626966b.33.2026.09.23.13.19.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Sep 2026 13:19:22 -0700 (PDT)
-From: Magnus Lindholm <linmag7@gmail.com>
-To: davem@davemloft.net,
-	andreas@gaisler.com
-Cc: sam@ravnborg.org,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linmag7@gmail.com
-Subject: [RFC PATCH 5/5] sparc32: document the compare-and-swap trap ABI
-Date: Wed, 23 Sep 2026 22:17:21 +0200
-Message-ID: <20260923201830.865553-6-linmag7@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260923201830.865553-1-linmag7@gmail.com>
-References: <20260923201830.865553-1-linmag7@gmail.com>
+        d=1e100.net; s=20260707; t=1790195642; x=1790800442;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=6iRjbWXUWKdI5T5j70ZPijMzoSc0FwXFiL+Py7PH7F4=;
+        b=P5gamRqlAK0f73lZ03ftAU7Z9r2O8EVkymT/ifB7Oj6H1lSMNvwZaRyFeyeLuHbFN6
+         6QDGWNoEYimabEcFsUUan9t0cUNt1iCRGqcDFEqRzV5Z4QJWDT1MkioIv7HDApZGkCA3
+         ziA84oMneumcWQBxIPFdRzA+ILZRewVtV0YoKc+27oYgA01/NM3sqVSzoAvNpBA27JN+
+         owYRsmNOGUU1hOY2g0I9qK/SSiQWPc79fhtoOoJFqZjIGYp5/aZvHCxGKNWl2y/E0jVT
+         nViXcNK0VfNgg63NzPUQcoorDCOx5yyZhKfTntYRxeJFwTJUj5B8E32uGBHTKi1TKydO
+         xztA==
+X-Forwarded-Encrypted: i=1; AKwUvBzzc63Lenyryy834eM+Ey8fOGNV45e/46seWYt3hKMmevwCNGTqZ981ZwCaDrlgejCeD+Dda+qYr1nI@vger.kernel.org
+X-Gm-Message-State: AFuF++nyqummlYuF78linROb/fXPYp0XgQwFQzFW1BSF2JXtvrQsajd3
+	asGAU6gfDSULSkh8MBuR86EHK5UTbUFsUfkewL1ZgimNJfTy2bFo4GVgPvoZ1PssBhr2DYFMrEe
+	5bcxCP0nitzF/v62GotH0jQjdL1/T8YlTFM29D7wz
+X-Gm-Gg: AYBFou39T031T4vKGIzX53uwB4fdL/yqiNbm3uYufzTyVMIcTMJyzlEDVwUK8YJdr9N
+	xdD/GQzES7Rfi/2AhDd31wEOoE83WAxhVT2vkMWktjcj2UJbGBLIPZFRTp92zKykmvv51eX6ncE
+	CAdHDzf1O2CblV3dDWi1psXkOkacgHVwvwaHv40X5aDa0Z86PQy4gd3KOsFnDOvuFTRkPxUDgrQ
+	52bCt6Oxe+vRractvGYbcwAhrOabdA/zkvYjKSYBKbnsS3+QIZL8iB11PxIz2V+fyy6SXXHf2mJ
+	7xBOoLAhLUYwEjVMzgazajGB3WvOOqR6DVIRA6PNCtPtz/vxjBVAdYrsQ/n6FK7f1XlMquBVvAc
+	7h6qLReXotEXfCr8f9vBU
+X-Received: by 2002:a17:902:f543:b0:2d5:db38:800f with SMTP id
+ d9443c01a7336-2df7b3e1e8emr1773735ad.14.1790195640940; Wed, 23 Sep 2026
+ 13:34:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260923193432.2489729-1-stian@itx.no>
+In-Reply-To: <20260923193432.2489729-1-stian@itx.no>
+From: Ian Rogers <irogers@google.com>
+Date: Wed, 23 Sep 2026 13:33:48 -0700
+X-Gm-Features: AcwNN1UT7NrgvcNDp1sJnOfbIhVSfmmWr9VKa8r6V-od56OMd3RrgE8WhcMyDkE
+Message-ID: <CAP-5=fX2M6ndLGh5GKjiP2eK=tCp_LpE1iVjDH+Nkz5jJVpxqw@mail.gmail.com>
+Subject: Re: [PATCH] perf unwind-libdw: Fix reading the stack of a 32-bit task
+To: Stian Halseth <stian@itx.no>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, 
+	Mark Rutland <mark.rutland@arm.com>, 
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
+	Adrian Hunter <adrian.hunter@intel.com>, James Clark <james.clark@linaro.org>, 
+	linux-perf-users@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The trap is userspace ABI rather than an internal kernel facility, so
-write down what it promises: the instruction and trap type, the register
-convention, the failure cases, what the AT_HWCAP bit means, and the limits
-a caller has to work within.
+On Wed, Sep 23, 2026 at 12:34=E2=80=AFPM Stian Halseth <stian@itx.no> wrote=
+:
+>
+> memory_read() hands libdw 8 bytes whatever the sampled task's ABI. For a
+> 32-bit task libdw keeps the low 32 bits (__libdwfl_frame_reg_set()), so
+> on a big-endian machine each word read from the stack or a DSO is the
+> one at addr + 4, and unwinding stops at the first frame restored from
+> the stack. On sparc the 8-byte load from a stack address that is only
+> 4-byte aligned even traps, and perf dies with SIGBUS. Read 4 bytes for a
+> PERF_SAMPLE_REGS_ABI_32 sample.
+>
+> A recording of the other byte order has each sample swapped in 8-byte
+> units when it is read (perf_event__all64_swap()), which leaves the
+> 4-byte words of a 32-bit stack dump reversed and paired up wrongly.
+> Undo the swap of the unit holding the word and swap the word itself, as
+> __evsel__parse_sample() does for PERF_SAMPLE_CPU.
+>
+> Suggested-by: Ian Rogers <irogers@google.com>
+> Signed-off-by: Stian Halseth <stian@itx.no>
 
-Several of those limits are easy to miss. Replacing the __atomic_* helper
-symbols does not by itself route every atomic write through the trap,
-because the compiler can expand some of them inline and covering libc's
-own uses is a different scope from covering application code built with
-atomic builtins. The service is one aligned 32-bit word, which is not the
-same as general byte and halfword atomics. The guarantee is indivisibility
-of that one word and no ordering beyond it. And futex_robust_unlock()
-currently writes the futex word without taking the lock the trap uses, so
-that one kernel path is outside the guarantee.
+Reviewed-by: Ian Rogers <irogers@google.com>
 
-Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
----
- Documentation/arch/sparc/cas-trap.rst | 163 ++++++++++++++++++++++++++
- Documentation/arch/sparc/index.rst    |   1 +
- 2 files changed, 164 insertions(+)
- create mode 100644 Documentation/arch/sparc/cas-trap.rst
+Thanks!
+Ian
 
-diff --git a/Documentation/arch/sparc/cas-trap.rst b/Documentation/arch/sparc/cas-trap.rst
-new file mode 100644
-index 000000000000..f09d81e8f1ed
---- /dev/null
-+++ b/Documentation/arch/sparc/cas-trap.rst
-@@ -0,0 +1,163 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+=================================
-+The sparc32 compare-and-swap trap
-+=================================
-+
-+Pre-v9 sparc has no compare-and-swap instruction.  A lock held inside one
-+process cannot make a word atomic against another process mapping the same
-+page, and a lock kept inside the word itself costs value bits, so the kernel
-+performs the operation instead.  parisc provides the same service for the same
-+reason.
-+
-+Interface
-+=========
-+
-+``ta 0x11`` - software trap 0x11, trap type 0x91, ``SP_TRAP_CAS`` in
-+``asm/traps.h`` - asks the kernel to compare and swap one 32-bit word:
-+
-+=======  =========================================
-+``%o0``  word aligned user address
-+``%o1``  expected value
-+``%o2``  new value
-+=======  =========================================
-+
-+On return the carry bit is clear and ``%o0`` holds the value that was found at
-+the address.  The caller compares it against what it expected to learn whether
-+the swap happened; there is no separate success flag.
-+
-+Registers
-+---------
-+
-+``%o0`` is read and written.  ``%o1`` and ``%o2`` are read and are not
-+modified.  Every other windowed and global register is preserved across the
-+trap.  The integer condition codes are written - that is how success and
-+failure are reported - and must be treated as clobbered.
-+
-+An inline-assembly wrapper therefore wants ``%o0`` as an in/out operand,
-+``%o1`` and ``%o2`` as inputs, and both ``"cc"`` and ``"memory"`` in the
-+clobber list, the latter so the compiler does not move accesses across the
-+operation.
-+
-+On failure the carry bit is set and ``%o0`` holds an error number:
-+
-+==========  =========================================
-+``EINVAL``  the address is not word aligned
-+``EFAULT``  the memory access could not be completed
-+==========  =========================================
-+
-+A successful return does not establish that the mapping is writable.  On the
-+software path the kernel writes only when the comparison succeeds, so a
-+mismatching value on a read-only mapping can be returned without the kernel
-+ever discovering that the mapping could not be written.  The two
-+implementations are not required to agree about an invalid operand: pass an
-+aligned word in memory that is both readable and writable.
-+
-+The operation is atomic against another process issuing the same trap, against
-+the futex operations in ``asm/futex_32.h``, and - on a cpu that implements
-+``casa`` - against a binary using that instruction directly.
-+
-+The service guarantees an indivisible compare-and-swap on the addressed word
-+under the participation rules below.  It does not provide any additional
-+acquire, release or full-barrier guarantee for other memory locations.
-+Userspace must supply whatever ordering the operation it is implementing
-+requires.
-+
-+One kernel path does not participate.  ``futex_robust_unlock()`` clears the
-+futex word through ``unsafe_atomic_store_release_user()``, for which sparc32
-+uses the generic definition - ultimately a plain user store.  On a no-casa SMP
-+system that store does not acquire the lock this trap uses, so it can land
-+between the trap's load and its conditional store, and the compare-and-swap
-+then overwrites the unlock while still reporting success.
-+
-+On no-casa SMP systems the non-PI robust-unlock operations
-+``FUTEX_UNLOCK_WAKE_LIST32`` and ``FUTEX_UNLOCK_BITSET_LIST32``, including
-+their private variants, therefore do not serialise with the software-CAS lock
-+domain.  Their store can race with a trap-based compare-and-swap, and equally
-+with the lock-backed operations in ``asm/futex_32.h``, which take the lock but
-+still load and store separately.
-+
-+The integration point for this store remains an open question for review.
-+
-+What userspace has to do as well
-+================================
-+
-+On a cpu without ``casa`` the kernel does the swap under a lock of its own, and
-+**an ordinary store does not take that lock**::
-+
-+	trap                        another thread's plain store
-+
-+	lock
-+	read word -> A
-+	                            store B -> word
-+	write C -> word
-+	unlock
-+
-+``B`` is lost, and no ordering of an atomic compare-and-swap and an atomic
-+store makes that a legal outcome.
-+
-+So userspace using this service to build atomic operations must build *every*
-+atomic write from it, not just compare-and-exchange: an atomic store and an
-+atomic exchange each become a compare-and-swap retry loop.  An implementation
-+that routes read-modify-writes through the trap but leaves atomic stores as
-+plain stores is not atomic, and the failure is silent.
-+
-+This does not apply to a cpu that has ``casa``, where the kernel uses the
-+instruction and userspace can too.
-+
-+Replacing the ``__atomic_*`` helpers is not sufficient
-+-----------------------------------------------------
-+
-+Providing replacement ``__atomic_store_4`` and ``__atomic_exchange_4`` symbols
-+does not by itself route every atomic write through the trap.  gcc can expand
-+an atomic store to a plain store, a 32-bit atomic exchange to ``swap``, and an
-+atomic test-and-set to ``ldstub`` on v8.  ``swap`` and ``ldstub`` are
-+themselves atomic, but they do not take the kernel's lock and so do not exclude
-+against its separate read and write.  A call the compiler never emits cannot be
-+intercepted.
-+
-+Two different integration scopes follow from that, and they are not
-+interchangeable.  Changing libc's internal atomic macros covers libc's own
-+uses.  It does not change application code compiled with atomic builtins; that
-+needs compiler support - the possibility Andreas Larsson raised in 2019 - or a
-+build that avoids the inline expansions.
-+
-+One aligned word is not general byte and halfword atomics
-+--------------------------------------------------------
-+
-+The service operates on one naturally aligned 32-bit word.  A byte or halfword
-+atomic synthesised by read-modify-writing its containing word is not safe
-+merely because every atomic on the target uses the trap::
-+
-+	word:  [ atomic byte A | ordinary byte B | ... ]
-+
-+	cpu 0                             cpu 1
-+
-+	read the whole word under the lock
-+	                                  plain store to B
-+	write the whole word back,
-+	  including the old B
-+
-+The ordinary writer of the neighbouring object ``B`` has no reason to
-+participate, and its store is lost.  Byte and halfword atomics built this way
-+need either width-aware accesses sharing this lock domain, or storage rules
-+that give the atomic object its containing word to itself.
-+
-+Availability
-+============
-+
-+``AT_HWCAP`` carries ``HWCAP_SPARC_CASTRAP`` (0x10000000) when the kernel
-+implements the trap.  Userspace must consult it rather than probing, because
-+there is no safe way to probe:
-+
-+- on a kernel without this support the trap is fatal;
-+- on sparc64 a 32-bit process reads its hwcap word from ``asm/elf_64.h``, where
-+  the bit is reserved and always clear, and ``ta 0x11`` there is not an illegal
-+  instruction but the old 64-bit system call trap.
-+
-+The bit describes the kernel service, not the hardware.  It is set whether or
-+not the cpu has ``casa``, because a binary built for plain v8 cannot use that
-+instruction even on a cpu that has it.  A binary that does have ``casa``
-+available - one built for LEON3 - should use it inline and ignore the bit
-+entirely; the kernel uses the instruction too where it exists, so the two agree
-+on the same word.
-diff --git a/Documentation/arch/sparc/index.rst b/Documentation/arch/sparc/index.rst
-index ae884224eec2..3a7d6df91a84 100644
---- a/Documentation/arch/sparc/index.rst
-+++ b/Documentation/arch/sparc/index.rst
-@@ -7,6 +7,7 @@ Sparc Architecture
- 
-    console
-    adi
-+   cas-trap
- 
-    oradax/oracle-dax
- 
--- 
-2.43.0
-
+> ---
+> Ian raised the cross-endian case in review of the sparc64 perf_regs
+> series:
+> https://lore.kernel.org/all/CAP-5=3DfUuRm3dWra4a-6eNF3F=3DtafcHvvDipqmDEX=
+N5+ti-sW0A@mail.gmail.com/
+>
+> Tested with 32-bit sparc programs (static, dynamic and multithreaded) on
+> top of that series, with a local change so perf recognises sparc32plus
+> binaries: natively on sparc64 perf died with SIGBUS before and unwinds
+> complete chains after; cross-endian on x86 no call chain was complete
+> before and all are after. 64-bit unwinding is unchanged in both.
+>
+> Words read from a DSO rather than the stack dump are still not swapped
+> for a recording of the other byte order, whatever the word size, as
+> before this change.
+>
+>  tools/perf/util/unwind-libdw.c | 46 ++++++++++++++++++++++++++++------
+>  1 file changed, 39 insertions(+), 7 deletions(-)
+>
+> diff --git a/tools/perf/util/unwind-libdw.c b/tools/perf/util/unwind-libd=
+w.c
+> index 4ccfcc7c2dfc..d49901b1571e 100644
+> --- a/tools/perf/util/unwind-libdw.c
+> +++ b/tools/perf/util/unwind-libdw.c
+> @@ -4,6 +4,7 @@
+>  #include <elfutils/libdw.h>
+>  #include <elfutils/libdwfl.h>
+>  #include <inttypes.h>
+> +#include <byteswap.h>
+>  #include <errno.h>
+>  #include "debug.h"
+>  #include "dso.h"
+> @@ -17,6 +18,8 @@
+>  #include <linux/types.h>
+>  #include <linux/zalloc.h>
+>  #include "event.h"
+> +#include "evsel.h"
+> +#include "memswap.h"
+>  #include "perf_regs.h"
+>  #include "callchain.h"
+>  #include "util/env.h"
+> @@ -203,9 +206,10 @@ static bool get_thread(Dwfl *dwfl __maybe_unused, pi=
+d_t tid, void *arg,
+>  }
+>
+>  static int access_dso_mem(struct unwind_info *ui, Dwarf_Addr addr,
+> -                         Dwarf_Word *data)
+> +                         Dwarf_Word *data, size_t len)
+>  {
+>         struct addr_location al;
+> +       union u64_swap u;
+>         ssize_t size;
+>         struct dso *dso;
+>
+> @@ -218,15 +222,38 @@ static int access_dso_mem(struct unwind_info *ui, D=
+warf_Addr addr,
+>         if (!dso)
+>                 goto out_fail;
+>
+> -       size =3D dso__data_read_addr(dso, al.map, ui->machine, addr, (u8 =
+*) data, sizeof(*data));
+> +       size =3D dso__data_read_addr(dso, al.map, ui->machine, addr, (u8 =
+*)&u, len);
+>
+>         addr_location__exit(&al);
+> -       return !(size =3D=3D sizeof(*data));
+> +       if (size !=3D (ssize_t)len)
+> +               return 1;
+> +       *data =3D len =3D=3D sizeof(u32) ? u.val32[0] : u.val64;
+> +       return 0;
+>  out_fail:
+>         addr_location__exit(&al);
+>         return -1;
+>  }
+>
+> +/*
+> + * libdw expects a 32-bit task's words zero-extended.  A recording of th=
+e
+> + * other byte order was swapped in 8-byte units when it was read (see
+> + * perf_event__all64_swap()), so a 4-byte word is picked out of its unit=
+ with
+> + * that swap undone, as for PERF_SAMPLE_CPU in __evsel__parse_sample().
+> + */
+> +static Dwarf_Word stack_word(struct stack_dump *stack, int offset, size_=
+t len,
+> +                            bool swapped)
+> +{
+> +       union u64_swap u;
+> +
+> +       if (len =3D=3D sizeof(u64))
+> +               return *(Dwarf_Word *)&stack->data[offset];
+> +       if (!swapped)
+> +               return *(u32 *)&stack->data[offset];
+> +
+> +       u.val64 =3D bswap_64(*(u64 *)&stack->data[offset & ~7]);
+> +       return bswap_32(u.val32[(offset & 4) / 4]);
+> +}
+> +
+>  static bool memory_read(Dwfl *dwfl __maybe_unused, Dwarf_Addr addr, Dwar=
+f_Word *result,
+>                         void *arg)
+>  {
+> @@ -234,11 +261,16 @@ static bool memory_read(Dwfl *dwfl __maybe_unused, =
+Dwarf_Addr addr, Dwarf_Word *
+>         struct unwind_info *ui =3D dwfl_ui_ti->ui;
+>         struct stack_dump *stack =3D &ui->sample->user_stack;
+>         u64 start, end;
+> +       bool swapped;
+> +       size_t len;
+>         int offset;
+>         int ret;
+>
+>         if (!ui->sample->user_regs)
+>                 return false;
+> +       len =3D ui->sample->user_regs->abi =3D=3D PERF_SAMPLE_REGS_ABI_32=
+ ?
+> +             sizeof(u32) : sizeof(u64);
+> +       swapped =3D ui->sample->evsel && ui->sample->evsel->needs_swap;
+>
+>         ret =3D perf_reg_value(&start, ui->sample->user_regs,
+>                              perf_arch_reg_sp(ui->e_machine));
+> @@ -248,11 +280,11 @@ static bool memory_read(Dwfl *dwfl __maybe_unused, =
+Dwarf_Addr addr, Dwarf_Word *
+>         end =3D start + stack->size;
+>
+>         /* Check overflow. */
+> -       if (addr + sizeof(Dwarf_Word) < addr)
+> +       if (addr + len < addr)
+>                 return false;
+>
+> -       if (addr < start || addr + sizeof(Dwarf_Word) > end) {
+> -               ret =3D access_dso_mem(ui, addr, result);
+> +       if (addr < start || addr + len > end) {
+> +               ret =3D access_dso_mem(ui, addr, result, len);
+>                 if (ret) {
+>                         pr_debug("unwind: access_mem 0x%" PRIx64 " not in=
+side range"
+>                                  " 0x%" PRIx64 "-0x%" PRIx64 "\n",
+> @@ -263,7 +295,7 @@ static bool memory_read(Dwfl *dwfl __maybe_unused, Dw=
+arf_Addr addr, Dwarf_Word *
+>         }
+>
+>         offset  =3D addr - start;
+> -       *result =3D *(Dwarf_Word *)&stack->data[offset];
+> +       *result =3D stack_word(stack, offset, len, swapped);
+>         pr_debug("unwind: access_mem addr 0x%" PRIx64 ", val %lx, offset =
+%d\n",
+>                  addr, (unsigned long)*result, offset);
+>         return true;
+>
+> base-commit: edd8a9fe2eca009599e013a29c421c7a6b5ad1b9
+> --
+> 2.55.0
+>
