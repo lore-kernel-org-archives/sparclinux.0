@@ -1,64 +1,64 @@
-Received: from mail-ed2-f12.google.com (mail-ed2-f12.google.com [74.125.228.76])
+Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8A3F57D228
-	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 20:19:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 085B53B05B1
+	for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 20:19:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.140
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790194765; cv=none; b=XU1+ZtPZYuj4xShQcowTmtvGDN4YiHRt2CU+/pXHzt+nFHrWEnWPF6IGVoAvkL2k2CQcbre7sdl6k64O1kDIBHrnxTLaJ4JfihcUr4Wna3m0gw3F0xHbEi1dPwCZOYqi5D6dHmGUS6OSWsEB4MpPdtR4JyPVLY5hPyPsZLsI0vE=
+	t=1790194766; cv=none; b=Dp+TMNIVjJ3ggzbL9CwxQNC/QZSy7CizMgRDQeDifJEqIByzjh9Z17SfdFSwsgNJWYZKG5dDC7yKVI5RXtxbCSCTUDwBJ4F/vrRuoqhuK+67ByptyUtNgKtEjtTP6QQAnSt94zcysuAleje6xUirkqWAPDMyLY5yeGiC2Y2Z/b0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790194765; c=relaxed/simple;
-	bh=0wHYlVgoasAY1JmiSfypx9MtD3RKd0J6iTU414lX8cc=;
+	s=arc-20240116; t=1790194766; c=relaxed/simple;
+	bh=U5kUJj8tfW2V7b3/nuO6sQr9QzMENF2JMUJE8N1DAT8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ASnlu3YI2NABJywpl3w9FrAhtXxXq6sK/9stm95mDOb2cMYWRN+TNecyB4YteyyfETIHSGDXkUjpTN0GxEnUooMEJF8VVH5j9XOMObgF/mVpwd7RwqBaMpDSGVfrx5SUdH8zEKEkTg/V8tYn7sje7szELm+EvJ43kOVHbB6GjWY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=sZV5K7zD; arc=none smtp.client-ip=74.125.228.76
+	 MIME-Version; b=JC981s4JVUu1O3gu0lMSMIYEMz9rejgQUItGuW3KRtmNqgTufKVEuUnPuCs7aPjBOweqIwkGdKXy804Yz/oMR2gWUbf/w9VciwtN9rcM10nch/zaFV+LX10iVWQBG9YtArGQ6avx2vVEF/rZVQJI8i/TYt5uvaYFMiZVzJOZnE8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=C8kuizLQ; arc=none smtp.client-ip=74.125.228.140
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sZV5K7zD"
-Received: by mail-ed2-f12.google.com with SMTP id 4fb4d7f45d1cf-6a9a2b95b72so2406279a12.2
-        for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 13:19:21 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="C8kuizLQ"
+Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254fa663bfso237418966b.1
+        for <sparclinux@vger.kernel.org>; Wed, 23 Sep 2026 13:19:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790194758; x=1790799558; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790194760; x=1790799560; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=lWUnL6Dr5OR7XEBSMs9m8RHYhNUCxYmL/3WkiHTjwQE=;
-        b=sZV5K7zD6WLwhp2aC7GFAOGLB2ULZgX+485VMLGElvKM70b1loMuAkWpXdLsRULQ2W
-         mtCy9BRt26fN3kJbWn1qNOzJ9SoydYrl/YmYpYd6VIv+F6nhL9v2QkgVaswwH+MxA9AH
-         13zkUDRVvFXaOquEZue9DJwdlwmVTmrFEmu7sNplaD6vkqaN8uRJ90xQqo5em9976SuR
-         0Om/eKiz0qSTwEY1dfFZKiARhm5trw1/laMaGeTSTJJB+NDQqZb+Nsz2gVb/Gs6Zo1s+
-         VGEixYIfsgQ/hUx9jzT7tqaajxKhr9EwaU/drXj0UUWZQWouICqwrG8x98YtraHvmko+
-         zOIw==
+        bh=aBkTioHa1njfgepZWcJOCl/N0/x0qKl0Yu1MlhUgAqw=;
+        b=C8kuizLQC8LCFKyWH7dW5kw8KLBQb5SSI0MEX8MNeeytGa8CpsoaPVJ+MSNFnBDfUV
+         CPRjiyhiK1OzZr3W0aTd/ZXtalDeCVtyR/T3M0pywi6QEJvPWsV4GVh+aYmXP1CZ2XDM
+         5ErssEnjlRN77I8EZCrLs9ZfMDLwTjSr3U7XZyAYlg592cvQ5U4hdklEqvywbsOOFMF6
+         BjPHllK2+M5kA7A4SGcr9AvLH50F/e86W11Wf0yQxZ/ZCQGqNZvWUClaZ/Y+Vu3YKkOY
+         jpw6kcITjuo2RkGkQRzYdRniePG2Hvi7errGaD4t2/Z2UYHcmsTEd+QY+77VcHFlW/I2
+         V4cQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790194758; x=1790799558;
+        d=1e100.net; s=20260707; t=1790194760; x=1790799560;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=lWUnL6Dr5OR7XEBSMs9m8RHYhNUCxYmL/3WkiHTjwQE=;
-        b=lePuxseA3vtlNNRw3kfUiNelnos1QjTFkniZn1YFMBsHoyzbXEFFsYGB9ICKM/WYmD
-         HCOfo5JzJN18enP4q5Mcabf5QJ+/5bMYfQVv+zGlLm2UMs0MvlfC3LBkpiRGgfLAf6ud
-         6ctOCoEsTAaJ8iQcOso0AguSPbMm59mMf2aF5IEtbot42rDLtxpkc3yH54w4r7G+Z6N3
-         1SMYWUTPd03qdxo344ku0nUUzoF1OtiTiS4pngzvSTInUmDZmQjwRhqs4bW0UGda+pMV
-         9pey+vtFYDmqtedLlGCP6SNwsiYavMdGsbARNOSw23e73+wLgeIuWE+Hjln7GGefiXba
-         AGPA==
-X-Forwarded-Encrypted: i=1; AKwUvBz5eSOK1gFV2kzi0w7X/vWA8GO8+GiYtUMQ1v8bsC2BM96vNerAC0+nK3tjIM6Nv0vyUYGYIpkw0Pxp@vger.kernel.org
-X-Gm-Message-State: AFuF++kCufsKA0E+4ix6Y5uVkvIFxFZps64tcwmi7e14Y0AaIX4VP/X5
-	RKQNCKiq+0iL1movhrUy95ftxeAH4JvvHzWbhzbde3bCTlB6FT3NfZhh
-X-Gm-Gg: AYBFou22WfYwqc2MzIcd+GzpfbmW7Mw8o2/hEuLeU9nzJkaXRXtC9UV/hhX6qFMeDCs
-	dzNjkl8ndt1p7JOHmHXaC+oEicbag5CgskT0XL+ya4mf5kwzCV1JCS+xFjBacrHqo3BpkCMH3oi
-	6TG6rQV5zmWOjomg2G4tcdSoKetYZUnoJz6sOdGksCtDer3m8EicVvCl2L1cf40RtqE1uUH0XME
-	wMlLI/LG09l4eu4+dx3PI0GCNJJf0SFYEeWkHn7WPcZJ2oc0Inl7t/XkQdtLnyBY0H5saui0Dsm
-	xrXdn1R9ReeIg31vtQmJSCOAtZXhJK1JHsepYmCM+K1VqdiLF3cJulXz05bVnQYKKefkoS31vJE
-	rwVLgBRMflYHZ7VUDJuXVAjj7+Sezh73rU6hmf+FM0XaNZsfBIMElV0dJ+y1sUThPBEDtIobnFx
-	QbNvFSWxCj1Eq1h8zAzUWaGi4zRUHcaZcKOI0NX5Zc/I2sDMyFAQ68MqtiR4zmfJNM3FtWsWOM7
-	XT1KyhSIxSu66PWRPH0uThnCdy0uQ2Nd+QXrHBG
-X-Received: by 2002:a17:907:1c84:b0:c26:2f09:f2d8 with SMTP id a640c23a62f3a-c2ac2601042mr17491066b.36.1790194758486;
-        Wed, 23 Sep 2026 13:19:18 -0700 (PDT)
+        bh=aBkTioHa1njfgepZWcJOCl/N0/x0qKl0Yu1MlhUgAqw=;
+        b=FqWjJ77J89iUv2P3SaelfHYUCMv1cLETOSOSPHicALfKmovMuhwHIrtYYnOrRLkpRo
+         tCKnN2BRpebTb8ib5vjb8iUqfM6R8L3nDCZsaggoLYhFydl+WJEdvRDeu3Arf1vgwX4O
+         o3ScEtZCCKKwuqN194oi+uvDQfI7MOqwHOcQkZgxkoBRXg6fQhKRsVDSxkUVrF7rz8gf
+         aFTvfEUh8Oh4/dgdVWzjuuAkRTZ4TeroYbocNXTFEmjdxENTKMxwj2cVq3HQD3h3Pqx7
+         cS8iKBEvl38RILVrf2M7FPwtFtCBE0rCtRZv3lmXJWgxf/P+OYT0T0rUH/xt72xN36x2
+         0xgQ==
+X-Forwarded-Encrypted: i=1; AKwUvByMVwo+tMdiVbQ1CXy+WGXUDTnelQXt64wXfJJut+wIgOpwdDlyThFX5QNbe/SHeIeMrkeDKKDHq3q8@vger.kernel.org
+X-Gm-Message-State: AFuF++l4jYPRRTQSkSUdmlvKewhMjN42iLMKwNu+NDGcvThEEs4TmOBh
+	fI7svLwlGW+PF3yn0X1PdjO57Dsdze2lAH2/7yhvauecA0DEpVtQcVjJ
+X-Gm-Gg: AYBFou1ke0VpOrdZhJ1IcLhKOitQlU5OGXF89N2Z9cPTl477DDIQ6T0Og6Gu/rrwDzj
+	slR+tznZhH8iIBGCCZClMmTLVpY2VmCbo5sStba3i4OkT3SuWLBQ+m0d1Ot7RptlYWXqv40VgtR
+	d0yBo+ixbhoaQXTWBuqKOT7u1zW7PHxRU6VFcbu5wq29CU8eM/bcTz0kFugWN/Cz4/frUnLwBnf
+	fDjMTdPV2iL7svk2sRFzRIOkZ6JA6UZ+i1f6utV6F0CwEd+Gn5f/oIGineg6qk8k8UvFIJ/GEuP
+	aXPwAvLyozZzKLPh8YjNrtBeCPk67XbPq8xpx+GTavVS4R/XDudFDBhSy+CTMPXpm3OZxwqI7uo
+	pmrn8VqMs8hlGuWK9KgRshQCjH1LRmQCaUr4f6Ofr914H5RspNB3lr/brVl9ITr4h5ENKOqujzM
+	ZflyVYfweSK2HnNiKGqKu9ouVjXux3GKr2iRSxrY0h3bpwWGQGo/9GqkS/+Xh8uzH32hu656Stk
+	0B5c4+C6Wmv/flOoHuycS8jxVFxyypZZeApAdGA
+X-Received: by 2002:a17:907:c48a:b0:c29:f5d5:5a9a with SMTP id a640c23a62f3a-c2ac241cb87mr18810766b.36.1790194760417;
+        Wed, 23 Sep 2026 13:19:20 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2aae63dc17sm183626966b.33.2026.09.23.13.19.17
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2aae63dc17sm183626966b.33.2026.09.23.13.19.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Sep 2026 13:19:18 -0700 (PDT)
+        Wed, 23 Sep 2026 13:19:20 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -66,9 +66,9 @@ Cc: sam@ravnborg.org,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linmag7@gmail.com
-Subject: [RFC PATCH 1/5] sparc32: detect the compare-and-swap instruction at boot
-Date: Wed, 23 Sep 2026 22:17:17 +0200
-Message-ID: <20260923201830.865553-2-linmag7@gmail.com>
+Subject: [RFC PATCH 3/5] sparc32: implement futex atomic ops with the compare-and-swap locks
+Date: Wed, 23 Sep 2026 22:17:19 +0200
+Message-ID: <20260923201830.865553-4-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260923201830.865553-1-linmag7@gmail.com>
 References: <20260923201830.865553-1-linmag7@gmail.com>
@@ -80,230 +80,232 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Some 32-bit sparc implementations provide the v9 compare-and-swap as an
-extension, LEON3 does, plain v8 does not. Whether it is present decides
-how a user word can be made atomic, and the kernel has to make the same
-choice userspace made: a binary built for such a cpu uses casa inline, one
-built for v8 cannot and asks the kernel instead. Both follow from the
-hardware, so deciding on the hardware keeps them in step.
+sparc32 had no futex implementation of its own and fell back to the
+asm-generic one, which on SMP cannot work: it needs to update a user word
+atomically, and pre-v9 sparc has no instruction for that. CONFIG_FUTEX
+was therefore made to depend on !(SPARC32 && SMP).
 
-Probe by executing one compare-and-swap that must succeed and checking
-that it did, rather than inferring support from the absence of a trap.  A
-cpu without the instruction raises illegal_instruction, so
-do_illegal_instruction() now looks for an exception table fixup before
-dying, the way the data fault path already does; the same entry also
-covers a faulting address later.
+Now that the kernel owns a compare-and-swap on behalf of userspace, the
+futex code can use the same mechanism. Where the cpu lacks the
+instruction both sides serialise on the lock array used by the trap type
+0x91 handler; both callers go through sparc32_atomic_lock(), so the two
+hashes cannot drift apart, parisc keeps the same invariant with a comment
+asking that its futex hash match its LWS code.
 
-casa cannot appear in inline asm: sparc32 is built -Wa,-Av8, the assembler
-rejects the instruction outright, and sparc gas has no .arch pseudo-op to
-override that locally. It therefore lives in its own object assembled
--Wa,-Aleon, which adds the one instruction without letting the rest of v9
-in.  This affects the assembler only, not what the compiler emits.
+Where the cpu has the instruction that lock cannot serve for the
+read-modify-write. A binary built for such a cpu does its own casa and
+knows nothing about the array, so a lock, get_user, put_user, unlock
+sequence can lose that binary's update between the two accesses while both
+operations appear to have succeeded and FUTEX_WAKE_OP defines its update
+of uaddr2 as atomic. arch_futex_atomic_op_inuser() therefore retries a
+casa until the word is still the one the new value was computed from, the
+way sparc64 does it. Only the pre-v9 path takes the lock, where it is
+correct because userspace takes the same lock through the trap.
 
-The helpers are laid out for the LEON atomic errata rather than detecting
-them. GRLIB-TN-0011 wants the atomic 16-byte aligned, or an instruction
-TLB miss can release the bus lock before the store completes;
-GRLIB-TN-0010 forbids reaching one from a load or a control transfer,
-which a call with a load in its delay slot does. A nop at the entry plus
-nop padding to the boundary covers both, for less than runtime detection
-would cost. The padding is spelled .balignl because a plain .align lets
-the assembler branch over the gap, and that branch lands on the atomic -
-exactly the sequence TN-0010 asks us to avoid.
+Both entry points are called with page faults already disabled, so the
+user accesses fail rather than sleeping under the lock.
 
-The probe runs once, on the boot cpu, so an SMP machine whose cpus
-disagree about the instruction is not supported. None is known.
+With a real cmpxchg available the Kconfig dependency can go, which is what
+lets FUTEX_PI and robust futexes be built for this configuration rather
+than refused. Their runtime behaviour here has not been tested.
+
+One gap is known and not closed here.
+
+futex_robust_unlock() clears the futex word with
+unsafe_atomic_store_release_user(), before the hash bucket is locked and
+without going through either helper added here. SPARC32 currently uses
+the generic implementation of unsafe_atomic_store_release_user(), which
+ultimately performs a plain user-memory store. On a no-CASA SMP system
+that store does not acquire the lock used by the SPARC32 software-CAS
+implementation. It can therefore occur between the trap handler's load
+and conditional store, allowing the CAS to overwrite the unlock:
+
+  cpu 0, trap compare-and-swap        cpu 1, robust unlock
+
+  take sparc32_atomic_lock(uaddr)
+  read *uaddr -> T
+                                      store 0 -> *uaddr, no lock
+  compare against T succeeds
+  store T | FUTEX_WAITERS -> *uaddr
+  release the lock, report success
+
+Neither order of those two operations permits that result, so the missing
+serialisation is what produced it. The flag itself is not gated
+CONFIG_FUTEX_ROBUST_UNLOCK covers only the rseq fixup path, so dropping
+the Kconfig dependency is what exposes this on SPARC32 SMP. It has not
+been observed in practice; it is reported because it follows from the
+implementation.
+
+The requirement is only that these two operations agree on how they
+serialise access to the word. The macro is overridable, so SPARC32 could
+supply its own definition and keep this inside the architecture; whether
+that is preferable to a futex-specific interface is a question for the
+futex maintainers, and is asked rather than guessed at.
 
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
- arch/sparc/include/asm/cas_32.h   | 10 +++++++++
- arch/sparc/include/asm/cpu_type.h |  7 +++++++
- arch/sparc/kernel/cpu.c           | 24 ++++++++++++++++++++++
- arch/sparc/kernel/traps_32.c      | 16 ++++++++++++++-
- arch/sparc/lib/Makefile           |  5 +++++
- arch/sparc/lib/casa_32.S          | 34 +++++++++++++++++++++++++++++++
- 6 files changed, 95 insertions(+), 1 deletion(-)
- create mode 100644 arch/sparc/include/asm/cas_32.h
- create mode 100644 arch/sparc/lib/casa_32.S
+ arch/sparc/include/asm/futex_32.h | 137 +++++++++++++++++++++++++++++-
+ init/Kconfig                      |   1 -
+ 2 files changed, 135 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/cas_32.h b/arch/sparc/include/asm/cas_32.h
-new file mode 100644
-index 000000000000..3658ff71fa70
---- /dev/null
-+++ b/arch/sparc/include/asm/cas_32.h
-@@ -0,0 +1,10 @@
+diff --git a/arch/sparc/include/asm/futex_32.h b/arch/sparc/include/asm/futex_32.h
+index 6a332a9f099c..35ff08a6b2bd 100644
+--- a/arch/sparc/include/asm/futex_32.h
++++ b/arch/sparc/include/asm/futex_32.h
+@@ -1,6 +1,139 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _SPARC_CAS_32_H
-+#define _SPARC_CAS_32_H
-+
-+#include <linux/types.h>
-+
-+/* Returns 0 and stores the value found in *prev, or -EFAULT. */
-+int __sparc32_casa(u32 *addr, u32 oldval, u32 newval, u32 *prev);
-+
-+#endif /* _SPARC_CAS_32_H */
-diff --git a/arch/sparc/include/asm/cpu_type.h b/arch/sparc/include/asm/cpu_type.h
-index 2b59799859d1..c54e0abfdb2b 100644
---- a/arch/sparc/include/asm/cpu_type.h
-+++ b/arch/sparc/include/asm/cpu_type.h
-@@ -2,6 +2,8 @@
- #ifndef __ASM_CPU_TYPE_H
- #define __ASM_CPU_TYPE_H
+ #ifndef _ASM_FUTEX_H
+ #define _ASM_FUTEX_H
  
-+#include <linux/types.h>
-+
- /*
-  * Sparc (general) CPU types
-  */
-@@ -18,6 +20,11 @@ enum sparc_cpu {
- #ifdef CONFIG_SPARC32
- extern enum sparc_cpu sparc_cpu_model;
- 
-+/* True where the cpu implements the v9 casa extension (LEON3 does, plain v8
-+ * does not).  Probed once on the boot cpu.
-+ */
-+extern bool sparc32_has_casa;
-+
- #define SUN4M_NCPUS            4              /* Architectural limit of sun4m. */
- 
- #else
-diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
-index 79cd6ccfeac0..e09c688a5fd3 100644
---- a/arch/sparc/kernel/cpu.c
-+++ b/arch/sparc/kernel/cpu.c
-@@ -21,6 +21,9 @@
- #include <asm/psr.h>
- #include <asm/mbus.h>
- #include <asm/cpudata.h>
-+#ifdef CONFIG_SPARC32
+-#include <asm-generic/futex.h>
++#include <linux/futex.h>
++#include <linux/uaccess.h>
++#include <asm/errno.h>
 +#include <asm/cas_32.h>
-+#endif
++#include <asm/cpu_type.h>
  
- #include "kernel.h"
- #include "entry.h"
-@@ -437,11 +440,32 @@ const struct seq_operations cpuinfo_op = {
- };
- 
- #ifdef CONFIG_SPARC32
-+bool sparc32_has_casa __ro_after_init;
-+
-+/* One compare-and-swap that must succeed: a cpu without casa traps and the
-+ * exception table reports -EFAULT.
+-#endif
++/* These share the compare-and-swap trap's lock array and must hash
++ * identically to it; see asm/cas_32.h.
 + */
-+static void __init casa_probe(void)
++
++static inline int sparc32_futex_op(int op, int oparg, u32 oldval, u32 *newval)
 +{
-+	static const u32 oldval = 0x600df00d;
-+	static const u32 newval = 0x0badcafe;
-+	u32 word = oldval;
-+	u32 prev = 0;
++	switch (op) {
++	case FUTEX_OP_SET:
++		*newval = oparg;
++		break;
++	case FUTEX_OP_ADD:
++		*newval = oldval + oparg;
++		break;
++	case FUTEX_OP_OR:
++		*newval = oldval | oparg;
++		break;
++	case FUTEX_OP_ANDN:
++		*newval = oldval & ~oparg;
++		break;
++	case FUTEX_OP_XOR:
++		*newval = oldval ^ oparg;
++		break;
++	default:
++		return -ENOSYS;
++	}
 +
-+	if (!__sparc32_casa(&word, oldval, newval, &prev))
-+		sparc32_has_casa = prev == oldval && word == newval;
-+
-+	pr_info("sparc32: compare-and-swap instruction %s\n",
-+		sparc32_has_casa ? "present" : "not implemented");
++	return 0;
 +}
 +
- static int __init cpu_type_probe(void)
- {
- 	int psr_impl, psr_vers, fpu_vers;
- 	int psr;
- 
-+	casa_probe();
++static inline int
++arch_futex_atomic_op_inuser(int op, int oparg, int *oval, u32 __user *uaddr)
++{
++	raw_spinlock_t *lock;
++	unsigned long flags;
++	u32 oldval, newval, prev;
++	int ret = 0;
 +
- 	psr_impl = ((get_psr() >> PSR_IMPL_SHIFT) & PSR_IMPL_SHIFTED_MASK);
- 	psr_vers = ((get_psr() >> PSR_VERS_SHIFT) & PSR_VERS_SHIFTED_MASK);
- 
-diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
-index bb149f6cc34b..85ae2fc143ec 100644
---- a/arch/sparc/kernel/traps_32.c
-+++ b/arch/sparc/kernel/traps_32.c
-@@ -20,6 +20,7 @@
- #include <linux/kdebug.h>
- #include <linux/export.h>
- #include <linux/pgtable.h>
-+#include <linux/extable.h>
- 
- #include <asm/delay.h>
- #include <asm/ptrace.h>
-@@ -108,8 +109,21 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned long type)
- void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 			    unsigned long psr)
- {
--	if(psr & PSR_PS)
-+	if (psr & PSR_PS) {
-+		const struct exception_table_entry *entry;
++	if (sparc32_has_casa) {
++		if (!access_ok(uaddr, sizeof(u32)))
++			return -EFAULT;
 +
-+		/*
-+		 * An instruction this cpu does not implement can be probed
-+		 * for deliberately, so honour a fixup before dying.
++		if (unlikely(get_user(oldval, uaddr) != 0))
++			return -EFAULT;
++
++		/* Retry until the word still holds what newval was computed
++		 * from, making the read-modify-write one atomic step.
 +		 */
-+		entry = search_exception_tables(pc);
-+		if (entry) {
-+			regs->pc = entry->fixup;
-+			regs->npc = regs->pc + 4;
-+			return;
++		for (;;) {
++			ret = sparc32_futex_op(op, oparg, oldval, &newval);
++			if (ret)
++				return ret;
++
++			if (unlikely(__sparc32_casa_user(uaddr, oldval,
++							 newval, &prev) != 0))
++				return -EFAULT;
++
++			if (likely(prev == oldval))
++				break;
++
++			oldval = prev;
 +		}
- 		die_if_kernel("Kernel illegal instruction", regs);
++
++		*oval = oldval;
++		return 0;
 +	}
- #ifdef TRAP_DEBUG
- 	printk("Ill instr. at pc=%08lx instruction is %08lx\n",
- 	       regs->pc, *(unsigned long *)regs->pc);
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index dd10cdd6f062..007d8e510ee8 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -12,6 +12,11 @@ lib-$(CONFIG_SPARC32) += blockops.o
- lib-y                 += memscan_$(BITS).o memcmp.o strncmp_$(BITS).o
- lib-$(CONFIG_SPARC32) += divdi3.o udivdi3.o
- lib-$(CONFIG_SPARC32) += copy_user.o locks.o
-+lib-$(CONFIG_SPARC32) += casa_32.o
 +
-+# casa is not in v8, which the rest of sparc32 is assembled as.  -Aleon rather
-+# than -Av9: it adds the one instruction without letting anything else v9 in.
-+AFLAGS_casa_32.o += -Wa,-Aleon
- lib-$(CONFIG_SPARC64) += atomic_64.o
- lib-$(CONFIG_SPARC32) += lshrdi3.o ashldi3.o
- lib-$(CONFIG_SPARC32) += muldi3.o bitext.o
-diff --git a/arch/sparc/lib/casa_32.S b/arch/sparc/lib/casa_32.S
-new file mode 100644
-index 000000000000..67df9ea439ce
---- /dev/null
-+++ b/arch/sparc/lib/casa_32.S
-@@ -0,0 +1,34 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Compare-and-swap for the 32-bit sparc implementations that have it.
-+ */
++	lock = sparc32_atomic_lock(uaddr);
++	raw_spin_lock_irqsave(lock, flags);
 +
-+#include <linux/linkage.h>
-+#include <asm/errno.h>
++	if (unlikely(get_user(oldval, uaddr) != 0)) {
++		ret = -EFAULT;
++		goto out;
++	}
 +
-+	.text
-+	.align	4
++	ret = sparc32_futex_op(op, oparg, oldval, &newval);
++	if (ret)
++		goto out;
 +
-+/* int __sparc32_casa(u32 *addr, u32 oldval, u32 newval, u32 *prev)
-+ * Returns 0 and *prev, or -EFAULT.  ASI 0x0b is supervisor data.
-+ */
-+ENTRY(__sparc32_casa)
-+	/* nop + .balignl: LEON errata GRLIB-TN-0010 and TN-0011. */
-+	nop
-+	.balignl 16, 0x01000000
-+1:	casa	[%o0] 0x0b, %o1, %o2
-+	st	%o2, [%o3]
-+	retl
-+	 clr	%o0
-+ENDPROC(__sparc32_casa)
++	if (unlikely(put_user(newval, uaddr) != 0))
++		ret = -EFAULT;
 +
-+	.section .fixup,#alloc,#execinstr
-+	.align	4
-+2:	retl
-+	 mov	-EFAULT, %o0
-+	.previous
++out:
++	raw_spin_unlock_irqrestore(lock, flags);
 +
-+	.section __ex_table,#alloc
-+	.align	4
-+	.word	1b, 2b
-+	.previous
++	if (!ret)
++		*oval = oldval;
++
++	return ret;
++}
++
++static inline int
++futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
++			      u32 oldval, u32 newval)
++{
++	raw_spinlock_t *lock;
++	unsigned long flags;
++	u32 val;
++
++	if (!access_ok(uaddr, sizeof(u32)))
++		return -EFAULT;
++
++	/* casa is atomic against userspace's own; a lock of ours is not. */
++	if (sparc32_has_casa) {
++		if (__sparc32_casa_user(uaddr, oldval, newval, &val))
++			return -EFAULT;
++		*uval = val;
++		return 0;
++	}
++
++	lock = sparc32_atomic_lock(uaddr);
++	raw_spin_lock_irqsave(lock, flags);
++
++	if (unlikely(get_user(val, uaddr) != 0)) {
++		raw_spin_unlock_irqrestore(lock, flags);
++		return -EFAULT;
++	}
++
++	if (val == oldval && unlikely(put_user(newval, uaddr) != 0)) {
++		raw_spin_unlock_irqrestore(lock, flags);
++		return -EFAULT;
++	}
++
++	raw_spin_unlock_irqrestore(lock, flags);
++
++	*uval = val;
++	return 0;
++}
++
++#endif /* _ASM_FUTEX_H */
+diff --git a/init/Kconfig b/init/Kconfig
+index 8583d9f06c52..9eb8086af7db 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -1875,7 +1875,6 @@ config BASE_SMALL
+ 
+ config FUTEX
+ 	bool "Enable futex support" if EXPERT
+-	depends on !(SPARC32 && SMP)
+ 	default y
+ 	imply RT_MUTEXES
+ 	help
 -- 
 2.43.0
 
