@@ -1,62 +1,62 @@
-Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 828C84D8DBE
-	for <sparclinux@vger.kernel.org>; Thu, 24 Sep 2026 20:45:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A1635AC24
+	for <sparclinux@vger.kernel.org>; Thu, 24 Sep 2026 20:57:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790282719; cv=none; b=ZuOfAXIp2vmDfpWeFZLseBUZbxR6IHe337jVNO+0jTpMOZs2Ay6gfo+2pDNmBd8QXqxs9x85cUooB9dW+dOnPnxA6Qpi/WQghpjG6WmXjgAxGFJEyH9YNyMmnE2z/7LkswKawwSV09dKvFuCgZ6WFJbweH+Tn5hPWEVlQa8Gr88=
+	t=1790283433; cv=none; b=QA15ivRRZ6pRY2bXt7ngq4kARbYKRAgHkoXruEkLlZrYJ3ckSDR1/hyS9K4wdaB/r2YHwlXXsGPUBc44Ycns7oKvvfVMYs71o2q+JJLo4LuDnzWc1RMdtB7x0LwLNUKj+eqL4KhrCz/t5p1CZd05eEAVDIqkkpg0Lw0qdUCSqTU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790282719; c=relaxed/simple;
-	bh=ozjA8KSsMcbFMDharvuoZPgEB9CYnB/D7P0+ThoVcVg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Mv99ctw1xFAZe9OKqXdJ9VbMfveFYYSePXP8ZHXwo9OQioDHhOGUvo/JdW33R+idDkNV84Bxo7/q9SaweOT2Svs3iegrej/I8vKKtWj0W22DcI4/C2DD/wedE1D7Jx4zPJpXA2jF5xoeS0L/0ZojwV7CC03/UzScGuDPiycOFac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jNXzFI/9; arc=none smtp.client-ip=74.125.228.140
+	s=arc-20240116; t=1790283433; c=relaxed/simple;
+	bh=/0yd4Du7QZlvnOx8zJS1srx0LAKVINg0cMFPHUNIvZ0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SZ1QBuPVXUEPNTrwpCcMSlWZEuIJudMLz00BUbsNpL31LqACmTv/6bBkhph7e9d5VBYBF/oLYwOHygU5yazIkRj7PN7we6YypzP8v4Q77+bmgcAjOZjmBn8apUSid0uPXJLVw8WCf3didnHQfmGr7975dg/kISlPXhhG22McSfw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=N0qmS03/; arc=none smtp.client-ip=209.85.218.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jNXzFI/9"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c25ef7a3ce9so24705766b.3
-        for <sparclinux@vger.kernel.org>; Thu, 24 Sep 2026 13:45:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N0qmS03/"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-c294ad260fdso42678366b.1
+        for <sparclinux@vger.kernel.org>; Thu, 24 Sep 2026 13:57:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790282716; x=1790887516; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790283430; x=1790888230; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=dFRNBiIrmrhTYxtp/TvLSKPmD2BYNjT7uhVI7i3Srpo=;
-        b=jNXzFI/9e4XvB2RizJFi95focR6oF4IngccahLbh5PpNa3erizJpB1vNJP0JBiGtjH
-         U5At+CL9ScDbyFBGTyYn+pMpFXqNMhdOdiQQwjDs/9DGhooMYpmSfxYYgzAdYB/wBub7
-         SzYC9LQUhJOrg/ZH1/saasHCXg6ehZWbOhjjdnjiWJS8mkzAasucaahSrvmwIYTd6KGN
-         idY8AN9/5FZbJEh9o6H5CGmblSr65QPxwEgJUzMzeFDit5aWHJhXL7LoVQA0Eq7DB4Ws
-         sx+kXAChvrI5nLFdSKniOAukZi6g8L63yYgqg/NNAikJUzQfGJhiFBCEg4jPYON9tWxc
-         E3dA==
+        bh=gAY6iiq5ZHyYfStlP2cfZDHdWP/WZxVPSTqYIRNjTM8=;
+        b=N0qmS03/hPEvvGRVHD1OV9p+2ku0R80TM5nrMcxt9IhrvU+kJ/ESnkT4XrzsXK6ZUP
+         M7BFML9iogq2NFTnnVjgze760gTITjN0MFjyjz/WTVsJwOh9afwfmSsYPH/B3dG7hb91
+         60whhckfjXQlvJ8s+ZZI3Q0hhgX//zWusC/N5Vqj/nvx506GNwDFTKoqV2G8l+1CY2zd
+         pEGi06Q6eXj9ZNIQYqwDWs7rBsoXxr5UbbHxx8PQsd20ux9RUsZfEuTwbkKoXTTajWXm
+         Mql2+HLeiM1K2O7nGhzC+gNl8ECYQXWl39M5I7UJjN+PHDnQpxDfBP9X4jJH/YUEuIAl
+         ZYeg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790282716; x=1790887516;
+        d=1e100.net; s=20260707; t=1790283430; x=1790888230;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=dFRNBiIrmrhTYxtp/TvLSKPmD2BYNjT7uhVI7i3Srpo=;
-        b=lcuNtMFBkYt2ms18LQICRPF3TddNuPtinFsWxZWCe1U/5zg51DYsLGWdkJzohaRcQ1
-         wc6oTUt1cW814PPHz+NQBf8HFFxHBby31VsvS5yiA8v+mAvALsL9Wzz7LI67zgDZ+9z7
-         kZ0Rpt2/l9fiRfBM5EELddFOvr2FINdYdNeDNoDLljAXiGnzvh3EEufM+j9U3PbMxLjS
-         I6cj9CCiWbMshNtsJbMq+O60Tkd4CYBkU24nZtxBnOCEpskz0bylZLmn84lU6eMFjc8u
-         gTpxlyJxqY4Utaur+iyN8PGJlTvLZe3j9RR/0tpOdJt6aAmKwFzGGBABfm10KWfuw0FN
-         DAXg==
-X-Forwarded-Encrypted: i=1; AKwUvBywNtlPxp5psoeCoX12agXXrlDWzb/nS8yAcqW8JxH+6r3khhWhp+9U4mQZM+IMJaw2W5iLeJi/lm2o@vger.kernel.org
-X-Gm-Message-State: AFuF++m8JhHBCpDvcWZmYxDyfb+i3bF7H7KDs+dru3xmkhMAljIscnbQ
-	Wj1EDob5z0hr9BQbo0TZ9wJYgzXG1rBiv9io9bhtAIVMT1g/85uhqmsl
-X-Gm-Gg: AYBFou2vh9b2FmYw5w3n+dHpehQub5VB/rdmr+2kBSFGwLii8C+jcQqYmaR6WsfRrvD
-	w+/HL2vgasgcFKI5un0ZNfdfRGGxJ86jq7Hc2qrmXfeAy1znw/Dgp//n6AEe6n3qnly9etEt+04
-	fp7dGX2jYaCYtKXA/82irUvst6r9ncJromwp4JddgP1pKLBgmovwOtePLQvXNZul0/UuCCisBmQ
-	hv4m2UAmP79hTfYwsFScUMDmjSuyXw0qq2n0+fWL9x/nzJMT5uuD6xYA1kWzDTYyLQxueodxxa3
-	+bTxOZrHxVtF/vYDu68ltP32M6ALeMBSG1dPQDbsPTCMeQ3hz68Za+6Bqm4vsUo0uJPW1f+xIrd
-	VgLd0s9IJF0ZAKF7nFu99a8tpwX+msmM+QnOZoRrHunYXDBzjD4DA3IQFnvfn1EdgRl62Gc3a/6
-	v0Bzxx1mDNql8fFeZNBZy6hx6e5yukZooVGnoOoLc/ZfOkoXOlFYs3GuJTw98PY4D+vcdOwLWH0
-	vtnitLuzRDdMUgo4x35w641fnDJY0myiGb7G+CoRGFIz22ZNA8=
-X-Received: by 2002:a17:907:7b8a:b0:c29:3d59:706b with SMTP id a640c23a62f3a-c2ac5510506mr293618566b.44.1790282715500;
-        Thu, 24 Sep 2026 13:45:15 -0700 (PDT)
+        bh=gAY6iiq5ZHyYfStlP2cfZDHdWP/WZxVPSTqYIRNjTM8=;
+        b=rbiO8eLw0Nx2Hzmb1wAmm5KFOQIQKZSQhZw2yiOeQ9D1g942vq3SRDWOnqP79J1BO+
+         h/LGu3SYqnlkjCTglieBk1iEQJ8pBOE5jWA0MbL5YlNhFFWbBRNos6nxZsg7WXr6do8E
+         xjvy9kHyGDhkX2WnsqfxYI2ypifsivJ6GX+8hQ4RtLx1Igb5qzfrT4iwjzKG175ajv5u
+         wWaguo5FDzyaNETyoubIqtqSi3jnKF5/hhfcLwIYOHLBqXvtnpoFAmDkbwLstAJdVvR3
+         IumjmywJnzfZcK2lSt3y6k/NmRV7aO5GiN3wCcC1e+re+b12piHzqvZ0hijpwF6Jh1gw
+         StiA==
+X-Forwarded-Encrypted: i=1; AKwUvBwBfz4XDPMTjM4rzsYJvEZMWFJVKXA6CdHg3yWOHYQDxT/fyMoYqNEZPWEPS9lv2vz/IYmVICwJthBe@vger.kernel.org
+X-Gm-Message-State: AFuF++muFtfHOfJzYNJojgfyb9oO3lcK6wTBpQatnaoNQgB3IR9yh4lF
+	OtgANngFSnAEc/fbz1xbsvvkZ64Lp9sL00Esh18oTXom0ExIYoDWr9Qy
+X-Gm-Gg: AYBFou3Z4r8DMIRBiFZ20mef7oWY4EWkGcaoQUYfj3hz/zT3PcuNBVyGEo2hXT8uMU4
+	G+2L95rsPXNE69mksXu8T5xLnC1BwI523KIBz+XFInDnkJcNfaLFOjcBv0oy3p0wOXCQtVhyHVg
+	woKIy893VQjM4gTF7Mn1aaM9CIbZri2Z3KjjQhG3+bWADH0yf5vbe2jj56x+DcRhKc/M7J8RHxW
+	r/EVjJN+jY6REnLB5ulDOlN9sC9Dany2GRsprIJMbjsTxVvFExxRC+cRRo01XE4iHf8BJLrARPe
+	t1Ni0q5FrtNJm583heyE7SaPqdVcEuNKNcS8S6yNmlCsHPJcTGRx3QSgWQAxG8+sIBI5DC+V0x2
+	W/f+mHBs3g+IeaSyY4Hk18PESr4DDFutsAXCH8PKSjRRPiUuoJ/Vua+iA0NRWqofUicDAne0QKY
+	aFQNVjDl0gQbHxHq9cDjlw1FDy+N6mUg/xqvP7PpjaMLF35FGlv+eid1omL7aVE2Bmn5OYsSEb0
+	7S4B2YoXqQgsXcm2saAl6GEcqV2d4+mdPJ1soH1
+X-Received: by 2002:a17:907:9622:b0:c29:3d25:15fc with SMTP id a640c23a62f3a-c2ac235cdbcmr321475766b.18.1790283429448;
+        Thu, 24 Sep 2026 13:57:09 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2ae77ff064sm12193666b.48.2026.09.24.13.45.14
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2ae7357cf3sm14378966b.17.2026.09.24.13.57.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Sep 2026 13:45:15 -0700 (PDT)
+        Thu, 24 Sep 2026 13:57:08 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -64,9 +64,9 @@ Cc: sam@ravnborg.org,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linmag7@gmail.com
-Subject: [PATCH] sparc32: capture SuperSPARC data store error state
-Date: Thu, 24 Sep 2026 22:44:38 +0200
-Message-ID: <20260924204503.870873-1-linmag7@gmail.com>
+Subject: [PATCH] sparc32: emulate UDIV/SDIV on illegal_instruction
+Date: Thu, 24 Sep 2026 22:50:24 +0200
+Message-ID: <20260924205646.870950-1-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -76,28 +76,39 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-SuperSPARC reports a failed buffered write with trap 0x2b. The store
-has retired by then, while the processor disables the store buffer and
-retains its entries for inspection.
+Some SPARC V8 implementations do not complete UDIV/SDIV for every operand
+and raise illegal_instruction instead of producing a result. A
+SuperSPARC-II (TI TMS390Z50) implements only a 52 by 32 bit integer divide
+rather than the architecturally specified 64 by 32, and traps when the
+dividend has significant bits beyond bit 51.
 
-MFSR is cleared when read. SAVE_ALL may spill a user window and read
-MFSR while checking that spill, so capture MFAR and MFSR first. Keep
-them in the trap window's output registers, which SAVE_ALL preserves.
+This is not a corner case: compiler-generated 64-bit division commonly
+uses libgcc's __udivdi3, making this easy to encounter in ordinary
+userspace:
 
-Build pt_regs and set PSR.ET before entering C. The reporter can then
-inspect the frozen store buffer and, when present, the MXCC registers
-without running C or printk with traps disabled. Use the saved trap PSR
-for CPU identification, then continue through the existing bad-trap path.
+	wr %oN, %y ; nop ; nop ; nop ; udiv %oM, %oK, %rd
 
-This is diagnostic support, not error recovery: the handler neither
-retries the failed store nor re-enables the store buffer.
+so an ordinary arithmetic operation kills the process. Finish the
+divide in software and step over it instead.
 
-This follows SuperSPARC Family User's Manual sections 9.12.3.6, MFSR
-Timing and Operation, 10.6.5, Data Store Errors, 10.7, Store Buffer
-Diagnostic and Control Interfaces, 12.8.2, Data Store Error Trap,
-16.5.4, MXCC Status Register, 16.5.6, MXCC MBus Port Register, and
-16.8.4, MXCC Error Register.
+The emulation is generic because it is only reached after the hardware has
+already refused the instruction. Linux handled this trap the same way
+before, in do_user_muldiv(), removed by commit 1b35a57b1c17 ("sparc32:
+Kill off software 32-bit multiply/divide routines."); unlike that code
+this saturates the quotient and maintains the condition codes, both of
+which the V8 manual specifies.
 
+%g and %o come from pt_regs, but %l and %i may still be live in the
+register file, so the windows are flushed to the stack first as the
+unaligned access handler does. Without that the emulator reads stale
+memory and computes a confidently wrong quotient.
+
+A divide whose spilled window cannot be accessed raises SIGSEGV, not
+SIGILL, with si_addr the failing register slot. S64_MIN / -1 saturates
+directly rather than as a C division, which would be undefined. Signed
+overflow uses V8's method A; method B differs only in V.
+
+Fixes: 1b35a57b1c17 ("sparc32: Kill off software 32-bit multiply/divide routines.")
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
 Applies and builds standalone on v7.3-rc1; cross-built with the SPARCstation
@@ -113,305 +124,283 @@ below, so this cannot be exercised on real hardware without them:
   sparc32: SuperSPARC SMP synchronization fixes (v2)
     https://lore.kernel.org/sparclinux/20260917075842.784996-1-linmag7@gmail.com/
 
-This and "sparc32: emulate UDIV/SDIV on illegal_instruction" both insert
+This and "sparc32: capture SuperSPARC data store error state" both insert
 code immediately after do_hw_interrupt() in arch/sparc/kernel/traps_32.c.
-They are independent, adjacent insertions, no shared functionality, but
+They are independent - adjacent insertions, no shared functionality - but
 whichever is applied second needs a trivial context rebase.
+ arch/sparc/kernel/traps_32.c | 242 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 242 insertions(+)
 
- arch/sparc/include/asm/mxcc.h   | 36 +++++++++++++++++++
- arch/sparc/include/asm/viking.h | 41 ++++++++++++++++++++++
- arch/sparc/kernel/entry.S       | 28 +++++++++++++++
- arch/sparc/kernel/entry.h       |  2 ++
- arch/sparc/kernel/traps_32.c    | 61 +++++++++++++++++++++++++++++++++
- arch/sparc/kernel/ttable_32.S   |  8 ++---
- 6 files changed, 172 insertions(+), 4 deletions(-)
-
-diff --git a/arch/sparc/include/asm/mxcc.h b/arch/sparc/include/asm/mxcc.h
-index bd6339dcf693..bbfeab004e3e 100644
---- a/arch/sparc/include/asm/mxcc.h
-+++ b/arch/sparc/include/asm/mxcc.h
-@@ -126,6 +126,42 @@ static inline unsigned long mxcc_get_creg(void)
- 	return mxcc_control;
- }
- 
-+static inline void mxcc_get_64bit_reg(unsigned long reg,
-+				      unsigned long *high,
-+				      unsigned long *low)
-+{
-+	unsigned long reg_high, reg_low;
-+
-+	__asm__ __volatile__("ldda [%2] %3, %%g2\n\t"
-+			     "or %%g0, %%g2, %0\n\t"
-+			     "or %%g0, %%g3, %1\n\t"
-+			     : "=&r" (reg_high), "=&r" (reg_low)
-+			     : "r" (reg), "i" (ASI_M_MXCC)
-+			     : "g2", "g3");
-+	*high = reg_high;
-+	*low = reg_low;
-+}
-+
-+static inline void mxcc_get_sreg(unsigned long *high, unsigned long *low)
-+{
-+	mxcc_get_64bit_reg(MXCC_SREG, high, low);
-+}
-+
-+static inline void mxcc_get_ereg(unsigned long *high, unsigned long *low)
-+{
-+	mxcc_get_64bit_reg(MXCC_EREG, high, low);
-+}
-+
-+static inline unsigned long mxcc_get_preg(void)
-+{
-+	unsigned long mxcc_port;
-+
-+	__asm__ __volatile__("lda [%1] %2, %0\n\t"
-+			     : "=r" (mxcc_port)
-+			     : "r" (MXCC_PREG), "i" (ASI_M_MXCC));
-+	return mxcc_port;
-+}
-+
- static inline void mxcc_set_creg(unsigned long mxcc_control)
- {
- 	__asm__ __volatile__("sta %0, [%1] %2\n\t" : :
-diff --git a/arch/sparc/include/asm/viking.h b/arch/sparc/include/asm/viking.h
-index bbb714de43c4..c6ee82fa1c82 100644
---- a/arch/sparc/include/asm/viking.h
-+++ b/arch/sparc/include/asm/viking.h
-@@ -98,6 +98,11 @@
- #define VIKING_TCENABLE     0x00010000   /* Enable table-walks to be cached */
- #define VIKING_DPENABLE     0x00040000   /* Enable the data prefetcher */
- 
-+#define ASI_M_VIKING_STOREBUF_TAG	0x30
-+#define ASI_M_VIKING_STOREBUF_DATA	0x31
-+#define ASI_M_VIKING_STOREBUF_CTRL	0x32
-+#define VIKING_STOREBUF_ENTRIES		8
-+
- /*
-  * GNU/Viking Breakpoint Action Register fields.
-  */
-@@ -162,6 +167,42 @@ static inline unsigned long viking_get_bpreg(void)
- 	return regval;
- }
- 
-+static inline unsigned long viking_get_storebuf_control(void)
-+{
-+	unsigned long control;
-+
-+	__asm__ __volatile__("lda [%%g0] %1, %0\n\t"
-+			     : "=r" (control)
-+			     : "i" (ASI_M_VIKING_STOREBUF_CTRL));
-+	return control;
-+}
-+
-+static inline void
-+viking_get_storebuf_entry(unsigned int entry, unsigned long *tag_high,
-+			  unsigned long *tag_low, unsigned long *data_high,
-+			  unsigned long *data_low)
-+{
-+	unsigned long address = (entry & 7) << 3;
-+	unsigned long th, tl, dh, dl;
-+
-+	__asm__ __volatile__("ldda [%4] %5, %%g2\n\t"
-+			     "or %%g0, %%g2, %0\n\t"
-+			     "or %%g0, %%g3, %1\n\t"
-+			     "ldda [%4] %6, %%g2\n\t"
-+			     "or %%g0, %%g2, %2\n\t"
-+			     "or %%g0, %%g3, %3\n\t"
-+			     : "=&r" (th), "=&r" (tl), "=&r" (dh),
-+			       "=&r" (dl)
-+			     : "r" (address),
-+			       "i" (ASI_M_VIKING_STOREBUF_TAG),
-+			       "i" (ASI_M_VIKING_STOREBUF_DATA)
-+			     : "g2", "g3");
-+	*tag_high = th;
-+	*tag_low = tl;
-+	*data_high = dh;
-+	*data_low = dl;
-+}
-+
- static inline void viking_get_dcache_ptag(int set, int block,
- 					      unsigned long *data)
- {
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index ea51ef52c952..0f07ec9082e7 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -22,6 +22,7 @@
- #include <asm/psr.h>
- #include <asm/vaddrs.h>
- #include <asm/page.h>
-+#include <asm/pgtsrmmu.h>
- #include <asm/winmacro.h>
- #include <asm/signal.h>
- #include <asm/obio.h>
-@@ -205,6 +206,33 @@ bad_trap_handler:
- 	 mov	%l7, %o1		! trap number
- 
- 	RESTORE_ALL
-+
-+	.align	4
-+	.globl	data_store_error
-+data_store_error:
-+	/* SAVE_ALL preserves the trap window's output registers. */
-+	mov	SRMMU_FAULT_ADDR, %l5
-+	LEON_PI(lda	[%l5] ASI_LEON_MMUREGS, %o1)	! read MFAR first
-+	SUN_PI_(lda	[%l5] ASI_M_MMUREGS, %o1)	! read MFAR first
-+
-+	mov	SRMMU_FAULT_STATUS, %l5
-+	LEON_PI(lda	[%l5] ASI_LEON_MMUREGS, %o2)	! read MFSR last
-+	SUN_PI_(lda	[%l5] ASI_M_MMUREGS, %o2)	! read MFSR last
-+
-+	SAVE_ALL
-+
-+	wr	%l0, PSR_ET, %psr
-+	WRITE_PAUSE
-+
-+	add	%sp, STACKFRAME_SZ, %o0	! pt_regs
-+	call	do_data_store_error
-+	 nop
-+
-+	add	%sp, STACKFRAME_SZ, %o0	! pt_regs
-+	call	do_hw_interrupt
-+	 mov	0x2b, %o1
-+
-+	RESTORE_ALL
- 	
- /* For now all IRQ's not registered get sent here. handler_irq() will
-  * see if a routine is registered to handle this interrupt and if not
-diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index c746c0fd5d6b..b421705ab418 100644
---- a/arch/sparc/kernel/entry.h
-+++ b/arch/sparc/kernel/entry.h
-@@ -12,6 +12,8 @@ void handler_irq(int irq, struct pt_regs *regs);
- #ifdef CONFIG_SPARC32
- /* traps */
- void do_hw_interrupt(struct pt_regs *regs, unsigned long type);
-+void do_data_store_error(struct pt_regs *regs, unsigned long mfar,
-+			 unsigned long mfsr);
- void do_illegal_instruction(struct pt_regs *regs, unsigned long pc,
-                             unsigned long npc, unsigned long psr);
- 
 diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
-index bb149f6cc34b..b0aa4974d9cc 100644
+index bb149f6cc34b..ce3408976133 100644
 --- a/arch/sparc/kernel/traps_32.c
 +++ b/arch/sparc/kernel/traps_32.c
-@@ -25,6 +25,9 @@
- #include <asm/ptrace.h>
- #include <asm/oplib.h>
- #include <asm/page.h>
-+#include <asm/mbus.h>
-+#include <asm/mxcc.h>
-+#include <asm/viking.h>
- #include <asm/unistd.h>
- #include <asm/traps.h>
+@@ -20,6 +20,7 @@
+ #include <linux/kdebug.h>
+ #include <linux/export.h>
+ #include <linux/pgtable.h>
++#include <linux/uaccess.h>
  
-@@ -105,6 +108,64 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned long type)
+ #include <asm/delay.h>
+ #include <asm/ptrace.h>
+@@ -105,9 +106,241 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned long type)
  			       (void __user *)regs->pc, type - 0x80);
  }
  
-+static bool cpu_is_viking(unsigned long psr, unsigned long mcr)
-+{
-+	unsigned int psr_impl = (psr >> 28) & 0xf;
-+	unsigned int psr_vers = (psr >> 24) & 0xf;
-+	unsigned int mcr_impl = (mcr >> 28) & 0xf;
-+	unsigned int mcr_vers = (mcr >> 24) & 0xf;
++/* Some SPARC V8 implementations raise illegal_instruction instead of
++ * completing UDIV/SDIV for every operand.  Finish the divide in software and
++ * step over it rather than killing the process for an instruction the
++ * architecture defines.
++ */
++#define DIV_OP3_UDIV	0x0e
++#define DIV_OP3_SDIV	0x0f
++#define DIV_OP3_UDIVCC	0x1e
++#define DIV_OP3_SDIVCC	0x1f
 +
-+	return psr_impl == MBUS_VIKING &&
-+	       (psr_vers == 0 ||
-+		(psr_vers == 1 && mcr_impl == 0 && mcr_vers == 0));
++/* %l and %i live in the register file until the windows spill, so force them
++ * out before reading them off the stack.  Without this we read stale memory and
++ * compute a confidently wrong quotient.
++ */
++static inline void div_maybe_flush_windows(unsigned int rs1, unsigned int rs2,
++					   unsigned int rd)
++{
++	if (rs2 >= 16 || rs1 >= 16 || rd >= 16) {
++		__asm__ __volatile__("save %sp, -0x40, %sp\n\t"
++				     "save %sp, -0x40, %sp\n\t"
++				     "save %sp, -0x40, %sp\n\t"
++				     "save %sp, -0x40, %sp\n\t"
++				     "save %sp, -0x40, %sp\n\t"
++				     "save %sp, -0x40, %sp\n\t"
++				     "save %sp, -0x40, %sp\n\t"
++				     "restore; restore; restore; restore;\n\t"
++				     "restore; restore; restore;\n\t");
++	}
 +}
 +
-+void do_data_store_error(struct pt_regs *regs, unsigned long mfar,
-+			 unsigned long mfsr)
++/* The window is only reachable if %fp is a properly aligned user address. */
++static struct reg_window32 __user *div_user_window(struct pt_regs *regs)
 +{
-+	unsigned long tag_high[VIKING_STOREBUF_ENTRIES];
-+	unsigned long tag_low[VIKING_STOREBUF_ENTRIES];
-+	unsigned long data_high[VIKING_STOREBUF_ENTRIES];
-+	unsigned long data_low[VIKING_STOREBUF_ENTRIES];
-+	unsigned long mxcc_status_high = 0, mxcc_status_low = 0;
-+	unsigned long mxcc_error_high = 0, mxcc_error_low = 0;
-+	unsigned long mxcc_port = 0, storebuf_control;
-+	unsigned long mcr = srmmu_get_mmureg();
-+	unsigned long psr = regs->psr;
-+	bool has_mxcc;
-+	int i;
++	unsigned long fp = regs->u_regs[UREG_FP];
 +
-+	if (!cpu_is_viking(psr, mcr)) {
-+		pr_emerg("Data Store Error: CPU%d PSR=%08lx MCR=%08lx MFAR=%08lx MFSR=%08lx\n",
-+			 raw_smp_processor_id(), psr, mcr, mfar, mfsr);
-+		return;
++	if (fp & (sizeof(unsigned long) * 2 - 1))
++		return NULL;
++	return (struct reg_window32 __user *) fp;
++}
++
++/* Where a windowed register was spilled, or NULL if unreachable.  %fp may be
++ * mapped while the slot itself lands on the next page, so callers report this
++ * address rather than %fp on failure.
++ */
++static unsigned long __user *div_reg_slot(unsigned int reg,
++					 struct pt_regs *regs)
++{
++	struct reg_window32 __user *win = div_user_window(regs);
++
++	if (!win)
++		return NULL;
++	if (reg < 24)
++		return &win->locals[reg - 16];
++	return &win->ins[reg - 24];
++}
++
++static int div_fetch_reg(unsigned int reg, struct pt_regs *regs,
++			 unsigned long *val, void __user **fault_at)
++{
++	unsigned long __user *slot;
++
++	if (reg < 16) {
++		*val = reg ? regs->u_regs[reg] : 0;
++		return 0;
 +	}
 +
-+	storebuf_control = viking_get_storebuf_control();
-+	for (i = 0; i < VIKING_STOREBUF_ENTRIES; i++)
-+		viking_get_storebuf_entry(i, &tag_high[i], &tag_low[i],
-+					  &data_high[i], &data_low[i]);
++	/* %l and %i live in the register window on the user stack. */
++	slot = div_reg_slot(reg, regs);
++	if (!slot) {
++		*fault_at = (void __user *)regs->u_regs[UREG_FP];
++		return -EFAULT;
++	}
++	if (get_user(*val, slot)) {
++		*fault_at = (void __user *)slot;
++		return -EFAULT;
++	}
++	return 0;
++}
 +
-+	has_mxcc = !(mcr & VIKING_MMODE);
-+	if (has_mxcc) {
-+		mxcc_get_sreg(&mxcc_status_high, &mxcc_status_low);
-+		mxcc_get_ereg(&mxcc_error_high, &mxcc_error_low);
-+		mxcc_port = mxcc_get_preg();
++static int div_store_reg(unsigned int reg, struct pt_regs *regs,
++			 unsigned long val, void __user **fault_at)
++{
++	unsigned long __user *slot;
++
++	if (reg == 0)			/* %g0 is hardwired to zero */
++		return 0;
++	if (reg < 16) {
++		regs->u_regs[reg] = val;
++		return 0;
 +	}
 +
-+	pr_emerg("Viking Data Store Error: CPU%d PSR=%08lx MCR=%08lx MFAR=%08lx MFSR=%08lx SBCTRL=%08lx\n",
-+		 raw_smp_processor_id(), psr, mcr, mfar, mfsr,
-+		 storebuf_control);
-+	if (has_mxcc)
-+		pr_emerg("MXCC: CCSR=%08lx:%08lx CCER=%08lx:%08lx PREG=%08lx\n",
-+			 mxcc_status_high, mxcc_status_low,
-+			 mxcc_error_high, mxcc_error_low, mxcc_port);
++	slot = div_reg_slot(reg, regs);
++	if (!slot) {
++		*fault_at = (void __user *)regs->u_regs[UREG_FP];
++		return -EFAULT;
++	}
++	if (put_user(val, slot)) {
++		*fault_at = (void __user *)slot;
++		return -EFAULT;
++	}
++	return 0;
++}
 +
-+	for (i = 0; i < VIKING_STOREBUF_ENTRIES; i++)
-+		pr_emerg("Viking SB%d: TAG=%08lx:%08lx DATA=%08lx:%08lx\n",
-+			 i, tag_high[i], tag_low[i], data_high[i], data_low[i]);
++/* DIV_NOT_MINE: not one of ours, the caller must still raise SIGILL.
++ * DIV_DONE:     emulated (or turned into SIGFPE); swallow the trap.
++ * DIV_FAULT:    it was a divide, but its register window was unreachable.
++ */
++#define DIV_NOT_MINE	0
++#define DIV_DONE	1
++#define DIV_FAULT	(-1)
++
++static int emulate_divide(struct pt_regs *regs, unsigned long pc,
++			  void __user **fault_at)
++{
++	unsigned int insn, op3, rd, rs1, rs2;
++	unsigned long v1, divisor;
++	int is_signed, sets_cc;
++	unsigned long result;
++	u64 dividend;
++	int overflow = 0;
++
++	if (get_user(insn, (unsigned int __user *) pc))
++		return DIV_NOT_MINE;
++
++	if ((insn >> 30) != 2)			/* not format 3 */
++		return DIV_NOT_MINE;
++
++	op3 = (insn >> 19) & 0x3f;
++	switch (op3) {
++	case DIV_OP3_UDIV:
++		is_signed = 0;
++		sets_cc = 0;
++		break;
++	case DIV_OP3_SDIV:
++		is_signed = 1;
++		sets_cc = 0;
++		break;
++	case DIV_OP3_UDIVCC:
++		is_signed = 0;
++		sets_cc = 1;
++		break;
++	case DIV_OP3_SDIVCC:
++		is_signed = 1;
++		sets_cc = 1;
++		break;
++	default:
++		return DIV_NOT_MINE;
++	}
++
++	/* Definitely a divide now, so unreachable operands are a fault. */
++	rd  = (insn >> 25) & 0x1f;
++	rs1 = (insn >> 14) & 0x1f;
++	rs2 = (insn & 0x2000) ? 0 : (insn & 0x1f);
++
++	div_maybe_flush_windows(rs1, rs2, rd);
++
++	if (div_fetch_reg(rs1, regs, &v1, fault_at))
++		return DIV_FAULT;
++
++	if (insn & 0x2000) {			/* i=1, simm13 */
++		divisor = (unsigned long)(long)((int)(insn << 19) >> 19);
++	} else {
++		if (div_fetch_reg(rs2, regs, &divisor, fault_at))
++			return DIV_FAULT;
++	}
++
++	if (divisor == 0) {
++		/* Hardware raises division_by_zero here; keep that contract. */
++		send_sig_fault(SIGFPE, FPE_INTDIV, (void __user *)pc, current);
++		return DIV_DONE;
++	}
++
++	dividend = ((u64)regs->y << 32) | (u32)v1;
++
++	if (!is_signed) {
++		u64 q = dividend / (u32)divisor;
++
++		if (q > 0xffffffffULL) {
++			q = 0xffffffffULL;	/* V8: clamp on overflow */
++			overflow = 1;
++		}
++		result = (unsigned long)q;
++	} else {
++		s64 sdividend = (s64)dividend;
++		s32 sdivisor = (s32)divisor;
++		s64 q;
++
++		/* S64_MIN / -1 wants 2^63, which is not representable, and in
++		 * C the expression is undefined rather than merely out of
++		 * range.  Saturate directly instead of dividing.
++		 */
++		if (sdividend == S64_MIN && sdivisor == -1) {
++			q = (s64)0x7fffffff;
++			overflow = 1;
++		} else {
++			q = sdividend / sdivisor;
++		}
++
++		if (q > (s64)0x7fffffff) {
++			q = 0x7fffffff;
++			overflow = 1;
++		} else if (q < -(s64)0x80000000LL) {
++			q = -(s64)0x80000000LL;
++			overflow = 1;
++		}
++		result = (unsigned long)(s32)q;
++	}
++
++	if (div_store_reg(rd, regs, result, fault_at))
++		return DIV_FAULT;
++
++	if (sets_cc) {
++		unsigned long psr = regs->psr;
++
++		psr &= ~(PSR_N | PSR_Z | PSR_V | PSR_C);
++		if ((s32)result < 0)
++			psr |= PSR_N;
++		if (result == 0)
++			psr |= PSR_Z;
++		if (overflow)
++			psr |= PSR_V;
++		regs->psr = psr;
++	}
++
++	/* Step over the instruction we just performed. */
++	regs->pc = regs->npc;
++	regs->npc = regs->npc + 4;
++	return DIV_DONE;
 +}
 +
  void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned long npc,
  			    unsigned long psr)
  {
-diff --git a/arch/sparc/kernel/ttable_32.S b/arch/sparc/kernel/ttable_32.S
-index e79fd786fbbb..ec6c885ddd33 100644
---- a/arch/sparc/kernel/ttable_32.S
-+++ b/arch/sparc/kernel/ttable_32.S
-@@ -56,7 +56,7 @@ t_bad26:BAD_TRAP(0x26) BAD_TRAP(0x27)
- t_cpexc:TRAP_ENTRY(0x28, do_cp_exception)   /* Co-Processor Exception        */
- t_dacce:SRMMU_DFAULT                        /* Data Access Error             */
- t_hwdz:	TRAP_ENTRY(0x2a, do_hw_divzero)     /* Division by zero, you lose... */
--t_dserr:BAD_TRAP(0x2b)                      /* Data Store Error              */
-+t_dserr:TRAP_ENTRY(0x2b, data_store_error)  /* Data Store Error              */
- t_daccm:BAD_TRAP(0x2c)                      /* Data Access MMU-Miss          */
- t_bad2d:BAD_TRAP(0x2d) BAD_TRAP(0x2e) BAD_TRAP(0x2f) BAD_TRAP(0x30) BAD_TRAP(0x31)
- t_bad32:BAD_TRAP(0x32) BAD_TRAP(0x33) BAD_TRAP(0x34) BAD_TRAP(0x35) BAD_TRAP(0x36)
-@@ -158,7 +158,7 @@ trapbase_cpu1:
- 	TRAP_ENTRY(0x28, do_cp_exception)
- 	SRMMU_DFAULT
- 	TRAP_ENTRY(0x2a, do_hw_divzero)
--	BAD_TRAP(0x2b)
-+	TRAP_ENTRY(0x2b, data_store_error)
- 	BAD_TRAP(0x2c)
- 	BAD_TRAP(0x2d) BAD_TRAP(0x2e) BAD_TRAP(0x2f) BAD_TRAP(0x30) BAD_TRAP(0x31)
- 	BAD_TRAP(0x32) BAD_TRAP(0x33) BAD_TRAP(0x34) BAD_TRAP(0x35) BAD_TRAP(0x36)
-@@ -257,7 +257,7 @@ trapbase_cpu2:
- 	TRAP_ENTRY(0x28, do_cp_exception)
- 	SRMMU_DFAULT
- 	TRAP_ENTRY(0x2a, do_hw_divzero)
--	BAD_TRAP(0x2b)
-+	TRAP_ENTRY(0x2b, data_store_error)
- 	BAD_TRAP(0x2c)
- 	BAD_TRAP(0x2d) BAD_TRAP(0x2e) BAD_TRAP(0x2f) BAD_TRAP(0x30) BAD_TRAP(0x31)
- 	BAD_TRAP(0x32) BAD_TRAP(0x33) BAD_TRAP(0x34) BAD_TRAP(0x35) BAD_TRAP(0x36)
-@@ -357,7 +357,7 @@ trapbase_cpu3:
- 	TRAP_ENTRY(0x28, do_cp_exception)
- 	SRMMU_DFAULT
- 	TRAP_ENTRY(0x2a, do_hw_divzero)
--	BAD_TRAP(0x2b) BAD_TRAP(0x2c)
-+	TRAP_ENTRY(0x2b, data_store_error) BAD_TRAP(0x2c)
- 	BAD_TRAP(0x2d) BAD_TRAP(0x2e) BAD_TRAP(0x2f) BAD_TRAP(0x30) BAD_TRAP(0x31)
- 	BAD_TRAP(0x32) BAD_TRAP(0x33) BAD_TRAP(0x34) BAD_TRAP(0x35) BAD_TRAP(0x36)
- 	BAD_TRAP(0x37) BAD_TRAP(0x38) BAD_TRAP(0x39) BAD_TRAP(0x3a) BAD_TRAP(0x3b)
-
-base-commit: cee9395acd8043be0644b25c34bfa86623f2b935
++	void __user *fault_at = (void __user *)pc;
++
+ 	if(psr & PSR_PS)
+ 		die_if_kernel("Kernel illegal instruction", regs);
+ #ifdef TRAP_DEBUG
+@@ -115,6 +348,15 @@ void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned lon
+ 	       regs->pc, *(unsigned long *)regs->pc);
+ #endif
+ 
++	switch (emulate_divide(regs, pc, &fault_at)) {
++	case DIV_DONE:
++		return;
++	case DIV_FAULT:
++		/* The instruction was legal; the stack it spilled to was not. */
++		send_sig_fault(SIGSEGV, SEGV_MAPERR, fault_at, current);
++		return;
++	}
++
+ 	send_sig_fault(SIGILL, ILL_ILLOPC, (void __user *)pc, current);
+ }
+ 
 -- 
 2.43.0
 
