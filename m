@@ -1,358 +1,212 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AFED54788
-	for <sparclinux@vger.kernel.org>; Fri, 25 Sep 2026 06:15:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790316927; cv=none; b=l1JUxiU0bSggkvSExXMTkQvj/jDczVvZe48Ef+ePPdvxNk/q89YYccaPQ+7VnCH1M5zw8Ah706DrtJEx9QwoaamOTdUFXgro4pKVX5KZyTZa72LK3t/HHv0ZZU0Ts14LDU8NqlSMMsXqODfhCHySSQfk10nOHRkVGpofNmR/S+w=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790316927; c=relaxed/simple;
-	bh=gqdZ3I0twQbpv5s/8nZZ6kvyVQoMjiJpq/gJD58f47I=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4A79448D02
+	for <sparclinux@vger.kernel.org>; Fri, 25 Sep 2026 07:29:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.178
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790321345; cv=pass; b=JGmXbxgkj3AHLhTDiPJggAShmqWe/I0/J50rUm2Xh1UM1NVagHCqHA8iTEyqi3sxTVaq31LzGd0hQAospYeeKl3g3+s5RctOhcLbx9wKEwxOr0w8l5pNuTGLHc1UDig54xZk316iGKJOCrHwGT7Qtqa8h9SwM+xRqFyK154pZMY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790321345; c=relaxed/simple;
+	bh=jVgzSGCm8ywlcuZ7qh3DmkhvaTUxolTqjmx7km46hGw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EuR3CiCYQ3Z1BAUeqsjtJ3ButRA+hLy7Ef1vOhasEXEmZTDWziTL33/HtBYgpQtPZiSFS/CSm4Ep2U1yHIGx17OaLIoHVhH9yMPmh3EMcAnF4UQSMdTe93YHR+UdLYYSGTVy2mW8yD97pWsUNEJBWQGLj7Y0DsEN6AVApMrGEss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NGG/6nEs; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=njw8NEhl4LzLTYJpdo9DP2F+/PlbpggkySJQxoTTsG3ySzKrX9J2nOHLG+WvTy+Nbr6Ms8X0h+vMz1gUJsE5Z29uU4QCC3BNDXpCMFfgld7iA3n3SMIxsWjucB/eyw/sQzZQBfa9DVc8jRkJ7SnnQNszBdH/VNpM2yJP38Vwd/w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jD9s5J6B; arc=pass smtp.client-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NGG/6nEs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06EAD1F00900
-	for <sparclinux@vger.kernel.org>; Fri, 25 Sep 2026 06:15:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790316926;
-	bh=L5szWJ3MtFuMGqlN3CGWg6+ZdC7LPkFsOBEbQomKAD8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=NGG/6nEsgOlLQXHfxrimzB/y/1XtYoia78hFJZ4MADrggrfL4R91Vky9V4OivC6pY
-	 1asnho3iBIyikWzTU++ueE9xkNSQM5h7SOb6HEF76v+Gi6DPRgRXu7ZYkkPXMPtFSe
-	 pt/zwDPYFcNGqj4064aUMSO3JON7Q+V4DgCX4B95Ea1oATElGhDR5XzwsF9TYEh5+A
-	 da01CpPO5FxCi0+PQK2WIAUWpoUxt+dipTNi6PiHhyKOha6cuwQarkoj9aHKe/elUj
-	 EE+kp8YyReFs87TChHFPZeWKh8go27FEGTkHQsl8PRiFoGzaCtw7Y666nl9pQK52kc
-	 O8318EgYT3rlQ==
-Received: by mail-qk2-f41.google.com with SMTP id af79cd13be357-93bfd70b08cso65840285a.2
-        for <sparclinux@vger.kernel.org>; Thu, 24 Sep 2026 23:15:25 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBy1RJyCNwtmT2cKsflwXVcqeSk5eb+GFuYP96nWwe/XJz5roN1JVM+hxpuSJ2itNMeNfvM/WQ9E5fWM@vger.kernel.org
-X-Gm-Message-State: AFuF++l7y7Yz3Z0N+xpc39SNSZLRm/dGmr+p63L08QE8IOEfFp4FuKvf
-	27Ur/uYJrMDQbzCy5sLSBUdSdMrWxCyl8IKx31DcNcbybYNC+pWqRd4QTxtmefK/+YkKwPmTcw6
-	csYgkZlQnpRwu3ou+eeUnu681agO8110=
-X-Received: by 2002:a05:620a:7102:b0:939:13bf:e861 with SMTP id
- af79cd13be357-93c474960a6mr173095285a.40.1790316925092; Thu, 24 Sep 2026
- 23:15:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jD9s5J6B"
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-532e9ad9a1eso202401cf.0
+        for <sparclinux@vger.kernel.org>; Fri, 25 Sep 2026 00:29:02 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790321342; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Sy8ocEVjb3ZC2I8f105eJWEmcshL9DF9wTl6DGfSoWiP0YOg6PxFFfrN088uea5imd
+         pQTnyoCEym0jg7YnAI0N4ujv+15HkSeKbSIp199HCOkThN3+ytDjrdithzspH1VI2xye
+         O3v+VHaBf3GrWh6GKT2QLxshIZ7Szez3r07FPr+lTiWmH1xfF8d+DN6opbX0P9Z5xQHn
+         ITnja0mRBgcbylb3OdO4BQcWptGumO7xAVH8Ki09jJwzlPwKFHsJvpAhVYgtU+gHmles
+         WPAHZ1XMtlhhuyr001T8nGs7688HeT1wNbRCpieRQYRp/WkAu8VaCOTm0GVIVCaJTWW4
+         ZNYQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
+        fh=NYkjE9b0i2aQ9VpEJJJIVqxC76t2a6LABOTh1BvClzo=;
+        b=rtt80t/pnD12gcZp6AVR4hbb8fJY7BVmxmM/CS7bNK+lkN9deRsAc108NvpdkDwnhU
+         EqHsabekyhaMFzl6DxL7wa6kKdBDUBXrp6z5/vh681hOK+R1vTX1+PknYpk1kI7FB09n
+         VphUaOsINDeFGdClRg7tZNnmEdMCZGwDjgtO4jj/6Av7glWicYnTq77WNBKnfxnZf/FZ
+         YIsrLqKaxFOzhP5b3fxju6L8yBcFX2KucSG4URCt94Odni5+YHxM2Opj5YpOvM2lVCvl
+         uid6y9PzbfMNpeD1cHV+F3vPQk3qr3aOxNNp86BX7rgGLGauIaxpF9ZWBQf6m0chVHfF
+         jRiw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1790321342; x=1790926142; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
+        b=jD9s5J6BxLUpOD+WnjyHgcQqvyMWXtKd8JOlF8Wqc7YrVArqK3BEC29170xB4S3ZdA
+         5mH36URtK99mdnb7qjMWW9ASPxDIu+iiFZ/CSdaBcqKTlKoO3RdcRNxAlFCiBxkpg5Ll
+         5OP3lufYb5Wc/bmKdPC5bRSrxQOTz1XzF8KLKdMBm2Z/FaYNVuWkDpCr2iTsgdUlppYA
+         xVLDCzZTCpgtBnyn0TGzsYxarAsXKPeNbHClPsDS4ZHo9aNc6Fsst8fQmbYj3RKRrAzx
+         ShvTucutNkiNSDR7HvOmG84bvKdJ3EPHoOkbIRJqumaMQ+a6VVzAfM3mRCoFc0IJ3Aro
+         BzMQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790321342; x=1790926142;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
+        b=0aD45IR/l0kknF2Hs9+6oB5psLByFET59GJmbEoTmi97IFfG7kUrVLMhlBL9mi1l/c
+         odITHWBfOYPrSxPBlJ/GrmADECQj8V2lXNpeGwdbtdhmJik+erDEZIWwerQWi1QChafD
+         HP0fxffhW0acii0Kxehj902ykqWyW88FcKgsdoyFE2x9sTBwxOHF5/H+fe9x8jDPYWy8
+         YjaBme+Nq3IkjNw2K9m7knzCw6IKFcuYYqw+vrNohCbtql6Y+zwAal3CZFJgfet2Qm2x
+         jc93NSO84AFyZ9aGk2MZycucF//ISDyOTDgvMiIsCg4eIJ92MVef6DXRXBCmr2vaXOzZ
+         QZQw==
+X-Forwarded-Encrypted: i=1; AKwUvBwH/qBntQAfj3RlWRnLjNyhNworCvrnGxNfK0I/TEaBCOqsR7s7A+3otbTNyOuLq97hx2/zsce/ZN9j@vger.kernel.org
+X-Gm-Message-State: AFuF++kGzN5wkEgHmpteiGacRiK0n9yT7svb9IxOLLe4skHN5Cd/wkVt
+	AJ6UtBu1xpPWRDXQtJfwOqUHcrkni/7WEvdkmZaiYwGVSAUUMg6VLlRxfTxkU8c3K4bLk8B9xzA
+	M7obvmHauOsEk1wCJXPZK5B0Hnp4yORMAL9rlfvbM
+X-Gm-Gg: AYBFou1N7C91f8YMuWWNYx5VhSGOXiQ5RkVMu6XNhQHr08YVDnC1z2agkMSLe4jX8IA
+	q438cCnE6n/u92+33tIED2KYtiYaC23tZb76dQ3YD9t/VDgGHGPQqzp5ICAHa4MzoXStZe3DPo7
+	XtNc1gOAw7ugwqUL3cMeH58V+KQbE2bpCj3FMQ4HIL6us0FwTT3KOA5jDtgOKqKmoCYjC6m5kzB
+	6/GyBznpJkLy27BUA3nhQXFA9w8KwuQsf65moDTdT6ilcjQxF/5MgPU3721PQwStAeGhLW4oJiM
+	8E6kl+sDaMzZEj6TksolkGRbyVxBhAJFUDbuKkahTCCFanhV+zuseg==
+X-Received: by 2002:a05:622a:4c15:b0:531:d8:e437 with SMTP id
+ d75a77b69052e-5330e1083a8mr8850471cf.7.1790321341004; Fri, 25 Sep 2026
+ 00:29:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260924131106.1730494-1-dev.jain@arm.com> <20260924131106.1730494-9-dev.jain@arm.com>
-In-Reply-To: <20260924131106.1730494-9-dev.jain@arm.com>
-From: Barry Song <baohua@kernel.org>
-Date: Fri, 25 Sep 2026 14:15:13 +0800
-X-Gmail-Original-Message-ID: <CAGsJ_4xhGwxQCH4sG4=dyomRkN_PGHeW7e0uz1MsQHFW-Gs6VA@mail.gmail.com>
-X-Gm-Features: AclHuK9jjlMe0ex91FLllPwWgrryVptw5UUfz3oUZuMUNZHj3oHU6V_c2FmEk5M
-Message-ID: <CAGsJ_4xhGwxQCH4sG4=dyomRkN_PGHeW7e0uz1MsQHFW-Gs6VA@mail.gmail.com>
-Subject: Re: [PATCH v3 8/9] mm/rmap: batch unmap anonymous swap-backed large folios
-To: Dev Jain <dev.jain@arm.com>
-Cc: akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org, 
-	hughd@google.com, chrisl@kernel.org, kasong@tencent.com, davem@davemloft.net, 
-	andreas@gaisler.com, riel@surriel.com, liam@infradead.org, vbabka@kernel.org, 
-	harry@kernel.org, jannh@google.com, lance.yang@linux.dev, 
-	baolin.wang@linux.alibaba.com, shikemeng@huaweicloud.com, nphamcs@gmail.com, 
-	baoquan.he@linux.dev, youngjun.park@lge.com, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, rppt@kernel.org, surenb@google.com, 
-	mhocko@suse.com, pfalcato@suse.de, jgg@ziepe.ca, thuth@redhat.com, 
-	sparclinux@vger.kernel.org, ryan.roberts@arm.com, anshuman.khandual@arm.com
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-5-4583d8a23bca@kernel.org>
+In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-5-4583d8a23bca@kernel.org>
+From: Suren Baghdasaryan <surenb@google.com>
+Date: Fri, 25 Sep 2026 00:28:49 -0700
+X-Gm-Features: AclHuK8wpU_boMBtoQ2BxSfl48UrjTg974xy2tCF5bv_vM_I_Kq5OyVf7aIl6LM
+Message-ID: <CAJuCfpF2U9rgHmhaDoXX1hxsuuS=s-oWK9Nk19TDQ6CLpjhFVA@mail.gmail.com>
+Subject: Re: [PATCH v3 05/40] mm/vma: ensure mmap_prepare doesn't set actions
+ on a mergeable vma
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett" <liam@infradead.org>, 
+	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, Paul Moore <paul@paul-moore.com>, 
+	Stephen Smalley <stephen.smalley.work@gmail.com>, Jaroslav Kysela <perex@perex.cz>, 
+	Takashi Iwai <tiwai@suse.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	"Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, 
+	Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, 
+	Peter Xu <peterx@redhat.com>, Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	Mark Rutland <mark.rutland@arm.com>, Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
+	Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Muchun Song <muchun.song@linux.dev>, 
+	Oscar Salvador <osalvador@suse.de>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
+	Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
+	Ying Huang <ying.huang@linux.alibaba.com>, Alistair Popple <apopple@nvidia.com>, 
+	Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, 
+	Baoquan He <baoquan.he@linux.dev>, Youngjun Park <youngjun.park@lge.com>, 
+	Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <qi.zheng@linux.dev>, 
+	Shakeel Butt <shakeel.butt@linux.dev>, Axel Rasmussen <axelrasmussen@google.com>, 
+	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	selinux@vger.kernel.org, linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
+	kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
+	fuse-devel@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 24, 2026 at 9:12=E2=80=AFPM Dev Jain <dev.jain@arm.com> wrote:
+On Thu, Sep 17, 2026 at 9:25=E2=80=AFAM Lorenzo Stoakes (ARM) <ljs@kernel.o=
+rg> wrote:
 >
-> Enable batch clearing of PTEs and batch swap setting of PTEs for anon
-> swap-backed folio unmapping.
+> When a user requests an mmap_action be performed in mmap_prepare, this
+> involves populating the VMA range with data.
 >
-> Processing all PTEs of a large folio in one go helps us batch across
-> atomics (add_mm_counter() etc), barriers in __folio_try_share_anon_rmap()=
-,
-> and repeated calls to page_vma_mapped_walk(). In general, batching helps
-> execute similar code together, making the path more memory and CPU
-> friendly.
+> However, if the VMA is mergeable, it might then mistakenly be merged with
+> another VMA without having populated the range.
 >
-> On arm64-contpte, batching also helps avoid redundant ptep_get() calls
-> and TLB flushes while breaking the contpte mapping.
+> Every mmap action currently available sets VMA flags such that the VMA
+> cannot be merged.
 >
-> The handling of anon-exclusivity is very similar to commit cac1db8c3aad
-> ("mm: optimize mprotect() by PTE batching"). Since
-> folio_unmap_pte_batch() does not look at the bits of the underlying page,
-> process sub-batches of PTEs pointing to pages with the same exclusivity
-> state, and batch set only those PTEs to swap PTEs in one go.
+> However, to ensure that no future mmap action falls foul of this, assert
+> that this is the case upon mmap_prepare validation.
 >
-> Disable batching for sparc (because of arch_unmap_one), we will batch thi=
-s
-> later.
->
-> Rmap accounting and reference accounting must happen when anon folio unma=
-p
-> succeeds. If a large folio is only partially batched or a later sub-batch
-> fails, account only the pages that were actually unmapped. Put that
-> accounting in __ttu_anon_swapbacked_folio() itself instead of using goto
-> jumps at the try_to_unmap_one() callsite.
->
-> Similarly, do the finish_folio_unmap_batch() in ttu_anon_folio() itself f=
-or the
-> non-swapbacked lazyfree case.
->
-> If the batch length is less than the number of pages in the folio, skip
-> over this batch. page_vma_mapped_walk() handles this: check_pte() returns
-> true only if any of [pvmw->pfn, pvmw->pfn + nr_pages) is mapped by the
-> PTE. Swap PTEs have no underlying PFN, so check_pte() returns false until
-> the walk reaches the next present PTE to unmap.
->
-> Remove the finish_unmap label since no goto callers are left now.
->
-> Signed-off-by: Dev Jain <dev.jain@arm.com>
+> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+
 > ---
->  mm/rmap.c | 109 +++++++++++++++++++++++++++++++++++++++---------------
->  1 file changed, 80 insertions(+), 29 deletions(-)
+>  mm/vma.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
 >
-> diff --git a/mm/rmap.c b/mm/rmap.c
-> index fa9fc8374fc26..cdda9efd80bc3 100644
-> --- a/mm/rmap.c
-> +++ b/mm/rmap.c
-> @@ -1966,12 +1966,13 @@ static inline unsigned int folio_unmap_pte_batch(=
-struct folio *folio,
->         end_addr =3D pmd_addr_end(addr, vma->vm_end);
->         max_nr =3D (end_addr - addr) >> PAGE_SHIFT;
->
-> -       /* We only support lazyfree or file folios batching for now ... *=
-/
-> -       if (folio_test_anon(folio) && folio_test_swapbacked(folio))
-> +       if (pte_unused(pte))
->                 return 1;
->
-> -       if (pte_unused(pte))
-> +#ifdef __HAVE_ARCH_UNMAP_ONE
-> +       if (folio_test_anon(folio) && folio_test_swapbacked(folio))
->                 return 1;
-> +#endif
->
->         /*
->          * If unmap fails, we need to restore the ptes. To avoid accident=
-ally
-> @@ -2141,16 +2142,25 @@ static pte_t swp_pte_prepare(swp_entry_t entry, p=
-te_t old_pte,
->         return swp_pte;
->  }
->
-> -static bool ttu_anon_swapbacked_folio(struct vm_area_struct *vma,
-> +static void finish_folio_unmap_batch(struct vm_area_struct *vma,
-> +               struct folio *folio, struct page *page, unsigned long nr_=
-pages)
-> +{
-> +       folio_remove_rmap_ptes(folio, page, nr_pages, vma);
-> +       if (vma->vm_flags & VM_LOCKED)
-> +               mlock_drain_local();
-> +       folio_put_refs(folio, nr_pages);
-> +}
-> +
-> +static bool __ttu_anon_swapbacked_folio(struct vm_area_struct *vma,
->                 struct folio *folio, struct page *page, unsigned long add=
-ress,
-> -               pte_t *ptep, pte_t pteval)
-> +               pte_t *ptep, pte_t pteval, unsigned long nr_pages,
-> +               bool anon_exclusive)
+> diff --git a/mm/vma.c b/mm/vma.c
+> index d6ed10cefc8f..62f2ce1ad5a1 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -2809,6 +2809,15 @@ static int mmap_validate(unsigned long prev_start,=
+ unsigned long prev_end,
+>  int mmap_prepare_validate(const struct vm_area_desc *prev_desc,
+>                           const struct vm_area_desc *desc)
 >  {
-> -       const bool anon_exclusive =3D folio_test_anon(folio) &&
-> -                                   PageAnonExclusive(page);
->         swp_entry_t entry =3D folio_page_swap_entry(folio, page);
->         struct mm_struct *mm =3D vma->vm_mm;
-> +       pte_t swp_pte;
->
-> -       if (folio_dup_swap_pages(folio, page, 1) < 0)
-> +       if (folio_dup_swap_pages(folio, page, nr_pages) < 0)
->                 return false;
->
->         /*
-> @@ -2159,21 +2169,57 @@ static bool ttu_anon_swapbacked_folio(struct vm_a=
-rea_struct *vma,
->          * so we'll not check/care.
->          */
->         if (arch_unmap_one(mm, vma, address, pteval) < 0) {
-> -               folio_put_swap_pages(folio, page, 1);
-> +               VM_WARN_ON(nr_pages !=3D 1);
-> +               folio_put_swap_pages(folio, page, nr_pages);
->                 return false;
->         }
->
->         /* See folio_try_share_anon_rmap(): clear PTE first. */
-> -       if (anon_exclusive && folio_try_share_anon_rmap_pte(folio, page))=
- {
-> -               folio_put_swap_pages(folio, page, 1);
-> +       if (anon_exclusive &&
-> +           folio_try_share_anon_rmap_ptes(folio, page, nr_pages)) {
-> +               folio_put_swap_pages(folio, page, nr_pages);
->                 return false;
->         }
->
->         mm_prepare_for_swap_entries(mm);
-> -       dec_mm_counter(mm, MM_ANONPAGES);
-> -       inc_mm_counter(mm, MM_SWAPENTS);
-> -       set_pte_at(mm, address, ptep,
-> -                  swp_pte_prepare(entry, pteval, anon_exclusive));
-> +       add_mm_counter(mm, MM_ANONPAGES, -nr_pages);
-> +       add_mm_counter(mm, MM_SWAPENTS, nr_pages);
-> +       swp_pte =3D swp_pte_prepare(entry, pteval, anon_exclusive);
-> +       set_softleaf_ptes(mm, address, ptep, swp_pte, nr_pages);
-> +       finish_folio_unmap_batch(vma, folio, page, nr_pages);
-> +       return true;
-> +}
+> +       /*
+> +        * It is not valid to execute mmap actions for VMAs which can be =
+merged,
+> +        * as any such merge would leave portions of the mapping incorrec=
+tly
+> +        * unmapped.
+> +        */
+> +       if (vma_flags_can_merge(&desc->vma_flags) &&
+> +           WARN_ON_ONCE(desc->action.type !=3D MMAP_NOTHING))
+
+Any reason you chose this "if (A && WARN_ON_ONCE(B))" pattern instead
+of a simpler "if (WARN_ON_ONCE(A && B))"? Unless there are races
+between A and B updates, I think these would be equivalent, right?
+
+> +               return -EINVAL;
 > +
-> +static bool ttu_anon_swapbacked_folio(struct vm_area_struct *vma,
-> +               struct folio *folio, struct page *first_page,
-> +               unsigned long address, pte_t *ptep, pte_t pteval,
-> +               unsigned long nr_pages)
-> +{
-> +       unsigned long batch_idx =3D 0;
-> +
-> +       while (nr_pages) {
-> +               bool anon_exclusive =3D PageAnonExclusive(first_page + ba=
-tch_idx);
-> +               unsigned long len =3D page_anon_exclusive_batch(batch_idx=
-,
-> +                               nr_pages, first_page, anon_exclusive);
-> +
-> +               if (!__ttu_anon_swapbacked_folio(vma, folio,
-> +                               first_page + batch_idx, address, ptep, pt=
-eval,
-> +                               len, anon_exclusive)) {
-> +                       /* Restore the remaining PTEs that were cleared. =
-*/
-> +                       set_ptes(vma->vm_mm, address, ptep, pteval, nr_pa=
-ges);
-> +                       return false;
-> +               }
-> +
-> +               nr_pages -=3D len;
-> +               if (!nr_pages)
-> +                       break;
-> +
-> +               pteval =3D pte_advance_pfn(pteval, len);
-> +               address +=3D len * PAGE_SIZE;
-> +               batch_idx +=3D len;
-> +               ptep +=3D len;
-> +       }
-> +
->         return true;
->  }
+>         return mmap_validate(prev_desc->start, prev_desc->end,
+>                              desc->start, desc->end,
+>                              &prev_desc->vma_flags, &desc->vma_flags);
 >
-> @@ -2186,15 +2232,22 @@ static bool ttu_anon_folio(struct vm_area_struct =
-*vma, struct folio *folio,
->          * See handle_pte_fault() ...
->          */
->         if (WARN_ON_ONCE(folio_test_swapbacked(folio) !=3D
-> -                        folio_test_swapcache(folio)))
-> +                        folio_test_swapcache(folio))) {
-> +               set_ptes(vma->vm_mm, address, ptep, pteval, nr_pages);
->                 return false;
-> +       }
+> --
+> 2.55.0
 >
-> -       if (!folio_test_swapbacked(folio))
-> -               return ttu_anon_lazyfree_folio(vma, folio, nr_pages);
-> +       if (!folio_test_swapbacked(folio)) {
-> +               if (!ttu_anon_lazyfree_folio(vma, folio, nr_pages)) {
-> +                       set_ptes(vma->vm_mm, address, ptep, pteval, nr_pa=
-ges);
-> +                       return false;
-> +               }
-> +               finish_folio_unmap_batch(vma, folio, page, nr_pages);
-> +               return true;
-> +       }
-
-Hi Dev,
-
-if we look at the whole `ttu_anon_folio()` code:
-
-static bool ttu_anon_folio(struct vm_area_struct *vma, struct folio *folio,
-                struct page *page, unsigned long address, pte_t *ptep,
-                pte_t pteval, unsigned long nr_pages)
-{
-        /*
-         * Store the swap location in the pte.
-         * See handle_pte_fault() ...
-         */
-        if (WARN_ON_ONCE(folio_test_swapbacked(folio) !=3D
-                         folio_test_swapcache(folio))) {
-                set_ptes(vma->vm_mm, address, ptep, pteval, nr_pages);
-                return false;
-        }
-
-        if (!folio_test_swapbacked(folio)) {
-                if (!ttu_anon_lazyfree_folio(vma, folio, nr_pages)) {
-                        set_ptes(vma->vm_mm, address, ptep, pteval, nr_page=
-s);
-                        return false;
-                }
-                finish_folio_unmap_batch(vma, folio, page, nr_pages);
-                return true;
-        }
-
-        return ttu_anon_swapbacked_folio(vma, folio, page, address, ptep,
-                                         pteval, nr_pages);
-}
-
-The comment "Store the swap location in the pte" is really out of
-place. Since we are already here, can we move it to the right place?
-
->
-> -       /* nr_pages > 1 not supported yet */
->         return ttu_anon_swapbacked_folio(vma, folio, page, address, ptep,
-> -                                        pteval);
-> +                                        pteval, nr_pages);
->  }
->
->  /*
-> @@ -2374,13 +2427,14 @@ static bool try_to_unmap_one(struct folio *folio,=
- struct vm_area_struct *vma,
->                          */
->                         dec_mm_counter(mm, mm_counter(folio));
->                 } else if (folio_test_anon(folio)) {
-> +                       /* finish_folio_unmap_batch handled internally */
-
-
-let me paste the final code here:
-
-                } else if (folio_test_anon(folio)) {
-                        /* finish_folio_unmap_batch handled internally */
-                        if (!ttu_anon_folio(vma, folio, page, address,
-                                            pvmw.pte, pteval, nr_pages))
-                                goto walk_abort;
-
-                        if (nr_pages =3D=3D folio_nr_pages(folio))
-                                goto walk_done;
-                        continue;
-                } else {
-                        ...
-                }
-
-                finish_folio_unmap_batch(vma, folio, page, nr_pages);
-
-                /*
-                 * If we are sure that we batched the entire folio and clea=
-red
-                 * all PTEs, we can just optimize and stop right here.
-                 */
-                if (nr_pages =3D=3D folio_nr_pages(folio))
-                        goto walk_done;
-                continue;
-
-I am really struggling to read the code here. For anon folios, we
-handle `finish_folio_unmap_batch()` internally, while for other folios
-we still do it outside. This feels a bit inconsistent.
-
-Also, we are duplicating the code below twice:
-
-                if (nr_pages =3D=3D folio_nr_pages(folio))
-                        goto walk_done;
-
-Can't we just do `finish_folio_unmap_batch()` like the other cases?
-
-That would also avoid the duplication.
-
-Best Regards
-Barry
