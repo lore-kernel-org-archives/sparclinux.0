@@ -1,135 +1,271 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F512470E8B;
-	Fri, 25 Sep 2026 08:02:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B473C47C10B;
+	Fri, 25 Sep 2026 09:13:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790323382; cv=none; b=GbLJY3sxPtVGB0NpVwn0HX4MEo5NuilBX7MZICeNskL503VYAF5MqcxXlTkjmhXY+BEPta5XhRyRCMtk3NJrhdQs9g2CyImHxDSfvYabkMW6EG4vE/Mj7DzLmEnIop9vlEyM7axXfpBb6Wv9olhd7aANftemjoXvv1zulI11nc8=
+	t=1790327603; cv=none; b=ufAi36bI2WKzbCs9M2pYVB9XZy3C7k5gRxmjHgMUAZoiCxXM0/6R84sYnllDGSUq5TzZi3ow5dZK4TSlWNjJdnC5Mk0SL5fVJ0k7VEglVHEt6Vr1ehWFEe8TrWo/+hXFjYHiuxS8Ap3HRe69asyX3WA1BC44T6EPC8mS3N3Muuw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790323382; c=relaxed/simple;
-	bh=TgRYGnzwRhNgP5FQnSma4S6kkCs+3PAsJfZfNgeqgdg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=V3/TZufLNpIuM/8mzDrKEvlfZ/Lyul3fQdurC1jj5YQnL4kK/twCn80Pqd4SYgg7kxsWeGRkNsvdrhjkGDe19f4SPu4L7Uj5xPKBoj9lOC0630qArhCvm7PdMAONqFzQ9BzUZZjZasYxyp4m3pJ9SQPxe0hnPqoRvHbym5aBf5o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=Z4RQXCFe; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	s=arc-20240116; t=1790327603; c=relaxed/simple;
+	bh=Tk8lnLCIykMhwm4FM62K4d7d7QJOAD1dpQSl1O/g2h4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BMuTZigNeyXY/MMRlXWwpVhOMZOOi8C7EA4/h615K5aeMjPdPGqKPC+T/5cryzp/VTJ9d0VGzrgfBuMgfLPrLYRWHn9B5xbeyD+F14wIWdlIXLTBnsVxYVZFMjgzHcjBtbeSH9e4cj/51QQprRD4r4+8O+qccaR/RWw2zv10Pbw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K2qi0Whp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="Z4RQXCFe"
-From: Stian Halseth <stian@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1790323378;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=HlPWaL/rIMb9Av+7frzxb/HY0Sru9mrRgToabhszOc0=;
-	b=Z4RQXCFezhLteOik0+WRNXznxqkkYQS/zmmhMLKnQnGlTL/A7AyOgzdhtbxpLeoMXaWprd
-	6zi9F8ViAfO42EkfVark72iI0dXO9iZXnDh5fxG6w5bhfdxHANIG5oviiUyEUDroa40qjw
-	/vvy4UsGJpwPc5awDx3J5AgUyJn0n+Y=
-To: davem@davemloft.net,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: =?UTF-8?q?Thomas=20Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
-	Thomas Gleixner <tglx@kernel.org>,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Stian Halseth <stian@itx.no>
-Subject: [PATCH v2] sparc64: vdso: Flush the D-cache after updating the time data
-Date: Fri, 25 Sep 2026 10:02:50 +0200
-Message-ID: <20260925080250.2874750-1-stian@itx.no>
-In-Reply-To: <20260917082547.223729-1-stian@itx.no>
-References: <20260917082547.223729-1-stian@itx.no>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K2qi0Whp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00A0E1F000FF;
+	Fri, 25 Sep 2026 09:12:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790327601;
+	bh=yfSL2ku4OKsR1ZwNLU9aq+Cv4BSlDAV3gm6yCuANvXg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=K2qi0Whp5/6TRdhA6MhlGYRilQhTQ8jPlG08QvTUUmQwkWOHWgmSx5AdhFTFi0qw/
+	 r4+3OumzOouGc7txXhbbk80xasHy05dho7/yw8n5cfGkWIhweFLORuSQD6wUTgF3bF
+	 dlK10/x8cBD+DlIEYdpY/JpYJifQA5N4twHg7jDXzl6B1XyEXIXzNDQx16+MJsnNtN
+	 sTXe6Jh9EmnWLdP4R1YQtEnnOP8lnDSORnscuubhZoG/xGcNI3ROCCX9s0YjPIJIxI
+	 MdK5fq25MLwiukRwd6j6BdAO4Z4mjaXg/lCXJQXPIaGguKLjAmtHiggDOa9mUzFR4Z
+	 ur0MJU3/gDHOA==
+Date: Fri, 25 Sep 2026 10:12:50 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+To: "Liam R. Howlett" <liam@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
+	Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, 
+	Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
+	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
+	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
+	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
+	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
+	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
+Subject: Re: [PATCH v3 01/40] mm/vma: fix mmap_prepare file handling, remove
+ file_doesnt_need_get
+Message-ID: <arY3xqkPCgZj3IVD@gremlin>
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-1-4583d8a23bca@kernel.org>
+ <qpkcjtl5jbip46zxcpyogsk4phmhetfvrvgftxhsxlbxjhucnn@h3a64dfoxcmj>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <qpkcjtl5jbip46zxcpyogsk4phmhetfvrvgftxhsxlbxjhucnn@h3a64dfoxcmj>
 
-The vDSO time data page is written through the kernel linear mapping
-and read through a user mapping placed without colour alignment.  On
-sun4u the L1 D-cache is virtually indexed, so when the two differ in
-colour the timekeeping CPU's stores leave stale lines behind the user
-alias in its own D-cache.  The seqcount does not catch this: the line
-holding seq and the lines holding the clock data are refreshed
-independently, so a reader sees an even, unchanged seq together with a
-mix of old and new fields.
+(forgive my possibly semi-broken efforts to trim the mail)
 
-On a Sun Fire V240 (UltraSPARC IIIi, clocksource stick) this makes
-clock_gettime(CLOCK_MONOTONIC) via the vDSO wrong for most calls on
-the tick CPU, by multiples of the 10 ms tick and up to a second, in
-about half of all processes: those that drew the other colour at exec.
-The syscall is correct, so a deadline derived from the vDSO can already
-be in the past when handed to the kernel; MySQL's InnoDB
-log_files_governor thread spun at ~24000 futex calls/s on ETIMEDOUT
-this way.
+On Thu, Sep 24, 2026 at 03:00:44PM -0400, Liam R. Howlett wrote:
+> On 26/09/17 05:22PM, Lorenzo Stoakes (ARM) wrote:
 
-Flush the page after every update, as arm does.  The helper lives in
-vma.c because asm/vdso/vsyscall.h is also compiled into the vDSO, where
-asm/cacheflush.h is unavailable.  On sun4v flush_dcache_folio() is a
-no-op, the caches there being physically indexed.
+> > diff --git a/mm/internal.h b/mm/internal.h
+> > index 0dca33db068f..fe576d468af4 100644
+> > --- a/mm/internal.h
+> > +++ b/mm/internal.h
+> > @@ -7,6 +7,7 @@
+> >  #ifndef __MM_INTERNAL_H
+> >  #define __MM_INTERNAL_H
+> >
+> > +#include <linux/file.h>
+> >  #include <linux/fs.h>
+> >  #include <linux/khugepaged.h>
+> >  #include <linux/mm.h>
+> > diff --git a/mm/util.c b/mm/util.c
+> > index bf0513d1d3d0..016932780925 100644
+> > --- a/mm/util.c
+> > +++ b/mm/util.c
+> > @@ -1228,8 +1228,11 @@ int __compat_vma_mmap(struct vm_area_desc *desc,
+> >
+> >  	/* Perform any preparatory tasks for mmap action. */
+> >  	err = mmap_action_prepare(desc);
+> > -	if (err)
+> > +	if (err) {
+> > +		if (desc->vm_file != vma->vm_file)
+> > +			fput(desc->vm_file);
+> >  		return err;
+> > +	}
+> >  	/* Update the VMA from the descriptor. */
+> >  	compat_set_vma_from_desc(vma, desc);
+> >  	/* Complete any specified mmap actions. */
+> > diff --git a/mm/vma.c b/mm/vma.c
+> > index 55917d097933..fa784f069da4 100644
+> > --- a/mm/vma.c
+> > +++ b/mm/vma.c
+> > @@ -24,7 +24,8 @@ struct mmap_state {
+> >  		vm_flags_t vm_flags;
+> >  		vma_flags_t vma_flags;
+> >  	};
+> > -	struct file *file;
+> > +	struct file *file;	/* mmap()-specified file. */
+>
+> I guess renaming file to mmaped_file would be a lot more changes.
 
-The sparc-specific vDSO that v7.1-rc1 replaced had the same defect
-(reproduced on 6.18), so the bug is as old as the sparc vDSO, but this
-fix relies on __arch_sync_vdso_time_data() and applies from v7.1-rc1.
+Yeah :) and want to keep things sync'd with vm_area_desc.
 
-Verified on 7.2.6: 32 probe runs across mapping colours show no vDSO
-deviation, and MySQL's governor idles at 0.2% CPU across five restarts
-of an unpatched build.
+Can always obviously follow up later with renames sync'd across both.
 
-Fixes: 9a08862a5d2e ("vDSO for sparc")
-Fixes: 7c5fc16c7a56 ("sparc64: vdso: Switch to the generic vDSO library")
-Closes: https://github.com/sparclinux/issues/issues/94
-Signed-off-by: Stian Halseth <stian@itx.no>
-Reviewed-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
----
-v2: add the Fixes: tag for the switch to the generic vDSO library, as
-    the diff is against that code (Thomas); collect Reviewed-by.
+<snip>
 
- arch/sparc/include/asm/vdso/vsyscall.h | 10 ++++++++++
- arch/sparc/vdso/vma.c                  |  6 ++++++
- 2 files changed, 16 insertions(+)
+> >  static int __mmap_new_file_vma(struct mmap_state *map,
+> >  			       struct vm_area_struct *vma)
+> > @@ -2593,20 +2597,23 @@ static int __mmap_new_file_vma(struct mmap_state *map,
+> >  	struct vma_iterator *vmi = map->vmi;
+> >  	int error;
+> >
+> > -	vma->vm_file = map->file;
+> > -	if (!map->file_doesnt_need_get)
+> > -		get_file(map->file);
+> > +	vma->vm_file = map->vm_file;
+> > +	if (map_same_file(map))
+> > +		get_file(map->vm_file);
+> >
+> > -	if (!map->file->f_op->mmap)
+> > +	if (!map->vm_file->f_op->mmap)
+> >  		return 0;
+> >
+> >  	error = mmap_file(vma->vm_file, vma);
+> > +	map->vm_file = vma->vm_file;
+> > +
+>
+> You set vma->vm_file to map->vm_file unconditionally above, is this
+> necessary?
 
-diff --git a/arch/sparc/include/asm/vdso/vsyscall.h b/arch/sparc/include/asm/vdso/vsyscall.h
-index 8bfe703fedc5..4852f122ce47 100644
---- a/arch/sparc/include/asm/vdso/vsyscall.h
-+++ b/arch/sparc/include/asm/vdso/vsyscall.h
-@@ -5,6 +5,16 @@
- 
- #define __VDSO_PAGES 4
- 
-+#ifndef __ASSEMBLER__
-+
-+/* The user mapping may alias the kernel one in the VIPT D-cache. */
-+struct vdso_time_data;
-+void __arch_sync_vdso_time_data(struct vdso_time_data *vdata);
-+#define __arch_sync_vdso_time_data __arch_sync_vdso_time_data
-+
-+#endif /* !__ASSEMBLER__ */
-+
-+/* The asm-generic header needs to be included after the definitions above */
- #include <asm-generic/vdso/vsyscall.h>
- 
- #endif /* _ASM_SPARC_VDSO_VSYSCALL_H */
-diff --git a/arch/sparc/vdso/vma.c b/arch/sparc/vdso/vma.c
-index 60029d60f4d3..fe6a47af6b05 100644
---- a/arch/sparc/vdso/vma.c
-+++ b/arch/sparc/vdso/vma.c
-@@ -27,6 +27,12 @@
- 
- unsigned int __read_mostly vdso_enabled = 1;
- 
-+/* Called by the timekeeping code after every update of the vDSO data. */
-+void __arch_sync_vdso_time_data(struct vdso_time_data *vdata)
-+{
-+	flush_dcache_page(virt_to_page(vdata));
-+}
-+
- #ifdef	CONFIG_SPARC64
- static struct vm_special_mapping vdso_mapping64 = {
- 	.name = "[vdso]"
--- 
-2.43.0
+Yeah, because the mmap hook can change vma->vm_file, and this is necessary
+for the correct file refcount accounting.
 
+The accounting is actually very tricky, because the file that was passed
+via mmap() is fput() after the operation is done but if its swapped then
+you have to make sure everything works out correctly on both error and
+success paths.
+
+Which this patch does (with a lot of AI review checking to make sure it's
+not broken! FWIW)
+
+<snip>
+
+> > @@ -2688,7 +2694,7 @@ static int __mmap_new_vma(struct mmap_state *map, struct vm_area_struct **vmap,
+> >  	}
+> >
+> >  	/* Invoke callbacks. */
+> > -	if (map->file)
+> > +	if (map->vm_file)
+> >  		error = __mmap_new_file_vma(map, vma);
+> >  	else if (!is_anon)
+> >  		error = shmem_zero_setup(vma);
+> > @@ -2797,11 +2803,15 @@ static int call_mmap_prepare(struct mmap_state *map,
+> >  	int err;
+> >
+> >  	/* Invoke the hook. */
+> > -	err = vfs_mmap_prepare(map->file, desc);
+> > +	err = vfs_mmap_prepare(map->vm_file, desc);
+> >  	if (err)
+> >  		return err;
+> >
+> > -	/* It's invalid for mmap_preprare hooks to clear vm_ops. */
+> > +	/* Update first so file refcount tracked correctly. */
+> > +	if (desc->vm_file != map->vm_file)
+> > +		map->vm_file = desc->vm_file;
+> > +
+> > +	/* It's invalid for mmap_prepare hooks to clear vm_ops. */
+>
+> The less rare of prepare ;)
+
+Haha 'It's a rare prepare that would dare' is what I'd LIKE to put here as a
+comment but probably can't :P
+
+<snip>
+
+> > +static void put_map(struct mmap_state *map)
+>
+>
+> I like the put_map_file() instead, like Suren suggested.. but maybe
+> put_map_vm_file(), especially since it could be read as put to the file
+> pointer instead of vm_file.
+
+Ack, and of course to bikeshed it a bit :P maybe map_put_vm_file() so the
+'put vm_file' bit is clearer?
+
+<snip>
+
+> > diff --git a/mm/vma.h b/mm/vma.h
+> > index e97bd2dfa786..f15faa83f3d6 100644
+> > --- a/mm/vma.h
+> > +++ b/mm/vma.h
+> > @@ -394,8 +394,10 @@ static inline void compat_set_vma_from_desc(struct vm_area_struct *vma,
+> >
+> >  	/* Mutable fields. Populated with initial state. */
+> >  	vma_set_pgoff(vma, desc->pgoff);
+> > -	if (desc->vm_file != vma->vm_file)
+> > -		vma_set_file(vma, desc->vm_file);
+> > +	if (desc->vm_file != vma->vm_file) {
+> > +		fput(vma->vm_file);
+> > +		vma->vm_file = desc->vm_file;
+>
+> This isn't going to be racy somehow, right?
+
+No, at this point the VMA write lock is held and everything should be
+pinned correctly.
+
+The vma_set_file() dance was the problematic bit here as it didn't
+handle the file refcount properly.
+
+>
+> > +	}
+> >  	vma->flags = desc->vma_flags;
+> >  	vma->vm_page_prot = desc->page_prot;
+> >
+> >
+> > --
+> > 2.55.0
+> >
+
+--
+Cheers, Lorenzo
