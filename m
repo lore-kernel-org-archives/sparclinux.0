@@ -1,600 +1,334 @@
-Received: from GV3P280CU013.outbound.protection.outlook.com (mail-swedencentralazon11020102.outbound.protection.outlook.com [52.101.75.102])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F20904DA540;
-	Fri, 25 Sep 2026 15:58:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.75.102
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790351907; cv=fail; b=GcLgPOeRjZtjrW0P2vsRlTraYN4+ZRym4PzfGYLbqCenM7mQmH4JaVe5il8zUz9R5GWo0HDcy3RybfsQDVydIJPwBnrlpzk1rv4wZ1zXjlFmdMCaWKTpJerSWBAvRdhpszV/+0tDxTA9no4WU0qptnZjaKxAtjKmXUaZTrxyjMc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790351907; c=relaxed/simple;
-	bh=PpzFF6C9QGjFjP+tLOErDZKxZM1RcrzDwCiSVM6s1ac=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=V2OC0t3KDamC+lUGLniCgVR5W4Fb30n2tAKkO0nUZfFaGt4q5HIhC0swqlOXORxnyIY2v0UuUAVCPvSurm8E6aee36ueG+TtIhovwvec72K7oEXgPTYv4W5LGsAApr1XfbQqsS3CjZEM4Y3GsIeGVkQz0Btfv8F5+Tc3MELOzZc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=cTwCQruE; arc=fail smtp.client-ip=52.101.75.102
-Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70C63443E2D;
+	Fri, 25 Sep 2026 20:10:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790367028; cv=none; b=fJYcmKTk7jCP3sUezmmBflx+0ODtEWkU+MpQygVWuTUDjbD+iJu6CVX1XzJgSRr5aRJGHNZbmtxuZssW8oQavucSi1FS5mL96+jEwBsvBUTevHPevqmcOeXsOQVnBf9umoFt9CBfaLgFimOm4lJmgMUH91PnYArb4ybL0wzP/9E=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790367028; c=relaxed/simple;
+	bh=IwHL+gGhq7mbp81GXRrzD1tZw+JpDoikNpXoqfAEqUg=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=qMSUzQzVJeECAQIgML2oknhq3WSawMDftxQJPedh4vbVPFDJ4VEzry3OEaHZj2T9zekeue2lfObgZHrIme9WU7WRfWfqJoJuRpY6ADKiP1M5ygcSm9HmlVUPNIL2TPLVgHXlOpkuXxSDukpIvsh91C0hmZoRLAKjQLz6zvOT8d4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bbFAznLC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="cTwCQruE"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=yt/A1Cp6iXRVDTdxpl848hp+gNZA+WcB/nINTE5dsOb9aQwaMF8hsFIA73/R+fcTvf3zzFXAlvPlZCe4n8NRgaphhBstbLLsDgHxIuLIakMzxEW3T+VQ2dKyOPQNEpRY9CIUhV2/8T32Ffvy0Ayi2owj2DicWd8qd87Hf4Hiiw30qWsxi6ldIP9ps+pZza9g0bam5oPOkm7eJoOj8xD+508epudntO8/STmjjdfm7NoP0bh0piGdxfXAGprM4T5jUkbxJnKauN341j2gg7Y3EqoGfyJ53RJAx0Kwnih6r3gP8Gry4K7EFrfuOfq3hZHZ924acjvT5nWFWZgFHEoXkQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GRAhKEBrdaupu8JRwUErMHDDwG1AOFdrTaYKLmNZZ6o=;
- b=cg6nUmzKURiHKnYvn2Z8lSXEAUebIdDgGDQ//nAzFhHyjS9hi2/s851KivMMUnZJYYzWTYS8Vy8MyipE/25Q4JUw3Z1F3urD33QbldhY83fXB6piSngKlOwI9idyAmby+D31m1VqRO1nJcNyVVZYb30Ix/4CN7Rlh/dN2uOWa3xd968D3Q8OuQ1YAiLnxmBHqk+YupLyw3HqTS4P5k+Ld2mOhdjE9JdXbISDVB4t8UWs+REBZrs9KfB7gvFwCJiNsb9kJDGkJWJHLPXBjl0VN62bdavCNCfSVhAEKECF2QW3EWyVDlswXdsOI9VesqpgybNiORI+GbRn4e6CkwgxoA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
- dkim=pass header.d=gaisler.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GRAhKEBrdaupu8JRwUErMHDDwG1AOFdrTaYKLmNZZ6o=;
- b=cTwCQruE6xc3XMjwryI3fK5hLNH5RlxpjBEkIlxW5tLYHDxMqSzoENty63GgGgs7WjRirXkOgPc5YWvZwB51TPuaUvrHa4L//BsnUsPSR3jpnS5S9m+vD77t4I9roOThmzxdJmnOv+mi5aN+PhXaOS++7epIC9AqkHzf5O9TxhmoTeBBXiCqbJ+rgnb8am9PdFbv4MedaTEwS565ZiVR2wo2GHK6bosqkDkCxyGZkPwlW530aru3f6JJ1GfUXpPayatsW7FrfdKsk1M80cv5nKEO9YWOf0EPxcKLntXXI+dje295ISPpzTWrxIPi2ipHT3nI8M7L3M4tR1ykiy+4YQ==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=gaisler.com;
-Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:195::18)
- by MM0P280MB2230.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:23::5) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.18; Fri, 25 Sep
- 2026 15:58:14 +0000
-Received: from GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
- ([fe80::be76:7636:f4ac:6773]) by GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
- ([fe80::be76:7636:f4ac:6773%6]) with mapi id 15.21.0451.014; Fri, 25 Sep 2026
- 15:58:13 +0000
-Message-ID: <01904ae2-ed8e-487e-80f7-540b4d06b55d@gaisler.com>
-Date: Fri, 25 Sep 2026 17:58:12 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 5/6] sparc32: move early memory setup to setup_arch
-To: Magnus Lindholm <linmag7@gmail.com>, sparclinux@vger.kernel.org
-Cc: davem@davemloft.net, linux-kernel@vger.kernel.org, sam@ravnborg.org,
- glaubitz@physik.fu-berlin.de
-References: <20260901214611.60560-1-linmag7@gmail.com>
- <20260901214611.60560-6-linmag7@gmail.com>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20260901214611.60560-6-linmag7@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: GV3PEPF0001DC09.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:158:400::277) To GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:150:195::18)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bbFAznLC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C36621F000FF;
+	Fri, 25 Sep 2026 20:09:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790367005;
+	bh=Yf1gqZywkOXToshDhJWRxPyIwRuJ1sOWbNbWLeQRwh0=;
+	h=From:Subject:Date:To:Cc;
+	b=bbFAznLC6/ZtUIxVhCluWB/j0yFpBiuWNLNJymRhr2bPbGWnWHQ716ymvalB5EJSi
+	 prnFLZtfOQ3rZdWXjAozyC5Lpovr1k8FfiOhJ4b+APef41PfCG3fCl8bjzPCrMEktu
+	 fx4USFfCGWBdKvMZttQUYjqnfNhXLn0LxRrjjYU/9ViwEOvqW/g0K9K9UPvZ2QMrbT
+	 Mr5715uFuRKs9Erlv4YRtXRjaWt51g96bu3pSlOaSl3lk2lVpJGlkFXaXLgnAd4RFT
+	 SzgvMuGps3b+k4dDQIIM210j/mry+b2LM2z711t9KAGCjgkaK8WG2GMkjLt9j8Vtxa
+	 h3E1vGIUbbkEA==
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: [PATCH v5 00/12] mm: make userland page table freeing RCU-safe
+Date: Fri, 25 Sep 2026 21:09:35 +0100
+Message-Id: <20260925-rcu-pagetable-freeing-v5-0-31e91065fea4@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: GVYP280MB1290:EE_|MM0P280MB2230:EE_
-X-MS-Office365-Filtering-Correlation-Id: f14cfb1c-5140-49d1-b67f-08df1b1dce39
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|366016|23010399003|6133799003|22082099003|18002099003|4143699003|11063799006|56012099006|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	nI7ZmHyBlq4iOoeo1NUyDrFPjAA36tImS3A6Ut8j3kO5Y3cZqPPN7MEgEK9CeULcQcWfH3h8Q3aCdoMSA0IUlJVvy2Fqfn8IYnoaZ/nmcapjfCv94vTWnTiMkmjYiMyNDtrCWeyEVptv7+0Shxuxg000I++aF24Vn4tv86h6QXMgscYImrLL4tEPPFQaLqWmG4rJW1UTzt/yq/JSN1cUbxQZklwPylWW6aF0XIhydoIIqMUXHFhvL08xRGvPu1o/Y1qssHGIAkfKHEuZq7rn9CusxImjBDkHvTg4ga042vx9zmftevSBysTQMuaJ9t8fuU/t4mcboFPryki6I2Ck9OnMusTW9xvKX55aqg6rpKtbUz8T6TDph6iLt3pAL6sIaW0kY4T0X4i/aHptmAu/jvEGeY879UAVNhy5VJVBZq6nGu+PR3LAfNK/chY7U8vRvXCRZJcU8qDcKYWDhEHZmJOxzvIkS0uGChXYpfbXWx2r8afpu8Ns8hsCZXpaEX4ZI8JWiygBn96LJp3fWeK7C305+knQNWQaD9dG66PyewqemI1MephN1l3TBJebPC4wh6GlQJnrQPFZebIMftgT9i9VXK/rmuyfqQLgFc+q6LxT7eNktgFyNMueBdZ1iT0WXFMcACs5upbciOGyCACT1RZGnhE153XV/HO4WrXkTP8=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(23010399003)(6133799003)(22082099003)(18002099003)(4143699003)(11063799006)(56012099006)(10067099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?UENtRXFvdGVxZmVnM1p2VGdXREpjajBCREhFR0pnWWpPL3U2S256RjAzSUd4?=
- =?utf-8?B?d2pEWlh4NWV3NmhKaVlGQ0lBZEtIT3drR1J3c0lVZU9BOFV1b2hHcHZ6Wmoz?=
- =?utf-8?B?RHlScFJ4WmRFVk5oTDlQOUpmalBvMFRLc2hHZ3lCa0E0YXZMR1F5UVZ5UVd6?=
- =?utf-8?B?U1E4cWIvYUs4N2ZCUWRFWHNmL3Q3dlUzbVh6TFVkTkFVci83UHkxKzM3Z3Za?=
- =?utf-8?B?Mk5lUXk5SzdsbG5hUkhIb2ZkT2pjTklYL0RXY2NpWlFhOTc4aE84SnZFV2Rn?=
- =?utf-8?B?eXdoTVdXVC9sUkE3YkNiY25vTlRISmdJZU1JbHpFOTM1YXF6aGFCc1FYRGs5?=
- =?utf-8?B?MUdLQVhXdlJmM0NONlUwb05WSWU2ODdsMnVFTTZ3ZWJWWHB0YXg5U1RYL3Y0?=
- =?utf-8?B?MXE4RTZDSUlRcFA3NkIyNWlpRlJHYjIra21LS1hGMHdFTjJOZ2pyUGU1U2tk?=
- =?utf-8?B?dk1vb2F2ZTBlVm1jRjJPNUFDVEFyUldYOTRtTjEvUzh2MjgxVEpPUWw5bTJY?=
- =?utf-8?B?TGtmQm4ybVd4TXEwSlNlZGNNbUZPbFJlRTN0dVJHQWU3bkljWjFjbTNUbUE5?=
- =?utf-8?B?Z0hFRSsybVdFZFd2TzUySVFWZUxtTFFvcXBzaUJ6TGRKQU9tSkNFNDZSeGJY?=
- =?utf-8?B?SFcrQjlyWllzN1JLREhPdlhNcWVKTm9namF2VWEyTFZaNW15M0RCY2VwcXVX?=
- =?utf-8?B?MnRtUjRLNTZiZU1QcTJIVHNMSFdOcXRUdzU1TlNleFJROFA5SjdJRzFOZXJn?=
- =?utf-8?B?TS9OZFNGWkhBMEtsbXZtU1lYRHZucjR2VWQ0S1I0TkpvcmFhTTVtUnZmc0tZ?=
- =?utf-8?B?SkM4OTJOOHY0eGRpdGs2S0JMaDdRQjJFQWcvb0F1YkFBVTBrNnNiRmRnSnpX?=
- =?utf-8?B?eS9RTnJGUFVmaGhxcWdIMlFIalplWG9LYlFVa1A2VDJNRWNQVVRHNEhZVFJV?=
- =?utf-8?B?VUZRc21wVk9jRm5HZUZ6QWtrZ0s1c3JReGNtVGVtalJpUzB0ekRWVnhKY2Mx?=
- =?utf-8?B?YklLMnZqRUFMNzVlUDBaUnhKVUFibnNPTFY4ZFNLUFhWeVFqYXBVVTY2ZlNt?=
- =?utf-8?B?TkNNazNFMXBNS0JrNSt6VzJJeTI2eTQvd25UVWZRdWZsRnBYNmRsdStoMkVy?=
- =?utf-8?B?VW83dy9SWFhwM0pEcDBwYUk2V2NIcDUrOXl6bWhLTU5RTjA2OStSZld1a0gv?=
- =?utf-8?B?QkpQcEtkYlpkaDBxZG1uclRZSzFzUFlCTlFlUmJpa2xrRG9YcS9HMnMzV2cw?=
- =?utf-8?B?b01HZUxLY2lBYTBwYjdyaklqWXdZeVBBM3dUbWtmSlVHdmhEaGVVZ0YrV0ww?=
- =?utf-8?B?eC9NYTBZVzJnbFZsOU5lNlZ6cjJIRHErcFRwOG1HclhSNEMySXlXaHQyNzdU?=
- =?utf-8?B?bXJIeGd4Ums5bFdPTEZseDFSVlg5OEFsek1yTWkzejRqT3dKWWFMVFFrL3Bm?=
- =?utf-8?B?cGhUejlsRWhUV3dHTStiOTNIMGNOWmZEd0traVJscDF2RmQ0ZFVwTDdTTXZX?=
- =?utf-8?B?Zi9BTnIxQWduaGFCYkE4VEY2cTlodmJSbFZlS0g1aGloTXZveFZ5SWhiSDFY?=
- =?utf-8?B?aGg1K1hPckdZK0NvQ3lsS2hXYk5xaUU0R0JSRENueElYSnE5eWFwSGZnUTZE?=
- =?utf-8?B?bk5xcHBMSjFCQ3cwcmg0eUZFM3M4QncrdVpqK3lBY2NlcUxITVA5MDB5VWw2?=
- =?utf-8?B?NTREckxDSG41Rks1Zjd5dnJJZ29XYmF3MmxSa3BzenN4MkY0eTEwV3VSaTJV?=
- =?utf-8?B?LzJHYUVRZXZwSHNJdmZ4RVh0aWJsUVhjY1ZmTWJsU3Zkc0FJa2hTdWttRGhW?=
- =?utf-8?B?anRzMVI5ZzFqdmxEc2VjWGNvRUQxUE43U0xkWm1rS2RNVzBOZUZ4MFRxcGF6?=
- =?utf-8?B?ZkhpSXA3VEZLUlNQV0d1MENVRUdDRWpYZEdCVHV0ZENkRy9tVzc5SFVzRUgr?=
- =?utf-8?B?NGpmWDFRZXo5NTlzNUlhUnBuYmlXaTBUcnhOSjRUSFFBZS9QZzJiMy9VZkJ3?=
- =?utf-8?B?NnRPNVN2d0owRS9MNFViVXIycTI1ZUVyVE5Xd20vWlJ1bGdRQ1J3M2RHRDda?=
- =?utf-8?B?RkRwbk51OFFxR0xKYVo4bWpzQXl3L0orKzdmMzl0emZzM3dIS2UrdGxVN21W?=
- =?utf-8?B?TFdYRWhuOFoyTDVyM2pmVVp2eVRnSyt1aG5Bb1FudFVab2xjSldIMU5DdDZP?=
- =?utf-8?B?Zzl5SkhLaElFUkplcUdJd2lRMUdQa05Bbm1sZ0szaGFCbU5oa0VYN2M0OEpw?=
- =?utf-8?B?TnZNREVZSnFHUVBQWGNYVUVHK1ZvcjNkVUEzdnYyemQrd05FUFEzOTFQZ250?=
- =?utf-8?B?d2FCQ3o1VDBMNFdxQTV6STZGZmFyTTl0Wis5ZFZhSEZmSStpVjg1RDFsYzFy?=
- =?utf-8?Q?f+oAuX/PpsamyQRE=3D?=
-X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f14cfb1c-5140-49d1-b67f-08df1b1dce39
-X-MS-Exchange-CrossTenant-AuthSource: GVYP280MB1290.SWEP280.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2026 15:58:13.9138
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: YjyxN5YIcNZ1jz9Hxf0W139XVIeYr+54t5LtltJsSBkjRESly0+hvPIi5Sn9okvfH5Z/PA0C5yoQ/YlYZu8ARrJyIjHt6tm/WKBjufur3wg=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MM0P280MB2230
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/3XOQW7CMBAF0Ksgr2vkGTtmyop7oC5sMw5uUYLsE
+ LVCuXsd2AShLL/05/25i8I5cRH7zV1kHlNJfVdD87ER4ey6lmU61SxQoVWkQeZwk1fX8uD8hWX
+ MzKlrJRlvPZNWjErU22vmmH4f7vHrmcvNf3MYZmxunFMZ+vz3GB5h7j03PtXaxghSycY01hEEQ
+ sDDD+eOL9s+t2IeGXHJ0BqDlYFolbeGaUf8xugFA6vf6MrsPAWyoHR9540xCwZxjTGViQzuBBF
+ YK/3CTNP0DxRL+lGiAQAA
+X-Change-ID: 20260831-rcu-pagetable-freeing-84b6be830e20
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ David Hildenbrand <david@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+ Baolin Wang <baolin.wang@linux.alibaba.com>, 
+ "Liam R. Howlett" <liam@infradead.org>, Nico Pache <nico.pache@linux.dev>, 
+ Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+ Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
+ Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, 
+ Guo Ren <guoren@kernel.org>, Brian Cain <bcain@kernel.org>, 
+ Geert Uytterhoeven <geert@linux-m68k.org>, 
+ Dinh Nguyen <dinguyen@kernel.org>, 
+ Simon Schuster <schuster.simon@siemens-energy.com>, 
+ Jonas Bonn <jonas@southpole.se>, 
+ Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, 
+ Stafford Horne <shorne@gmail.com>, Rich Felker <dalias@libc.org>, 
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+ Russell King <linux@armlinux.org.uk>, Vineet Gupta <vgupta@kernel.org>, 
+ Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, 
+ Max Filippov <jcmvbkbc@gmail.com>, Will Deacon <will@kernel.org>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
+ Nick Piggin <npiggin@gmail.com>, Peter Zijlstra <peterz@infradead.org>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ Richard Henderson <richard.henderson@linaro.org>, 
+ Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>, 
+ Catalin Marinas <catalin.marinas@arm.com>, 
+ Mark Rutland <mark.rutland@arm.com>, Huacai Chen <chenhuacai@kernel.org>, 
+ WANG Xuerui <kernel@xen0n.name>, 
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+ Michael Ellerman <mpe@ellerman.id.au>, 
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+ Alexander Gordeev <agordeev@linux.ibm.com>, 
+ Christian Borntraeger <borntraeger@linux.ibm.com>, 
+ Sven Schnelle <svens@linux.ibm.com>, Richard Weinberger <richard@nod.at>, 
+ Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
+ Johannes Berg <johannes@sipsolutions.net>, 
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+ Arnd Bergmann <arnd@arndb.de>, Vlastimil Babka <vbabka@kernel.org>, 
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+ Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+ Yoshinori Sato <ysato@users.sourceforge.jp>, 
+ Shakeel Butt <shakeel.butt@linux.dev>, Jonathan Corbet <corbet@lwn.net>, 
+ Randy Dunlap <rdunlap@infradead.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+ linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+ linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org, 
+ linux-sh@vger.kernel.org, linux-riscv@lists.infradead.org, 
+ linux-arm-kernel@lists.infradead.org, linux-snps-arc@lists.infradead.org, 
+ linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, 
+ linux-alpha@vger.kernel.org, loongarch@lists.linux.dev, 
+ linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+ linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, 
+ linux-um@lists.infradead.org, Hugh Dickins <hughd@google.com>, 
+ Qi Zheng <qi.zheng@linux.dev>, linux-doc@vger.kernel.org, 
+ "Lorenzo Stoakes (ARM)" <ljs@kernel.org>, 
+ Greg Ungerer <gerg@linux-m68k.org>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=9918; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=IwHL+gGhq7mbp81GXRrzD1tZw+JpDoikNpXoqfAEqUg=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLK2XWXuuNHfv3et0NIEW62XOhf3zFwUdmX+5SPFuhdfx
+ 5fXeVya3FHKwiDGxSArpsjy/Iv4/iCRsHmdF/zdYOawMoEMYeDiFICJOJkxMjx3uDp5ErPgnCa/
+ VcdXKLxRalwdXiX5+O28Z5d7UwqrvPgYGeYvYCgWfBOeN/1y3PMP2hNkuzvWWak/O3Tz9+ZJ/Fe
+ 0ZbkB
+X-Developer-Key: i=ljs@kernel.org; a=openpgp;
+ fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-On 2026-09-01 23:45, Magnus Lindholm wrote:
-> Move the early memory configuration out of SRMMU paging setup and next to
-> the rest of setup_arch(). Derive the PFN limits from memblock, reserve the
-> kernel and initrd there, and retain mem= support with
-> memblock_enforce_memory_limit().
-> 
-> Use for_each_mem_pfn_range() to find the lowmem boundary and replace
-> last_valid_pfn with the standard max_low_pfn variable. Set the standard
-> max_pfn variable to the end of physical memory and use it as the highmem
-> zone limit. This tightens LEON's _pfn_valid() upper bound from all RAM to
-> the lowmem limit, with no functional change because LEON does not use
-> highmem.
+The majority of architectures in the kernel defer page table freeing until
+an RCU grace period has elapsed, this series converts all remaining
+architectures to do so too and eliminates CONFIG_MMU_GATHER_RCU_TABLE_FREE
+altogether.
 
-It is not at all true that LEON systems do not use highmem. Rather, they
-can make heavy use of highmen. Continued further down.
+This is important because it enables safe lockless page table walking under
+RCU alone.
 
+Doing so allows for reduced lock contention, avoids lock ordering concerns
+and enables fast, efficient and correct page table walking as a result.
 
-> The removed bootmem code also printed a private HIGHMEM summary. Generic
-> memory initialization already reports the highmem zone, so do not retain
-> the duplicate message.
-> 
-> When PAGE_OFFSET maps a relocated kernel, remove memory below phys_base
-> from memblock because it cannot be reached through the linear map. This
-> replaces the equivalent trimming of sp_banks.
-> 
-> Suggested-by: Sam Ravnborg <sam@ravnborg.org>
-> Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
-> ---
->  arch/sparc/include/asm/highmem.h    |   3 -
->  arch/sparc/include/asm/leon.h       |   2 +-
->  arch/sparc/include/asm/pgtable_32.h |   3 +-
->  arch/sparc/include/asm/pgtsrmmu.h   |   1 -
->  arch/sparc/kernel/setup_32.c        | 112 ++++++++++++-----------
->  arch/sparc/mm/init_32.c             | 132 +---------------------------
->  arch/sparc/mm/leon_mm.c             |   1 +
->  arch/sparc/mm/srmmu.c               |   8 +-
->  8 files changed, 67 insertions(+), 195 deletions(-)
-> 
-> diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
-> index c7b2e208328b..b1b915ac604d 100644
-> --- a/arch/sparc/include/asm/highmem.h
-> +++ b/arch/sparc/include/asm/highmem.h
-> @@ -26,9 +26,6 @@
->  #include <asm/vaddrs.h>
->  #include <asm/pgtsrmmu.h>
->  
-> -/* declarations for highmem.c */
-> -extern unsigned long highstart_pfn, highend_pfn;
-> -
->  #define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE)
->  extern pte_t *pkmap_page_table;
->  
-> diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
-> index 053a24b67aed..815131c77ed7 100644
-> --- a/arch/sparc/include/asm/leon.h
-> +++ b/arch/sparc/include/asm/leon.h
-> @@ -251,7 +251,7 @@ extern int leon_ipi_irq;
->  
->  /* macros used in leon_mm.c */
->  #define PFN(x)           ((x) >> PAGE_SHIFT)
-> -#define _pfn_valid(pfn)	 ((pfn < last_valid_pfn) && (pfn >= PFN(phys_base)))
-> +#define _pfn_valid(pfn)	 ((pfn < max_low_pfn) && (pfn >= PFN(phys_base)))
+Additionally it removes a bunch of code and architecture-specific behaviour
+which is always a beneficial thing to do.
 
-What is the reason for doing this change? When leon_swprobe() is called
-max_pfn has already been set up. Is there a reason for not using that?
+There has been much recent work on this:
 
+* In 2023 Hugh Dickins RCU-deferred khugepaged page table retraction in
+  commit 13cf577e6b66 ("mm/pgtable: add pte_free_defer() for pgtable as
+  page").
 
-However, in the scope of the calls to leon_swprobe(), no parts of the
-inherited MMU table's PTDs/PTEs are outside of lowmem. If there indeed
-is some technical reason for needing to do this change I suggest that
-you, in a separate patch before this one:
+* Qi Zheng has done most of the work that made this possible starting with
+  the critical commit 718b13861d22 ("x86: mm: free page table pages by RCU
+  instead of semi RCU").
 
-- Remove PFN() and replace the callers in leon_mm.c with the standard
-  PFN_DOWN() instead, as also Sam lifted as "future work", and
+* Qi then went on to convert a large number of architectures in commit
+  e3ecf7c7d082 ("mm: pgtable: convert some architectures to use
+  tlb_remove_ptdesc()"), commit 44b079583f7d ("alpha: mm: enable
+  MMU_GATHER_RCU_TABLE_FREE") and the series to which it belongs.
 
-- Move the _pfn_valid define to leon_mm.c, make it only check for lowmem
-  pfns and rename it to _pfn_lowmem() or something like that.
+* Qi then introduced the important CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE
+  option in commit 086498aed3f6 ("mm: convert __HAVE_ARCH_TLB_REMOVE_TABLE
+  to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config").
 
->  #define _SRMMU_PTE_PMASK_LEON 0xffffffff
->  
->  /*
-> diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-> index f89b1250661d..91a6032cf6a2 100644
-> --- a/arch/sparc/include/asm/pgtable_32.h
-> +++ b/arch/sparc/include/asm/pgtable_32.h
-> @@ -37,8 +37,7 @@ struct vm_area_struct;
->  struct page;
->  
->  void load_mmu(void);
-> -unsigned long calc_highpages(void);
-> -unsigned long __init bootmem_init(unsigned long *pages_avail);
-> +void __init find_ramdisk(unsigned long end_of_phys_memory);
->  
->  #define pte_ERROR(e)   __builtin_trap()
->  #define pmd_ERROR(e)   __builtin_trap()
-> diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
-> index a265822a475e..a2a6c8564c3e 100644
-> --- a/arch/sparc/include/asm/pgtsrmmu.h
-> +++ b/arch/sparc/include/asm/pgtsrmmu.h
-> @@ -98,7 +98,6 @@
->  	 restore %g0, %g0, %g0;
->  
->  #ifndef __ASSEMBLER__
-> -extern unsigned long last_valid_pfn;
->  
->  /* This makes sense. Honest it does - Anton */
->  /* XXX Yes but it's ugly as sin.  FIXME. -KMW */
-> diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
-> index 795714959da6..6ad85538964d 100644
-> --- a/arch/sparc/kernel/setup_32.c
-> +++ b/arch/sparc/kernel/setup_32.c
-> @@ -23,6 +23,7 @@
->  #include <linux/syscalls.h>
->  #include <linux/kdev_t.h>
->  #include <linux/major.h>
-> +#include <linux/memblock.h>
->  #include <linux/string.h>
->  #include <linux/init.h>
->  #include <linux/interrupt.h>
-> @@ -254,28 +255,71 @@ static __init void leon_patch(void)
->  
->  struct tt_entry *sparc_ttable;
->  
-> -/* Drop RAM below the kernel; the linear map runs upward from phys_base
-> - * and cannot reach it.
-> - */
-> -static void __init trim_sp_banks_below(unsigned long base)
-> +unsigned long phys_base;
-> +EXPORT_SYMBOL(phys_base);
-> +
-> +unsigned long pfn_base;
-> +EXPORT_SYMBOL(pfn_base);
-> +
-> +static unsigned long __init calc_max_low_pfn(void)
->  {
-> -	int i, j = 0;
-> +	unsigned long limit = pfn_base + PHYS_PFN(SRMMU_MAXMEM);
-> +	unsigned long start_pfn, end_pfn;
-> +	unsigned long last_pfn = 0;
-> +	int i;
-> +
-> +	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL) {
-> +		if (start_pfn >= limit) {
-> +			if (last_pfn < limit)
-> +				limit = last_pfn;
-> +			break;
-> +		}
->  
-> -	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
-> -		unsigned long start = sp_banks[i].base_addr;
-> -		unsigned long end = start + sp_banks[i].num_bytes;
-> +		last_pfn = end_pfn;
-> +	}
->  
-> -		if (end <= base)
-> -			continue;		/* wholly below - drop it */
-> -		if (start < base)
-> -			start = base;		/* straddles - trim the front */
-> +	return limit;
-> +}
->  
-> -		sp_banks[j].base_addr = start;
-> -		sp_banks[j].num_bytes = end - start;
-> -		j++;
-> +static void __init setup_memory(void)
-> +{
-> +	unsigned long ram_base = memblock_start_of_DRAM();
-> +	unsigned long real_base = __get_phys(PAGE_OFFSET);
-> +	unsigned long size;
-> +
-> +	memblock_set_bottom_up(true);
-> +	memblock_allow_resize();
-> +
-> +	phys_base = ram_base;
-> +	if (real_base && real_base != phys_base) {
-> +		prom_printf("phys_base: RAM starts 0x%x but kernel is at 0x%x\n",
-> +			    (unsigned int)phys_base, (unsigned int)real_base);
-> +		phys_base = real_base;
-> +		memblock_remove(0, phys_base);
-> +		prom_printf("phys_base: adopted 0x%x, RAM below it dropped\n",
-> +			    (unsigned int)phys_base);
->  	}
-> -	sp_banks[j].base_addr = 0;
-> -	sp_banks[j].num_bytes = 0;
-> +
-> +	if (cmdline_memory_size)
-> +		memblock_enforce_memory_limit(cmdline_memory_size);
-> +
-> +	min_low_pfn = PFN_DOWN(memblock_start_of_DRAM());
-> +	pfn_base = PHYS_PFN(phys_base);
-> +	max_pfn = PFN_DOWN(memblock_end_of_DRAM());
-> +	max_low_pfn = max_pfn;
-> +
-> +	if (max_low_pfn > pfn_base + PHYS_PFN(SRMMU_MAXMEM))
-> +		max_low_pfn = calc_max_low_pfn();
-> +
-> +	find_ramdisk(memblock_end_of_DRAM());
-> +
-> +	/* Reserve the kernel text/data/bss. */
-> +	size = __pa(PAGE_ALIGN((unsigned long)&_end)) - phys_base;
-> +	memblock_reserve(phys_base, size);
-> +	memblock_add(phys_base, size);
-> +
-> +	/* Only allow low memory to be allocated by memblock. */
-> +	memblock_set_current_limit(PFN_PHYS(max_low_pfn));
->  }
->  
->  /* Called from head_32.S - before we have setup anything
-> @@ -306,9 +350,6 @@ void __init sparc32_start_kernel(struct linux_romvec *rp)
->  
->  void __init setup_arch(char **cmdline_p)
->  {
-> -	int i;
-> -	unsigned long highest_paddr;
-> -
->  	sparc_ttable = &trapbase[0];
->  
->  	/* Initialize PROM console and command line. */
-> @@ -343,36 +384,7 @@ void __init setup_arch(char **cmdline_p)
->  
->  	idprom_init();
->  	load_mmu();
-> -
-> -	phys_base = 0xffffffffUL;
-> -	highest_paddr = 0UL;
-> -	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
-> -		unsigned long top;
-> -
-> -		if (sp_banks[i].base_addr < phys_base)
-> -			phys_base = sp_banks[i].base_addr;
-> -		top = sp_banks[i].base_addr +
-> -			sp_banks[i].num_bytes;
-> -		if (highest_paddr < top)
-> -			highest_paddr = top;
-> -	}
-> -
-> -	/* phys_base must describe what PAGE_OFFSET maps to, not where RAM starts. */
-> -	{
-> -		unsigned long real_base = __get_phys(PAGE_OFFSET);
-> -
-> -		if (real_base && real_base != phys_base) {
-> -			prom_printf("phys_base: RAM starts 0x%x but kernel is at 0x%x\n",
-> -				    (unsigned int)phys_base,
-> -				    (unsigned int)real_base);
-> -			phys_base = real_base;
-> -			trim_sp_banks_below(phys_base);
-> -			prom_printf("phys_base: adopted 0x%x, RAM below it dropped\n",
-> -				    (unsigned int)phys_base);
-> -		}
-> -	}
-> -
-> -	pfn_base = phys_base >> PAGE_SHIFT;
-> +	setup_memory();
->  
->  	if (!root_flags)
->  		root_mountflags &= ~MS_RDONLY;
-> diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-> index 6880d9cb30a5..ac4462f1cf76 100644
-> --- a/arch/sparc/mm/init_32.c
-> +++ b/arch/sparc/mm/init_32.c
-> @@ -35,66 +35,13 @@
->  
->  #include "mm_32.h"
->  
-> -unsigned long phys_base;
-> -EXPORT_SYMBOL(phys_base);
-> -
-> -unsigned long pfn_base;
-> -EXPORT_SYMBOL(pfn_base);
-> -
->  struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
->  
->  /* Initial ramdisk setup */
->  extern unsigned int sparc_ramdisk_image;
->  extern unsigned int sparc_ramdisk_size;
->  
-> -unsigned long highstart_pfn, highend_pfn;
-> -
-> -unsigned long last_valid_pfn;
-> -
-> -unsigned long calc_highpages(void)
-> -{
-> -	int i;
-> -	int nr = 0;
-> -
-> -	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
-> -		unsigned long start_pfn = sp_banks[i].base_addr >> PAGE_SHIFT;
-> -		unsigned long end_pfn = (sp_banks[i].base_addr + sp_banks[i].num_bytes) >> PAGE_SHIFT;
-> -
-> -		if (end_pfn <= max_low_pfn)
-> -			continue;
-> -
-> -		if (start_pfn < max_low_pfn)
-> -			start_pfn = max_low_pfn;
-> -
-> -		nr += end_pfn - start_pfn;
-> -	}
-> -
-> -	return nr;
-> -}
-> -
-> -static unsigned long calc_max_low_pfn(void)
-> -{
-> -	int i;
-> -	unsigned long tmp = pfn_base + (SRMMU_MAXMEM >> PAGE_SHIFT);
-> -	unsigned long curr_pfn, last_pfn;
-> -
-> -	last_pfn = (sp_banks[0].base_addr + sp_banks[0].num_bytes) >> PAGE_SHIFT;
-> -	for (i = 1; sp_banks[i].num_bytes != 0; i++) {
-> -		curr_pfn = sp_banks[i].base_addr >> PAGE_SHIFT;
-> -
-> -		if (curr_pfn >= tmp) {
-> -			if (last_pfn < tmp)
-> -				tmp = last_pfn;
-> -			break;
-> -		}
-> -
-> -		last_pfn = (sp_banks[i].base_addr + sp_banks[i].num_bytes) >> PAGE_SHIFT;
-> -	}
-> -
-> -	return tmp;
-> -}
-> -
-> -static void __init find_ramdisk(unsigned long end_of_phys_memory)
-> +void __init find_ramdisk(unsigned long end_of_phys_memory)
->  {
->  #ifdef CONFIG_BLK_DEV_INITRD
->  	unsigned long size;
-> @@ -124,83 +71,6 @@ static void __init find_ramdisk(unsigned long end_of_phys_memory)
->  #endif
->  }
->  
-> -unsigned long __init bootmem_init(unsigned long *pages_avail)
-> -{
-> -	unsigned long start_pfn, bytes_avail, size;
-> -	unsigned long end_of_phys_memory = 0;
-> -	unsigned long high_pages = 0;
-> -	int i;
-> -
-> -	memblock_set_bottom_up(true);
-> -	memblock_allow_resize();
-> -
-> -	bytes_avail = 0UL;
-> -	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
-> -		end_of_phys_memory = sp_banks[i].base_addr +
-> -			sp_banks[i].num_bytes;
-> -		bytes_avail += sp_banks[i].num_bytes;
-> -		if (cmdline_memory_size) {
-> -			if (bytes_avail > cmdline_memory_size) {
-> -				unsigned long slack = bytes_avail - cmdline_memory_size;
-> -
-> -				bytes_avail -= slack;
-> -				end_of_phys_memory -= slack;
-> -
-> -				sp_banks[i].num_bytes -= slack;
-> -				if (sp_banks[i].num_bytes == 0) {
-> -					sp_banks[i].base_addr = 0xdeadbeef;
-> -				} else {
-> -					memblock_add(sp_banks[i].base_addr,
-> -						     sp_banks[i].num_bytes);
-> -					sp_banks[i+1].num_bytes = 0;
-> -					sp_banks[i+1].base_addr = 0xdeadbeef;
-> -				}
-> -				break;
-> -			}
-> -		}
-> -		memblock_add(sp_banks[i].base_addr, sp_banks[i].num_bytes);
-> -	}
-> -
-> -	if (cmdline_memory_size)
-> -		memblock_enforce_memory_limit(cmdline_memory_size);
-> -
-> -	/* Start with page aligned address of last symbol in kernel
-> -	 * image.
-> -	 */
-> -	start_pfn  = (unsigned long)__pa(PAGE_ALIGN((unsigned long) &_end));
-> -
-> -	/* Now shift down to get the real physical page frame number. */
-> -	start_pfn >>= PAGE_SHIFT;
-> -
-> -	max_pfn = end_of_phys_memory >> PAGE_SHIFT;
-> -
-> -	max_low_pfn = max_pfn;
-> -	highstart_pfn = highend_pfn = max_pfn;
-> -
-> -	if (max_low_pfn > pfn_base + (SRMMU_MAXMEM >> PAGE_SHIFT)) {
-> -		highstart_pfn = pfn_base + (SRMMU_MAXMEM >> PAGE_SHIFT);
-> -		max_low_pfn = calc_max_low_pfn();
-> -		high_pages = calc_highpages();
-> -		printk(KERN_NOTICE "%ldMB HIGHMEM available.\n",
-> -		    high_pages >> (20 - PAGE_SHIFT));
-> -	}
-> -
-> -	find_ramdisk(end_of_phys_memory);
-> -
-> -	/* Reserve the kernel text/data/bss. */
-> -	size = (start_pfn << PAGE_SHIFT) - phys_base;
-> -	memblock_reserve(phys_base, size);
-> -	memblock_add(phys_base, size);
-> -
-> -	size = memblock_phys_mem_size() - memblock_reserved_size();
-> -	*pages_avail = (size >> PAGE_SHIFT) - high_pages;
-> -
-> -	/* Only allow low memory to be allocated via memblock allocation */
-> -	memblock_set_current_limit(max_low_pfn << PAGE_SHIFT);
-> -
-> -	return max_pfn;
-> -}
-> -
->  /*
->   * paging_init() sets up the page tables: We call the MMU specific
->   * init routine based upon the Sun model type on the Sparc.
-> diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
-> index 1dc9b3d70eda..a43c5ffbbbe5 100644
-> --- a/arch/sparc/mm/leon_mm.c
-> +++ b/arch/sparc/mm/leon_mm.c
-> @@ -11,6 +11,7 @@
->   */
->  
->  #include <linux/kernel.h>
-> +#include <linux/memblock.h>
->  #include <linux/mm.h>
->  #include <asm/asi.h>
->  #include <asm/leon.h>
-> diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-> index f094f6c105a2..e333d3eac451 100644
-> --- a/arch/sparc/mm/srmmu.c
-> +++ b/arch/sparc/mm/srmmu.c
-> @@ -59,8 +59,6 @@ int vac_line_size;
->  
->  extern struct resource sparc_iomap;
->  
-> -extern unsigned long last_valid_pfn;
-> -
->  static pgd_t *srmmu_swapper_pg_dir;
->  
->  const struct sparc32_cachetlb_ops *sparc32_cachetlb_ops;
-> @@ -871,7 +869,7 @@ void __init arch_zone_limits_init(unsigned long *max_zone_pfns)
->  {
->  	max_zone_pfns[ZONE_DMA] = max_low_pfn;
->  	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
-> -	max_zone_pfns[ZONE_HIGHMEM] = highend_pfn;
-> +	max_zone_pfns[ZONE_HIGHMEM] = max_pfn;
->  }
->  
->  void __init srmmu_paging_init(void)
-> @@ -884,7 +882,6 @@ void __init srmmu_paging_init(void)
->  	pud_t *pud;
->  	pmd_t *pmd;
->  	pte_t *pte;
-> -	unsigned long pages_avail;
->  
->  	init_mm.context = (unsigned long) NO_CONTEXT;
->  	sparc_iomap.start = SUN4M_IOBASE_VADDR;	/* 16MB of IOSPACE on all sun4m's. */
-> @@ -910,9 +907,6 @@ void __init srmmu_paging_init(void)
->  		prom_halt();
->  	}
->  
-> -	pages_avail = 0;
-> -	last_valid_pfn = bootmem_init(&pages_avail);
-> -
->  	srmmu_nocache_calcsize();
->  	srmmu_nocache_init();
->  	srmmu_inherit_prom_mappings(0xfe400000, (LINUX_OPPROM_ENDVM - PAGE_SIZE));
+* Finally, and critically, Lance Yang then converted the batch allocation
+  fallback case to be RCU-safe in commit 1fb3d8c20bfa ("mm/mmu_gather:
+  replace IPI with synchronize_rcu() when batch allocation fails").
 
-Thanks,
-Andreas
+The work I do here is only possible due to the work Hugh, Qi, Lance and
+others have done previously.
+
+An initial task this series addresses is to deposit a freshly allocated PTE
+page table and RCU-free the existing PTE page table. Not doing so is
+currently safe, but for page table walkers relying on RCU alone, it would
+not be.
+
+Additionally, it makes it possible to implement lockless RCU-only page
+table walkers which otherwise would have required the PTE PTL.
+
+The changes are largely mechanical - the majority of arches already have
+the machinery required to support CONFIG_MMU_GATHER_RCU_TABLE_FREE and
+simply needed configuration changes or small implementation changes to
+switch over.
+
+However some arches required extra attention - sh-X2, m68k-motorola and
+sparc32.
+
+sh-X2 allocates PMDs from the slab allocator and PTEs as normal. Therefore
+CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE is set to customise page table freeing
+and the LSB is used to encode which page table level is used, with
+__tlb_remove_table() doing the right thing depending on this.
+
+This pattern is repeated for m68k-motorola and sparc32 to account for
+different page table levels. In each case, the page tables are aligned such
+that sufficient bits are available in each case for encoding this
+information.
+
+m68k-motorola required the biggest change - since RCU page table freeing
+uses call_rcu(), this means page table freeing can arise from softirq
+context.
+
+This was fixed with a BH-disabling spin lock used in both get_pointer_table()
+and free_pointer_table() (softirq being the only asynchronous context in which
+the lock is taken).
+
+As part of this change, the logic for allocation of a new pointer table was
+separated out into add_pointer_table() to make the locking more obviously
+correct.
+
+Finally, sparc32 was similar to m68k-motorola in that locking was required,
+however this was already implemented via a spinlock, and only had to be
+updated to be IRQ-safe.
+
+Additionally, the nocache pool's bit_map lock was updated to be IRQ-safe
+for softirq frees.
+
+Separately, the PTE path can't take mm->page_table_lock from softirq (no mm
+there), which is fine because the page reference count transitions are
+atomic and fully ordered.
+
+The series finally removes CONFIG_MMU_GATHER_RCU_TABLE_FREE and all related
+configurations and code that supported !CONFIG_MMU_GATHER_RCU_TABLE_FREE.
+
+As a result, page table walks can now be performed safely under RCU without
+any risk of page tables being freed underneath a walker.
+
+However, this is the only guarantee that this work provides - page table
+walkers must still ensure that page table entries are as expected
+throughout.
+
+All changes have been build tested. As most of the conversions are simply
+utilising existing mechanics that are known to work, this suffices for most
+cases.
+
+However those arches where significant changes have been made -
+m68k-motorola, sparc32 and sh-X2 - have been tested further.
+
+For each of these a boot test and stress test has been performed - fork 400
+children, each mmap()'ing 2 MiB and touching every page then partially
+munmap()'ing then exiting to trigger as much page table freeing as
+possible.
+
+All were found to be working correctly.
+
+(Note that sparc32 LEON SMP is not possible to emulate.)
+
+v5:
+* Collected tags (thanks all! :)
+* Updated 1/12 to correctly set result to SCAN_ALLOC_HUGE_PAGE_FAIL should
+  the page table allocation fail, as per Lance.
+* Updated 1/12 to rename alloc_deposit_pte() to alloc_deposit_pte_table()
+  and dropped the powerpc hash MMU paragraph from the commit message, as
+  per David.
+* Updated 9/12 to use a BH-disabling spinlock rather than an IRQ-safe one,
+  as per Matthew.
+* Updated the subject line of 11/12 to clarify that the patch removes
+  now-unneeded code, as per David.
+* Updated 12/12 documentation as per David, Lance.
+
+v4:
+* Updated the 1st patch to allocate a new page table on PTE deposit rather
+  than deposit a page table that might currently be being walked by an
+  RCU-only page table walker, as per David.
+https://lore.kernel.org/r/20260922-rcu-pagetable-freeing-v4-0-fe1ad1f1e303@kernel.org
+
+v3:
+* Added Kiryl's tag to series (thanks! :)
+* Corrected commit message, comment indentation in 11/12 as per Kiryl.
+* Corrected 12/12 documentation as per Kiryl.
+https://lore.kernel.org/r/20260911-rcu-pagetable-freeing-v3-0-7b8c86103821@kernel.org
+
+v2:
+* Updated commit message to reflect CONFIG_MMU dependency for xtensa as per
+  Suren.
+* Updated 12/12 to correctly describe the new contract re: readers/writes
+  as per Kiryl. Also fixed up typos there as per Kiryl, Suren and slightly
+  reworded for clarity, and updated commit message to reflect.
+* Updated 11/12 to reflect the fact the change is for userland only as per
+  Kiryl, also added a note about write locks similarly to 12/12.
+* Fixed bug as reported by sashiko for the sparc32 change (10/12) - the
+  refcounts are insufficient on their own, so replace the page_table_lock
+  altogether with an IRQ-safe spinlock.
+https://lore.kernel.org/r/20260908-rcu-pagetable-freeing-v2-0-1f60b64e878e@kernel.org
+
+v1:
+https://patch.msgid.link/20260901-rcu-pagetable-freeing-v1-0-5456a81c8212@kernel.org
+
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+---
+Lorenzo Stoakes (ARM) (12):
+      mm/khugepaged: deposit a newly allocated page table on collapse
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for most 2-level architectures
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for MMU riscv
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for MMU arm
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for arc, microblaze, xtensa
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for sparc64
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for m68k-coldfire
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for sh-X2
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for m68k-motorola
+      mm: enable MMU_GATHER_RCU_TABLE_FREE for sparc32
+      mm: userland pgtable freeing is RCU-safe now, remove leftover bits
+      mm: change the contract for free_pgtables(), update docs
+
+ Documentation/mm/process_addrs.rst       |  11 +++
+ arch/Kconfig                             |   8 ---
+ arch/alpha/Kconfig                       |   1 -
+ arch/arc/include/asm/pgalloc.h           |   6 +-
+ arch/arm/Kconfig                         |   1 -
+ arch/arm64/Kconfig                       |   1 -
+ arch/loongarch/Kconfig                   |   1 -
+ arch/m68k/Kconfig                        |   1 +
+ arch/m68k/include/asm/mcf_pgalloc.h      |   5 +-
+ arch/m68k/include/asm/motorola_pgalloc.h |   9 +--
+ arch/m68k/mm/motorola.c                  | 119 ++++++++++++++++++++-----------
+ arch/microblaze/include/asm/pgalloc.h    |   2 +-
+ arch/mips/Kconfig                        |   1 -
+ arch/parisc/Kconfig                      |   1 -
+ arch/powerpc/Kconfig                     |   1 -
+ arch/riscv/Kconfig                       |   1 -
+ arch/s390/Kconfig                        |   1 -
+ arch/sh/Kconfig                          |   1 +
+ arch/sh/include/asm/pgalloc.h            |   6 +-
+ arch/sh/mm/pgtable.c                     |  20 ++++++
+ arch/sparc/Kconfig                       |   4 +-
+ arch/sparc/include/asm/pgalloc_32.h      |   7 +-
+ arch/sparc/include/asm/pgalloc_64.h      |   8 ---
+ arch/sparc/include/asm/tlb_64.h          |   2 -
+ arch/sparc/lib/bitext.c                  |  14 ++--
+ arch/sparc/mm/srmmu.c                    |  32 +++++++--
+ arch/um/Kconfig                          |   1 -
+ arch/x86/Kconfig                         |   1 -
+ arch/xtensa/include/asm/tlb.h            |   2 +-
+ include/asm-generic/tlb.h                |  66 +++--------------
+ mm/Kconfig                               |   2 +-
+ mm/gup.c                                 |   5 +-
+ mm/khugepaged.c                          |  34 ++++++++-
+ mm/mmu_gather.c                          |  30 ++------
+ mm/pgtable-generic.c                     |  15 ++--
+ 35 files changed, 228 insertions(+), 192 deletions(-)
+---
+base-commit: 88297631d4d42f6004cb39c0ba3da7d2d10a616f
+change-id: 20260831-rcu-pagetable-freeing-84b6be830e20
+
+Best regards,
+-- 
+Lorenzo Stoakes (ARM) <ljs@kernel.org>
 
