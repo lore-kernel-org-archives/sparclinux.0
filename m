@@ -1,96 +1,95 @@
-Received: from mail-ed2-f33.google.com (mail-ed2-f33.google.com [74.125.228.97])
+Received: from mail-ed2-f13.google.com (mail-ed2-f13.google.com [74.125.228.77])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA1F437E5E1
-	for <sparclinux@vger.kernel.org>; Sun, 27 Sep 2026 22:44:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D4B43B6C0C
+	for <sparclinux@vger.kernel.org>; Sun, 27 Sep 2026 23:08:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.77
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790549071; cv=pass; b=B13Pwn/2UKat3THUFKwFe2iM+dylyifvGpSTFG7ESIije9ULJJHlRZAQ4Zx3ZfAeL4od/0lhKXINaQ3iziXRlyThDqs1gLdm1MUbrpyXag6CTGu6qPi/17XviMl42BR+bzfKXKvCi9a/PHFGZ4beXYhZ+p+L/JsGGy9IoBDAbis=
+	t=1790550485; cv=pass; b=oUXOTngde8CpE9LDDWjNv8u5U7Y/ZNkw0abrgic1Gt1jAvmx/b836/M3ky1wwB6sLAZomHvgSVl2K868CzB9Ta1iVLCHbQRc5zAYwzwKsQSb6AozxIG21sKArMUuTn1N5Q8p8Gqv8HnwWGkhazhWtOGMF8i+M5LyqhuIMyNh9bk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790549071; c=relaxed/simple;
-	bh=67Ku8tFH0+Ws1D/iHURGK4jc/Djx1tSgxDkwhxzxT3I=;
+	s=arc-20240116; t=1790550485; c=relaxed/simple;
+	bh=CTNDXQo5Ik8pEUNZkcnEchXw8zaYFKTIx91vzZ5s5LI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ScKviyggjhBwosne209FZxPSg7jhmPMJ0Db50Jqdkm8/xeAn/24j4KGDTXH4tDXhmknXBgA2C6m5h7JiWytIJP02egvCb5rSGaL84o+Jjnoh0QHO8AXZIl3D7UzHb24/pkSPpzD9rNIdQruQbeISyBOWs6b9tupkC613VJsUaVA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=idxeZmKr; arc=pass smtp.client-ip=74.125.228.97
+	 To:Cc:Content-Type; b=U2VSFgDz28hWKWm1x7GhGCuJeMMT3KgHA+GPUKCL8UpWSYQbSx8LE52rQNjncVJ5Y/v3y6RskBsH/pGGR2VcTRqB+HCTBd/eQR9/JszQ4RJiypUFION7c6tfRH8wgIy8gD3kfdx67Am8DW2kCM/+D4eA6PB1hpuVPhCVSJn/FBg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EF9Z6Iyf; arc=pass smtp.client-ip=74.125.228.77
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="idxeZmKr"
-Received: by mail-ed2-f33.google.com with SMTP id 4fb4d7f45d1cf-6ab062a08f5so1776181a12.2
-        for <sparclinux@vger.kernel.org>; Sun, 27 Sep 2026 15:44:29 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790549068; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EF9Z6Iyf"
+Received: by mail-ed2-f13.google.com with SMTP id 4fb4d7f45d1cf-6ab0d9260baso1300487a12.0
+        for <sparclinux@vger.kernel.org>; Sun, 27 Sep 2026 16:08:03 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790550482; cv=none;
         d=google.com; s=arc-20260327;
-        b=VzhZ9Yg54Fpf9CvnkMA/S3cm56nbivfHsXfWKle13Aul+O6bbETVaOWtsUrLIBvcsg
-         aY/XwBDEvhJL0CyHtemC/3bjWh3dKlVSblKn0n+5Uv6QBRZrQi9H13ExeLOPcnuLwZ0E
-         HYpkGnnZP5Hnd+5V7naohxiM6W51PagPExiAslMd+cgrBZ3clsNBDEAzPAe03/VuMk6n
-         5eX8UBTXV6WGmx7GPPdZx8qSadj+kAbChFh+RxTxe3khETQSHV6a0fcrBnIttCX2Vd9R
-         /MlibWEtXrsg3xxHuqKOKR2wUBG2mGJHSLTNxlBVlQfV+kLTAKTSeQR5WclikWy4NvNz
-         Q8Dw==
+        b=LA3hDKsEmzhwIKCALC5TLWmohELgP2yH004nACZq/m4F4jF3JxIwmJ1kr/gwfOx2JE
+         NqIP22oZu9Nr5xQ9Lljz7ILn2KUV2Z8mwY+SgXEpRBx1ecayrUtx3oj9MlPgBEgF+YKa
+         wBSjjgqVAsO6h4pZ+3f0AOvu1JTvQ88BONhRP0Whqb/O9/1aMmN+dXlQIZBIAGomWIgm
+         8gbfgNjAUZYdqhQEB+gQE9Dfc5jb5pxF87Y81bcp7D2FVMm4rM7Ml4sQ2Xzlr9gVibMk
+         zrOeLzfpGWXKLJxN3D4Twc5hUzf9E5d4zuu8CUofIIJV+vPeBKs/FzmSWFzs8+W9lK/3
+         TQ2A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=h3+p9C49RjwabMoeKKrN4pwFaIbJPXgpkYJgPdYQgKw=;
-        fh=F8KN/yC6lcZsr63AHHaobONkTWkMqQ8LeQcwVTN5lLI=;
-        b=XiSK1sCdFGnNaqVFtjTZ+NrAgc00vQwxaUPbEaTv0PuG1PxmMsqgWh09VOegJpgjWU
-         mJcedShWuIrNQGiYe/HLaMKtSsJ4g/OrfJJ0Wkjch73KpYdVlm5wSbE6gX/4o+Tmq8Fw
-         hyuQZDXS6XzUzD4Rdz2Sdfnr/M/7JpLvGTjkvv5LddIJ32SxUEMg1mqeWsf6aeAbGKIv
-         umucmiIXnQIjVvp++CqSzy6yLriowqKNImd5YkH9Do9BInHeI4URML2t0qR8IWU6GwOD
-         tWXKM2kzJ5zWza19bOO2zmw/e3VO6Vyv0ue9UZ1fKSMBUQmZLzY5r4qFBbQ+yogzcbLo
-         FHcQ==;
+        bh=JG/tCdTlMmUy1VQCk4CZdBjuAkjHwjba+Uca0dFauBE=;
+        fh=x/67giKaN3aKu9ysUv2OKPJVkqLPx76eYVxSJtBmRc4=;
+        b=kJpqg3m28Z82Q7vpfAM7Xd46+726EmEvzqeW8HCX0LE/NVltOwZz21d/pkr+Q18KVX
+         D/o2jh8MUBtpoJe7v9Tt/DYx58VCAfz5a9ZUuAr3/NUJ29D/IHbgoInU6zI92TnPkD1k
+         6KErJ/1CNXx/gclcIDV6EJ2R0fuxeGYQC/Jx34HzpkQIGsSt4u2IoKAP9WQ0Tr8nCISj
+         xvnmwpw6xJ2rirE+HS1wNoMMEN2vOh5Y0Pn8kFgKikNxHdy+dQrHsaqqC5KOlEXUgX7d
+         DyNICtIzcrELaeTXQ2pL++WVDAE122oW8giKfiaRkJf56ARVcwPIgyXHRs2oA7dunFUy
+         Kx0w==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790549068; x=1791153868; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790550482; x=1791155282; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=h3+p9C49RjwabMoeKKrN4pwFaIbJPXgpkYJgPdYQgKw=;
-        b=idxeZmKrIuYKrd/YfxWT/URZFew2m6CV9Ae1fBK3rIb4TBy60O45Wt7MP3Rba5Et8h
-         EHXII1gaCEXGLF+rTKLe4YWW/3tVI23rK8ss/nL6IcCichX6kkgvCupdYYM0Lo2hTbZQ
-         f0U79XjYcNsAJEvVx+O2lJggX9CGh6wNdQAQNGwsNA6J3LAujcLeSLQ2lQIobRK+25Ew
-         sXepR1I4DIeQw5FbGgu/a1qTECPSkgDLSVgBVCy/HAvMOezvRP6KCzD1p6Urw3Dxd5Ap
-         UxBXf9+4Srb8VHQ5Z0EjaEb39BLal2BDXByZD82Njnh0Al0JT31a+ZmPeTK+VnlWIOXv
-         bMXw==
+        bh=JG/tCdTlMmUy1VQCk4CZdBjuAkjHwjba+Uca0dFauBE=;
+        b=EF9Z6Iyfy2P/6Loz3rpDWJeRmPhCmWYfpFDgQlsKyJjetf7T9rR6YNb2VmsOWbMAhy
+         xRGdj1qLEFC7pfzbSXPdSzK0mwYl3eU9R7UDNgDSX/6FVLoqtMhlPFLh8V2HHM7IWRig
+         AssMM5DxalH+MY5/e7uZIl44Wj1bJYxtlVnQZttXSJvK8vYiUINXGQ0iKXp2XxPHb2zL
+         ANMMkv7euaPBZtjWSCaZeHKVPUHM9oF4voyNYNpX+OBVbLwRnMPOw1GhYZBgCAxC2ZUM
+         4+Gx9iR3pkekQmVn1bT86x+h1JTgQN+R3NRAYVJqlWDz8kstBQcA5+XfjOjuc11sZKSo
+         YZRw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790549068; x=1791153868;
+        d=1e100.net; s=20260707; t=1790550482; x=1791155282;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=h3+p9C49RjwabMoeKKrN4pwFaIbJPXgpkYJgPdYQgKw=;
-        b=Yk1fAwST3bbT5jXynh4AMZGb0FUJ6UIqypJcnWkGTnFZ6TlxD556fsn8EvLXQrxv86
-         7l3j4s89AGt0hblx9uLCf0odpgFQ+BqDSAa9+cf9Z8c94cIz6Kv9n8z9Qkrcq5sQGsbv
-         RG7ULmJBkt5sTG09osVyA9HQ5rE7WQcME7NWZOEoMvb/Qw32+d2tQAXr/h2YYV+ef7gB
-         nLU0+uuCAAyJczx8USzlYbRk2izdpvtNtmXsPVb4QUAMo7ALJiVbBS08C/vg/P0nBnAr
-         G7zgS/p7jWoAbKqhP2H0BbKVzFOoRBxPP7J39/ha3sYXMxbPKSf9zfYBaPkYE2sV0I1I
-         8Eyw==
-X-Forwarded-Encrypted: i=1; AKwUvByc5S7aIRTlOD3ADpxSAyhs7qhOP+8rvV+TgnVv8I6TkKN7Dtxawj8NyRcU75NeQ4t2xb/0zVYuO0zk@vger.kernel.org
-X-Gm-Message-State: AFq9FYJlRyLqgQiJ4mnSa1eYRhn6x0ZIPZ/XZwIbr1oqjL80CLKUqzdM
-	F14wFsdL+0yQZrPXxwY2sxd9dibCE700KAFw3NxpW7z9d/37zFKn9Q3kgFjzJFXBaF8Sgo+waw3
-	ERepWCebM8qUu613I+Zl4hi8/uOboowA=
-X-Gm-Gg: AYBFou32lhCYYuZBXQ8XmATWqeHwIsdLGowbKY0zNz5GpuHoWQFj/Qm/A5G75biyY8B
-	yO4DS1jotCJJAMMyBD66Yixj8mCjc8fkP4SIpHoLfwZp4YuSZ7bjpwS1Ga9IDOjjbANfQXkRP5x
-	0KxWzflI6aTJ370b6JrQrvTyIUEAh0IcDB5G3mB8+QUEDDVv8nGgFRla1Tr45//ewOGj+LLxNkU
-	UAePJ6g1QxQ6alub05REv2RgT+cu5ukN6kMEkNudaujxkgO5XCNRlGpLPCTEsCUITjs3C7iD1MZ
-	qa0ETUY5zxMdd6z79rG07EAPITk6iar2S5iURD90xITHQW8jSCv6p2UNIFg9usZ2Y17dhnfRzD2
-	VrvkAT2heSqgSacDjrMLg2N73b+Dqy1TEv73rdMRJ1Q==
-X-Received: by 2002:a05:6402:3604:b0:6aa:f630:f83b with SMTP id
- 4fb4d7f45d1cf-6aaf63104edmr4907482a12.34.1790549067897; Sun, 27 Sep 2026
- 15:44:27 -0700 (PDT)
+        bh=JG/tCdTlMmUy1VQCk4CZdBjuAkjHwjba+Uca0dFauBE=;
+        b=mtFjsn9sJjP7VABeRw9pzmNKfXWZtbn+rmU8mrW7SHZQgJQc+nrqR3kuz2E0u6YCrl
+         VTSXHmmGyAEadrdIb/HdZTZrWnZXpcnEvzbM8spxxk4rqeaSSDZOPfN72VM59CzgXouW
+         4RBA9/0tnD/Nn6NZPupHhL2d5NektUTmMEt4qIAS6le6q08SWC+7zeeDUlPKHVKS7M0k
+         2TedTXyWoWd7a7NyM6z+Lf7I/3/WXT+gU/VR2p4OzCitXqk5KWVZyx27jOeh8b2kLeYS
+         l/KgiDIG9LeB3oxoQmOILCEiXSRpp5gylhNJqkXODHdbKZI3EgxTUrssJpjGCSTi8aFC
+         mS5w==
+X-Forwarded-Encrypted: i=1; AKwUvBxnKc4v94kNfGGEsDdjHaV4UGkX2Osi9zsxU60xYsYOSvcO+kM7g12DL6UZEFer98CaxPigOHtbFIYf@vger.kernel.org
+X-Gm-Message-State: AFq9FYImVMhv1oA1k/X9RmXADYPVPctANjaYH1Larh7srhh87fhtaeU6
+	Fz2FNq4DKbxE86fPLArjqRnF9lP7afYAMfb5m2X6STY95agV6pGus7YgQLzuKqLF25qX4ViwI+v
+	2MsiF78U1Oy913AgmX8eZMQ6WBqg4tOdp4Ljv
+X-Gm-Gg: AYBFou2YsDZnxLTR4Qf2ZQHPSeW9i6bXuIdIOV7zlKjOm/ns/B+erJlu3qkQy7nFcKk
+	Nbp5Y6x0QJoVsOh0LBYWnNTKvcedKjFIO4xa9cRoyKCIxeWD0RbYLubCdO5gTi3R+T/WUKTgfux
+	XSmcSYC8J5bKBcoNGmaP6VNHjIn4l3l6SgzwFwzSVFmblJhcNdI4RLr8ICTrd7znDV//UMT5HK3
+	0yXJ3N+YcKZOPJ7NHwjdiUcXzaa86/sH6rkN6TVVB4RuaKAYorL5wY1HYe65GLV+dKgHF1CjVr+
+	gRPHijHPfIyFIn2mnlT2N+y4vIOc5A7qpfUk0Bn9bZoTjs85wmUHGrFEd7EPY7bTAmO7QBLLCHu
+	2gH4987J4unigPu3xeXISTva5DUFb5tDctnmc/Xf5SQ==
+X-Received: by 2002:a05:6402:208d:10b0:6aa:9fef:641c with SMTP id
+ 4fb4d7f45d1cf-6aac8f5b1d1mr7218826a12.28.1790550481746; Sun, 27 Sep 2026
+ 16:08:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260927005726.8274-1-kaloz@kernel.org>
-In-Reply-To: <20260927005726.8274-1-kaloz@kernel.org>
+References: <20260927005801.8338-1-kaloz@kernel.org>
+In-Reply-To: <20260927005801.8338-1-kaloz@kernel.org>
 From: Magnus Lindholm <linmag7@gmail.com>
-Date: Mon, 28 Sep 2026 00:44:16 +0200
-X-Gm-Features: AclHuK_ocZcXs9sywIUtTayi9j3iPPsLoAkkR2Bcc_gGJtZsVc-FFNs2BXG8wLA
-Message-ID: <CA+=Fv5SRtS=dZQP_773p+zdgRYYOwWJpBBNcs36fCmNhwOQHvw@mail.gmail.com>
-Subject: Re: [PATCH] sparc32: order sun4m and sun4d cross-call flag resets
- before sending the IPI
+Date: Mon, 28 Sep 2026 01:07:50 +0200
+X-Gm-Features: AclHuK9wHFvF9AvbW3RHi3XsF87LZ25o8TZ7kIUlgFBipgElEQ_7njdLdEtPwZ0
+Message-ID: <CA+=Fv5SEwB2b2On=2kEWq2hWMKVauDZ7wqa6+6xPD5nmBgGASw@mail.gmail.com>
+Subject: Re: [PATCH] sparc32: don't clear the nocache pool through the PROM mappings
 To: Imre Kaloz <kaloz@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
 	"David S. Miller" <davem@davemloft.net>, stable@vger.kernel.org
@@ -99,109 +98,93 @@ Content-Transfer-Encoding: quoted-printable
 
 Hi Imre,
 
-On Sun, Sep 27, 2026 at 2:58=E2=80=AFAM Imre Kaloz <kaloz@kernel.org> wrote=
+On Sun, Sep 27, 2026 at 2:59=E2=80=AFAM Imre Kaloz <kaloz@kernel.org> wrote=
 :
 >
-> sun4m_cross_call() and sun4d_cross_call() clear processors_in[]/
-> processors_out[] for each target and then raise the cross-call
-> interrupt. sun4m sends it through sbus_writel(), a volatile C store,
-> which orders it only against other volatile accesses; sun4d sends it
-> through cc_set_igen(), an asm volatile with no "memory" clobber.
-> ccall_info is not volatile, so in both paths the compiler may sink the
-> two resets below the send; gcc 14 does it for sun4m. A target that
-> takes the interrupt and runs smp4m_cross_call_irq() or
-> smp4d_cross_call_irq() before the resets land has its flags cleared
-> behind it, and the sender spins forever on processors_in[] with
-> cross_call_lock held.
+> srmmu_nocache_init() runs before the switch to srmmu_swapper_pg_dir, so
+> lowmem is still reached through the PROM mappings the head code inherits
+> for KERNBASE, which end at 10MB on a SPARCstation 20. The pool, up to
+> 5MB and allocated right above the kernel, was cleared there twice, by
+> memblock_alloc() and by the memset(). Once the kernel image ends above
+> 5MB the clear runs past the PROM's window, faults, and the boot CPU
+> enters error mode.
 >
-> Add a wmb() before sending the IPI in both cross-call paths.
+> Every user of the pool clears what it allocates, so allocate the pool
+> with memblock_alloc_raw(), after the bitmap so the bitmap lands below it.
 >
-> sun4m has raised the IPI inline since the commit below; before it,
-> set_cpu_int() was an out-of-line call. sun4d has had the same gap since
-> 2.1.97.
+> This has been broken since 2.4.0-test2pre2.
 >
-> Fixes: 4ba22b16bbf3 ("sparc32: move smp ipi to method ops")
 > Cc: stable@vger.kernel.org
 > Signed-off-by: Imre Kaloz <kaloz@kernel.org>
-> ---
->
 
-You have gcc 14 sinking them for sun4m; the other end of the range, for the
-record: gcc 9.5.0 (crosstool-NG, sparc-linux-gnu) does not. Adding your wmb=
-()
-at exactly this spot leaves sun4m_smp.o byte-identical, and wmb() is barrie=
-r()
-on sparc32, so that compiler was already keeping the resets ahead of the se=
-nd.
 
-Might be worth a line in the changelog for the stable side: older toolchain=
-s
-build correct code today and the patch is a no-op for them. Still obviously
-right to add the barrier.
+Very nice work, this makes a lot of sense.
+
+For the record, an unpatched kernel
+(carrying only the patch series needed to boot:)
+https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.c=
+om/T/#t
+
+boots fine here: SS-20, PROM 2.25R, 512MB, 6MB kernel image, nocache
+pool at its 1280-page cap. So the PROM window is not always small enough fo=
+r
+this to bite. Happy to dig into what this machine actually maps and report =
+back.
 
 Magnus
 
+
+> ---
+>
 > Notes:
->     - gcc 14 moves the resets past the send in sun4m_cross_call() and
->       keeps them ahead of it in sun4d_cross_call(); the barrier is missin=
-g
->       in both.
->     - leon_cross_call() needs no change: leon_store_reg() already carries
->       a "memory" clobber.
+>     No Fixes: tag: this has been broken since 2.4.0-test2pre2, before the
+>     git history.
 >
->  arch/sparc/kernel/sun4d_smp.c | 6 ++++++
->  arch/sparc/kernel/sun4m_smp.c | 6 ++++++
->  2 files changed, 12 insertions(+)
+>  arch/sparc/mm/srmmu.c | 17 +++++++++++++----
+>  1 file changed, 13 insertions(+), 4 deletions(-)
 >
-> diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.=
-c
-> index 9a62a5cf3337..11ce613e2682 100644
-> --- a/arch/sparc/kernel/sun4d_smp.c
-> +++ b/arch/sparc/kernel/sun4d_smp.c
-> @@ -321,6 +321,12 @@ static void sun4d_cross_call(void *func, cpumask_t m=
-ask, unsigned long arg1,
->                                 if (cpumask_test_cpu(i, &mask)) {
->                                         ccall_info.processors_in[i] =3D 0=
-;
->                                         ccall_info.processors_out[i] =3D =
-0;
-> +                                       /*
-> +                                        * The target may run the handler=
- as soon
-> +                                        * as the IPI lands, so the reset=
-s must be
-> +                                        * visible before it is sent.
-> +                                        */
-> +                                       wmb();
->                                         sun4d_send_ipi(i, IRQ_CROSS_CALL)=
-;
->                                 }
->                         }
-> diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.=
-c
-> index 056df034e79e..6ee65c05d089 100644
-> --- a/arch/sparc/kernel/sun4m_smp.c
-> +++ b/arch/sparc/kernel/sun4m_smp.c
-> @@ -197,6 +197,12 @@ static void sun4m_cross_call(void *func, cpumask_t m=
-ask, unsigned long arg1,
->                                 if (cpumask_test_cpu(i, &mask)) {
->                                         ccall_info.processors_in[i] =3D 0=
-;
->                                         ccall_info.processors_out[i] =3D =
-0;
-> +                                       /*
-> +                                        * The target may run the handler=
- as soon
-> +                                        * as the IPI lands, so the reset=
-s must be
-> +                                        * visible before it is sent.
-> +                                        */
-> +                                       wmb();
->                                         sun4m_send_ipi(i, IRQ_CROSS_CALL)=
-;
->                                 } else {
->                                         ccall_info.processors_in[i] =3D 1=
-;
+> diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+> index 9a74902ad181..16d5cde4f949 100644
+> --- a/arch/sparc/mm/srmmu.c
+> +++ b/arch/sparc/mm/srmmu.c
+> @@ -277,15 +277,24 @@ static void __init srmmu_nocache_init(void)
+>
+>         bitmap_bits =3D srmmu_nocache_size >> SRMMU_NOCACHE_BITMAP_SHIFT;
+>
+> -       srmmu_nocache_pool =3D memblock_alloc_or_panic(srmmu_nocache_size=
+,
+> -                                           SRMMU_NOCACHE_ALIGN_MAX);
+> -       memset(srmmu_nocache_pool, 0, srmmu_nocache_size);
+> -
+>         srmmu_nocache_bitmap =3D
+>                 memblock_alloc_or_panic(BITS_TO_LONGS(bitmap_bits) * size=
+of(long),
+>                                SMP_CACHE_BYTES);
+>         bit_map_init(&srmmu_nocache_map, srmmu_nocache_bitmap, bitmap_bit=
+s);
+>
+> +       /*
+> +        * Until the switch to srmmu_swapper_pg_dir, lowmem is only reach=
+able
+> +        * through the PROM's mappings, which may end below the top of th=
+e pool
+> +        * (at 10MB on the SPARCstation 20). Allocate the pool after the =
+bitmap
+> +        * so the bitmap stays below it, and leave it uncleared: every us=
+er of
+> +        * the pool clears what it allocates.
+> +        */
+> +       srmmu_nocache_pool =3D memblock_alloc_raw(srmmu_nocache_size,
+> +                                               SRMMU_NOCACHE_ALIGN_MAX);
+> +       if (!srmmu_nocache_pool)
+> +               panic("%s: Failed to allocate %lu bytes\n", __func__,
+> +                     srmmu_nocache_size);
+> +
+>         srmmu_swapper_pg_dir =3D __srmmu_get_nocache(SRMMU_PGD_TABLE_SIZE=
+, SRMMU_PGD_TABLE_SIZE);
+>         memset(__nocache_fix(srmmu_swapper_pg_dir), 0, SRMMU_PGD_TABLE_SI=
+ZE);
+>         init_mm.pgd =3D srmmu_swapper_pg_dir;
 >
 > base-commit: 62f4c998b297cf233997a2b4cd6fc2d2df0319c9
 > --
