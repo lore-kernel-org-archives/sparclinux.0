@@ -1,38 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C9EC846A;
-	Sun, 27 Sep 2026 00:59:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68B91846A;
+	Sun, 27 Sep 2026 00:59:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790470745; cv=none; b=WNBmdZri5GGZGNVEZYY3BedgihFdiqrO8H6ApTRibDMqiSD4qOaAYK+cZIxVmVqqrVy596SlHUNTNF4zcFHvc1CS9IuT93mveQ6JUDSIT2cT6ssHLwaPyp9dTdbqPshYkXrTHCFkr+v8nktrYbRwIL5BHj5db1Vgt+qmrctNIFE=
+	t=1790470765; cv=none; b=NzrFrRvsw9jDVxaw6Sm2tsO2NUvKACI8FqoK0T/63PXoSdRSDAjlLFq4WII5OqV1gIUGbRUXB50Kn7PIUhIkz8ro+Wpk2ztSq8YnCCDyOqJZ42ZGSYMttzcOa96E8UpT7yszFJslzvAaIsq0YMKui79vGEUd0WenRZgQJ+8rhL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790470745; c=relaxed/simple;
-	bh=FSzSI/8G+fkh3A5CkDGLOk1a/eYwWj6oCNoq6cMW60g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=T3u7ft3RQMA0vV19Mj9T1fEmacWQWwXzBy9zqA6LMCzpOC7q9mWJTuIYWqMx+cMDuP1J590x2HBXnECfwi4OsQAMwhPWprKE4Nq34iTOHy+9QLhZBiwj9YX9wmgBvl30f+KyyRcq2e4d4A+KTXlVGAYtHTup6msU1TbkUhHM8tk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ccMvoFwh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790470765; c=relaxed/simple;
+	bh=TNkkdx5WKpm1iiVunVLTQRGySFBqJJM3BXMNlXkdfwE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UMslB843eq/kVV+QkYMxb3gRByVhum8SmXJOXHvhQ4MhuYccccPWhl788y4WRIQFX9L7Z3UqgeY39Qtoy0GQmilejcHvAcmT7sGAZlYbe3BBv7JTxZhhj/zeiEXUDqieG6p+eghg8c72/eltYfBqNIPAjAKk5jvYbM03epon+F8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HJQMQStK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ccMvoFwh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0437F1F000FF;
-	Sun, 27 Sep 2026 00:59:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HJQMQStK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E791F000FF;
+	Sun, 27 Sep 2026 00:59:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790470744;
-	bh=MufkwV0SkWemfP9jT9XKRhDU173yXKeUnbqChB4aUTI=;
+	s=k20260515; t=1790470764;
+	bh=3qEmvdddpg65f5B3VA6Yfjblf35thlprZZm6e9R8o5s=;
 	h=From:To:Cc:Subject:Date;
-	b=ccMvoFwhNLQBRKNtieKB5ur71c+UIEXQmSo9K5+kn8vtmCR+OzUgMBVrDcM4JF56B
-	 BxjZjGCeTllYN6i1Av+u8EoYqT95UwMhz9EZlGhdm+nZFFFOB+jfQuqWbmeUcne/O9
-	 LZjlEeKZYBJ6x0pSYk7gixtf7x9PAUr5OnefKCPy9tE2CKiiXR4JCPTaCK28cuXM7r
-	 lNDjhaj6ig0dHp0J4zsmRkT6K/ZqwAT/gBaQIpXlI9uRhxO0yb6D0X/1xK22DXbB+C
-	 E8j87gbTgUdX6odxk8SyCE48g5rrBL+v1IXjimRJy9mi6PcXLZ/7BZuLUVlfOASdBg
-	 7TIUau7vVdtTQ==
+	b=HJQMQStK58QjSBOA87GkSy55GM9idmGRBUCDTxYQ5muxXVV0HVGvhbgmrS4ODu22P
+	 Je4/Bmngn3eIrTfQCsWNp1AABpvMktsrpaCunxUU8aayWDfRd0RKn24OjErwyg7sg2
+	 AgPy6uBlr9CWJs1MZ61h4ux3XvV2q/IvZE5Lz4aJKNBoFu+RV9SbCWkteWAG0wU8lu
+	 8hVqnO/srLO2MZWZRJDjkaw8WhIjPt6mbzynf/VZDM9dYAUzA2Om+/B1yWFXYU24gp
+	 HfoYfnnJc//l+N0njCM239A835B7U07ceVH1doHaHl71TaIiAK9wr4B8vuKmt3thsb
+	 vmKi7FKQ81yNA==
 From: Imre Kaloz <kaloz@kernel.org>
 To: Andreas Larsson <andreas@gaisler.com>,
 	sparclinux@vger.kernel.org
 Cc: "David S. Miller" <davem@davemloft.net>,
-	stable@vger.kernel.org
-Subject: [PATCH] sparc32: don't clear the nocache pool through the PROM mappings
-Date: Sun, 27 Sep 2026 02:58:01 +0200
-Message-ID: <20260927005801.8338-1-kaloz@kernel.org>
+	linux-kernel@vger.kernel.org,
+	Magnus Lindholm <linmag7@gmail.com>
+Subject: [PATCH 0/3] sparc32: SMP futexes, casa and idiv emulation
+Date: Sun, 27 Sep 2026 02:58:18 +0200
+Message-ID: <20260927005821.8369-1-kaloz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -42,63 +43,91 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-srmmu_nocache_init() runs before the switch to srmmu_swapper_pg_dir, so
-lowmem is still reached through the PROM mappings the head code inherits
-for KERNBASE, which end at 10MB on a SPARCstation 20. The pool, up to
-5MB and allocated right above the kernel, was cleared there twice, by
-memblock_alloc() and by the memset(). Once the kernel image ends above
-5MB the clear runs past the PROM's window, faults, and the boot CPU
-enters error mode.
+sun4m has no compare-and-swap instruction and casa is optional on
+LEON, so SMP sparc32 has had no futexes, and user code on those CPUs
+has no CAS to build locks from.
 
-Every user of the pool clears what it allocates, so allocate the pool
-with memblock_alloc_raw(), after the bitmap so the bitmap lands below it.
+Patch 1 implements the futex atomic ops in atomic32.c and drops the
+!(SPARC32 && SMP) dependency of FUTEX. A LEON part that implements
+casa, found by a boot-time probe, runs casa on the user word; other
+CPUs take the __atomic_hash spinlocks.
 
-This has been broken since 2.4.0-test2pre2.
+Patch 2 completes user casa from illegal_instruction on CPUs without
+it, through patch 1's futex_atomic_cmpxchg_inatomic(), so emulated
+casa and the futex ops serialize on the same lock. It is atomic
+against itself and against the futex ops, not against a plain store
+to the same word, so a C library using it has to do its atomic stores
+with casa too.
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Imre Kaloz <kaloz@kernel.org>
----
+Patch 3 completes udiv, sdiv and their -cc forms from the same
+do_illegal_instruction() dispatch: SuperSPARC and SuperSPARC-II trap
+those when the {Y, rs1} dividend has significant bits above bit 51,
+which gcc -mcpu=v8 output, including libgcc's __udivdi3, can produce.
+It shares patch 2's windowed-operand helpers and the dispatch block,
+which is why it comes last.
 
-Notes:
-    No Fixes: tag: this has been broken since 2.4.0-test2pre2, before the
-    git history.
+Patch 1 comes first because patch 2 is built on it. On its own it
+races nothing: without patch 2, user casa on these CPUs is SIGILL.
 
- arch/sparc/mm/srmmu.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+Magnus Lindholm has an independent RFC covering the same ground from
+a different ABI: "[RFC PATCH 0/5] sparc32: kernel assisted
+compare-and-swap, and futex on SMP" (patchwork sparclinux, Message-Id
+20260923201830.865553-1-linmag7@gmail.com), with a companion glibc
+series (patchwork glibc, Message-Id
+20260924064228.867909-1-linmag7@gmail.com). That RFC adds a new
+software trap, ta 0x11 (trap type 0x91), extending David Miller's
+2016 CAS-trap prototype at ta 0x23 rather than completing it, so
+userspace has to be rebuilt to call it. This series instead
+completes the casa opcode itself, so a binary already emitting casa
+(gcc -mcpu=leon3 or -mcpu=v9 output, or a C library that encodes it
+as a .word) runs unmodified on a CPU without hardware casa, with no
+new trap number and no libc rebuild. Happy to share the futex and
+do_illegal_instruction() plumbing with whichever ABI lands.
 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 9a74902ad181..16d5cde4f949 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -277,15 +277,24 @@ static void __init srmmu_nocache_init(void)
- 
- 	bitmap_bits = srmmu_nocache_size >> SRMMU_NOCACHE_BITMAP_SHIFT;
- 
--	srmmu_nocache_pool = memblock_alloc_or_panic(srmmu_nocache_size,
--					    SRMMU_NOCACHE_ALIGN_MAX);
--	memset(srmmu_nocache_pool, 0, srmmu_nocache_size);
--
- 	srmmu_nocache_bitmap =
- 		memblock_alloc_or_panic(BITS_TO_LONGS(bitmap_bits) * sizeof(long),
- 			       SMP_CACHE_BYTES);
- 	bit_map_init(&srmmu_nocache_map, srmmu_nocache_bitmap, bitmap_bits);
- 
-+	/*
-+	 * Until the switch to srmmu_swapper_pg_dir, lowmem is only reachable
-+	 * through the PROM's mappings, which may end below the top of the pool
-+	 * (at 10MB on the SPARCstation 20). Allocate the pool after the bitmap
-+	 * so the bitmap stays below it, and leave it uncleared: every user of
-+	 * the pool clears what it allocates.
-+	 */
-+	srmmu_nocache_pool = memblock_alloc_raw(srmmu_nocache_size,
-+						SRMMU_NOCACHE_ALIGN_MAX);
-+	if (!srmmu_nocache_pool)
-+		panic("%s: Failed to allocate %lu bytes\n", __func__,
-+		      srmmu_nocache_size);
-+
- 	srmmu_swapper_pg_dir = __srmmu_get_nocache(SRMMU_PGD_TABLE_SIZE, SRMMU_PGD_TABLE_SIZE);
- 	memset(__nocache_fix(srmmu_swapper_pg_dir), 0, SRMMU_PGD_TABLE_SIZE);
- 	init_mm.pgd = srmmu_swapper_pg_dir;
+Andreas: do LEON3FT parts want the GRLIB-TN-0010/0011 "nop; .balignl
+16" alignment before the casa word here, or is the plain encoding as
+posted fine for them?
+
+Notes, not for the log:
+
+- checkpatch on patch 1: "Lines should not end with a '('" is the
+  __asm__ __volatile__( idiom of uaccess_32.h; the -ENOSYS warning is
+  the futex API's return for an unknown op, as on every architecture.
+  "does MAINTAINERS need updating?" on patches 2 and 3 is covered by
+  the F: arch/sparc/ entry.
+- On qemu's SS-20 with two SuperSPARCs and the casa emulation alone,
+  futex() returns ENOSYS and musl's mutex, PI mutex and robust mutex
+  tests fail. With patches 1 and 2 they pass, as does a PI lock
+  contended between user casa and FUTEX_LOCK_PI/FUTEX_UNLOCK_PI on
+  both CPUs.
+- The casa branch of the futex ops has not run on LEON hardware. The
+  probe runs on LEON only; its fixup path, which a LEON without casa
+  takes, has run only in a test kernel that forced the probe on
+  qemu's SS-20.
+- The divide emulation has run on no CPU that traps it. No sparc32
+  model in qemu raises the trap, and no SuperSPARC or SuperSPARC-II
+  was available for this series; it is exercised only by build and
+  link.
+
+Imre Kaloz (3):
+  sparc32: support futexes on SMP
+  sparc32: emulate casa on V8 CPUs
+  sparc32: emulate integer divide taken as illegal_instruction
+
+ arch/sparc/include/asm/futex_32.h |   6 +-
+ arch/sparc/kernel/Makefile        |   2 +
+ arch/sparc/kernel/cas_emu_32.c    | 117 +++++++++++++++++++++++++++
+ arch/sparc/kernel/div_emu_32.c    | 127 ++++++++++++++++++++++++++++++
+ arch/sparc/kernel/entry.h         |   2 +
+ arch/sparc/kernel/traps_32.c      |  23 +++++-
+ arch/sparc/kernel/unimp_32.h      |  71 +++++++++++++++++
+ arch/sparc/lib/atomic32.c         | 122 ++++++++++++++++++++++++++++
+ init/Kconfig                      |   1 -
+ 9 files changed, 468 insertions(+), 3 deletions(-)
+ create mode 100644 arch/sparc/kernel/cas_emu_32.c
+ create mode 100644 arch/sparc/kernel/div_emu_32.c
+ create mode 100644 arch/sparc/kernel/unimp_32.h
+
 
 base-commit: 62f4c998b297cf233997a2b4cd6fc2d2df0319c9
 -- 
