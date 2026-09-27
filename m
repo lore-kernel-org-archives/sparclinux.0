@@ -1,40 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68B91846A;
-	Sun, 27 Sep 2026 00:59:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2836D299929;
+	Sun, 27 Sep 2026 00:59:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790470765; cv=none; b=NzrFrRvsw9jDVxaw6Sm2tsO2NUvKACI8FqoK0T/63PXoSdRSDAjlLFq4WII5OqV1gIUGbRUXB50Kn7PIUhIkz8ro+Wpk2ztSq8YnCCDyOqJZ42ZGSYMttzcOa96E8UpT7yszFJslzvAaIsq0YMKui79vGEUd0WenRZgQJ+8rhL4=
+	t=1790470767; cv=none; b=X/4ty6pc+xQ815SOQ9/PvUHDzo/ku9iy05q40FBmUkpCJzi+AdA6j+TRAdN4j/OUG9fIBkZtNZfwdQHKI+2h3AJRU90+Tb+EuOku4f86lPn3CsV8raQ353ECGL9KSV5POFq46v2Q9driQ1RjgaC4Ge64eYHqY8fUNangr8ur9JE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790470765; c=relaxed/simple;
-	bh=TNkkdx5WKpm1iiVunVLTQRGySFBqJJM3BXMNlXkdfwE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UMslB843eq/kVV+QkYMxb3gRByVhum8SmXJOXHvhQ4MhuYccccPWhl788y4WRIQFX9L7Z3UqgeY39Qtoy0GQmilejcHvAcmT7sGAZlYbe3BBv7JTxZhhj/zeiEXUDqieG6p+eghg8c72/eltYfBqNIPAjAKk5jvYbM03epon+F8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HJQMQStK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790470767; c=relaxed/simple;
+	bh=aNDhxoHomqUQlzyj18kZHSlLKwyQfCpC3CLSzM1P5ic=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=NNJ4/Ch7t2smW+CXf0CeoFuYKdPGy2Y74/dl6MRFpw/GgnioI0NBY/it6pLxXkPMN8BLLxP+VkoBeGSHrlNAfMEFfhVVlg26/5JR5XxJIv2tM3sr8hOqth7N/9/2Iyw33p3rRufY5K3BIAg8wjRJoRdP63BX8dY587zuc8VbN4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lCoC7C8f; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HJQMQStK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E791F000FF;
-	Sun, 27 Sep 2026 00:59:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lCoC7C8f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 757FE1F00893;
+	Sun, 27 Sep 2026 00:59:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790470764;
-	bh=3qEmvdddpg65f5B3VA6Yfjblf35thlprZZm6e9R8o5s=;
-	h=From:To:Cc:Subject:Date;
-	b=HJQMQStK58QjSBOA87GkSy55GM9idmGRBUCDTxYQ5muxXVV0HVGvhbgmrS4ODu22P
-	 Je4/Bmngn3eIrTfQCsWNp1AABpvMktsrpaCunxUU8aayWDfRd0RKn24OjErwyg7sg2
-	 AgPy6uBlr9CWJs1MZ61h4ux3XvV2q/IvZE5Lz4aJKNBoFu+RV9SbCWkteWAG0wU8lu
-	 8hVqnO/srLO2MZWZRJDjkaw8WhIjPt6mbzynf/VZDM9dYAUzA2Om+/B1yWFXYU24gp
-	 HfoYfnnJc//l+N0njCM239A835B7U07ceVH1doHaHl71TaIiAK9wr4B8vuKmt3thsb
-	 vmKi7FKQ81yNA==
+	s=k20260515; t=1790470765;
+	bh=wjVbXeOox9D4U8TChVgCNfuB6AebwcGSxhEp8VBms4Y=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=lCoC7C8fZay3syzFr4AeWsT2Q6cxgXZqQj8FoymQewZ/cJXbeW8WFfeeSHaTpyZFJ
+	 Utum9YiTHLnhqnznMmqrakyGJhKMjCE33n+LeT9rlQHHU2KqfWmPCohNvxQwPokQOd
+	 Kn5GKJfa01tNIqcMsqKQpg3Udj9mYOHUzdVGQ2tnlpGeAnB0gDuIX8c4REpWHwmmfE
+	 5v6rHLt575n/u9/FEO5nv0xDZmyCU8fpKZiizSxtW8804q//E08phMEAog5CLC9gtT
+	 WeSd7ks7HuP4lymvqHo75FFwFpSCFTUYGXCBc8/2dsPWUM1EEfVoxWVfk63Z3T2+NE
+	 PVUREznISxAWw==
 From: Imre Kaloz <kaloz@kernel.org>
 To: Andreas Larsson <andreas@gaisler.com>,
 	sparclinux@vger.kernel.org
 Cc: "David S. Miller" <davem@davemloft.net>,
 	linux-kernel@vger.kernel.org,
 	Magnus Lindholm <linmag7@gmail.com>
-Subject: [PATCH 0/3] sparc32: SMP futexes, casa and idiv emulation
-Date: Sun, 27 Sep 2026 02:58:18 +0200
-Message-ID: <20260927005821.8369-1-kaloz@kernel.org>
+Subject: [PATCH 1/3] sparc32: support futexes on SMP
+Date: Sun, 27 Sep 2026 02:58:19 +0200
+Message-ID: <20260927005821.8369-2-kaloz@kernel.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260927005821.8369-1-kaloz@kernel.org>
+References: <20260927005821.8369-1-kaloz@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -43,93 +46,226 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-sun4m has no compare-and-swap instruction and casa is optional on
-LEON, so SMP sparc32 has had no futexes, and user code on those CPUs
-has no CAS to build locks from.
+asm-generic/futex.h provides the futex atomic ops for UP only, so FUTEX
+has depended on !(SPARC32 && SMP).
 
-Patch 1 implements the futex atomic ops in atomic32.c and drops the
-!(SPARC32 && SMP) dependency of FUTEX. A LEON part that implements
-casa, found by a boot-time probe, runs casa on the user word; other
-CPUs take the __atomic_hash spinlocks.
+Implement them in atomic32.c for both. LEON parts that implement casa
+run it on the user word, as user code updates the word with casa there
+and takes no kernel lock. Other CPUs have no compare-and-swap; the ops
+serialize on __atomic_hash, which lets a kernel emulation of user casa
+share the lock.
 
-Patch 2 completes user casa from illegal_instruction on CPUs without
-it, through patch 1's futex_atomic_cmpxchg_inatomic(), so emulated
-casa and the futex ops serialize on the same lock. It is atomic
-against itself and against the futex ops, not against a plain store
-to the same word, so a C library using it has to do its atomic stores
-with casa too.
+casa is optional on LEON, so it is probed once at boot. On a part
+without it the kernel-mode illegal_instruction is fixed up from the
+exception table.
 
-Patch 3 completes udiv, sdiv and their -cc forms from the same
-do_illegal_instruction() dispatch: SuperSPARC and SuperSPARC-II trap
-those when the {Y, rs1} dividend has significant bits above bit 51,
-which gcc -mcpu=v8 output, including libgcc's __udivdi3, can produce.
-It shares patch 2's windowed-operand helpers and the dispatch block,
-which is why it comes last.
-
-Patch 1 comes first because patch 2 is built on it. On its own it
-races nothing: without patch 2, user casa on these CPUs is SIGILL.
-
-Magnus Lindholm has an independent RFC covering the same ground from
-a different ABI: "[RFC PATCH 0/5] sparc32: kernel assisted
-compare-and-swap, and futex on SMP" (patchwork sparclinux, Message-Id
-20260923201830.865553-1-linmag7@gmail.com), with a companion glibc
-series (patchwork glibc, Message-Id
-20260924064228.867909-1-linmag7@gmail.com). That RFC adds a new
-software trap, ta 0x11 (trap type 0x91), extending David Miller's
-2016 CAS-trap prototype at ta 0x23 rather than completing it, so
-userspace has to be rebuilt to call it. This series instead
-completes the casa opcode itself, so a binary already emitting casa
-(gcc -mcpu=leon3 or -mcpu=v9 output, or a C library that encodes it
-as a .word) runs unmodified on a CPU without hardware casa, with no
-new trap number and no libc rebuild. Happy to share the futex and
-do_illegal_instruction() plumbing with whichever ABI lands.
-
-Andreas: do LEON3FT parts want the GRLIB-TN-0010/0011 "nop; .balignl
-16" alignment before the casa word here, or is the plain encoding as
-posted fine for them?
-
-Notes, not for the log:
-
-- checkpatch on patch 1: "Lines should not end with a '('" is the
-  __asm__ __volatile__( idiom of uaccess_32.h; the -ENOSYS warning is
-  the futex API's return for an unknown op, as on every architecture.
-  "does MAINTAINERS need updating?" on patches 2 and 3 is covered by
-  the F: arch/sparc/ entry.
-- On qemu's SS-20 with two SuperSPARCs and the casa emulation alone,
-  futex() returns ENOSYS and musl's mutex, PI mutex and robust mutex
-  tests fail. With patches 1 and 2 they pass, as does a PI lock
-  contended between user casa and FUTEX_LOCK_PI/FUTEX_UNLOCK_PI on
-  both CPUs.
-- The casa branch of the futex ops has not run on LEON hardware. The
-  probe runs on LEON only; its fixup path, which a LEON without casa
-  takes, has run only in a test kernel that forced the probe on
-  qemu's SS-20.
-- The divide emulation has run on no CPU that traps it. No sparc32
-  model in qemu raises the trap, and no SuperSPARC or SuperSPARC-II
-  was available for this series; it is exercised only by build and
-  link.
-
-Imre Kaloz (3):
-  sparc32: support futexes on SMP
-  sparc32: emulate casa on V8 CPUs
-  sparc32: emulate integer divide taken as illegal_instruction
-
+Signed-off-by: Imre Kaloz <kaloz@kernel.org>
+---
  arch/sparc/include/asm/futex_32.h |   6 +-
- arch/sparc/kernel/Makefile        |   2 +
- arch/sparc/kernel/cas_emu_32.c    | 117 +++++++++++++++++++++++++++
- arch/sparc/kernel/div_emu_32.c    | 127 ++++++++++++++++++++++++++++++
- arch/sparc/kernel/entry.h         |   2 +
- arch/sparc/kernel/traps_32.c      |  23 +++++-
- arch/sparc/kernel/unimp_32.h      |  71 +++++++++++++++++
- arch/sparc/lib/atomic32.c         | 122 ++++++++++++++++++++++++++++
+ arch/sparc/kernel/traps_32.c      |  13 +++-
+ arch/sparc/lib/atomic32.c         | 122 ++++++++++++++++++++++++++++++
  init/Kconfig                      |   1 -
- 9 files changed, 468 insertions(+), 3 deletions(-)
- create mode 100644 arch/sparc/kernel/cas_emu_32.c
- create mode 100644 arch/sparc/kernel/div_emu_32.c
- create mode 100644 arch/sparc/kernel/unimp_32.h
+ 4 files changed, 139 insertions(+), 3 deletions(-)
 
-
-base-commit: 62f4c998b297cf233997a2b4cd6fc2d2df0319c9
+diff --git a/arch/sparc/include/asm/futex_32.h b/arch/sparc/include/asm/futex_32.h
+index 6a332a9f099c..2271aad566f8 100644
+--- a/arch/sparc/include/asm/futex_32.h
++++ b/arch/sparc/include/asm/futex_32.h
+@@ -1,6 +1,10 @@
+ #ifndef _ASM_FUTEX_H
+ #define _ASM_FUTEX_H
+ 
+-#include <asm-generic/futex.h>
++#include <linux/types.h>
++
++int arch_futex_atomic_op_inuser(int op, u32 oparg, int *oval, u32 __user *uaddr);
++int futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
++				  u32 oldval, u32 newval);
+ 
+ #endif
+diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
+index bb149f6cc34b..e1d50820c376 100644
+--- a/arch/sparc/kernel/traps_32.c
++++ b/arch/sparc/kernel/traps_32.c
+@@ -11,6 +11,7 @@
+  */
+ 
+ #include <linux/cpu.h>
++#include <linux/extable.h>
+ #include <linux/sched/mm.h>
+ #include <linux/sched/debug.h>
+ #include <linux/mm_types.h>
+@@ -108,8 +109,18 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned long type)
+ void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned long npc,
+ 			    unsigned long psr)
+ {
+-	if(psr & PSR_PS)
++	if (psr & PSR_PS) {
++		const struct exception_table_entry *entry;
++
++		/* The casa probe on a CPU without casa. */
++		entry = search_exception_tables(pc);
++		if (entry) {
++			regs->pc = entry->fixup;
++			regs->npc = regs->pc + 4;
++			return;
++		}
+ 		die_if_kernel("Kernel illegal instruction", regs);
++	}
+ #ifdef TRAP_DEBUG
+ 	printk("Ill instr. at pc=%08lx instruction is %08lx\n",
+ 	       regs->pc, *(unsigned long *)regs->pc);
+diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
+index 8ae880ebf07a..be712c2917d5 100644
+--- a/arch/sparc/lib/atomic32.c
++++ b/arch/sparc/lib/atomic32.c
+@@ -9,8 +9,13 @@
+  */
+ 
+ #include <linux/atomic.h>
++#include <linux/futex.h>
++#include <linux/init.h>
+ #include <linux/spinlock.h>
+ #include <linux/module.h>
++#include <linux/uaccess.h>
++#include <asm/cpu_type.h>
++#include <asm/futex.h>
+ 
+ #ifdef CONFIG_SMP
+ #define ATOMIC_HASH_SIZE	4
+@@ -195,3 +200,120 @@ unsigned long __xchg_u32(volatile u32 *ptr, u32 new)
+ 	return (unsigned long)prev;
+ }
+ EXPORT_SYMBOL(__xchg_u32);
++
++/* Only some LEON parts implement casa. */
++static bool sparc32_casa __ro_after_init;
++
++static int __casa_user(u32 *uval, u32 __user *uaddr, u32 oldval, u32 newval)
++{
++	/*
++	 * casa [%o0] 0xb, %o1, %o2, as a word any assembler accepts. ASI
++	 * 0x0b is the supervisor address space; the emulated casa in
++	 * cas_emu_32.c instead accepts the user ASIs 0x0a and 0x80.
++	 */
++	register u32 __user *uaddr_r asm("o0") = uaddr;
++	register u32 oldval_r asm("o1") = oldval;
++	register u32 newval_r asm("o2") = newval;
++	int ret = 0;
++
++	__asm__ __volatile__(
++	"1:	.word	0xd5e20169\n"
++	"2:\n"
++	"	.section .fixup,#alloc,#execinstr\n"
++	"	.align	4\n"
++	"3:	sethi	%%hi(2b), %0\n"
++	"	jmpl	%0 + %%lo(2b), %%g0\n"
++	"	 mov	%4, %0\n"
++	"	.previous\n"
++	"	.section __ex_table,#alloc\n"
++	"	.align	4\n"
++	"	.word	1b, 3b\n"
++	"	.previous\n"
++	: "+r" (ret), "+r" (newval_r)
++	: "r" (uaddr_r), "r" (oldval_r), "i" (-EFAULT)
++	: "memory");
++
++	*uval = newval_r;
++	return ret;
++}
++
++/* Without casa the illegal_instruction trap takes the fixup above. */
++static int __init sparc32_casa_probe(void)
++{
++	u32 word = 0, val;
++
++	if (sparc_cpu_model == sparc_leon)
++		sparc32_casa = !__casa_user(&val, (u32 __force __user *)&word,
++					    0, 1);
++	return 0;
++}
++early_initcall(sparc32_casa_probe);
++
++/*
++ * Without casa, user CAS is emulated under the same lock. ATOMIC_HASH()
++ * uses page offset bits only, so every mapping of a word takes one lock.
++ */
++int futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
++				  u32 oldval, u32 newval)
++{
++	unsigned long flags;
++	u32 val;
++	int ret;
++
++	if (!access_ok(uaddr, sizeof(u32)))
++		return -EFAULT;
++	if (sparc32_casa)
++		return __casa_user(uval, uaddr, oldval, newval);
++
++	/* Every caller already runs with page faults disabled. */
++	spin_lock_irqsave(ATOMIC_HASH(uaddr), flags);
++	ret = __get_user(val, uaddr);
++	if (!ret && val == oldval)
++		ret = __put_user(newval, uaddr);
++	spin_unlock_irqrestore(ATOMIC_HASH(uaddr), flags);
++
++	if (!ret)
++		*uval = val;
++	return ret;
++}
++
++int arch_futex_atomic_op_inuser(int op, u32 oparg, int *oval, u32 __user *uaddr)
++{
++	u32 oldval, newval, val;
++	int ret;
++
++	if (get_user(oldval, uaddr))
++		return -EFAULT;
++
++	for (;;) {
++		switch (op) {
++		case FUTEX_OP_SET:
++			newval = oparg;
++			break;
++		case FUTEX_OP_ADD:
++			newval = oldval + oparg;
++			break;
++		case FUTEX_OP_OR:
++			newval = oldval | oparg;
++			break;
++		case FUTEX_OP_ANDN:
++			newval = oldval & ~oparg;
++			break;
++		case FUTEX_OP_XOR:
++			newval = oldval ^ oparg;
++			break;
++		default:
++			return -ENOSYS;
++		}
++
++		ret = futex_atomic_cmpxchg_inatomic(&val, uaddr, oldval, newval);
++		if (ret)
++			return ret;
++		if (val == oldval)
++			break;
++		oldval = val;
++	}
++
++	*oval = oldval;
++	return 0;
++}
+diff --git a/init/Kconfig b/init/Kconfig
+index 8583d9f06c52..9eb8086af7db 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -1875,7 +1875,6 @@ config BASE_SMALL
+ 
+ config FUTEX
+ 	bool "Enable futex support" if EXPERT
+-	depends on !(SPARC32 && SMP)
+ 	default y
+ 	imply RT_MUTEXES
+ 	help
 -- 
 2.47.3
 
