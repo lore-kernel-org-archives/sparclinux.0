@@ -1,220 +1,166 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
+Received: from mail-ej2-f43.google.com (mail-ej2-f43.google.com [74.125.228.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 253AD378D8C
-	for <sparclinux@vger.kernel.org>; Sun, 27 Sep 2026 21:42:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790545335; cv=pass; b=RUItwxPuKXi11vlaJBFU0/k9FP0h+Yh9DwzqGzkWuZ84hpxJfnB2Aj31X65fDjV9eA0w5Y6bwPBIlAIStMwC4EO53wjYNhvxFmJptcIPzcWaFhln9j4vsPVnbCUlAaf50T6OH/WKKS4GiTKWevIshLMLUcIOe/HGJxhQCLm4qhw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790545335; c=relaxed/simple;
-	bh=6KLzp4oR3l/0CH9JckxArshHxrcKNasTT1KY+THNbnU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=oiZEP7OpCIsqJjvdYKkevmchA6zgM0L0JbMK2PNOKCmVhlvuhntt6x0vOAA36NF8aE+Xk/ObO3cL/xqlwFU20ld2ZUrKzpVSsXFxYAWYH2lW0El7Pswo+5U7+EGhBQifeaA0oWw3HPwZj5fUwrF9H5HR7cEKONrE+NgH2LvTH6A=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=r18FnzEo; arc=pass smtp.client-ip=209.85.208.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCB193B6C0C
+	for <sparclinux@vger.kernel.org>; Sun, 27 Sep 2026 21:43:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.171
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790545427; cv=none; b=IK9o0tRw9gazt+p3EYYQ/nXgfsoYABjlpH6ryvZvQim6yVPG9e6guBs7+3ca+yn3uPxJU9vfzkT1cT6Ro/nylUY4HP4kbhl/db6l2ZTeH5Fiyhu8y1X17j7jI8Ctgd0+OWDSZ+6tDgiu4EcNR4JQ5+QTiXoJniP61xG0KvZZ7Qk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790545427; c=relaxed/simple;
+	bh=L01dxEkesUBA3VBO8737+O0T4hT4GIFzjrZLjQXI62s=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bmkr+yfgxPNudopKuXnvL5vV6J1/PHwJWThKkaYq4MbgwBqEbRVgEYGwW/sKu1ANZh88n6aOVivEEI46FoGEtW81PpNen1cQ64lxbRHFf9XKam0x7vsiH/HQAV6S9hxkRKnlB0N/OMdFikGTM1H5CQHluC8xHRqcjInJLeRfjVg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f83Hp21Q; arc=none smtp.client-ip=74.125.228.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="r18FnzEo"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6aaf28a86b9so3377068a12.1
-        for <sparclinux@vger.kernel.org>; Sun, 27 Sep 2026 14:42:13 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790545332; cv=none;
-        d=google.com; s=arc-20260327;
-        b=jIYkWECsINulK5LKE0zVix3Qepo5YcZY8A62wD7pMXnwPa4QffQ6cCmdfD68WKK/UN
-         TbTnfwXPiQCq2aExV1b6BKk9W+WeKTwVtUKv/63MqlAw06R9mh6ErVOL+GNHQ5dXL7mq
-         /pXptSvb0hvAw5gCj8gdZ5PzqkuVrYvHuYrHJzvzYGJgQnt2Qvpv8EopmBAmUEuD4/w4
-         wRdjDBQPl58KubgjnXvvb5+0t1ACKsPucGYBy4uUnx89BiW4TpvtDULahv4u8ZfUWN0N
-         yVEh4EMTiav6YrWZ3NFm+s6QXD3LSPdyrcq9wpKYRAA0plwUrBTG4SfYy1Reo+MeArYc
-         t9+A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=mfU1Wi4HmVw8v1AgLudBUPHtwS3RGGdUlRGpJlo9EKg=;
-        fh=peaMKzP++d1ylRuUBtlfxHaMPRByZKOESV42P8DH2Ag=;
-        b=MPise4hKuRlxvkUNhawZty8nK//1HiHPkCvmXyck20HeBUUb1pH9YI6LoPFzgOkI3P
-         cB7oVdohVjGeuCaS+H7sL8pRVTJgsdgglxDE50s2tdi0fj7Kh9rvoFlhGXOlOvVKzfCe
-         FSZma74yKiXbTOBl6LdEg+No963o9LfW1A5gDMKyTQVDN0u8zBhkEEYva8eeRIpL0fYJ
-         4QkRX3Q2ywNwGHjRYhZtLHijTr8gZCSq42Ip8dLUSP7EdZYkOsJ6Ylxg8ma9mkgLY9A7
-         DFnqpwmlJfsy1pVDy7hD7v8frhpq6aO5HYNkT5NanJ6Hpi89HCIiZ4nyV0l9Fik/pXDi
-         Unxw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f83Hp21Q"
+Received: by mail-ej2-f43.google.com with SMTP id a640c23a62f3a-c2a8b9acbc6so334691766b.0
+        for <sparclinux@vger.kernel.org>; Sun, 27 Sep 2026 14:43:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790545332; x=1791150132; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=mfU1Wi4HmVw8v1AgLudBUPHtwS3RGGdUlRGpJlo9EKg=;
-        b=r18FnzEo9akq18gGJQ1VbCBFJ/QctnsGUpC24j68x3PpaKmWnNQNVh19PT2GF/PwEM
-         SAE+l2/XusEJbHb/upQWIcB5eP/p8UISMvwXwuDqCkGPrayoEx4lhJz+71MGUVogJJkW
-         /bqSeNGqHcHEh73vSvFYMt/+uWBifSwJ4fjKJmshex+Dx0+oHhX+DvS1tq+U0st72JQY
-         GrhuaON6n3/6Jjg7gn2lC0Dt28FGJC5JjuJIk0/DoyJayfxz5hOVwLKuHyewIEie2/mC
-         nWmy0JzFDIXmTtbju4vVhXZzvPXKkBHh9NXVWhQz98ovmdjLj1TGN1GToTTx9FAY5MdK
-         bkew==
+        d=gmail.com; s=20251104; t=1790545424; x=1791150224; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=YmHZZ2mWny07hG6UzfEwL1BdtLA8PVUAlm+jdgUs4YI=;
+        b=f83Hp21Qt21KyLDykyMppfPdAOIc6/Ax7YRJG7N2udJ6zu7vgW2f+69A2/Mb4OeCdi
+         WN2RDdroBwIDF7w1G7Jt38+xzTTVIYuSnLw2JIGqo6tG/XWBwUoZb1vEi8Oso5+zs8XL
+         pumrZ6MGSlOL0XqyM7A8gzhPu2CYPWalwK3xi035hd3sceH0o7Q30sD6Sii9qYCuyuyx
+         QaJy/PEkJMZbn8gFnAwdMjJMH9xZ3atDdjAdrB/IRwCUdcHWiaMdiSyacI4EtGY5yf0d
+         3cgnD4cHnCgSKjXXY0N+dWSFsyqryPIC8w1E0Krh1XNYdft9RzoBj1pFBIaDof+mVi0Z
+         7zdQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790545332; x=1791150132;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=mfU1Wi4HmVw8v1AgLudBUPHtwS3RGGdUlRGpJlo9EKg=;
-        b=E7ybFDy6NQ193nflPY6Vbuuo2/sEBZHe9sB5LTHqBhM6/kxR7hDQkRm4SUYB+lulOP
-         CiWFtrUBkLjiLpDYpemiVk1fzKHg+Y/6MBzAZQQasQfQtuJ9Eqk4k+E/uI7Q+Mx+DSbO
-         AtRDe6POQ7lrES9q76DNxs67EJlJYD7PdckrNtgDMvjv+OAuKtUfKoxomwYRLTW08kb0
-         5Q9p4EvLNHrIFrV1AIgXQgbIqj99Gv79McGqKyyY3gMhQlI0xq7QUf1OTRI8UNZfn5Rb
-         aM7puVLJ+pUkKikItphfWVlRUpSrWLIPjfN7bbfpIAclf6wxrnQ5Ose7+ypYqc9lznV2
-         cVpQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxCLxM18Mjy3QyaXpXKHkCsi+kgVRB14tw7Rrht8svjrgZMK41H2Nrg/6NQNVcU2WNyf55rPwtsCCHR@vger.kernel.org
-X-Gm-Message-State: AFq9FYJeVhhskUV0RTUVeLjzmbsDKmgzVQw/N0MJkHJ3gap8ZzztaoSQ
-	iFbuqSHKYWJEmRToaUR+m+YwLETiStTkSVkEau8W3/TcLE/Ue0DF7DrJQWXvDBBnMjL4qYk7K5I
-	7KNiwrC6CSTGjeAg7K1p5GYLsJemZGIjxy9G/
-X-Gm-Gg: AYBFou05JLuLFvyXzZ35oDT9KQxfDdBeHkBMX1i35P8FKduwJ5y/4PAyvhzK9eOVP/5
-	Pwf9pBoQUR5T46m00ABgAeGSxGWbusJ/lFiO6GQoZH1dzjXYB3LtimbJzvj+W8WTrSyke4fV3Q4
-	DpZaPJPVTSOg4ZMVaUK0PlQzFJZ9motL990mUMa98OaOgWVF8H8ypsqsO71wIgYdT1igQJ8R8Ev
-	XOeqrQzUuSsJLzzRxgIyOEUqBBgYBx7gUuqW/mMCXO/aIER95eePQXUoLwkub6efEF19O/xicQy
-	nXBs4BfDgk180cyM11ISaD+CrbLR5IS7Vv8YLZIz8IDQXWXvL3eqc4/bDVV4O5mKY3CGMfP2cvs
-	wINENtiURedGRtQ2gj0UmpJVegV6k4YImSdlK5UvdNS9HDNfMd01+
-X-Received: by 2002:aa7:cb47:0:b0:6ab:260:6378 with SMTP id
- 4fb4d7f45d1cf-6ab026076cemr2280176a12.11.1790545332049; Sun, 27 Sep 2026
- 14:42:12 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1790545424; x=1791150224;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=YmHZZ2mWny07hG6UzfEwL1BdtLA8PVUAlm+jdgUs4YI=;
+        b=Qyxi9EikfIJeGFqZd4LDIpfy5/wscowEHk2HHD7LTOpuBwZW6jQuGLoS5CT4VAX0hk
+         zLPXH3tO7Yy50Lo4cs+dntUrtuL84LYzogQb+iPClEy2e3Wpl8EX8A7FfrP6LP5etflg
+         eitlz4KDcA0u2PjWaTB4VtF/+IePOCkIaSWhqNkuKA6Fb2PNBYaGIaSAgC6a77ZAKW5p
+         apv/McZiDBWjEAFFaFPAY7BH8Gk7Wvf9OaCkyQzW2+P4pygl1T29TcF8YJ5lgW7/yEzc
+         HIwRzUTGzMeH0jxl5MOyyQ2CH5/P2BjMrg6MKFM49GXXYYtlEalP03+r3KxHs+LIrX+x
+         mnfQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwyLUkwaXkiba9khTQuwX8s5/109bggxG5RvVTtcYyzUJVlDjhid7BsqrEQFoPc1K6WdPWrDo/qasUA@vger.kernel.org
+X-Gm-Message-State: AFuF++ltthRN9e6g0cxDE0TuiI25ZLavVdsBvcMzkzxU8bd8o0LiJo8R
+	zTJO9tUhC0bo9uIERpqPj/7Cd17AmlRrBfnizkBTgsUQnXORXZEwqkcA
+X-Gm-Gg: AYBFou1BQARLtkoish77JLoqPG44DWU6Sc9R+p5vtQdysXzj2OfiojpMnYAirFRFQSb
+	GN1pATqg7ENx2K6LdR/63eG9CFhaEDbu+yTap9bHebgwgyFcb76UxgC0uzxxhnZi+3KXqGAgCz7
+	ov2t/T8KENsLIoDMhcI5cmeRLS6AAQHalWK8qh8mHPJEaK/wXWt3zytlbeL5ysVvqKqCgf80j0Z
+	PX6nScjqKCH6KPFrxNMItv+r02kmTnJx/WJTdKys66VZpOFgmy0b4VTuxjNpT99rk9Y7IpG1/UL
+	XzhR1y+2+RhDQ2rI8IGroMWtnKmwe9UfOlHw7vzSVaeoAqVHv8rwrZjJmbXIwyDnHrl5T7FRYpi
+	mUVis85NDSuhdx9rcRe0kjQetCUGJnk1wyX6WnYoZfjHOoajhKEwl45usQ/cZ+ZSzIokfEBGqiq
+	l2hxUT5vxQ/75MQpq7zwm8b5K6Hq5UCDGHDYZwLCsueQxhpDAf8+ObzSBPFfAw4C7XhOEQgZ2lL
+	JLT7P07OMMobfz+bBK/1I6ki1JwiXduT1PePge9
+X-Received: by 2002:a17:907:97cd:b0:c29:f5d5:5a97 with SMTP id a640c23a62f3a-c2ac241b098mr961595666b.33.1790545423787;
+        Sun, 27 Sep 2026 14:43:43 -0700 (PDT)
+Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2ae757b9c1sm376091866b.33.2026.09.27.14.43.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 27 Sep 2026 14:43:43 -0700 (PDT)
+From: Magnus Lindholm <linmag7@gmail.com>
+To: davem@davemloft.net,
+	andreas@gaisler.com
+Cc: sam@ravnborg.org,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linmag7@gmail.com
+Subject: [PATCH v4 0/6] sparc32: replace sp_banks with memblock
+Date: Sun, 27 Sep 2026 23:43:11 +0200
+Message-ID: <20260927214334.886582-1-linmag7@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260927005821.8369-1-kaloz@kernel.org>
-In-Reply-To: <20260927005821.8369-1-kaloz@kernel.org>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 27 Sep 2026 23:42:00 +0200
-X-Gm-Features: AclHuK9q0tb_hBdeGsUv9gVCeUkhxtwokVdYI1IVMCxdiVUrGe9SugUg-B68nyc
-Message-ID: <CA+=Fv5RrA4iavVf_-0qMst0OKDtCnbB2sbsbjNVnAsRufbboiA@mail.gmail.com>
-Subject: Re: [PATCH 0/3] sparc32: SMP futexes, casa and idiv emulation
-To: Imre Kaloz <kaloz@kernel.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
-	"David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi Imre,
+Replace the sparc32-private sp_banks memory description with memblock.
 
-On Sun, Sep 27, 2026 at 2:59=E2=80=AFAM Imre Kaloz <kaloz@kernel.org> wrote=
-:
->
-> sun4m has no compare-and-swap instruction and casa is optional on
-> LEON, so SMP sparc32 has had no futexes, and user code on those CPUs
-> has no CAS to build locks from.
->
-> Patch 1 implements the futex atomic ops in atomic32.c and drops the
-> !(SPARC32 && SMP) dependency of FUTEX. A LEON part that implements
-> casa, found by a boot-time probe, runs casa on the user word; other
-> CPUs take the __atomic_hash spinlocks.
->
-> Patch 2 completes user casa from illegal_instruction on CPUs without
-> it, through patch 1's futex_atomic_cmpxchg_inatomic(), so emulated
-> casa and the futex ops serialize on the same lock. It is atomic
-> against itself and against the futex ops, not against a plain store
-> to the same word, so a C library using it has to do its atomic stores
-> with casa too.
->
-> Patch 3 completes udiv, sdiv and their -cc forms from the same
-> do_illegal_instruction() dispatch: SuperSPARC and SuperSPARC-II trap
-> those when the {Y, rs1} dividend has significant bits above bit 51,
-> which gcc -mcpu=3Dv8 output, including libgcc's __udivdi3, can produce.
-> It shares patch 2's windowed-operand helpers and the dispatch block,
-> which is why it comes last.
->
-> Patch 1 comes first because patch 2 is built on it. On its own it
-> races nothing: without patch 2, user casa on these CPUs is SIGILL.
->
-> Magnus Lindholm has an independent RFC covering the same ground from
-> a different ABI: "[RFC PATCH 0/5] sparc32: kernel assisted
-> compare-and-swap, and futex on SMP" (patchwork sparclinux, Message-Id
-> 20260923201830.865553-1-linmag7@gmail.com), with a companion glibc
-> series (patchwork glibc, Message-Id
-> 20260924064228.867909-1-linmag7@gmail.com). That RFC adds a new
-> software trap, ta 0x11 (trap type 0x91), extending David Miller's
-> 2016 CAS-trap prototype at ta 0x23 rather than completing it, so
-> userspace has to be rebuilt to call it. This series instead
-> completes the casa opcode itself, so a binary already emitting casa
-> (gcc -mcpu=3Dleon3 or -mcpu=3Dv9 output, or a C library that encodes it
-> as a .word) runs unmodified on a CPU without hardware casa, with no
-> new trap number and no libc rebuild. Happy to share the futex and
-> do_illegal_instruction() plumbing with whichever ABI lands.
->
+The first two patches convert the SRMMU consumers that already run after
+bootmem_init() has populated memblock. The third patch moves memblock
+population to prom_meminit() and applies the mem= limit there. Patch 4
+removes an unused address bitmap before patch 5 moves the early memory
+setup into setup_32.c. Patch 6 removes the now-unused sp_banks array.
 
-For context on the userspace half: the glibc side of this was declined.
-Adhemerval's position is that glibc will not carry arch-specific atomics ag=
-ain,
-and that v8 support should come "first get the support on kernel, then add =
-the
-support on libgcc, and finally on glibc transparently through GCC atomic
-builtins".
+This work is based on an earlier eight-patch series by Sam Ravnborg.
+Patch 2 directly carries over Sam's memblock sizing conversion. The series
+has otherwise been substantially reorganized and reworked for the current
+kernel. It retains the sparc32 mem= command-line option by using
+memblock_enforce_memory_limit() and uses memblock's exclusive range-end
+semantics throughout.
 
-That goes against my ta 0x11 trap and in favour of completing casa: a new t=
-rap
-number has to be taught to userspace, whereas an emulated casa lets libgcc =
-and
-glibc use plain __atomic builtins with no arch-specific code. Your series l=
-ooks
-like the better fit for what glibc actually asked for. I'm happy to
-drop the trap
-and help with the futex and do_illegal_instruction plumbing instead.
+The series applies on top of the sparc32 phys_base and Viking fixes,
+rebased onto Linux 7.3-rc1. The prerequisite tip is recorded below as the
+base commit. setup_memory() preserves relocated-kernel handling by
+removing RAM below the physical address to which PAGE_OFFSET maps.
+
+Link: https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.com/T/#t
+
+The v1 series was boot tested on a Sun SPARCstation 20 with dual
+SuperSPARC-II CPUs (SM71).
+The v2 series was boot tested on a Sun SPARCstation 20 with dual
+ROSS HyperSPARC (RT626) CPUs.
+The v3 series was cross-compiled with the SPARCstation 20 and LEON
+configurations as well as boot tested on a Sun SPARCstation 20
+with dual ROSS HyperSPARC (RT626) CPUs.
+
+The v4 series was cross-compiled with the SPARCstation 20 SMP configuration
+and a sparc32_defconfig-derived LEON configuration, both with HIGHMEM
+enabled. Boot tested on a SPARCstation 20 SMP (ROSS)
+
+Changes in v4:
+- Use max_pfn in LEON's _pfn_valid() check, preserving the bounds of
+  last_valid_pfn instead of restricting the check to lowmem, as requested
+  by Andreas Larsson.
+- Correct the description: LEON systems can use highmem.
+- Carry Sam's Reviewed-by tag on patch 5; all six patches now retain his
+  review tags.
+- Rebase onto Linux 7.3-rc1 plus the three prerequisite patches; adjust
+  patch 6's context without changing its code changes.
+
+Changes in v3:
+- Add Sam's Reviewed-by tag to patch 4.
+- Initialize max_pfn in patch 5 and use it as the highmem zone limit.
+- Use PHYS_PFN() instead of open-coded PAGE_SHIFT conversions in patch 5.
+- Remove the obsolete highstart_pfn and highend_pfn declarations.
+- Use the generic PFN limit declarations from linux/memblock.h.
+- Document removal of the duplicate private HIGHMEM summary.
+
+Changes in v2:
+- Add Sam's Reviewed-by tags to patches 1-3 and 6. Patch 6 is the
+  unchanged source change from patch 5 in v1, renumbered by the new patch.
+- Drop the unused sparc_valid_addr_bitmap in a preparation patch.
+- Use for_each_mem_pfn_range() and the standard max_low_pfn variable in
+  the early memory setup. The change to LEON's PFN check made in v2 is
+  corrected in v4 to preserve its original bounds.
+
+Suggested-by: Sam Ravnborg <sam@ravnborg.org>
+Link: https://lore.kernel.org/r/20260817153237.GA702187@ravnborg.org
+Link: https://lore.kernel.org/r/20260901214611.60560-1-linmag7@gmail.com
+
+Magnus Lindholm (6):
+  sparc32: use memblock when mapping the kernel
+  sparc32: use memblock to find available system memory
+  sparc32: populate memblock from the PROM memory map
+  sparc32: drop unused valid address bitmap
+  sparc32: move early memory setup to setup_arch
+  sparc32: drop sp_banks
+
+ arch/sparc/include/asm/highmem.h    |   3 -
+ arch/sparc/include/asm/leon.h       |   2 +-
+ arch/sparc/include/asm/page_32.h    |  16 ---
+ arch/sparc/include/asm/pgtable_32.h |   3 +-
+ arch/sparc/include/asm/pgtsrmmu.h   |   1 -
+ arch/sparc/kernel/setup_32.c        | 112 ++++++++++---------
+ arch/sparc/mm/init_32.c             | 167 +---------------------------
+ arch/sparc/mm/leon_mm.c             |   1 +
+ arch/sparc/mm/srmmu.c               |  69 ++++--------
+ arch/sparc/prom/memory.c            |  51 ++-------
+ 10 files changed, 98 insertions(+), 327 deletions(-)
 
 
-> Andreas: do LEON3FT parts want the GRLIB-TN-0010/0011 "nop; .balignl
-> 16" alignment before the casa word here, or is the plain encoding as
-> posted fine for them?
->
-> Notes, not for the log:
->
-> - checkpatch on patch 1: "Lines should not end with a '('" is the
->   __asm__ __volatile__( idiom of uaccess_32.h; the -ENOSYS warning is
->   the futex API's return for an unknown op, as on every architecture.
->   "does MAINTAINERS need updating?" on patches 2 and 3 is covered by
->   the F: arch/sparc/ entry.
-> - On qemu's SS-20 with two SuperSPARCs and the casa emulation alone,
->   futex() returns ENOSYS and musl's mutex, PI mutex and robust mutex
->   tests fail. With patches 1 and 2 they pass, as does a PI lock
->   contended between user casa and FUTEX_LOCK_PI/FUTEX_UNLOCK_PI on
->   both CPUs.
-> - The casa branch of the futex ops has not run on LEON hardware. The
->   probe runs on LEON only; its fixup path, which a LEON without casa
->   takes, has run only in a test kernel that forced the probe on
->   qemu's SS-20.
-> - The divide emulation has run on no CPU that traps it. No sparc32
->   model in qemu raises the trap, and no SuperSPARC or SuperSPARC-II
->   was available for this series; it is exercised only by build and
->   link.
->
-
-FWIW, I have access to both SuperSPARC or SuperSPARC-II hardware,
-SS-10 and SS-20. I'd be happy to assist here with testing on real
-hardware.
-
-Magnus
-
-> Imre Kaloz (3):
->   sparc32: support futexes on SMP
->   sparc32: emulate casa on V8 CPUs
->   sparc32: emulate integer divide taken as illegal_instruction
->
->  arch/sparc/include/asm/futex_32.h |   6 +-
->  arch/sparc/kernel/Makefile        |   2 +
->  arch/sparc/kernel/cas_emu_32.c    | 117 +++++++++++++++++++++++++++
->  arch/sparc/kernel/div_emu_32.c    | 127 ++++++++++++++++++++++++++++++
->  arch/sparc/kernel/entry.h         |   2 +
->  arch/sparc/kernel/traps_32.c      |  23 +++++-
->  arch/sparc/kernel/unimp_32.h      |  71 +++++++++++++++++
->  arch/sparc/lib/atomic32.c         | 122 ++++++++++++++++++++++++++++
->  init/Kconfig                      |   1 -
->  9 files changed, Magnus468 insertions(+), 3 deletions(-)
->  create mode 100644 arch/sparc/kernel/cas_emu_32.c
->  create mode 100644 arch/sparc/kernel/div_emu_32.c
->  create mode 100644 arch/sparc/kernel/unimp_32.h
->
->
-> base-commit: 62f4c998b297cf233997a2b4cd6fc2d2df0319c9
-> --
-> 2.47.3
->
+base-commit: ff3cbaedcebcb60f8f13fa4dd667116f29cd53e4
+-- 
+2.43.0
