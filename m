@@ -1,102 +1,94 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7360848665E;
-	Mon, 28 Sep 2026 09:19:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8ABA48E0E5;
+	Mon, 28 Sep 2026 09:44:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790587198; cv=none; b=rC/CPQ0pTascUu4ntF1HfthRJXmSVQd7VNSTm0uFAmDly4qAnSJxSMi9dMw3lgEE8/2E67pcn5rxF5zpFuFK8oLJTNhZ7oqo2hk6Jc6yZ0Ic6EgO7dZL5NfgflX4eTGeHrGTAkPZ5AOrVTlYOTXiK462iWH0Xgru9UhsgVeujhM=
+	t=1790588683; cv=none; b=FfefQnLyzX71eCN6DJ8rLIgp4rNkUUUVCuGp3Zicpd6fUmfa+b6UE7Cs5JhIAVqaxs6HLX9lIQembKdmy+rWJiJOZekGVZoTfRglEAg+Mt/reE/ptwoksr0eRsRPe3Fga6xZLFrC1u5mKxl+OelAU4c9Yf929UECIR545CX4uqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790587198; c=relaxed/simple;
-	bh=I8nOXl7t8cmcuppMcg6HL3FKZkZnt0cVmSLLmSZ9yAA=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=JcchUGlEtehEBolsRK7vqazTAPER/HRTXVxC9PGJpt6wBeUFA5eBES6UqJNS8lOCo/rqG+aXewRqX/NK57SjM5/eCiXRkC71FiHOrZlzwCNkjVtZfVuQZ9ys78i94wGfe4Zbzvx1sO/aKI8RGaiViE8LXfDjqQXgd7oqqcgfUtI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=CwKCnsSp; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	s=arc-20240116; t=1790588683; c=relaxed/simple;
+	bh=B80cfQtZsYFy+aWvfBgvTKX1wndMaRUPLxucWQyAa84=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=kIBfVDzVpNTX8GBlH4r1X7LjyKN2X8IiR9WGQywUf8YP/hrcECrAEj7M/ri6ERGFwYL9vZ8Tf4jMmJX6FxZ8DFC3ylmqg2zYs0c0VSmH5d8F8E875s0bqIXP8EOuTWLjB4poXY/DBv6+ASu7DXA0yMeYZGaYH08Ab+szo0JLYFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Nf4ZEz5j; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="CwKCnsSp"
-Message-ID: <acf41fd1252d92c2232210e9b766dba406af30fa.camel@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1790587193;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=I8nOXl7t8cmcuppMcg6HL3FKZkZnt0cVmSLLmSZ9yAA=;
-	b=CwKCnsSpnDVCET0x0KbvAvrB1AU309IcWFJAWWI9kVqzQrFb3w61n4Rdh+nU9PGb7PDw+h
-	bAB0NCerIz/pSYOPz/4TCrSi01lTkrOIqegoAbXXa98R7T2SCfa5juZffZwrD1ksu40fgZ
-	A725B++TRhZ7oJBmZN5usMAN1Xrf1pA=
-Subject: Re: [PATCH 1/2] sparc64: flush only the aliased page, not its whole
- folio
-From: Stian Halseth <stian@itx.no>
-To: Imre Kaloz <kaloz@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>, "Mike Rapoport (IBM)"
- <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
- sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-Date: Mon, 28 Sep 2026 11:19:52 +0200
-In-Reply-To: <20260927105539.8742-2-kaloz@kernel.org>
-References: <20260927105539.8742-1-kaloz@kernel.org>
-	 <20260927105539.8742-2-kaloz@kernel.org>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-TICIXD8YrqEKaJHzl8HK"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Nf4ZEz5j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4222E1F000FF;
+	Mon, 28 Sep 2026 09:44:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790588681;
+	bh=cLESQF3rjMUCtRBzlz6Cq4XFs/FDXdnSpGyicIDHRLI=;
+	h=Date:From:To:cc:Subject:In-Reply-To:References;
+	b=Nf4ZEz5jJHFycOt0zJmIyJtGCfQWiTZ/f3kQmyh1zW3HScauz4OgPJEgd6yLKRpCu
+	 xQ0X6UCrPJorR9tVuiwJfGjs0dGuZOf2w5+33HbExtmZ8JLAlnJThITDOoDXCYuLUx
+	 ZjmY8tazDoo32Zb1GC9t6VYtnVaUzN1thM0z8D6jG9lgP/FUSjT7DbrKEedtAfu8wx
+	 ooHYq6l3GQhyJ9MnNrOzjUAZqeeIeJWjWzudldZTjcJEM31ST4MtL+3MufQWPBsuGi
+	 akPfc3IzAua6U9ZABLvhW6cdjbPvftfT/3j73iRTD+ZYUtmQArLZfj9nqdHE8kHAvo
+	 lvBxlC+qgRiGQ==
+Date: Mon, 28 Sep 2026 11:43:38 +0200 (CEST)
+From: Imre Kaloz <kaloz@kernel.org>
+To: Magnus Lindholm <linmag7@gmail.com>
+cc: Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
+    "David S. Miller" <davem@davemloft.net>, stable@vger.kernel.org
+Subject: Re: [PATCH] sparc32: don't clear the nocache pool through the PROM
+ mappings
+In-Reply-To: <CA+=Fv5SEwB2b2On=2kEWq2hWMKVauDZ7wqa6+6xPD5nmBgGASw@mail.gmail.com>
+Message-ID: <5fa4f6a8-062b-44b0-b426-67298acad4b6@kernel.org>
+References: <20260927005801.8338-1-kaloz@kernel.org> <CA+=Fv5SEwB2b2On=2kEWq2hWMKVauDZ7wqa6+6xPD5nmBgGASw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="8323329-329603338-1790588622=:2446"
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--8323329-329603338-1790588622=:2446
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8BIT
+
+Hi Magnus,
+
+On Sun, 27 Sep 2026, Magnus Lindholm wrote:
+
+> On Sun, Sep 27, 2026 at 2:59 AM Imre Kaloz <kaloz@kernel.org> wrote:
+>>
+>> srmmu_nocache_init() runs before the switch to srmmu_swapper_pg_dir, so
+>> lowmem is still reached through the PROM mappings the head code inherits
+>> for KERNBASE, which end at 10MB on a SPARCstation 20. The pool, up to
+>> 5MB and allocated right above the kernel, was cleared there twice, by
+>> memblock_alloc() and by the memset(). Once the kernel image ends above
+>> 5MB the clear runs past the PROM's window, faults, and the boot CPU
+>> enters error mode.
+>>
+>> Every user of the pool clears what it allocates, so allocate the pool
+>> with memblock_alloc_raw(), after the bitmap so the bitmap lands below it.
+>>
+>> This has been broken since 2.4.0-test2pre2.
+>>
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Imre Kaloz <kaloz@kernel.org>
+>
+>
+> Very nice work, this makes a lot of sense.
+>
+> For the record, an unpatched kernel
+> (carrying only the patch series needed to boot:)
+> https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.com/T/#t
+>
+> boots fine here: SS-20, PROM 2.25R, 512MB, 6MB kernel image, nocache
+> pool at its 1280-page cap. So the PROM window is not always small enough for
+> this to bite. Happy to dig into what this machine actually maps and report back.
+>
+
+Thanks and looking forward to it :) I suspect your ROSS PROM behaves 
+differently than my standard 2.25 here.
 
 
---=-TICIXD8YrqEKaJHzl8HK
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-Hi Imre,
-
-On Sun, 2026-09-27 at 12:55 +0200, Imre Kaloz wrote:
-> Since the conversion to folios, move_pte() and tlb_batch_add() flush
-> the
-> D-cache of every page in the folio a single PTE maps.=A0 Both run once
-> per
-> PTE, so moving or unmapping a range backed by a large folio flushes
-> each
-> of its pages once for every PTE of that folio, and each page flush is
-> a
-> cross-call to all other online CPUs.
->=20
-> Only the page the PTE maps can hold lines at the old colour, so flush
-> just that page, as before the conversion.=A0 flush_dcache_folio_all()
-> has
-> no other users and becomes flush_dcache_page_all() again.
->=20
-> On SMP QEMU guests, apt rebuilding its caches through mremap()
-> triggers
-> RCU stalls and soft lockups in move_pte().
-
-Confirmed on a Sun Fire V240 (UltraSPARC IIIi, SMP, THP madvise).=20
-The unpatched kernel exhibits the quadratic slowdown patch 1 fixes: a
-same-colour 2-page move takes 0.4 ms, but a colour-flipping 1-page move
-takes 7293 ms (roughly a million redundant page flushes across 1024
-PTEs). Thanks for the fix!
-
-No regressions found on sun4v (SPARC T4-1).
-
-Tested-by: Stian Halseth <stian@itx.no> # Sun Fire V240, SPARC T4-1
-
-
-
---=-TICIXD8YrqEKaJHzl8HK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTK1ph9OaYoND1R57zoeAEuJe36VgUCaroxOAAKCRDoeAEuJe36
-VgtVAQDQ2X8FwFBX5hTafVvJGdicTlYLLqrCuLszB3rBDLDkbgD/b+5BnEQqCUqy
-F3ww/lGLLZfdC0i95hFBAgHecjJ7Xg4=
-=kmsD
------END PGP SIGNATURE-----
-
---=-TICIXD8YrqEKaJHzl8HK--
+Best,
+Imre
+--8323329-329603338-1790588622=:2446--
