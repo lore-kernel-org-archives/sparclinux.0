@@ -1,21 +1,21 @@
 Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A4DB52B1FB;
-	Tue, 29 Sep 2026 13:44:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F57452CCE4;
+	Tue, 29 Sep 2026 13:44:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790689447; cv=none; b=lzQ8Q7taOMt/2RgpmraEG6kXzWPBTDtxJH7tGZNf8bf0pgb0jVfZ4kbOzaB+hLpc7LOf6L9NC7UmUyQGVXAZ/atZpY8lkzqNwDca1M9pMVM92cSr/F8gVpSbhC06HZ6OBJQK6FKKPhcuXOhoUqqVMxZiuSbqgEFczneE2DtKIaE=
+	t=1790689449; cv=none; b=BCjyRVIziEtgA4WBVSMEE+vW0QQFNOoIpWHE2dghaIkXkyrhhxOHIacs4H/jz3qXztBhfTGO3ntaX4OyXuWGhsZORGgGleR/hsT4GnIlf/MnYKf9nTXavo0/Ld5z6gS7QzHHGCP7MOIdswlqceNCBviAdSTq0NtiglWhflr4jrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790689447; c=relaxed/simple;
-	bh=qlyHS4iJQ7BrMrksXagii/UEoD+9i6v84/cW4b7sq6U=;
+	s=arc-20240116; t=1790689449; c=relaxed/simple;
+	bh=hIfRpnCqDW1vxGSO3OJHWVeR0uPAJLGj9eqpEYk0C8o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RAEvAsosLNoFkDLk+WMhml3ED8vPvRkaxdtBhs+2aykcXMC+2ROWBImF3WEuBfakoVwacC45EmFT+DT+Jjc4y6S7+J1GRBN+xb88z0P+OvXqQA2Ei+00exLmz6TIuI8T2Cu1gCaf9TxkwzYYwNN1mvebYH+rfVjl4K92WipXF0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=EvejGk96; arc=none smtp.client-ip=91.189.121.228
+	 MIME-Version; b=ccXrJSnM7E3yXzYnntJ5nTqzHy2R8rRcXqiQ6YjQpRnrnjTQbcEiQgXdpi5nOsEPWEtoAHb3IOcy+6w7WYVI/buS8avRjAYyZVsBg6MD2PLG0yKLMN6XWclQgeBWvNMfaF/ej+ljlDfcOacEEGPMPBSenPKv9VAcXwuwgYRk6vI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=ncy7Xar9; arc=none smtp.client-ip=91.189.121.228
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="EvejGk96"
+	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="ncy7Xar9"
 From: Stian Halseth <stian@itx.no>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
 	t=1790689442;
@@ -23,18 +23,18 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=adL1F/nYZDGIVACVvafixgvFG5DK1XHCfv0m2eLuaLs=;
-	b=EvejGk96PQKff5J9haLGYmCeXRKBRS+rlvDu59BKapjR6m2xawHu0uYLy//3y6zYLNw9yj
-	vzt70mxdBDN5OvnLx1M/sxu6hAdtFMn1E0jHOcSFI+zz3gWLu8FM8xz3I9m86XdZUJ2hGx
-	po3IQglgyiue/IvgYLr5xxKlSTMz+Q8=
+	bh=FmB7mYo730DHrgC/G0GPm86kcoZLRNt+jml80pgZmts=;
+	b=ncy7Xar9G+UlwE6tqNYq8JKm4Dw+PeI5p4yZgkQH4+4tcXfZUqm0oJAah8y+xV/9DPWsz2
+	7sdNZvu5ub++J+csOTd6VWYaVHI38tvBuv9ol7V6UMdEL/QDCk/ivzHcsSqve0zONAfJc3
+	OiTPFo/gZxEsb6IALRCbIlBRCHRxNF4=
 To: "David S . Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>
 Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Stian Halseth <stian@itx.no>
-Subject: [PATCH 4/5] sparc64: Derive VA masking support from the machine description
-Date: Tue, 29 Sep 2026 15:43:52 +0200
-Message-ID: <20260929134353.3879030-5-stian@itx.no>
+Subject: [PATCH 5/5] sparc64: Match the machine description's combined crypto names
+Date: Tue, 29 Sep 2026 15:43:53 +0200
+Message-ID: <20260929134353.3879030-6-stian@itx.no>
 In-Reply-To: <20260929134353.3879030-1-stian@itx.no>
 References: <20260929134353.3879030-1-stian@itx.no>
 Precedence: bulk
@@ -45,96 +45,58 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-VA masking is not named in the cpu node's hwcap-list. The machine
-description carries va-mask-nz-mask instead, which is present and
-non-zero only on a chip that has the feature. A SPARC M7 reports
-0x80808080.
+crypto_hwcaps[] is indexed by CFR bit, and mdesc_cpu_hwcap_list() reuses
+it to match hwcap-list strings. Those are two different namespaces. CFR
+has a bit each for the Montgomery multiply and square, while the machine
+description names the pair with one string, so "mont" and "xmont" match
+nothing.
 
-Read that property rather than matching on sun4v_chip_type, so the
-kernel does not have to carry a list of every chip that implements VA
-masking.
+Nothing breaks today: any recognised crypto name sets HWCAP_SPARC_CRYPTO,
+and a chip offering the Montgomery operations offers "aes" too. It is
+still wrong, since a machine description listing only the Montgomery
+names would leave HWCAP_SPARC_CRYPTO clear.
 
-hwcaps[] gains "vamask" as well, for firmware that does name it. The M7
-does not.
-
-The bit lands at 32, so a 32-bit task cannot see it: compat_binfmt_elf.c
-narrows AT_HWCAP to Elf32_Addr.
+Match them from a list of their own rather than adding them to
+crypto_hwcaps[], where they would claim a CFR bit that means something
+else.
 
 Signed-off-by: Stian Halseth <stian@itx.no>
 ---
- arch/sparc/include/asm/elf_64.h |  1 +
- arch/sparc/kernel/setup_64.c    | 32 +++++++++++++++++++++++++++++++-
- 2 files changed, 32 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/setup_64.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
-index 714ca79c88d7e..12832e1126d8a 100644
---- a/arch/sparc/include/asm/elf_64.h
-+++ b/arch/sparc/include/asm/elf_64.h
-@@ -106,6 +106,7 @@
- #define HWCAP_SPARC_PAUSE_NSEC	0x20000000 /* PAUSE has nanosecond granularity */
- #define HWCAP_SPARC_MWAIT	0x40000000 /* MWAIT available */
- #define HWCAP_SPARC_SPARC5	0x80000000 /* SPARC5 insns available */
-+#define HWCAP_SPARC_VAMASK	0x100000000UL /* VA masking available */
- 
- #define CORE_DUMP_USE_REGSET
- 
 diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index 71d30b3bf276f..6f3b1d56a8c79 100644
+index 6f3b1d56a8c79..a53fe2d1eabba 100644
 --- a/arch/sparc/kernel/setup_64.c
 +++ b/arch/sparc/kernel/setup_64.c
-@@ -387,7 +387,7 @@ static const char *hwcaps[] = {
- 	"mul32", "div32", "fsmuld", "v8plus", "popc", "vis", "vis2",
- 	"ASIBlkInit", "fmaf", "vis3", "hpc", "random", "trans", "fjfmau",
- 	"ima", "cspare", "pause", "cbcond", NULL /*reserved for crypto */,
--	"adp", "vis3b", "pause-nsec", "mwait", "sparc5",
-+	"adp", "vis3b", "pause-nsec", "mwait", "sparc5", "vamask",
+@@ -396,6 +396,14 @@ static const char *crypto_hwcaps[] = {
+ 	"xmpmul", "xmontmul", "xmontsqr",
  };
  
- static const char *crypto_hwcaps[] = {
-@@ -521,6 +521,33 @@ static unsigned long __init mdesc_cpu_hwcap_list(void)
- 	return caps;
- }
- 
-+/* VA masking is not named in the hwcap-list.  The cpu node describes it
-+ * with va-mask-nz-mask instead, which is non-zero when the chip has it.
++/* crypto_hwcaps[] is indexed by CFR bit.  The machine description names
++ * the Montgomery operations with one string each where CFR splits them
++ * into a multiply and a square, so those names need a list of their own.
 + */
-+static bool __init mdesc_cpu_has_vamask(void)
-+{
-+	struct mdesc_handle *hp;
-+	const u64 *mask;
-+	bool ret = false;
-+	u64 pn;
++static const char * const crypto_mdesc_hwcaps[] __initconst = {
++	"mont", "xmont",
++};
 +
-+	hp = mdesc_grab();
-+	if (!hp)
-+		return false;
-+
-+	pn = mdesc_node_by_name(hp, MDESC_NODE_NULL, "cpu");
-+	if (pn == MDESC_NODE_NULL)
-+		goto out;
-+
-+	mask = mdesc_get_property(hp, pn, "va-mask-nz-mask", NULL);
-+	if (mask && *mask)
-+		ret = true;
-+
-+out:
-+	mdesc_release(hp);
-+	return ret;
-+}
-+
- /* This yields a mask that user programs can use to figure out what
-  * instruction set this cpu supports.
-  */
-@@ -598,6 +625,9 @@ static void __init init_sparc64_elf_hwcap(void)
- 					AV_SPARC_FMAF);
+ void cpucap_info(struct seq_file *m)
+ {
+ 	unsigned long caps = sparc64_elf_hwcap;
+@@ -506,6 +514,12 @@ static unsigned long __init mdesc_cpu_hwcap_list(void)
+ 				known = true;
+ 			}
  		}
- 	}
-+	if (mdesc_cpu_has_vamask())
-+		cap |= HWCAP_SPARC_VAMASK;
-+
- 	sparc64_elf_hwcap = cap | mdesc_caps;
++		for (i = 0; i < ARRAY_SIZE(crypto_mdesc_hwcaps); i++) {
++			if (!strcmp(prop, crypto_mdesc_hwcaps[i])) {
++				caps |= HWCAP_SPARC_CRYPTO;
++				known = true;
++			}
++		}
  
- 	report_hwcaps(sparc64_elf_hwcap);
+ 		if (!known)
+ 			pr_info("CPU CAPS: unknown hwcap-list entry '%s'\n",
 -- 
 2.43.0
 
