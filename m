@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDA2049365C;
-	Thu,  1 Oct 2026 12:13:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4572547044;
+	Thu,  1 Oct 2026 13:18:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790856806; cv=none; b=ciyME4JxZC4vnp8CssH0u7sfMQcrFr8Xp4TPaKkqXtEDvm3A9pX+uPzT9Slk4X86BsdVq1VPQ8HwNybL2s76QZ1pHSJ7i8nAyZuxGl6uknJ3KxeaMCdTEPdIyOATsaEWkey/fj9Vzpege8zs/S3Fd2g9QJvBKRJDD4lTcdO7Hgw=
+	t=1790860721; cv=none; b=uGFbyisuqXKAI7o9CBKSb/XNW81H2SVhdtG32zJ30/vWj9TriZi3ySosXwGcKWzs7AmJ3B+4YDitHQlJhocOzjgzDF9aWzFZNQ9f+L6ZtgwxrnvMfl9sQqNgTycEOAxlgRw0phunuoJalYzHDObhg8C82vzpan7o/8dKl0phm28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790856806; c=relaxed/simple;
-	bh=qw6F0agE9fweMokxSa6xJ4PUNWhsi0HPTcBYm3uZdTA=;
+	s=arc-20240116; t=1790860721; c=relaxed/simple;
+	bh=JkI7VZ4A2uC+/dn/L/W5qEz5CiiPheGQnlanGKaUISA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ZJlzexWSAQDF9bA9zX8bLVwioxDnA09exd+C1a9ogHgJaunhR1OYakk6APJXYV7Xv8fhTf3THYN3CW58+N1iFTzaSaLFeYzcugaQ3Xc+lzf3avZk1aZ/j4oO/xilyJjuyHzIEDIXb5nA8oBvy84HKyBdrwPAKp/4/d6Bri+fBEw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Xl7mxiDq; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=ETcJ1NcbHqBgpF6IYf+BqSLH5Q39PI3LRPFC36l+haeIC9pjh4HHzbN8cuH5IYH29UnW8LP8d5t2qlMWfZjNhUTSuVyDMnrlTD4BwkMAAhYhSWlkAk9kSFUq671GPknSMJW1mDMx/OvoiwBXoAimx14GHxEdmJKErvSOqw4nbOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=agBhyH+b; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Xl7mxiDq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 011231F000FF;
-	Thu,  1 Oct 2026 12:12:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="agBhyH+b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 628371F000FF;
+	Thu,  1 Oct 2026 13:18:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790856804;
-	bh=B3He6dk1lv+d03oE0kIODLca8X0OJPESUHdmrBphA8c=;
+	s=k20260515; t=1790860718;
+	bh=UxjpaonxC/3VDFbLXavStYHgpCVIO4MBlBHvzTk6YXI=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=Xl7mxiDqPEStYHDqrgoerrLfkr1hPhZttyBeFQhA2Dmp3Rdc8p9y/gWN9OO3br7Yl
-	 Zhwo0lzgeYoHcJDhIuV5NtOgDP1YH0Cdbyz1p9nV6Qg3uHFEL75hK8fN1Q8b5cZFbC
-	 8Va1ZkkNv+tkZPD3lHW8F70EV4JF6LkqYx6mczjqOcb7fDxanM+pHHtDWaz99bGpfi
-	 A4ZYUtois7DLpVA0ZtPURvYcWxxhdiRnKBgo/2ZXKB/fWOU0h9m7YG25OOgRn6N5Mh
-	 mNadmlupayCLQJ9NhlkOhnqz+14JtL9advdUirIXqmhDSI6/l01PjDbKIcVoIbiYtZ
-	 A7BapymuqJu4w==
-Message-ID: <62e903c4-46fc-4647-b173-3797b2a77865@kernel.org>
-Date: Thu, 1 Oct 2026 14:12:41 +0200
+	b=agBhyH+bFmKD1JiAnoEtz/5qMdv8Ap+ND3x/3N77sLFcXCZ3bcDlajbZP+2ap44sx
+	 KPIQ+CdPX8Cd2RQc2lWaQ+6tuTQVHD2pYQlPNxdOxQthGqM2hpE/FWfeBE+JBoOiSg
+	 aTHw3Pfaa+usXhHmYbPmjg6Em6hcDF+IY/Dz4XEOgO3LkcfaH27mJOMvaKWNKyUSaV
+	 dIgxHpJeU+ZOW+vHFYouo/WQFX/mh6XCActsubBMgSttDFWHcozj2biVdd0OlH5rHg
+	 SjqdUVy0SHAv0dkWibepFp4IukMLRAR7jxSvh/uVcF78zQKMLBluxXYPcqcH563yw/
+	 oK2yZa6XGh3Fg==
+Message-ID: <0623ee06-00e5-421e-a24a-ed605abb559b@kernel.org>
+Date: Thu, 1 Oct 2026 14:36:40 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,7 +35,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 07/40] mm/vma: tidy up map kernel pages enum values
+Subject: Re: [PATCH v3 15/40] mm/vma: add vma[_flags]_is_kernel_owned()
+ predicates
 To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
  "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>,
@@ -117,7 +118,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
  fuse-devel@lists.linux.dev
 References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
- <20260917-b4-mmap-prepare-vma-flag-sanify-v3-7-4583d8a23bca@kernel.org>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-15-4583d8a23bca@kernel.org>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -164,25 +165,99 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-7-4583d8a23bca@kernel.org>
+In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-15-4583d8a23bca@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 9/17/26 18:22, Lorenzo Stoakes (ARM) wrote:
-> MMAP_MAP_KERNEL_PAGES is a mouthful, discard the MAP_ as that's implied by
-> MMAP.
+> Rather than referring to VMA flags with uncertain meaning, add a new
+> predicate that explicitly describes what possession of the VMA_PFNMAP_BIT
+> or VMA_MIXEDMAP_BIT flags mean, and then refer to that function for
+> determining VMA mergeability.
 > 
-> Also while we're here delete useless comments for mmap actions whose names
-> clearly indicate what they are for.
+> Either flag means the contents of the mapping are owned by the kernel,
+> usually a driver, rather than by the core mm: the memory may be MMIO,
+> kernel-allocated pages or even ordinary pages the driver maps itself, but
+> the core must not populate, reclaim, migrate, copy-on-write or merge the
+> range on its own initiative.
 > 
-> Also update the userland VMA tests to reflect this change.
+> We initially also include VMA_IO_BIT here, as by implication, these must be
+> kernel-owned. (mlock() also sets VMA_IO_BIT transiently on ordinary VMAs
+> while locking them, which is addressed later in this series.)
+> 
+> However the intent is to in future remove this, as no mapping should be
+> marked as an I/O mapping without also being marked with VMA_PFNMAP_BIT.
+> 
+> This forms the basis of further work intended to improve how we express VMA
+> properties such as this.
+> 
+> Also update the VMA userland tests to reflect the change.
 > 
 > No functional change intended.
+
+Of course I have to bitch about the naming :)
+
+Intuitively: kernel owned vs ... user owned?
+
+No, it's kernel owned vs core-mm owned.
+
+Which implies core-mm is not part of the kernel?
+
+Yes, this is confusing. ;)
+
+I assume you're coming from "map_kernel_pages*", but that's rather "kernel
+memory" and not "kernel owned".
+
+Usually we say "driver owned" when not talking about pagecache/anon. Or user vs.
+kernel memory.
+
+So is it really all about "is this (excluding CoW) no ordinary user memory that
+we would track through the rmap" ?
+
 > 
 > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 > ---
+>  include/linux/mm.h              | 56 ++++++++++++++++++++++++++++++++++++++++-
+>  tools/testing/vma/include/dup.h | 29 ++++++++++++++++++++-
+>  2 files changed, 83 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 2a92193ac6a5..cab29d6e15c1 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1612,6 +1612,44 @@ static inline bool vma_is_shared_maywrite(const struct vm_area_struct *vma)
+>  	return is_shared_maywrite(&vma->flags);
+>  }
+>  
+> +/**
+> + * vma_flags_is_kernel_owned() - Do the specified VMA flags indicate that the
+> + * contents of the VMA are owned by the kernel rather than the core mm?
+> + * @flags: The VMA flags to test.
+> + *
+> + * A kernel-owned mapping is one whose contents are established and controlled
+> + * by the kernel, typically a driver, rather than by the core mm's fault and
+> + * rmap machinery.
+> + *
+> + * The mapping may be memory-mapped I/O, kernel-allocated pages or ordinary
+> + * pages the owner has chosen to map itself (shmem via a PFN map, for instance).
+> + *
+> + * In all cases the core mm must not populate, reclaim, migrate, copy-on-write
+> + * or merge it of its own accord.
+> + *
+> + * Pages mapped this way are not necessarily reference counted or map counted.
+> + *
+> + * Returns: true if the flags indicate a kernel-owned mapping.
+> + */
+> +static inline bool vma_flags_is_kernel_owned(const vma_flags_t *flags)
+> +{
+> +	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT,
+> +				  VMA_IO_BIT);
 
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+I thought we have cases where we drivers insert pages and neither set
+VMA_PFNMAP_BIT nor VMA_MIXEDMAP_BIT.
+
+I assume vmf_insert_page_mkwrite() is fine because it is DAX doing it (should we
+limit this interface to DAX?).
 
 -- 
 Cheers,
