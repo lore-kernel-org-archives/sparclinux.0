@@ -1,183 +1,172 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EFC13A4523;
-	Fri,  2 Oct 2026 12:08:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 650243A8749;
+	Fri,  2 Oct 2026 12:09:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790942898; cv=none; b=GQrsALbEbi+wphPOJcGFcWeG8vkvYLki8pWljjhSuj62SUn7UzzZcLNpMc35emXLvvThb3dZ2V+nG7b9rNQY6orj+oWeN8FV9yHx+pud1qGu3Kk1MYTX6zbDkt1qU2pS7FX1DguEQDucp4XLJFCe9A0pGjg9JIRRWpX+4Q7kbws=
+	t=1790942942; cv=none; b=d0hJ1zaiD0YhF1wg1eumx9EZgzz0Avywg92qzfn2LVJNmLrkKLhsCBCFBfVXjf6pbQjp+GrmcRP9b90ZFNgqgWmc3IwIQg1OBgZX32Ljjvf7HfQET4cmHvTJlVri2i5MI4DYgtrKG1FDrIZ0ddt9PVg5U01Ii/9ES1rxNK/hmaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790942898; c=relaxed/simple;
-	bh=c8hTcCvyfn58VxOulb9D2sz8nvlf4KjPQ2FsvNwNWvs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rVFF203p1yqJ4Kv6NqbBv0MdcmI5Y0rtUcuzeKTUItH79z0VSNrMqdbt9lqpWZE4BrL2TL9iT13duiu1NMIty1aL4EZkDIRD6iRAc7Qwwrxp0fyHOoUSzygc6eOCmJYgNqEOoblkTOufzMYpKsaisK/V7Rba9hGK+jW070GF/Xs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qhdt8Ng3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790942942; c=relaxed/simple;
+	bh=8cLAuKLPmVEDjaBRTngodkkmYayv43SIGXGLFNy7e78=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=caYh3GgW+FOgjQh5euHDypy/97wXz2CORojeahXU7L+ZNSkoamUD/uXrqGoI8YCxcM1+8p/EVf2fuSg8ul4KZkMf3rOJ05d8bhw0FrOL/Zs99y8cU6nDga0DTzdJlvtaxbA0JbZlgs9OJSLb+KQPBGh1SNpZKL3lO/kYLeieaqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Uy5taaAC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qhdt8Ng3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34F1A1F000FF;
-	Fri,  2 Oct 2026 12:08:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Uy5taaAC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F14641F000FF;
+	Fri,  2 Oct 2026 12:08:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790942896;
-	bh=JUHbJ2wYZgiOnAwObcV975WzRcpiwXyJLliBcLauNuc=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=Qhdt8Ng3BHQCcF6XLWHIK3XVYvyTGIo1LuSR7+HBC/swZH28L6G+DvlB3cOOWvOkD
-	 DtKXltQK+JBlcV2quCjFoDeV1lxUtJxiYvwuR2S3Cu+lV0QRny8RkXGRa3BYKgZZVf
-	 QfiSVRfw/N0RKmNfxM26bk4ETWD50h7YjBF7ZKlHmmULShnii9lQ6GKBjHlXzOaI46
-	 8pUznw1iNoCz3QjbvvnKwcYB6/mMYg+AKhOxJk16GJsKwJmwFOKSWRnP/w3R4SGnjD
-	 Cj6G+xnl35BKOtIJTvIE/GsBbICb7v9QQQIrMYPAyxElTig5783sZb4vhxN7jKeBBb
-	 V4qHHVzKo1bCg==
-Message-ID: <54a7252b-ab2d-4230-9a1a-d4d1b670b7c8@kernel.org>
-Date: Fri, 2 Oct 2026 12:15:10 +0200
+	s=k20260515; t=1790942941;
+	bh=8XFpzUVlPtubZNxGByXwzZH4ApuR2nkpwtpFdh8/JOw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Uy5taaACkmw4lszKyU7Yeuv+r4seDzQWxkXBg+0TVdf8xxURZsAxbErhYfWWrxxpc
+	 ioGRh0AkeUlNaM0O/76kHyq/jNHajZ49qlp7kzTK/y9hmtsTG1lIh8zALpUqCprNPh
+	 blExfXgLSv3QlLino90K+6/VPwq5Sd4fz4m+VygMzwLykCThr26SJaC6bhFxWHUwuU
+	 RW3dRxgv9qthrHmsQVLnchIEH1GFQYCaQedJVw2qJ7fKb4CeudG3fK6a/HZ/Cbqk5l
+	 1HvNfpJUOxI5LDkvyRmFGaGRuDENXBtw49ZrKzFNSoza42QyfDgjqhIdIeOYrklqzK
+	 NX8pFIwFQbflg==
+Date: Fri, 2 Oct 2026 13:08:31 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+To: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
+	Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, 
+	Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
+	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
+	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
+	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
+	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
+	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
+Subject: Re: [PATCH v3 31/40] mm/vma: introduce vma[_flags]_is_persistent()
+Message-ID: <ar-b_Ug__TBzIZsb@gremlin>
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-31-4583d8a23bca@kernel.org>
+ <9bbdf4e8-6984-4477-a183-f0b236047381@kernel.org>
+ <3557015d-23dd-41ef-9832-78b58587f3f4@kernel.org>
+ <81e1e5ae-0aab-4584-81e6-3fc9c2634d07@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 0/9] Optimize anonymous swapbacked large folio
- unmapping
-To: Dev Jain <dev.jain@arm.com>, akpm@linux-foundation.org, ljs@kernel.org,
- hughd@google.com, chrisl@kernel.org, kasong@tencent.com,
- davem@davemloft.net, andreas@gaisler.com
-Cc: riel@surriel.com, liam@infradead.org, vbabka@kernel.org,
- harry@kernel.org, jannh@google.com, lance.yang@linux.dev,
- baolin.wang@linux.alibaba.com, shikemeng@huaweicloud.com, nphamcs@gmail.com,
- baoquan.he@linux.dev, baohua@kernel.org, youngjun.park@lge.com,
- linux-mm@kvack.org, linux-kernel@vger.kernel.org, rppt@kernel.org,
- surenb@google.com, mhocko@suse.com, pfalcato@suse.de, jgg@ziepe.ca,
- thuth@redhat.com, sparclinux@vger.kernel.org, ryan.roberts@arm.com,
- anshuman.khandual@arm.com
-References: <20260924131106.1730494-1-dev.jain@arm.com>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
- qIws/H2t
-In-Reply-To: <20260924131106.1730494-1-dev.jain@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <81e1e5ae-0aab-4584-81e6-3fc9c2634d07@kernel.org>
 
-On 9/24/26 15:09, Dev Jain wrote:
-> Speed up unmapping of anonymous swapbacked large folios by clearing
-> the ptes, and setting swap ptes, in one go.
-> 
-> The following benchmark (stolen from Barry) is used to measure the
-> time taken to swapout 256M worth of memory backed by 64K large folios:
-> 
->  #define _GNU_SOURCE
->  #include <stdio.h>
->  #include <stdlib.h>
->  #include <sys/mman.h>
->  #include <string.h>
->  #include <time.h>
->  #include <unistd.h>
->  #include <errno.h>
-> 
->  #define SIZE_MB 256
->  #define SIZE_BYTES (SIZE_MB * 1024 * 1024)
-> 
->  int main() {
->      void *addr = mmap(NULL, SIZE_BYTES, PROT_READ | PROT_WRITE,
->                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
->      if (addr == MAP_FAILED) {
->          perror("mmap failed");
->          return 1;
->      }
-> 
->      memset(addr, 0, SIZE_BYTES);
-> 
->      struct timespec start, end;
->      clock_gettime(CLOCK_MONOTONIC, &start);
-> 
->      if (madvise(addr, SIZE_BYTES, MADV_PAGEOUT) != 0) {
->          perror("madvise(MADV_PAGEOUT) failed");
->          munmap(addr, SIZE_BYTES);
->          return 1;
->      }
-> 
->      clock_gettime(CLOCK_MONOTONIC, &end);
-> 
->      long duration_ns = (end.tv_sec - start.tv_sec) * 1e9 +
->                         (end.tv_nsec - start.tv_nsec);
->      printf("madvise(MADV_PAGEOUT) took %ld ns (%.3f ms)\n",
->             duration_ns, duration_ns / 1e6);
-> 
->      munmap(addr, SIZE_BYTES);
->      return 0;
->  }
-> 
-> Performance as measured on a Linux VM on Apple M3 (arm64):
-> 
-> Vanilla - Mean: 37401913 ns, std dev: 12%
-> Patched - Mean: 17420282 ns, std dev: 11%
-> 
-> resulting in more than 2x speedup.
-> 
-> No regression observed on 4K folios.
-> 
-> Performance as measured on bare metal x86:
-> 
-> Vanilla - mean: 54986286 ns, std dev: 1.5%
-> Patched - mean: 51930795 ns, std dev: 3%
-> 
-> I tried magnifying the difference on x86 by using 1M large folios, but
-> can't spot an obvious improvement (looks like my system is too fast to
-> benefit from batched atomic operations!), hinting that the benefit lies
-> mainly in the reduction of ptep_get() calls and the reduction of TLB
-> flushes during contpte-unfolding, on arm64.
-> 
-> No regression is observed on 4K folios on x86 too.
-> 
-> ---
-> Applies on mm-unstable.
+On Fri, Oct 02, 2026 at 09:05:15AM +0200, David Hildenbrand (Arm) wrote:
+> On 10/2/26 09:02, David Hildenbrand (Arm) wrote:
+> > On 10/2/26 08:59, David Hildenbrand (Arm) wrote:
+> >> On 9/17/26 18:22, Lorenzo Stoakes (ARM) wrote:
+> >>> Introduce vma[_flags]_is_persistent() for the purposes of identifying
+> >>> mappings that are persistent in the sense that bytes to the mapping stay
+> >>> there, and bytes read from the mapping are the same unless changed by
+> >>> actions taken by userland.
+> >>
+> >> That's extremely confusing, sorry. We have to find a better name for that.
+> >>
+> >> Is this really all about user pages (pagecache, anon) that we would find through
+> >> the rmap?
 
-Given that we are approaching rc6 and are flooded with stuff, this will target 7.5.
+No, see below.
 
-I have this on my todo list.
+> >>
+> >
+> > It's also about droppable mappings AFAIKs. How many more users will we have for
+> > that function?
 
--- 
-Cheers,
+Anything that requires stuff not to be dropped behind the user's back, which is
+at least 4 cases!
 
-David
+That being open-coded all over the place is a problem I think, and I think stuff
+like the PMD device private are a reminder that open-coding all over can cause
+problems.
+
+> >
+> > If it's "no others" then please don't add a helper function with misleading
+> > names for it and just keep the special "dumpable" check in the new form in
+> > madvise_vma_behavior().
+>
+> Talking to myself ... the more usage I see of the vma_is_persistent() the more I
+> think this shouldn't be a helper at all. Especially not one with such a
+> confusing name :P
+
+There are 4 open-coded checks that test four ad-hoc flag combinations checking
+for the same thing - 'can the kernel or a driver change things or discard stuff
+behind my back?'
+
+So abstracting that to a helper, alongside the other 'let's ask based on
+semantics' helpers, seems sensible.
+
+Maybe invert the meaning to make it clearer?
+
+	vma_kernel_may_change_contents()?
+
+vma_contents_may_change() is shorter but easily confused with something being
+writable by userland etc.
+
+Or maybe:
+
+	vma_is_volatile()
+
+?
+
+Which is analogous to the meaning of the volatile keyword.
+
+>
+> --
+> Cheers,
+>
+> David
+
+--
+Cheers, Lorenzo
