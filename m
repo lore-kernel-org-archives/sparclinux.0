@@ -1,160 +1,184 @@
-Received: from mail-pz2-f37.google.com (mail-pz2-f37.google.com [74.125.228.37])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB1E14AE115
-	for <sparclinux@vger.kernel.org>; Thu,  1 Oct 2026 21:06:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.37
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790888770; cv=pass; b=D9sxu9e8aL1eqBMmCFc44sqA8Jqmd1ooiLLs/aVDPgLWIwodM25Tr5fBWCNH/VX6DFi9qR1jSmQGUom5ELCm0Z2EWg0o43jO2nnpYbfoUuGaIf2ObvRyk/h3nMEb4TV+2gI5sjZX5aLwVnvDzKySL67YsHpnWN5xmailU8bynps=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790888770; c=relaxed/simple;
-	bh=xN21QYy0yGgz2sHT1nXnC/21nVEwjhkQB04Hg4E+rW8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=gS1vU7pgRkPlQNV8/g8Hmv+5eixlw8nyt6qDEmTV5ldFfn0yYKOT05YGnCzKE9IzeUMTjuHDMo4yDTMPztYzHtdX/eIl663LxKVW2F9vw+xxtqZEyFZNjBEtMt842/uyeW3n4J9t/yZURdnlfZ0LMj4i8HHq83Za9SQnbaNucW4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=CAwV36pr; arc=pass smtp.client-ip=74.125.228.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E45F93E1D07;
+	Fri,  2 Oct 2026 06:52:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790923972; cv=none; b=K6BpjuQPKSzkkaQe0q+UDcxBxQoynrDXZOQgXM0EkKflYZ6Wh7ZcF6MVbD7fFt3cv005XhaRHFONNE8JJkjYW2YjVd0/bMETpERZjqLRwoNaDPjXtysjR6iukzxVa6V6qaGabXW9sO77hHHLnpX6O4fD19ZQ8T6a0aYhWZnDwwA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790923972; c=relaxed/simple;
+	bh=qB2Wypr9G/9D5c5y2YXcfVZc9vgDAVA8p+hTwJcQ4bM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Pj7L2aLqOLNtIeaAqmR/jAL8KWCaqNQCBPT69oUMXPI1t+PDlz5nIw/B7GYGihJAQ++oiW4ev8GtsbTH+J6mJtdt262SSO+GNIawHsPiYiwZXxqE2SA79181pwutKERh1oN1IJvJDmrFvG6GeXPXF7nHd3m8czmSxoQwWaZhyWI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c8bDWgyU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="CAwV36pr"
-Received: by mail-pz2-f37.google.com with SMTP id d2e1a72fcca58-885f0eca6c4so1421112b3a.1
-        for <sparclinux@vger.kernel.org>; Thu, 01 Oct 2026 14:06:07 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790888767; cv=none;
-        d=google.com; s=arc-20260327;
-        b=SAnhtOfCuR6GLMEUp7BrcDDX1rCumXqqWiSDJdos7jd47MC3URstlUCpNaXvIA7TTc
-         x4rwoWI3y2Hn0AxqKeC8HvImSgQFWKWdfqlBWYyx75k62fiQZTIaw1/cyCFJDBLxPn9q
-         Qd6zWpL4nLCMWdb7/0FejjAPm/Io5vBir40ZJN7evH0R1L5RaNppWPn+TDIGymy/BMQy
-         okfZnqyXD3uKjuoziVQc77PTx5cO8+jHadBYVj6pVYNoHJDtsSlb0A7t0ZvEQRpqYGsA
-         4L53XhJp7SjTQ3TYAGSAOBQiwR6wkYo0Kd4WcmPs6OhoIiL6kCDHa6SfMxMBKNmQkuDG
-         /Blw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=zQjpYhlPNUCc8b2PKOBh4ENa5gh7HULkWsy4SYnLXSM=;
-        fh=NYUwNf0LHwFzYWOHMsJQNCV5vNkIJiPEKOgnUZBSSvc=;
-        b=ThWPWazmLlfhX7c+hUGUcUdPLtJ3pAbR1wlmcAGqz9h//zbe3zOya+vPBWIaVvL5dk
-         aTafmsx9v9MIxfQ123XTBAEZbCiRwMe2hN4zPkNtHn1mTvpzdC4f9p1E5OpaD7+ilwVh
-         AtwEJJY9+jSsvr8C4hQR/CzQ/QYpXvXGmCjCF6HJFMQdLf1SAWc3unQigbqVHcKU4F4Z
-         h545vxLsevzArUzAdZcN24zGE/NSzAl1w/Q8/nKOgWR8TW3RmkcxT58ycw/3JYl7OWKV
-         IypMDoK63oi4iqqqMYR4jzhIcEDKQpsSzTkncwP8zG7KnYJ36nA9zM1/8vdsevSrGYTz
-         2gwg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1790888767; x=1791493567; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=zQjpYhlPNUCc8b2PKOBh4ENa5gh7HULkWsy4SYnLXSM=;
-        b=CAwV36prXHOZw2NRE+aSACbPdDsBf2SHqbBYA6oNTHRxcIGcOyC/CJqkRH7LJRevOZ
-         ClcJMU2t93f7XmqqwruK0c5ZXJiXQfI/+n+w9nHyb4EcEh0EZTu11pUBC9xzrVuOqKBT
-         YsV75j7RrnJU55Z+JqH44vXWfdCbI4I+NCB8980IdTgu7vzPMxHvgU+uCw/+FxPpgY0h
-         63X1M3w+g/hILuWVI8qWSFmlSwv2NKZwGdJ2DwWfYsxtFTA/lG+C3YADiA4myoIGj7HP
-         Z1Ev8yhuTUNqN+BrgGDh8F6GLVD0gbmqkkcnf9FOFy5sLyuxAa1XjcNkIrhbHMfk8YG5
-         z0BA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790888767; x=1791493567;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=zQjpYhlPNUCc8b2PKOBh4ENa5gh7HULkWsy4SYnLXSM=;
-        b=Mf0075DSsMar/OPXnoDbqlhbh/zs8yMjcPiLjmGbC73GNQj7QkxW9OxbBHmUZusbHV
-         Mti5nG0UzgOoyeYkN6IqsYO46aSLYLdsspaCTw3kNnmpjgnwZco7kd+uMoFtLSlUrrX4
-         ev9WQV0jYKcOEQzFJD5RU0yFcbwtOTEY5/dir2Z0odODDWhBh17958gemeBnaeUVw36j
-         F6uWY9ri8kqedNjf12AqGWi94HDRfmcmQgTxxaDOK1ov9bUz+am+fpbHRBK4HemHvRAT
-         MhX+HaXluDlFgMYwDHYe56nwpEi0GuXDRZG3+Wdp0y0eAlWlcaKTesSgG6pdVTWP5aaO
-         YY/A==
-X-Forwarded-Encrypted: i=1; AKwUvBwAbciEzUBY6sS+v9eOhkmX6n1ZabADqmRa0YqtVNrMMi0ujq8tTc4ZsXMmIpbED0Gvvo68VvWY7mS5@vger.kernel.org
-X-Gm-Message-State: AFuF++l12mFCIKUVNc1z5bsS/+Usm7ydStzWn86mFLE4YE8rtEvs7Obn
-	OlkSFeXIa0P1qGyfsS4AGTcQaRa3HGkLfKhEHLORDbRdh93qxB3rX9o+8CM+URs8t40l8qhlM7A
-	yFKnXHKG3NHz7XOB1TIxHDBO6PnazyUa/tPyk4fQB
-X-Gm-Gg: AYBFou1IJWzhCGolx0LoJuqMJeVUK/ULwOmmBy1SrsSurBsWKzR67Nfi7nDWOmLtxf/
-	2Dcf+3DZibf12QExNotnxjRaGpYz8apmGUfebQFlMwK77spAw7ZPExwm4LdzZSEdMGtAuHGYsgx
-	Eq/r5LZICfIu9uKlRMTVQTUiMR0f0Cx5pbZ8FIUzMPQUPPZ4MfIVVukiLipNwzH0kswymtyuH2B
-	buFZBS/QMYKSCApYdv+HJPS/UW0aqrPcoZp/4h++kJx3TMAeRnUY417vSB5Lc2hZmNHzOIIbcIK
-	NVxzevaP/76+qTGa+Ikd6RAPnMQ6KtRupVB7xAnbYUn63NzaKDILn3quMU7y4ACoK1r887pFjbX
-	MqFJUYL+1esdR
-X-Received: by 2002:a05:6a00:1254:b0:881:5dcb:400e with SMTP id
- d2e1a72fcca58-88af6d24f34mr727169b3a.56.1790888767004; Thu, 01 Oct 2026
- 14:06:07 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c8bDWgyU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B78DB1F000FF;
+	Fri,  2 Oct 2026 06:52:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790923970;
+	bh=u15YH4Gk1jY734f7Ru9LTF8CNh+n4MtAogEYgBYqpnw=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=c8bDWgyU7nbSbFiXaryamWOeLdeQpMchMrG0YjFpHuBOQ1PuqIEtbmxLMXTlp4ewM
+	 OL/GoVIH5VS5zURtCMofHqaWCe4cVE9WJ8MPM3FdcVOyMRU1YSbKnFj7c9DjyEVkSw
+	 9gCmXRSqnWhhFoMhDJ/lGP59xmGFDa3YmRJMrGx+9mw3LMY8NLYorwZ19bld8oz5rO
+	 DgWfbQbiLCLEg2FXnUdwmI6B06bIL+jviB54nuqoHIQ8yrkmiuMD5hPR0jQVPoCSav
+	 mIx8HAdy4CslS+i7YzgBC1u1s9bonkEoTcmwC1glIfgxX4mWnJ3lRT0smKX9wzYurc
+	 IJYDuX5dbpfvw==
+Message-ID: <bd623df8-d5f0-46a3-927f-f0a4b458e651@kernel.org>
+Date: Fri, 2 Oct 2026 08:52:06 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1790088067.git.rrobaina@redhat.com>
-In-Reply-To: <cover.1790088067.git.rrobaina@redhat.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Thu, 1 Oct 2026 17:05:54 -0400
-X-Gm-Features: AclHuK923qNeclwyxHc-N96rTW9f--kU_8IWc_3FVDcJfFTXqnWMr4asd_Mjppw
-Message-ID: <CAHC9VhQ=FFYVNmQdiMsqg+5KDDrSC3SZS+H2=r_GkhfwQox8tg@mail.gmail.com>
-Subject: Re: [PATCH v3 00/14] audit: log all six syscall arguments in the
- SYSCALL record
-To: Ricardo Robaina <rrobaina@redhat.com>
-Cc: audit@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-csky@vger.kernel.org, linux-mips@vger.kernel.org, 
-	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, 
-	linux-um@lists.infradead.org, bpf@vger.kernel.org, eparis@redhat.com, 
-	sgrubb@redhat.com, oleg@redhat.com, richard.henderson@linaro.org, 
-	mattst88@gmail.com, linmag7@gmail.com, linux@armlinux.org.uk, 
-	catalin.marinas@arm.com, will@kernel.org, guoren@kernel.org, monstr@monstr.eu, 
-	tsbogend@alpha.franken.de, jonas@southpole.se, 
-	stefan.kristiansson@saunalahti.fi, shorne@gmail.com, 
-	James.Bottomley@hansenpartnership.com, deller@gmx.de, 
-	ysato@users.sourceforge.jp, dalias@libc.org, glaubitz@physik.fu-berlin.de, 
-	davem@davemloft.net, andreas@gaisler.com, richard@nod.at, 
-	anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net, chris@zankel.net, 
-	jcmvbkbc@gmail.com, tglx@kernel.org, peterz@infradead.org, luto@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 27/40] mm: remove hugetlb_inline.h
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>,
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ Paul Moore <paul@paul-moore.com>,
+ Stephen Smalley <stephen.smalley.work@gmail.com>,
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+ Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
+ Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>,
+ Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>,
+ Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>,
+ Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ "Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>,
+ Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>,
+ Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>,
+ Peter Xu <peterx@redhat.com>, Masami Hiramatsu <mhiramat@kernel.org>,
+ Oleg Nesterov <oleg@redhat.com>, Peter Zijlstra <peterz@infradead.org>,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>,
+ Juri Lelli <juri.lelli@redhat.com>,
+ Vincent Guittot <vincent.guittot@linaro.org>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>,
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin
+ <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>,
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
+ "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>,
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
+ Albert Ou <aou@eecs.berkeley.edu>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Janosch Frank <frankja@linux.ibm.com>,
+ Claudio Imbrenda <imbrenda@linux.ibm.com>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>,
+ Matthew Brost <matthew.brost@intel.com>,
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>,
+ Ying Huang <ying.huang@linux.alibaba.com>,
+ Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>,
+ Kairui Song <kasong@tencent.com>, Kemeng Shi <shikemeng@huaweicloud.com>,
+ Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>,
+ Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>,
+ Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>,
+ Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>,
+ Wei Xu <weixugc@google.com>, Chengming Zhou <chengming.zhou@linux.dev>,
+ Michal Hocko <mhocko@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>,
+ Xu Xin <xu.xin@linux.dev>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-usb@vger.kernel.org,
+ linux-rdma@vger.kernel.org, selinux@vger.kernel.org,
+ linux-sound@vger.kernel.org, bpf@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org,
+ linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+ kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+ fuse-devel@lists.linux.dev
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-27-4583d8a23bca@kernel.org>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-27-4583d8a23bca@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Sep 22, 2026 at 3:21=E2=80=AFPM Ricardo Robaina <rrobaina@redhat.co=
-m> wrote:
->
-> The SYSCALL record currently logs only four of the six syscall
-> arguments (a0-a3), silently discarding the remaining two. This
-> leads to the need for auxiliary records when audit-relevant
-> data lands in the 5th or 6th argument of a syscall.
->
-> This series extends the SYSCALL record to log all six arguments,
-> by adding arguments a4 and a5 inline within the existing record.
+On 9/17/26 18:22, Lorenzo Stoakes (ARM) wrote:
+> This header really makes little sense - every place it is included mm.h is
+> also included, and the header itself includes mm.h, so it does nothing to
+> reduce header size.
 
-Thanks Ricardo, this looks great!
 
-There are a few things in some of the individual patches which I reply
-to in a minute, but there are a couple of "global" things that I
-wanted to mention:
+It's very small indeed
 
-* As pointed out by Sashiko, when you were converting all of the
-arches, it looks like you missed alpha.  I took a quick look and it
-appears that it should be a pretty straightforward conversion like
-most of the others.
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 
-* We need to get ACKs from all the various arch maintainers.  Aside
-from the parisc changes all of your arch specific patches are trivial
-(and cleaner than the existing code IMO) so I don't expect anyone to
-complain, but getting ACKs will likely take some time.  Even the
-parisc patches aren't that bad, and arguably they fix a problem for
-seccomp so that should make asking for ACKs easier :)
+-- 
+Cheers,
 
-Since I expect chasing down all the various maintainers for ACKs will
-take a little while, and I'd like to start getting this patchset some
-basic testing, I'm going to merge it into dev-staging now.  While the
-dev-staging branch doesn't feed into linux-next (this isn't likely to
-land in the next merge window) it is one of the branches that gets
-tested automatically and included in my kernel-secnext RPM builds.
-This also means you won't need to worry about keeping this patchset
-up-to-date with rebasing, as I rebase dev-staging as needed (it
-intentionally isn't a stable branch).  Going forward, if there are any
-minor changes to this patchset, e.g. a few line change in one of two
-patches, please just send a fixup patchset based against
-audit/dev-staging and I'll squash it into the relevant patch in the
-series.  However, in the unlikely event that a major rewrite is
-needed, just send a new patchset ... but I'll be very surprised if
-that happens here :)
-
---=20
-paul-moore.com
+David
