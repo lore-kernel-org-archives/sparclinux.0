@@ -1,95 +1,95 @@
-Received: from mail-ed2-f12.google.com (mail-ed2-f12.google.com [74.125.228.76])
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7399360EF0
-	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 09:02:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23423B27C9
+	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 09:05:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.53
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791104563; cv=pass; b=FNsYf5hazaaVCCVcMWX/GzENNnTJbEer5KzMuUrH72BZ6X9Nw35vwGmZfwyKRheF7JI0xcyHHf6460yKjFvuHp4NKnscBJzxLMv+D7d4ipRm6Ahs5bHxjeWJEjIx1iil7VwhcYZ7L7f8bKCtsE7uCLqhpaUg+3sWdvPWxruRLAE=
+	t=1791104722; cv=pass; b=MBRga6DgHhiO514BJCYkacBSyPOUQ+xfby5UViJyktmdDOKWWor2uwWKEwAN8SpF3SeOb3Asb9rxRGmUxYSqCVNKPRWTnozpsR8QlofZ5cNkScd41Laj2lGzK+sxFP81yPuZVRLrSZ4ZnnVon7hzFOIRFYn2VTXuuUji8SMidmA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791104563; c=relaxed/simple;
-	bh=2iADdXB0u89j4TAc4evJkaJgQVI0i6XZPvplCiNFcAg=;
+	s=arc-20240116; t=1791104722; c=relaxed/simple;
+	bh=Md3eVMFMNjS4x/y9MdWU2A1HQjTNlRJ8suqFtL2iTGo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RcplfAFZuXxAB9CtFu4hxQqQiTZuowBtvGjtsgIC7ombuuZzh88xKu3pCPz4iaPdVqwGP2jqZmOB/+irxb1yAaPEIHU0q5W0LEm0N3YMWOOWZTjwqug6jYiWgYCdTweyOZ3/ORnxtZp6uE99Y16UwbPK5zDjV0jF0gDjTwSlmNs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=seo6/dCG; arc=pass smtp.client-ip=74.125.228.76
+	 To:Cc:Content-Type; b=TNZVDoa5EpEeoSjiis/m74DHLhVBYUXgFU+pjwGorsQjG7DaovaCWbzUPtetnBR83k5iEWbGwqdWKD8EjBqFmTHvdp6V/6IBW8PBSP4H5LmC7yntH6bZ5reFq6W1L/a+9aBJZSxsMcZpU//J0WBbgdVBN/KyxYsh3pmYbQ7mSxQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=J0VQYSoZ; arc=pass smtp.client-ip=209.85.208.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="seo6/dCG"
-Received: by mail-ed2-f12.google.com with SMTP id 4fb4d7f45d1cf-6a60591ae54so1058734a12.3
-        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 02:02:40 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791104559; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J0VQYSoZ"
+Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-6af9befd04cso1180882a12.2
+        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 02:05:20 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791104719; cv=none;
         d=google.com; s=arc-20260327;
-        b=ULBKWucGGFm5Wmw8vImyifUyLYxrDcqG1vbOcfcTplVPtspEOlaqvAQsd6nXirEHMv
-         jYy65fWWgHZD+7XmjlnYVkrReVIBki5izB5AR3ixIZFXiWzkXyA0TN+yqEYeQZ78O8f5
-         z10UAT4MXO9k7tODCKoR4IjcRHq4iLIjs3SKulwis9RHmjcHSt48qj2ukHv9+1G70Kko
-         eGSO2fbkQ/Ija1T4iftJE//spSvG/DiVcuHJEwlNHNniIPAs/cgM5cnJTi5GnyBOLesv
-         p5Ct+rZwBOvpBaxr8n3Rq3Sq/L94IE2amt6KuB83PhvCxqGHsZqc7jxdQtxSPFllHqIP
-         ltGA==
+        b=c1C998mUfolzfE6kzYA1SCosC60Vi5yaaNFDS70vBLlmAi0Uk7FGCe/TTJ6o+EPzyT
+         2Co3A9TI1jg9yDxCXL//02VlDDldt4tT69T3lGznTGAn72bQN+AUS7jUf30M66p8SO0/
+         pXpRyMDGwO94ceeNlvRSZX/devR4MnX7UdK5Rp8v6mCJ9luVaXRVK9WixL47a8vUzPdj
+         5XAGFUv5xveSR7156q38bSLJLjIYOsvuC6VPfF9vSluaBeahlyg7S+FQxYHAbBC77ePX
+         q7nnAhO+F965p/O/R20gmr8ObMlRJRAjlc/lKwtyGCw5b3Q47rSiXpoBqvjbcNesYZVC
+         ualg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=4kVu/yq/WaOXMdFOaNW9qNBMm3nKlSEjdOviAUDMdnU=;
-        fh=LklTktD+ELispFclBFEsIyJLvB5o5egavNE/7wMSKgY=;
-        b=Da9LXYSAvEKt6tuV7WM51syy2yeM6wYq7Fas+Ntqy5X7zHFZpT7/PP2KeItXgrTIvG
-         Atc/tt4AMqm6JCzxrVDMNDpt0mDloR6ug2cKCWQwfgLs8mXwsfoi7oJKo2jC2eNWdkQV
-         c24hoHIeQ+y1zuzr92r3de1e2vQVh4V5wPnnr2KYGm0KR8E17lKvBThwAR3E2bh54fHy
-         4paK7NU1fcluwBJjpcpC5yqTu6tsE/ewTZbyb01UXWI8ZtAzT0f41i7HMSVriwojd864
-         HSPgSvllzhWlQ6PJeNqGMxOw8h0hY8JSr+zyZpC0BE/DuDGk6W5SAR/TQX+KqenRRZAG
-         sVvA==;
+        bh=WHZw58du1+z3AjNtEPV+ML/gwcbQQio5oIr/dAa76uU=;
+        fh=YizxEt+raAQZdZ5AkbcQUXwyuxTwAGaBzddkTIRjCag=;
+        b=kT8V5cYYAaB5dfB7paYgdua4F0SobjWWT0I6GS1UCGJtJ75g0N1S3nXXr6QQaJYGmX
+         MH8WYMDtA5iG6ZDmqWPSNOstkFokdrh55OltuUWBUR6L366pjR2RUYJpbRgqnG8zO6EY
+         TYowKT1wVf5JAXeP2VLtTFWn0+BLIv0sPGp8cb5xIicBJJDqHjTfl0UAH1WrF0vV3BG7
+         fAlHV68/Xo0eQ37mmJBhkPfLuWR7E7M3AlpU8ZqEmuJyJQzcEWZh0r0/JaR5uvDQHnwL
+         SSJcX91ubtd00z4oHiNzVFEC/Moq1DeqD1G2wM4KibhIGnd2gKM3gSejbTUVnA1gj+eA
+         A5Fg==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791104559; x=1791709359; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791104719; x=1791709519; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=4kVu/yq/WaOXMdFOaNW9qNBMm3nKlSEjdOviAUDMdnU=;
-        b=seo6/dCGJBHmzoZ+l/drKAr6l6gojJLim9pdbQmdKSEVBwKLmRFnBdhgvURHmmodnj
-         CQM/9pnTYiT1l+ms58nNi75DaDLkkrP/StNhPUDzk6fvaJ0i+dIoBq0dRCSaCJorDBYX
-         QUA1K1GHQvEmPmk5/DjAWwAuQ8+4r8BRkP51JOiaTRTUvicb4kDWFeyeTrjzQvswP8KI
-         IkUJNTvR/OrCNgmzqdoButM0a7/+wtLceTPNOjfCAF6EihGct2XQWGWfQpgc3fk7Flr9
-         Ooml+AYV1MchHWh5n1nrE9HqKf/GR/dtPqihD8VhRmFXNBjLxdHyDaMDfKfXGNRUickF
-         39vw==
+        bh=WHZw58du1+z3AjNtEPV+ML/gwcbQQio5oIr/dAa76uU=;
+        b=J0VQYSoZ3rWc/FAzQU3TllIzYQeBPaWCoR6VfyWr2Js6mpCQoBlD2YFOoRx8h5aoPx
+         nrKJQ4JGh1vuSMCtoUB4MlrSwlD22j5AvjStM57Ghu6JHAPyYm1RI88SVH3m0l+PvtHi
+         SJ8ZFujyKkqbVaAkr3DEFC5ebxiS/5J+oolDN3XGi24P83qUqCaFk6AIoAXqH7BOslAV
+         lrMa4W9kWZ9NEVsWNruW7yTCGnWgW24QIBxqvJGwaiqd82WB4uRbYLN0H5y++6KHXcKn
+         JXcwawGoBSvwvktYCfAOFsGLlo3c7NWK/HsDGeQIiNy0fW1wJe7azd/pFPj5tIdJg4Yy
+         MsKg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791104559; x=1791709359;
+        d=1e100.net; s=20260707; t=1791104719; x=1791709519;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=4kVu/yq/WaOXMdFOaNW9qNBMm3nKlSEjdOviAUDMdnU=;
-        b=bPLNIm+nndW+n+7TbHrtSDE6j3RF8bCl+HPAqIFFFdpMtqZwjdJBmFTDqKllbwdVnO
-         PBLoyOtX80bFWBKpGPtQdC1m5mRZ/CLpOEjTf7ejq6da1BngSnDf1tj41tX9sOXyHK7O
-         yIHdFeK4pZnmQ6DIaV2/zuRi1SX7DLRpTYbspMTRguXscLIwsZWuOPoLYM6liOD/NQCx
-         9LM9Z6Pv/qX92OXx2jhTzuRu9Avos6J8fuM9VBekGilhxptu0SJsClF7k0NFH5hehp8l
-         1b0288tNCbLIWFvacw0aKpaDY8iDUQS8vlTkJMh5Js3xBbdTq2gW3UoBCg4dxu7AXkyE
-         nxUg==
-X-Forwarded-Encrypted: i=1; AKwUvBwRP6Nhx9k/SAeGTccDbr2XyMGXnXsmgGmKWGPrq/Pf900ZojKGlqLwOm0WOeKFvDiG8V9esUTDD8Bz@vger.kernel.org
-X-Gm-Message-State: AFq9FYKQuhZcDEblqurFtr5dzvRHE7siGcYH8xc2BMhNUvYqHPLKWIrY
-	eYK2u9x2sBcZhqwv/zoBHTT6GRThYQIV85Na5asl/QdiakQM2Ihqqg4A6HvK+6oP25HpUYIkOCz
-	4IY+53MIOKpMlJf6RvGks2uuhwEso3as=
-X-Gm-Gg: AYBFou2MwHiXUFPnKNgQqJRe1GJjMqrLYPX5e37Kfix/KU4edubczhbs/pcZPcNbnQK
-	FkCjZEmmlE8zxAEQSXKiy14S0EhHV8Zt8XaNoOn3JZ+yw6rPtJoBfac8VnRzd8snT+Aw/pjUWaZ
-	c8twagH9DMzCw3fncWagAM67Sq+uAwrlyE/vpJS0T4iofyVeMjXqkMFbx0O293WWgb5swno7jgR
-	fX5q7B84Tmn4e2PK4/gwGwOBSxcPhEchY4KFJeF8uwLO9BHXi3nCyaLEXinrYK8FSwBM49KlTH4
-	5D5kkQDAYzavKt1q+GpW0WF14B+gQImS6DLZShThHRB6w2okYqPEQw6OHkQJcmStWGV2OVLgCjK
-	4gDB+y/DvGWJtpv10XUbgyfTXMOll3K4ODcMl1YxyEQ==
-X-Received: by 2002:a05:6402:27d0:b0:6ac:b49e:42a with SMTP id
- 4fb4d7f45d1cf-6af9e335cd4mr6612425a12.28.1791104558767; Sun, 04 Oct 2026
- 02:02:38 -0700 (PDT)
+        bh=WHZw58du1+z3AjNtEPV+ML/gwcbQQio5oIr/dAa76uU=;
+        b=sKTl3KSr2WrDRN9XpFIpeUu1eGFZ9VHiDC1bJexHQnQSuIFwGucozp++nzIoU3WbHU
+         QnjUlbX+wjz+10DeSEEJ+oO3g9ktyQyF3hsvwKgYBJOfujOPSsEm5e+i7QJd4m7k8zOr
+         r1mvcfi5wDdiZHKmQpy3DdBx/paubgHJd+LQT8vntnmhQ8/Gnlv4monCEG/pLNMEZcXU
+         82oRYrfKjZVz5NhgTmBXpwKjLjEXnQouJ5DCGByX9oQmhj3zQUDJ1K7vovqnc/HY1tqy
+         MfXgUpd0fLG0I7VPCW+Quu17DWgfNuV6bse7619vBSWzjxGjTDbXbgL28xT6chtGGBj0
+         K4nQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwGrx01hc2EFHxQvAvePQeFOFZ5FN3fiRMBAdlCia2m7lsS9+Q4VRb7DJIO9kuqIMxkjjc717dN7tfa@vger.kernel.org
+X-Gm-Message-State: AFq9FYI5PHtHhammBQlgHiyrsMY0n/PTPLlic0R0p71aYi5IKSkGSvz1
+	8tPF+P9iAObjGjH/bDN66X2RyU+Q17AXDcckgPNy/Efbmgn4BixgghozI0ENrZqs2O9zr1zk33I
+	g7SMNJcLD3HwbdNYhBgNVH0CmuqemURk=
+X-Gm-Gg: AYBFou1wiobZDULDHPTVHH6SsA3QLYxmcrnSxHgU/qA90LTaoUbbpFJtPAHnGJoJlSv
+	5I9WFn7qjyTqsCkVCRwJXxjdzjk/7h1S+EX3mxFle0pYlQWIcPQO/wJtqn5f6/ng5Qko/q1dIjz
+	vaBRS2rcsPrAtit5eOcNkfK4fSb1zaysCbfPi19e1T8bw3iejRweyhFtj/lyPTqhQEm85rjmCWH
+	pMZ4r2afLa4RCOrLGO4y4Z9gEn1CUC1kdBXWUSoBpAW84A9OyzohWC2vwK/AaqM0EmbnrHKi3tV
+	x0FBvW/IRAcI26sAI3oxzKFjXrmpLiW7MxEvBmnrwBBxT4lekFZGsPGvUtb9Tt0PAKJE2ulqGWC
+	TpQ3Zlu+D4WiAuZOmNq8f5jkO3e/L4NUSe9gsxaE/Dw==
+X-Received: by 2002:a05:6402:4020:b0:6aa:9fd4:35fb with SMTP id
+ 4fb4d7f45d1cf-6afad8cd8f0mr4371450a12.8.1791104718721; Sun, 04 Oct 2026
+ 02:05:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260927005821.8369-1-kaloz@kernel.org> <20260927005821.8369-3-kaloz@kernel.org>
-In-Reply-To: <20260927005821.8369-3-kaloz@kernel.org>
+References: <20260927005821.8369-1-kaloz@kernel.org> <20260927005821.8369-4-kaloz@kernel.org>
+In-Reply-To: <20260927005821.8369-4-kaloz@kernel.org>
 From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 4 Oct 2026 11:02:27 +0200
-X-Gm-Features: AclHuK-LuHKkhlhvEtgwByXee8TuF66Nw1OhkzhK6l7LcKAy6Spos4bz3m9Gxjw
-Message-ID: <CA+=Fv5SLKZn6Hs3tcxn_wO8k4RW3C0040fOVMVfe8L+oMhpZSg@mail.gmail.com>
-Subject: Re: [PATCH 2/3] sparc32: emulate casa on V8 CPUs
+Date: Sun, 4 Oct 2026 11:05:07 +0200
+X-Gm-Features: AclHuK-DCkXdzly_4kVOkpuer8jTshhCLwSKLrwW6TM9YcPaLvNihMwHwTNI6u8
+Message-ID: <CA+=Fv5RBuL-DP-P1k-+c_CahtEB4h=2dkg2Y9D=X6vd_AMsF0w@mail.gmail.com>
+Subject: Re: [PATCH 3/3] sparc32: emulate integer divide taken as illegal_instruction
 To: Imre Kaloz <kaloz@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
 	"David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
@@ -101,317 +101,228 @@ Hi Imre,
 On Sun, Sep 27, 2026 at 2:59=E2=80=AFAM Imre Kaloz <kaloz@kernel.org> wrote=
 :
 >
-> sun4m implements no compare-and-swap instruction, only ldstub and swap,
-> so the V9 casa opcode is undefined there and raises illegal_instruction.
-> Complete the immediate-ASI form from do_illegal_instruction() for both
-> ASIs a compiler emits -- 0x80, the V9 primary address space, and 0x0A
-> from gcc -mcpu=3Dleon3 -- so a C library can use one casa for its 32-bit
-> atomics on any V8 part. The opcode is unimplemented, so the ASI carries
-> no distinction the emulated CAS has to honour. LEON parts built without
-> casa take the same trap and are the LEON parts this serves.
+> SuperSPARC and SuperSPARC-II implement a 52-bit by 32-bit integer divide
+> and raise illegal_instruction for udiv and sdiv when the 64-bit dividend
+> {Y, rs1} has significant bits above bit 51, as the SuperSPARC II
+> Addendum documents, so whether a divide traps depends on its operands.
+> gcc emits udiv under -mcpu=3Dv8, including in libgcc's __udivdi3, so
+> 64-bit division in user code on these CPUs dies with SIGILL.
 >
-> The CAS is futex_atomic_cmpxchg_inatomic(), so it is atomic against the
-> futex operations and against itself on SMP. Everything else, including
-> the register-ASI form and casxa, raises SIGILL.
->
-> Confirmed on a dual-SuperSPARC SPARCstation 20.
+> Complete udiv and sdiv, and their -cc forms, from
+> do_illegal_instruction(), sharing the windowed-operand helpers with the
+> casa emulation. A CPU that executes the instruction never reaches the
+> handler, nor does a kernel-mode illegal instruction. A fault reading a
+> windowed operand raises SIGSEGV, as the casa emulation does. On overflow
+> the quotient saturates to 0xffffffff for udiv and to 0x7fffffff or
+> 0x80000000 for sdiv, and the -cc forms set V, as the architecture
+> specifies.
 >
 > Signed-off-by: Imre Kaloz <kaloz@kernel.org>
 > ---
 >  arch/sparc/kernel/Makefile     |   1 +
->  arch/sparc/kernel/cas_emu_32.c | 117 +++++++++++++++++++++++++++++++++
+>  arch/sparc/kernel/div_emu_32.c | 127 +++++++++++++++++++++++++++++++++
 >  arch/sparc/kernel/entry.h      |   1 +
->  arch/sparc/kernel/traps_32.c   |   7 ++
->  arch/sparc/kernel/unimp_32.h   |  71 ++++++++++++++++++++
->  5 files changed, 197 insertions(+)
->  create mode 100644 arch/sparc/kernel/cas_emu_32.c
->  create mode 100644 arch/sparc/kernel/unimp_32.h
+>  arch/sparc/kernel/traps_32.c   |   3 +
+>  4 files changed, 132 insertions(+)
+>  create mode 100644 arch/sparc/kernel/div_emu_32.c
 >
 > diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-> index 497b5714fa8f..fbea79a4ab58 100644
+> index fbea79a4ab58..43e15b46b8dd 100644
 > --- a/arch/sparc/kernel/Makefile
 > +++ b/arch/sparc/kernel/Makefile
-> @@ -40,6 +40,7 @@ obj-y                   +=3D sys_sparc_$(BITS).o
->  obj-$(CONFIG_SPARC32)   +=3D systbls_32.o
+> @@ -41,6 +41,7 @@ obj-$(CONFIG_SPARC32)   +=3D systbls_32.o
 >  obj-y                   +=3D time_$(BITS).o
 >  obj-$(CONFIG_SPARC32)   +=3D windows.o
-> +obj-$(CONFIG_SPARC32)   +=3D cas_emu_32.o
+>  obj-$(CONFIG_SPARC32)   +=3D cas_emu_32.o
+> +obj-$(CONFIG_SPARC32)   +=3D div_emu_32.o
 >  obj-y                   +=3D cpu.o
 >  obj-$(CONFIG_SPARC32)   +=3D devices.o
 >  obj-y                   +=3D ptrace_$(BITS).o
-> diff --git a/arch/sparc/kernel/cas_emu_32.c b/arch/sparc/kernel/cas_emu_3=
+> diff --git a/arch/sparc/kernel/div_emu_32.c b/arch/sparc/kernel/div_emu_3=
 2.c
 > new file mode 100644
-> index 000000000000..257f528d9a2c
+> index 000000000000..208b4071a525
 > --- /dev/null
-> +++ b/arch/sparc/kernel/cas_emu_32.c
-> @@ -0,0 +1,117 @@
+> +++ b/arch/sparc/kernel/div_emu_32.c
+> @@ -0,0 +1,127 @@
 > +// SPDX-License-Identifier: GPL-2.0
 > +/*
-> + * Emulation of the V9 casa compare-and-swap for V8 CPUs.
-> + *
 > + * Copyright (C) 2026 Imre Kaloz <kaloz@kernel.org>
 > + *
-> + * sun4m implements no compare-and-swap at all, only ldstub and swap, an=
-d
-> + * casa is optional on LEON. Where it is missing, casa is an undefined o=
-pcode
-> + * and raises illegal_instruction (tt 0x02).
+> + * SuperSPARC and SuperSPARC-II implement a 52-bit by 32-bit integer div=
+ide
+> + * and raise illegal_instruction for udiv and sdiv when the dividend {Y,=
+ rs1}
+> + * has significant bits above bit 51. Complete those divides here.
 > + *
-> + * Both immediate ASIs a compiler emits are accepted: 0x80, the V9 prima=
-ry
-> + * address space, and 0x0A, which gcc -mcpu=3Dleon3 uses. The opcode is
-> + * unimplemented wherever this runs, so the ASI carries no distinction t=
-he
-> + * emulated CAS has to honour.
-> + *
-> + * The register-ASI form is not emulated: it reads %asi, which V8 does n=
-ot
-> + * have. casxa is a 64-bit CAS and is meaningless on a 32-bit CPU.
-> + *
-> + * The CAS takes the futex ops' lock, so it is atomic against them and
-> + * against itself, but not against a plain store to the same word.
+> + * Format 3 (op =3D 2), op3 0x0e udiv, 0x0f sdiv, plus 0x10 for the form=
+s that
+> + * set %icc. {Y, rs1} / rs2 saturates on overflow and leaves Y alone.
 > + */
 > +
 > +#include <linux/kernel.h>
 > +#include <linux/sched/signal.h>
-> +#include <linux/mm.h>
 > +#include <linux/uaccess.h>
-> +#include <linux/ptrace.h>
-> +#include <asm/futex.h>
 > +#include <asm/ptrace.h>
+> +#include <asm/psr.h>
 > +
 > +#include "entry.h"
 > +#include "unimp_32.h"
 > +
-> +#define CASA_OP                3       /* insn[31:30] */
-> +#define CASA_OP3       0x3c    /* insn[24:19] */
-> +
-> +#define ASI_P          0x80
-> +#define ASI_LEON       0x0a
-> +
-> +/* A fault returns -EFAULT, and the caller pages the word in. */
-> +static int cas_try(u32 __user *uaddr, u32 cmp, u32 newval, u32 *oldval)
+> +int try_emulate_div(struct pt_regs *regs, unsigned int insn)
 > +{
-> +       int ret;
+> +       unsigned int op3, rd, rs1, rs2;
+> +       unsigned long r1, r2, result =3D 0;
+> +       int fault =3D 0, is_signed, cc, ovf =3D 0;
 > +
-> +       pagefault_disable();
-> +       ret =3D futex_atomic_cmpxchg_inatomic(oldval, uaddr, cmp, newval)=
-;
-> +       pagefault_enable();
-> +       return ret;
-> +}
-> +
-> +/*
-> + * Returns 1 if the trap was consumed, either by emulating the CAS and
-> + * advancing the PC or by delivering a fault signal for a bad address, a=
-nd 0
-> + * if this is not a casa we emulate, in which case the caller raises SIG=
-ILL.
-> + */
-> +int try_emulate_casa(struct pt_regs *regs, unsigned int insn)
-> +{
-> +       unsigned int rd, rs1, rs2, asi;
-> +       unsigned long addr;
-> +       u32 cmp, newval, old;
-> +       int fault =3D 0, ret;
-> +
-> +       if ((insn >> 30) !=3D CASA_OP)
+> +       if ((insn >> 30) !=3D 2)
 > +               return 0;
-> +       if (((insn >> 19) & 0x3f) !=3D CASA_OP3)
+> +       op3 =3D (insn >> 19) & 0x3f;
+> +       switch (op3) {
+> +       case 0x0e: case 0x0f: case 0x1e: case 0x1f:
+> +               break;
+> +       default:
 > +               return 0;
-> +       if (insn & (1 << 13))                   /* i =3D=3D 1: register A=
-SI */
-> +               return 0;
-> +       asi =3D (insn >> 5) & 0xff;
-> +       if (asi !=3D ASI_P && asi !=3D ASI_LEON)
-> +               return 0;
+> +       }
+> +       is_signed =3D op3 & 0x01;
+> +       cc =3D op3 & 0x10;
 > +
 > +       rd =3D (insn >> 25) & 0x1f;
 > +       rs1 =3D (insn >> 14) & 0x1f;
-> +       rs2 =3D insn & 0x1f;
+> +       rs2 =3D (insn & (1 << 13)) ? 0 : (insn & 0x1f);
 > +
 > +       unimp_flush_windows(rs1, rs2, rd);
 > +
-> +       addr =3D unimp_get_reg(rs1, regs, &fault);
-> +       cmp =3D unimp_get_reg(rs2, regs, &fault);
-> +       newval =3D unimp_get_reg(rd, regs, &fault);
-> +       if (fault)
-> +               goto sigsegv;
+> +       r1 =3D unimp_get_reg(rs1, regs, &fault);
+> +       if (insn & (1 << 13)) {                 /* i =3D=3D 1: sign-exten=
+ded simm13 */
+> +               long simm =3D insn & 0x1fff;
 > +
-> +       if (addr & 3) {                         /* CAS is naturally align=
-ed */
-> +               send_sig_fault(SIGBUS, BUS_ADRALN, (void __user *)addr, c=
-urrent);
+> +               if (simm & 0x1000)
+> +                       simm |=3D ~0x1fffL;
+> +               r2 =3D (unsigned long)simm;
+> +       } else {
+> +               r2 =3D unimp_get_reg(rs2, regs, &fault);
+> +       }
+> +       if (fault) {
+> +               /* A windowed operand could not be read from the user sta=
+ck. */
+> +               send_sig_fault(SIGSEGV, SEGV_MAPERR,
+> +                              (void __user *)regs->u_regs[UREG_FP], curr=
+ent);
 > +               return 1;
 > +       }
-> +       if (!access_ok((void __user *)addr, sizeof(u32)))
-> +               goto sigsegv;
 > +
-> +       while ((ret =3D cas_try((u32 __user *)addr, cmp, newval, &old)) =
-=3D=3D -EFAULT) {
+> +       if ((unsigned int)r2 =3D=3D 0) {
+> +               send_sig_fault(SIGFPE, FPE_INTDIV,
+> +                              (void __user *)regs->pc, current);
+> +               return 1;
+> +       }
+> +       if (is_signed) {
+> +               long long num =3D ((long long)(int)regs->y << 32) |
+> +                               (unsigned int)r1;
+> +
 > +               /*
-> +                * Page the word in writably and retry, as
-> +                * fault_in_user_writeable() does.
+> +                * INT64_MIN / -1 is undefined in C; the quotient is +2^6=
+3,
+> +                * a positive overflow.
 > +                */
-> +               struct mm_struct *mm =3D current->mm;
-> +               int fx;
+> +               if (num =3D=3D LLONG_MIN && (int)r2 =3D=3D -1) {
+> +                       result =3D 0x7fffffff;
+> +                       ovf =3D 1;
+> +               } else {
+> +                       long long q =3D num / (int)r2;
 > +
-> +               mmap_read_lock(mm);
-> +               fx =3D fixup_user_fault(mm, addr, FAULT_FLAG_WRITE, NULL)=
+> +                       if (q > 2147483647LL) {
+> +                               result =3D 0x7fffffff;
+> +                               ovf =3D 1;
+> +                       } else if (q < -2147483647LL - 1) {
+> +                               result =3D 0x80000000;
+> +                               ovf =3D 1;
+> +                       } else {
+> +                               result =3D (unsigned long)(unsigned int)q=
 ;
-> +               mmap_read_unlock(mm);
-> +               if (fx)
-> +                       goto sigsegv;
+> +                       }
+> +               }
+> +       } else {
+> +               unsigned long long num =3D
+> +                       ((unsigned long long)(unsigned int)regs->y << 32)=
+ |
+> +                       (unsigned int)r1;
+> +               unsigned long long q =3D num / (unsigned int)r2;
+> +
+> +               if (q > 0xffffffffULL) {
+> +                       result =3D 0xffffffff;
+> +                       ovf =3D 1;
+> +               } else {
+> +                       result =3D (unsigned long)(unsigned int)q;
+> +               }
 > +       }
 > +
-> +       if (unimp_put_reg(rd, old, regs))
-> +               goto sigsegv;
+> +       if (unimp_put_reg(rd, result, regs)) {
+> +               send_sig_fault(SIGSEGV, SEGV_MAPERR,
+> +                              (void __user *)regs->u_regs[UREG_FP], curr=
+ent);
+> +               return 1;
+> +       }
+> +
+> +       if (cc) {
+> +               unsigned long psr =3D regs->psr & ~PSR_ICC;
+> +
+> +               if (result & 0x80000000)
+> +                       psr |=3D PSR_N;
+> +               if (result =3D=3D 0)
+> +                       psr |=3D PSR_Z;
+> +               if (ovf)
+> +                       psr |=3D PSR_V;
+> +               regs->psr =3D psr;
+> +       }
 > +
 > +       regs->pc =3D regs->npc;
 > +       regs->npc +=3D 4;
 > +       return 1;
-> +
-> +sigsegv:
-> +       send_sig_fault(SIGSEGV, SEGV_MAPERR, (void __user *)addr, current=
-);
-> +       return 1;
 > +}
 > diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-> index c746c0fd5d6b..2eb2b0be90df 100644
+> index 2eb2b0be90df..4911cfd07d60 100644
 > --- a/arch/sparc/kernel/entry.h
 > +++ b/arch/sparc/kernel/entry.h
-> @@ -14,6 +14,7 @@ void handler_irq(int irq, struct pt_regs *regs);
->  void do_hw_interrupt(struct pt_regs *regs, unsigned long type);
+> @@ -15,6 +15,7 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned lon=
+g type);
 >  void do_illegal_instruction(struct pt_regs *regs, unsigned long pc,
 >                              unsigned long npc, unsigned long psr);
-> +int try_emulate_casa(struct pt_regs *regs, unsigned int insn);
+>  int try_emulate_casa(struct pt_regs *regs, unsigned int insn);
+> +int try_emulate_div(struct pt_regs *regs, unsigned int insn);
 >
 >  void do_priv_instruction(struct pt_regs *regs, unsigned long pc,
 >                           unsigned long npc, unsigned long psr);
 > diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
-> index e1d50820c376..69851b19766a 100644
+> index 69851b19766a..f9050dee0f1c 100644
 > --- a/arch/sparc/kernel/traps_32.c
 > +++ b/arch/sparc/kernel/traps_32.c
-> @@ -109,6 +109,8 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned l=
-ong type)
->  void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsi=
-gned long npc,
->                             unsigned long psr)
->  {
-> +       unsigned int insn;
-> +
->         if (psr & PSR_PS) {
->                 const struct exception_table_entry *entry;
->
-> @@ -126,6 +128,11 @@ void do_illegal_instruction(struct pt_regs *regs, un=
-signed long pc, unsigned lon
->                regs->pc, *(unsigned long *)regs->pc);
->  #endif
->
-> +       if (!get_user(insn, (unsigned int __user *)pc)) {
-> +               if (try_emulate_casa(regs, insn))
+> @@ -131,6 +131,9 @@ void do_illegal_instruction(struct pt_regs *regs, uns=
+igned long pc, unsigned lon
+>         if (!get_user(insn, (unsigned int __user *)pc)) {
+>                 if (try_emulate_casa(regs, insn))
+>                         return;
+> +               /* SuperSPARC traps divides wider than 52 bits. */
+> +               if (try_emulate_div(regs, insn))
 > +                       return;
-> +       }
-> +
->         send_sig_fault(SIGILL, ILL_ILLOPC, (void __user *)pc, current);
->  }
+>         }
 >
-> diff --git a/arch/sparc/kernel/unimp_32.h b/arch/sparc/kernel/unimp_32.h
-> new file mode 100644
-> index 000000000000..9ab1705b9d04
-> --- /dev/null
-> +++ b/arch/sparc/kernel/unimp_32.h
-> @@ -0,0 +1,71 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/*
-> + * Copyright (C) 2026 Imre Kaloz <kaloz@kernel.org>
-> + */
-> +#ifndef _SPARC_UNIMP_32_H
-> +#define _SPARC_UNIMP_32_H
-> +
-> +#include <linux/uaccess.h>
-> +#include <asm/ptrace.h>
-> +
-> +/*
-> + * Operand access for instructions completed out of do_illegal_instructi=
-on().
-> + *
-> + * Like maybe_flush_windows() in unaligned_32.c this has to be inlined: =
-the
-> + * save/restore chain must run in the trapping window, not one level dee=
-per
-> + * behind a call, or the outermost user window is left un-flushed and
-> + * try_to_clear_window_buffer() kills the task on its next fork.
-> + */
-> +static __always_inline void unimp_flush_windows(unsigned int rs1,
-> +                                               unsigned int rs2,
-> +                                               unsigned int rd)
-> +{
-> +       if (rs1 >=3D 16 || rs2 >=3D 16 || rd >=3D 16)
-> +               __asm__ __volatile__("save %sp, -0x40, %sp\n\t"
-> +                                    "save %sp, -0x40, %sp\n\t"
-> +                                    "save %sp, -0x40, %sp\n\t"
-> +                                    "save %sp, -0x40, %sp\n\t"
-> +                                    "save %sp, -0x40, %sp\n\t"
-> +                                    "save %sp, -0x40, %sp\n\t"
-> +                                    "save %sp, -0x40, %sp\n\t"
-> +                                    "restore; restore; restore; restore;=
-\n\t"
-> +                                    "restore; restore; restore;\n\t");
-> +}
-> +
-> +/*
-> + * Globals and outs come from pt_regs, locals and ins from the flushed w=
-indow
-> + * on the user stack. %g0 reads as zero.
-> + */
-> +static inline unsigned long unimp_get_reg(unsigned int reg,
-> +                                         struct pt_regs *regs, int *faul=
-t)
-> +{
-> +       struct reg_window32 __user *win;
-> +       unsigned long val;
-> +
-> +       if (reg < 16)
-> +               return reg ? regs->u_regs[reg] : 0;
-> +
-> +       win =3D (struct reg_window32 __user *)regs->u_regs[UREG_FP];
-> +       if (get_user(val, &win->locals[reg - 16])) {
-> +               *fault =3D 1;
-> +               return 0;
-> +       }
-> +       return val;
-> +}
-> +
-> +/* %g0 discards the result. */
-> +static inline int unimp_put_reg(unsigned int reg, unsigned long val,
-> +                               struct pt_regs *regs)
-> +{
-> +       struct reg_window32 __user *win;
-> +
-> +       if (reg < 16) {
-> +               if (reg)
-> +                       regs->u_regs[reg] =3D val;
-> +               return 0;
-> +       }
-> +       win =3D (struct reg_window32 __user *)regs->u_regs[UREG_FP];
-> +       return put_user(val, &win->locals[reg - 16]);
-> +}
-> +
-> +#endif /* _SPARC_UNIMP_32_H */
+>         send_sig_fault(SIGILL, ILL_ILLOPC, (void __user *)pc, current);
 > --
 > 2.47.3
 >
 
-
-Tested on a real SPARCstation 20, on both a HyperSPARC and a
-SuperSPARC-II module, neither has hardware casa. A hand-encoded casa
-instruction completes correctly instead of SIGILL on both.
-
-I also verified the key property this series depends on: userspace
-casa-based locking and real FUTEX_LOCK_PI/UNLOCK_PI callers correctly
-serialize on the same lock word under contention (40000/40000 ops,
-zero lost, on both CPUs).
+I guess I already responded to this before, but I've now had some
+more time to do proper testing of this full series, I've tested
+this on a real dual SuperSPARC-II SPARCstation 20, which genuinely
+traps on this condition. Checked UDIV/SDIV across the overflow-
+saturation boundary in both directions, including INT64_MIN / -1
+(the one case easy to get backwards), a zero divisor combined with
+an erratum-triggering dividend (correctly raises SIGFPE), and
+UDIVCC's condition codes for both a zero and a nonzero quotient.
+10/10 correct, matching the V8 semantics my own already-upstream
+divide-emulation patch targets.
 
 Tested-by: Magnus Lindholm <linmag7@gmail.com>
