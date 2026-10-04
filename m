@@ -1,266 +1,141 @@
-Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
+Received: from mail-ed2-f32.google.com (mail-ed2-f32.google.com [74.125.228.96])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C933A3537FE
-	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 15:24:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A40E3B52F8
+	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 15:39:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.96
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791127482; cv=pass; b=uAV4rHU4Mop8Jqglx2AauW2iEVuT1pK7SoNwAnSMprzkHLJMSsuYQTvMkyeeFEFBYMxqpDrKXWOKCjf4dJoFtojGdvL/kIeSTGcvWVBgrc5KhNlOawWP1MFmxs075IStx2md5Zn0Z2b1fgV+ZtIyZTJ526AVDGwOrprZywq/rRg=
+	t=1791128390; cv=pass; b=qT4ykQvJJuQDbgI4csw7VWSPvOBgJR6swsJvq5vaH4byIbwDb38m6lh3vKRE9MRuVxbYb1gUTjupBCX9xJjbBFG7HhqXyeNvBp3syNSC8+aZ1Apmv9gTEdpoBQrVz8XkKgvqMfuXt4IFisWlnJPC92AQhnDWqonkC0fDj/6kzAQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791127482; c=relaxed/simple;
-	bh=zfERZtRz42NzMBBtXEPZ9R5a4EowuoieHt1vhQ/10JM=;
+	s=arc-20240116; t=1791128390; c=relaxed/simple;
+	bh=DKZ3QH3gyxBydoFYe8FH8qEcg50uqpETpsBdwFtBqJQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=aPo98wKkO/FiAI4+1PBRpYCFOy1Th7UL1PTiuOsJ2fbMpnjLtX0bvl4YsiHri7DBooLT0AlOEYdEHd98i7oNQnJvzghWGR9tj4G4DjDlvieZ/Q9T9GRwiDn/S5NVZdCgP6eQYVK75y3REraBeSLOkFcjUO6UVQUsGzm5Ri3L0N4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kfG4nfR1; arc=pass smtp.client-ip=209.85.208.54
+	 To:Cc:Content-Type; b=jA7eVx+QoRio+gZbw/4rjo1tGx2dCiv32HIxmXmghyADCwBD1Q2iPjhPcLpgIIa9ZNwgdF+iskNflCWtSFTWC07Wi61y+B1sJj5UKuyCYCIhdsjpe5MQPhiclCGWLdynb+ls7uDtBZm0230jMFA1qnJCBUK34dmRpg76HCXFlVo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A1uuDc2S; arc=pass smtp.client-ip=74.125.228.96
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kfG4nfR1"
-Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-6afbc363efeso886573a12.3
-        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 08:24:40 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791127479; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A1uuDc2S"
+Received: by mail-ed2-f32.google.com with SMTP id 4fb4d7f45d1cf-6acb8b78d6cso1351304a12.2
+        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 08:39:48 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791128387; cv=none;
         d=google.com; s=arc-20260327;
-        b=Ac7tJEB7xGvEr3rTv2a5E2OHJXCnXj7ASzFunKdOpoj/phoou1PUUxLmdEj9iTlpl7
-         MIRCs55crIEKZiVPo7gac3/lMYbcV2UmrUAevrywV7rp9PNN4JtSQaEDUrYxfY4FfxCl
-         iUV6hohprr1lN+cBng/Nc2tU3xA53yHzs7xZq5AgT3THzgyG16752dyzES0hdHS0oS24
-         XHUpbHlw/i+hgaJ2EllfXQ5AVx/48wSIRc3ly3HIKiGDTbpP0yyhCn/F2emQfas3aGtP
-         xITzjDpyyMyAvvGgQNY2YrH4/prcGnOUE4M9MXrJ2BSHFCUaqHMCOld3Z09QABVk6myP
-         ygaw==
+        b=Aj2acp2aj3eZq9jzIjyIOmFB8a60+RRMQJL+VzDyHSOQ+fmLkAbSiT2zxviFcpUOlu
+         87ZvDNB/+EiZ4hVRfUtPtk6BxTbSuX/gG1OkdAXmVzCTTMtMsUt3HMscbnd2zsDsWT3u
+         I6m2gIFzHYtxawgjAxJlnKGam6GxM/r7G/WMOBh28c9vGcO+fSFrKXwux0zZt+BLsZ7K
+         5wE4jqf5yaTihOBNcunh7rqdfjspx4EJy1SG7cZBVdDRfs/TsiZYum6+hILjH4Q8SRdc
+         9CdW2ebcHnQ7PbwjuGZgMzrRorKQv16k358nrlCGVfdyCLmY0Y2uZTxKuvqqjqB/IYx/
+         yfcg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=yUFgvHBaR611JuCHX8PR9qGQAU8yeWMF6UssxzuViXQ=;
-        fh=dLisCXI+Ez4EgNV69qFbTMXitXQN0lKZ1sG8UsTmY9Q=;
-        b=c4BUo/s4d8hE/lyXIkqBvuYMXu54wDQtkIdxrwT24p42VKiZqtLGDbZtkA+LZLRry3
-         LC3b+WO1KdMWpUJ3zLkZfPseKUp7Ii+HIEoyH9gRmGsi78ENbmEv+9/aedi0uOb+fWH2
-         uKw35klRVdz223a7AVcaWfNl+P+jEKF/F9J4ZyprBqy8J0ewC7tzgj66pJUVaXfX10yK
-         aYJ3tqF2LFJsmG2BPbh99GK5rs5rzJo5JvFpUBqJ7PcrPQwfxD3cazluFqL794idiaQp
-         s/65AfxgdXwkJ7PNggRv5cpn8ghfcMl1PlKIfbm+r2+HRnnoG6WHFmUs2TYCc8kPIg5a
-         KwHw==;
+        bh=w3NslzmXPjfbixIKCMPYflTAUvKrQJ2PvjNFCDCiyds=;
+        fh=sou2anKFbkHxDyp1gKUGdUcahQdjSQXsbjZSTYPUiv8=;
+        b=C7F+1muR8uj1qoiP6B3Z1Y9z9Mb0/aDNJlB0I/aA5AjnwjIVX8FIZF3vDpDX1oRPWf
+         wqkGNOWDvRMWEyJkI+IXps/tFtLl0s2DBIa4o+bAniVKtdwQiV2kSvREv958Lki9FkYS
+         WLDmH1afQcckcggiRbt5G6mlC/lqjZ3VU4r8c0FqcYo00LfC5b4CaDqdhIXOv3j8GCVP
+         ah61HFjy1xRRjK3bWMNLoMl3HfTHGsbdJFVxYjudb8InEU4CErp5u+OQ1pplzc6eWwkD
+         xTzMpQuXXVPXD6bZqRfYg8/IMLJf7IwhZvMCcwWWj0/UANMnTurpwCIviYVqgbAk91gj
+         l62A==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791127479; x=1791732279; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791128387; x=1791733187; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=yUFgvHBaR611JuCHX8PR9qGQAU8yeWMF6UssxzuViXQ=;
-        b=kfG4nfR1qWOn2/f1Rs4K2CHsIKHlIHQPcyewZjfrjRWiP78ikoHzQhjQWMymOTwq00
-         KeZT0AoiTnDDsYmRdwN3fxYU6hRUKbx+hvDBWiU+RcPtPOeHoULpti0kMtPy5wG2BwqB
-         QmKLkVoUJLxc77WPWY7nvY+/bw1Q8r1rOnRHa2XiCqJnqC7o5apNz39zTc5xO7eVSIhY
-         ukAPKKk71SbLELQDv5lf3uJ8izAcgCD2UqsXaFp9bPp3cWM0VibLNCVuioHWFntEAgOo
-         FCOFzvbD9Lu3czjg9bcuRioOg3jxhf3QZRNXWzrIsszHaHk2TAsByZIQrpeRwPqIlWvf
-         cHbQ==
+        bh=w3NslzmXPjfbixIKCMPYflTAUvKrQJ2PvjNFCDCiyds=;
+        b=A1uuDc2SOB/6Lpe8raNJaG2KRSkYLk2OseIsiiTlRy8QiaRZGPBMn+6cRy0gtpLvfN
+         BlInRRcp3Kuw/Jd78/rvJw8vmuhgFxamff1fNmWby2YLP30m+6ADDa4cVDXeZ60LtywU
+         1xAEQjXBWWOPE+z0bLzahF0BGJEqsLrpMu+1X0Hpa72pS+Zgg/PC1M/TUIsPfzKOzRhE
+         VRvnF0Re8hGzg7Dq7dAObTbtgUT/k2rWIFzd55r+W27LtSCixLdjaJskMO71Bn3eWive
+         8wfJZbEqlNoyaBWBhsQWxuJnpTFEuTqqhkwrKn6ktAY0dTe3cO5bO/gW5pmhs3tygAQ8
+         53iw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791127479; x=1791732279;
+        d=1e100.net; s=20260707; t=1791128387; x=1791733187;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=yUFgvHBaR611JuCHX8PR9qGQAU8yeWMF6UssxzuViXQ=;
-        b=yFXSzY2+Ca3ix5/23Zo/BTytM2oApsMdwJzRwdv1HMnoc7WfE47kGD1ddz8G5/dzxl
-         S6IMaAhw7cwjJNrmGnAVB57j4muU02uVWKf/fU9etEAuHKmDsAUTcJ1nQD5nBB+ESPV/
-         U7UNPy9xdfTFvZCwNr0BBDi3cKZBbWw0L7XILntLjdAHadgBC62lJqCe6YnIBymryRab
-         uNuMfhGM0lMc7hUEUD4gxgxMdOX6qygTh4gxI6Af1bQEjZEaM4naWoeu2+WNQf+M44NP
-         h2f1Ga3dyWkUNqQiJBC75X8t/KFI0TAU0fLibmyAyI9y2KpKOWxv9gcZIVfR2EPBnrvT
-         cVpw==
-X-Gm-Message-State: AFq9FYKl039KKnsXWw8uvdpBBHBs1mERrkwx2rbUVg/2adt9AHOsT1Xd
-	KqtEfQR7d6PpTD46gxMasraYkzGOPkR6YK3x82AXEiGbluVWSlymC7of5hJEUwC9QXHuIx2jFPQ
-	wkBp9TuDaiFaqUtqwHKkU5cGthF/Bsl21CEiT
-X-Gm-Gg: AYBFou3qiFl+OZOuXXGOURqdIEtkgFah1+hlfsPZ1uk+laSkM0H9OKbMPWVstHz3zwJ
-	5ZrPDJ+My8l01Q4muLkjqU69ZBXwCHj+wMkbfP7fFsiY399K76I784BJW4g1HCBZCtZcd1RypKS
-	U+Vlc3qD73Zo1d069bSPHeiPWM5CunFffWZCogjScsZv8wCmLdRCak077qlZirQFOoa/T3tPbh6
-	nbTtwF3zYWXu0k44r8dIWdUBlfVGANiaDrn+Jjay86RLF+wfCz0cD7e47chMohnbOVHRwxa8kHJ
-	AHaVY3KypEt7TTllQ8UNe4dBLgQAqwZMVoo/AVtBx0aUBJX4JYZo56mYrbbq3PeejFU51CsUocU
-	GWyzZDjuiifAwOveq+vv2lDN0c9+DDOf+CALa8k7piDA=
-X-Received: by 2002:a05:6402:4547:b0:6ac:a828:c0cc with SMTP id
- 4fb4d7f45d1cf-6afad760efemr3521524a12.4.1791127478724; Sun, 04 Oct 2026
- 08:24:38 -0700 (PDT)
+        bh=w3NslzmXPjfbixIKCMPYflTAUvKrQJ2PvjNFCDCiyds=;
+        b=j+Pi1EXnTXyk3FJPlP3jFf3fSYcTq14U4KUHZQ8bK87gytAJYzNkCTqeN/GOtPEYte
+         rQ6x3FajuCmJG+V/tyVXek6W0ySNIkct8kA5gDsSRtJERe2/7GBFgn0ro29gwJJZioUg
+         Nh9hVhaQ0HfEOLsMHLTSDwd2mvaT8nJF6IuqFWDVrKnOcgnrwRkW5gbejm2FgjQuTVca
+         SWAYRE43KqB327IcLs6j4AXh0tfElu2GDQK7BTL5s6X22ftFnQJQwvsdkPr++qIf/x7v
+         XR4IXmTTu7yn2uza1UWh5ySbzZu6XFn5cF4dShpi7ZwRjVoQIp5PKmByclb+rJ04EPpA
+         qn3Q==
+X-Gm-Message-State: AFuF++lU9BQ3P8KAXQt344iauq3jRuEFvYUiJGEN51VEZzEYgRe7b0ZS
+	8EDl0Lm7tOzUDqb+WkAHfvcwViZTOGm/F1mjOYEEAtD1D5R2GAYZMVsYGQWsR5gjWx7936/LVjx
+	M0b7HgcwuvgU6ZKQG09gBrgkAbDCZw28=
+X-Gm-Gg: AYBFou3VnE5C2YHsfmYql/V9cpQlQSRPWFNtmteHnymJFFHoQaVw9UNMaYn3eEsEJZh
+	uEJ0zkUa5qPV0xNUyfS6+8Ez4m99HOS8Az042HwhzSDjIU8COVnAo8ynkf3Dg5mF98SF/hOnQVt
+	0yuEANlGGyDLT3p/arIb1D4oiUyHenr7hnRHaeoEv+B/1dLDuB5TjQ4JzKcpRZrdiW5/ghh06DJ
+	J9LMNTw2Mixg+Z9irQCdQ7VsS4TJZlYVvV7Qu/qxMMKqAbijuR+uU65Pum9gfys0W701Dse26wm
+	uriWVa9n8MwxE1r63mW9Magj+2Qf5O3ojYfRhU+z2He+Wf4fklauBn4MRvSSR9IbvTMloKSH9st
+	P8itqcEQSNJCtuPPq40n8OmitkhdvE/yh4rVovWkVVA4=
+X-Received: by 2002:a05:6402:4019:b0:6aa:f260:b851 with SMTP id
+ 4fb4d7f45d1cf-6af9e30ec5dmr6817737a12.33.1791128386479; Sun, 04 Oct 2026
+ 08:39:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261002161515.932316-1-linmag7@gmail.com> <20261002161515.932316-8-linmag7@gmail.com>
- <2026100415-impromptu-sultry-ce6b@gregkh>
-In-Reply-To: <2026100415-impromptu-sultry-ce6b@gregkh>
+References: <20261002161515.932316-1-linmag7@gmail.com> <20261002161515.932316-5-linmag7@gmail.com>
+ <24db4eb5-19ac-404c-9dd8-c3af42bcf4cf@kernel.org>
+In-Reply-To: <24db4eb5-19ac-404c-9dd8-c3af42bcf4cf@kernel.org>
 From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 4 Oct 2026 17:24:26 +0200
-X-Gm-Features: AclHuK-uAAu0JuOLh2P2vcb8AMeHq-JogU2rRgtxPU7ZqlRRcEoJsr_m9gxHF6I
-Message-ID: <CA+=Fv5T6sMOxVmS82_VF=XOWudF06y8tWSWLv3XA1aTyAv3JoA@mail.gmail.com>
-Subject: Re: [PATCH 7/7] hvc: add an M3000 firmware console backend
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Sun, 4 Oct 2026 17:39:34 +0200
+X-Gm-Features: AclHuK8RSMN5OQSVW7fKvKmMGHupwE_st8Qcavj33tip96j2ukzukPLnhWfvabs
+Message-ID: <CA+=Fv5QzqSQ8+=OpLbchKZ=t6An1HoyOH_OyR1+AiY1dF6Nzxg@mail.gmail.com>
+Subject: Re: [PATCH 4/7] sparc64: add SPARC64 VII CPU, MMU and SMP support
+To: Krzysztof Kozlowski <krzk@kernel.org>
 Cc: sparclinux@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, 
 	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org, 
-	Jiri Slaby <jirislaby@kernel.org>, linuxppc-dev@lists.ozlabs.org, 
-	linux-serial@vger.kernel.org
+	Oleg Nesterov <oleg@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Greg,
+Hi Krzysztof,
 
+On Sun, Oct 4, 2026 at 4:59=E2=80=AFPM Krzysztof Kozlowski <krzk@kernel.org=
+> wrote:
+>
+> On 02/10/2026 18:14, Magnus Lindholm wrote:
+> > diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+> > index aa4799cbb9c1..11437bbfc73b 100644
+> > --- a/arch/sparc/kernel/prom_64.c
+> > +++ b/arch/sparc/kernel/prom_64.c
+> > @@ -564,6 +564,12 @@ static void *fill_in_one_cpu(struct device_node *d=
+p, int cpuid, int arg)
+> >
+> >               cpu_data(cpuid).core_id =3D portid + 1;
+> >               cpu_data(cpuid).proc_id =3D portid;
+> > +             if (tlb_type =3D=3D sparc64_vii &&
+> > +                 of_property_match_string(of_root, "model", "IKKAKU") =
+>=3D 0) {
+>
+> Are the values documented as ABI anywhere? Usually the compatible is the
+> ABI, not the model.
+>
 Thanks alot for taking the time to review this.
 
-On Sun, Oct 4, 2026 at 2:50=E2=80=AFPM Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
+I haven't found documentation guaranteeing "IKKAKU" as an ABI;
+the match came from this machine's firmware properties. Its root
+node has no compatible property, although the core nodes advertise
+"FJSV,SPARC64-VII+".
 
-> > @@ -11,3 +11,5 @@ obj-$(CONFIG_HVC_IUCV)              +=3D hvc_iucv.o
-> >  obj-$(CONFIG_HVC_UDBG)               +=3D hvc_udbg.o
-> >  obj-$(CONFIG_HVC_RISCV_SBI)  +=3D hvc_riscv_sbi.o
-> >  obj-$(CONFIG_HVCS)           +=3D hvcs.o
-> > +
-> > +obj-$(CONFIG_HVC_M3000) +=3D hvc_m3000.o
->
-> No need for a blank line, right?  And why no tab used here?
->
+The firmware also describes the cmp/core/cpu hierarchy. I'll look
+at deriving the topology from that instead of relying on the model
+string and hard-coded CPU-ID layout.
 
-Agreed; I have removed the blank line and matched the Makefile's tab
-alignment.
+> > +                     /* IKKAKU: two adjacent ITIDs per physical core. =
+*/
+> > +                     cpu_data(cpuid).core_id =3D (cpuid >> 1) + 1;
+> > +                     cpu_data(cpuid).proc_id =3D 0;
+> > +             }
 
-> > diff --git a/drivers/tty/hvc/hvc_m3000.c b/drivers/tty/hvc/hvc_m3000.c
-> > new file mode 100644
-> > index 000000000000..0ef4c888a6a2
-> > --- /dev/null
-> > +++ b/drivers/tty/hvc/hvc_m3000.c
-> > @@ -0,0 +1,167 @@
-> > +// SPDX-License-Identifier: GPL-2.0
-> > +/* Experimental M3000 Open Firmware pseudo-console backend. */
->
-> What will make it not "experimental"?
->
-
-That was stale wording from bring-up, rather than a defined support
-status. I have removed it.
-
-> And no copyright?
->
->
-
-I'll  add a copyright notice for the v2.
-
-> > +
-> > +#define M3000_WRITE_ATTEMPTS 8
->
-> why 8?
->
-
-There is no hardware requirement for eight. The intent was to bound
-no-progress retries because HVC's console write path retries -EAGAIN
-indefinitely; I will revisit the retry policy before sending v2.
-
-> > +
-> > +static int m3000_stdin;
-> > +static bool m3000_ready;
-> > +/* Keep firmware buffers within the locked kernel image mappings. */
-> > +static u8 m3000_buffer[256];
-> > +static DEFINE_RAW_SPINLOCK(m3000_buffer_lock);
-> > +static struct timer_list m3000_poll_timer;
-> > +static bool m3000_poll_active;
->
-> Shouldn't these be in a structure attached to the console somewhere?
-> Otherwise you have limited yourself to just one of these.
->
-
-I can group the state into a structure. This backend uses the single
-/chosen stdin/stdout pair, and the buffer must remain in the locked
-kernel image mappings for firmware access. I will also review how the
-state is associated with HVC before finalizing a v2
-
-> > +
-> > +/*
-> > + * HVC's idle backoff can exceed the firmware input FIFO's capacity.
-> > + * Wake its worker each tick while open; keep PROM calls out of the ti=
-mer.
-> > + */
-> > +static void m3000_poll_tick(struct timer_list *timer)
-> > +{
-> > +     if (!READ_ONCE(m3000_poll_active))
-> > +             return;
->
-> Why are you accessing m3000_poll_active like this in an attempt to not
-> use a real lock?  Are you _sure_ a bool will work this way properly?
->
-
-Agreed that READ_ONCE/WRITE_ONCE alone do not explain the timer lifecycle.
-I will review synchronization between open, close and timer rearming,
-and make that protocol explicit in v2.
-
-> > +     hvc_kick();
-> > +     mod_timer(&m3000_poll_timer, jiffies + 1);
-> > +}
-> > +
-> > +static int m3000_open(struct hvc_struct *hp, int data)
-> > +{
-> > +     WRITE_ONCE(m3000_poll_active, true);
-> > +     mod_timer(&m3000_poll_timer, jiffies + 1);
-> > +     return 0;
-> > +}
-> > +
-> > +static void m3000_close(struct hvc_struct *hp, int data)
-> > +{
-> > +     WRITE_ONCE(m3000_poll_active, false);
-> > +     timer_delete_sync(&m3000_poll_timer);
-> > +}
-> > +
-> > +static ssize_t m3000_io(u8 *in, const u8 *out, size_t count)
-> > +{
-> > +     unsigned long args[7], flags;
-> > +     bool input =3D in !=3D NULL;
-> > +     int ret;
-> > +
-> > +     if (!count)
-> > +             return 0;
-> > +     count =3D min_t(size_t, count, input ? 1 : sizeof(m3000_buffer));
->
-> No need for min_t(), why not just min()?
->
-
-Agreed, will change it to min().
-
-> > +     /* Serialize the bounce buffer; p1275 separately serializes firmw=
-are. */
-> > +     raw_spin_lock_irqsave(&m3000_buffer_lock, flags);
->
-> why is this a "raw" spinlock?
->
-
-The intent is to protect the shared firmware buffer in console output
-contexts where sleeping is not allowed. I will check the precise HVC
-calling contexts and lock ordering before deciding whether the raw lock
-is necessary and documenting that choice.
-
-> > +     if (!input)
-> > +             memcpy(m3000_buffer, out, count);
-> > +     args[0] =3D (unsigned long)(input ? "read" : "write");
->
-> A string being cast to an unsigned long?  Are you _sure_?
->
-
-Yes: p1275_cmd_direct() takes unsigned long firmware argument cells,
-and the first cell carries the service-name pointer. The existing
-SPARC prom_console_write_buf() uses the same cast for "write".
-
-> > +     if (!m3000_ready)
-> > +             return -ENODEV;
-> > +     timer_setup(&m3000_poll_timer, m3000_poll_tick, 0);
-> > +     hp =3D hvc_alloc(0, 0, &m3000_ops, sizeof(m3000_buffer));
-> > +     if (IS_ERR(hp))
-> > +             return PTR_ERR(hp);
-> > +     hp->ws.ws_row =3D 24;
-> > +     hp->ws.ws_col =3D 80;
-> > +     pr_info("M3000: firmware-backed hvc0 tty ready (serialized, polle=
-d input)\n");
->
-> When drivers work properly, they are quiet.
->
-
-Agreed; I have removed the initialization message.
-
-Thanks again for the review. I'll prepare a v2 addressing your
-comments and explain the reasoning behind any design choices
-that remain.
-
-Regards
+Regards,
 
 Magnus
