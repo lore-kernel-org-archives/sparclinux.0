@@ -1,81 +1,81 @@
-Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+Received: from mail-qt1-f173.google.com (mail-qt1-f173.google.com [209.85.160.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD1E646D2C4
-	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 17:14:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFA6F46EF99
+	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 17:18:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.173
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791134056; cv=pass; b=nOI8/4+0xyVpqDKnKKbUNcIT5u1e/NmvY80Gzi6BZpgABbKvwook4DDMQDquHbUys3Dc/BahEJcMLSrOZvf2tTQgOnDgZqRJQu3D8lDZtaqiXbu3D1fVdLy/maNJYM/UC21bv5fYcQniqaELCbu7v4alxKMI89MClCqrtb7SRO8=
+	t=1791134314; cv=pass; b=kn396lBYyn5W8cUpGOThd9q/6HoowMI17dsV+5y3hPwhsItlkyakU2CJTJNfELUA6XF+geFPBw7hq/svUjYiQNXF3SEz9TNVkaq0YRhy3jU/WkHA632pWUKorZEg0vqmOjE8SgpfUDJtn/fKWMwZZuOg36Sv9a19nKD9FBV2KLk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791134056; c=relaxed/simple;
-	bh=DPQmWisOarX73EV4DX8xr1LZtE2t1IZvvp+wtV1goOg=;
+	s=arc-20240116; t=1791134314; c=relaxed/simple;
+	bh=Og6qpLhWHly4IoZcNfYZyEY8s5xN9sYAkBks0QnUI28=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=gDW+s7i99HpghQUAJAVwkd20c3NsIwc8EMMSbox7rc8ynHQ5N5ywvWX6QPXxcPIMK3X47sR50JamlJnfNayELje6mKrc9DWyueeaPGBOL/TW1TCQ0fSpLZcQdLzbPFUyDDdIVw/ZkuKfXeYXP2cLKEOHxLkHDsH/AmMsNppn3Z0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ZfM0PfdC; arc=pass smtp.client-ip=209.85.160.177
+	 To:Cc:Content-Type; b=qW4U7qPoXNT5pjpYv3SfkGZlTRHcStubXZSwD/p4h+8AlD1YcSzdy3FKMNBCfC+dPa58V736PuOgjw95HWHlEKM9dihHXEtL9f0NodRIoSMynmy7JyHQluhZREXweDQpk2zBLSde1+DrbIvMMkjRIkFm3WvKGaV7sifrIG+OZfA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=IeOZJMDE; arc=pass smtp.client-ip=209.85.160.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ZfM0PfdC"
-Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-5337c7b9937so258361cf.0
-        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 10:14:12 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791134051; cv=none;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="IeOZJMDE"
+Received: by mail-qt1-f173.google.com with SMTP id d75a77b69052e-5351f9dbfe0so93911cf.1
+        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 10:18:28 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791134308; cv=none;
         d=google.com; s=arc-20260327;
-        b=iYviAoAq9dL+mGOZhmJmLXFLK3XMSWK5gKLHTqTmbJPGBqusnjF9R7BSG3B+IRDpbn
-         WtPtjap47FhAV9W7e7RoNhT+aazXrr2SUG5tGIdBqnjzeYw+FtWTymye0yw8kZOofGVU
-         ZEVZme/Tze8NkqPHrcecHRS8VUbS1W6eBjgEyy81qcJC4CfUtDc+ayeVou5G4kjuLR4J
-         PgKgQzUR2/Z33ihDPFJgT6tv2enwowTLjLeCllvf0VJs12MazHiorbMpMK4rUEsgSD3S
-         wX6yeuoBIZ+NwfSuYkCEq6t74FHgIHZ1kMWpM2JbK0BnfMhfoo0kySiKKHoW5LVc4eqQ
-         D1/Q==
+        b=opyHpknOoZDxOSofH1Pdlw+xd1wLd/Y0m5C8OdQXxLcEbMBx9S6G2BNR+eoqy/BiIC
+         fGQvEme1u+Qazat87T2isL3J8Lfw7JRJoSNw90P+KjNdPwlCJEv1or72UHlcab15FvwC
+         TvoTPhG2sZS4ciQh54g1Em567n90GjM0CsnHMHZUV/aooZ43TPN9ib7iZNxB8bxUbJzh
+         nLeeyfu6+ufKFjg51rFml4SiuNpibtBMFJWLE6OKwTVIkqZygo0ocer8vGLTjPrEq/lD
+         WvTBetIihOsz6IKxS0Eo+tOYV4l9wHITSICPoWhLqWFDgXDpngeqBrOZtIaI40etXrY5
+         pP4Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=oK+gurncHWXSmmPtPu9hgAMG8GgRdX+XUQo4lUX1RzQ=;
-        fh=v0BJ1WXWBLFYjpJ5pHg3zi8pkjHvDaPFsNevdbpu4iQ=;
-        b=q+wjy4/IkirIuGUAlo4ZI1a7nesJrMnFiIjWOAdmwgy6AkcgHZ3S7oNeibW1jlfib4
-         ykbWAu/qZinn426i9AL1BLB4iUz0uyPOzGwYLFr+tic70WynLa5yOALaEcTtUSNwPRMn
-         xbmaMBYcc/F9Tg8Fy4nF+teNdZD6kJn/4CpPhSgpmqmXLmDJ8QmsmNoz+js83Ti4j9jD
-         Cfxk+rnJ78IGogR9AOhm2Nb08fov5HsSi4Wm1RcXVwpe7LtBNX1nBq1AZHXoWk/pBsG/
-         bH7Mu6UCw7zkfeFiDGUootkRtSNVfmlYZKGxqNQb1McJVtLXmRHWP9xQl0Axmog/mfgP
-         A7Rg==;
+        bh=QinBTGgc4+2Xq3VgxIpbr+CWC5UMzdARKszuxAv87KA=;
+        fh=cmrC1i7zlTHZ8PVAPTA29nkf7xqPgBRyufUlJYjszWs=;
+        b=UVGZW2gnWTx/qAaoCbAmuRy0FgAv83KWExWHiQmtyoM2wGB4mriTsGF8tvOKyuHLcg
+         /F8tiYDNIPw6TcY9DRG3kM3boDCFY7WE1jVwkcvkhe1aYhJ87okl5hDUTCs+dh5orF2P
+         vRUMmip6UHv2SdlcYGjjCS4kmCpmLUkrfRi7fAur6nudPJxi1at0uX7qIH2kLfynL6f+
+         F8B6j655qQvRio7nY2x8wPwCspT/ye6cfFEgtnqdreX1JZwH3RIkiBpA3IohkNALpFKR
+         R+avF9yj+bp+8eItlxSorbT7myHqnYiF6g1Dj9b4JirEY3f6XViTT4DJj5HXQiPeoKp4
+         iFYw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791134051; x=1791738851; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1791134308; x=1791739108; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=oK+gurncHWXSmmPtPu9hgAMG8GgRdX+XUQo4lUX1RzQ=;
-        b=ZfM0PfdCG6H44xOr3YlYxlWsbWe96HV3PNCQY5sPyElCBZVf+BxgvzNI88RLpJJyz8
-         Cy+ygj496VOBma1ceboQuwkeweq79Nd0djZaIfHLbNjskIOh8ejk0SkutUNTrE0vnzwO
-         sT7GwQnvX7Dk4IIEmOBKYRxolAbWEwAyi0CIQpUsLNhPsxgl4nu6sX+IKjmK7KaOMLrh
-         LNb7DMdXDOZqcqx1gbhk81oef9Nbk4m9ZBPrte8o6M9IAA/KgUBK4hgU5PgJ1wqOxVgD
-         ciebZjreurPkCRPkA19W7odS8TPrImTSYx0XwAtAW/7ISf6RgC2wGcR8eNAukSGafNYy
-         BE7Q==
+        bh=QinBTGgc4+2Xq3VgxIpbr+CWC5UMzdARKszuxAv87KA=;
+        b=IeOZJMDEt2qL247lMuxc+jIqy4zsxjPTwxleAIFut5mj8G2+fn0ALfayxMwtNTebBL
+         RJbU8GAtzBUM9tsUheu/An8aItKMV0/OD1HywoDP1i5ZuCAEBPfK0+6p8DEX0iH9xnQh
+         60NDAP5forHGc7dvpDofgIb+d7yo0My6bjDErncBm9VubHiQskbmc0eNguE4WNxyNEtX
+         4EbzRviiNSaJPR8RjIii7dCQOXrUEwckaME4JawxCPYdD4zGpSOVO1IGM/3PERojKv3v
+         K3jp1b6IlKprglTroQUMUhkx2M9m+VCLWlPW3xjJvdkP9/cNYbia77DYs/L7VzmOzU/g
+         113A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791134051; x=1791738851;
+        d=1e100.net; s=20260707; t=1791134308; x=1791739108;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=oK+gurncHWXSmmPtPu9hgAMG8GgRdX+XUQo4lUX1RzQ=;
-        b=FKPLIKUEVKAzfR9FoWULY4nXTZyU9Ij8s3+JJGT4OA7Yz2IRLc5eQdOq5JJGDnDAGi
-         i8E3mUFW2kJ8ThPyT+CtPwqSgSOKcuexutHn/n9cNnynw2idFfHRgKks+cerkZoKA0/v
-         W7D3wp3/fTrAjJ8aArQw/pkTu49+ZJ8/RfYxsvYvW8eol5AerICH5qJGit62PzjjazXQ
-         2q5TAMw5sCSbujVntr3nZmERGNik4nmpjlNyjcG2RTyxL4Fgn7NzCugdEIhMgMN+Isqk
-         Am9oXDbYohBfkYZkVRN5xdv4n8tNq/nSs0l1n+cYGzW5aEpVkY788bZR4hAf83X+9PWx
-         KOxA==
-X-Forwarded-Encrypted: i=1; AKwUvBxnAWb1p8zmE5rHbhPFXci8GVCsi8YLHKdgh1VcZCT9gKpAhyoIhq1wLzj1XBCSfYyyRAIcyO4SQ7kd@vger.kernel.org
-X-Gm-Message-State: AFuF++khMuHu077pgKIaqbgOw/nmBSEfGQYehwlWIAfFhh1s2DW1wBGV
-	4FtuiaFDkzFb0cD0RpBBWNL97StB3OSoliLDnh0aXOu3pvjOU7mCzbelBRLJgHoNXJHbkx5OgJF
-	MUf4HuiY2ZZQBIZA6UtPzDeWLHm6hNDYYbLcdz2Dx
-X-Gm-Gg: AYBFou2QGJOqOdhG8kO4YRccug0Vvrba0ZJBwdiLsONjs1Nvu+aYDmnmG8X+TUf6FvY
-	4hHtrEsa+GN62Ee7hnAU55jvMAGRZPIXfGUNzbWUdvroCYhoV30MEIZzMRvfVdKcDTp5oqtDVEd
-	jnmbz+lazWgUCLfli4u6IWQmtTozCX+7p5bEBuue63czXXetVRapXAVB+GKFknueEZJLPutNsrZ
-	VLEyiux9gjffa6AJkBXoI7YpMip39QjX8k1GdumKvIpUQsXJNYMHNrOZsNvwkjUxY+z0A+1nH6z
-	Nipg8Cufo0Ouni5EiQVgJoeB8r00n1fQYeP/OjM2n5u9C2peJgM9Z0Fa
-X-Received: by 2002:ac8:574c:0:b0:531:475:4ce6 with SMTP id
- d75a77b69052e-535131b2b85mr16314281cf.9.1791134050552; Sun, 04 Oct 2026
- 10:14:10 -0700 (PDT)
+        bh=QinBTGgc4+2Xq3VgxIpbr+CWC5UMzdARKszuxAv87KA=;
+        b=chy6P/mc0/f+zAnU9EAkgFQFZlk4NKPToSeHPlA+ZP5j/fbjn1DK+bs+N2rpIF/2Kw
+         +xSe0Yy+HtPqW8XdkxjCFi5EA+hErY6ucH6y8HE1OzpFd0BjiAz9Cm4xebij05xU6KUy
+         RGHbaMhCelI4LHqk8XF5XER7szRdSkGPYoD4zCQ4LbvQdkzdFPdHKYtbJ9ej2ZoLRA6P
+         vOsK/8M6/DYn9Q6/ZRFkXYcam8xZZpNVD5z3vS5gRiBIId8PvtZ5zsT64//4wSzvUXnk
+         jZWg/FIyycdgUYyNgsBsmwr63774IPu/akXGlyIqRlisI2Ewkb3O59y3aLGh6IuyqF9X
+         5hWQ==
+X-Forwarded-Encrypted: i=1; AKwUvBy2rkeI9awL55BdBjbkFvmEzSps1zZStn6QcfAkNS6fe83e2fWjs/2YWBmmFMXnbgVYvo68XqWFwO0u@vger.kernel.org
+X-Gm-Message-State: AFuF++kn0ALY6uODTfy3XE660L5U+ClayaWynLUr85BzO84iIZZ9OeW8
+	0oVS39GYuazSYBCrPZ81ej7Hhrb0N74lWTlKzhPERUzmmLG5TNKIb5hGYZYSwFERx+h/zXyxTzn
+	tUwhoo8PwFvts7J0lfEP2FW1YKrzvWnSAH5hndjaf
+X-Gm-Gg: AYBFou2a5JCycBIT1UKUe4y3zjfOt7iC86u0x2LNU7wUe6HBNFZOnBtkqmmsXqTC1j2
+	UObLbYhTc1O16SUg5aESo60iU2I2zl51UabbZI2+RrKR//k5MAViJigbH9u6mCp0h4In3lc6ZDZ
+	1LCb4+QUzvsBCqWdTpEJEKJPOPYBFb9nyNafxTePVEo81tq6sd9GoUt9W9Oi7OdXBHOPDlspe6N
+	uQ+p13Ki1HoM1nLHqDrgmnHAnYPW3C0zgnCPJENMNyP5IWmQT98m+7mS1KsOpsDeKSmLyl133pJ
+	Moq+pomSn5FczCZaYMaD3b6regqyGh6tHPpKyj/rOGSTjY7JoFZNbGLN
+X-Received: by 2002:a05:622a:1b91:b0:531:34b9:2532 with SMTP id
+ d75a77b69052e-535146ce3e1mr16649101cf.4.1791134306600; Sun, 04 Oct 2026
+ 10:18:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -83,14 +83,14 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20261003-b4-mmap-prepare-vma-flag-sanify-v4-0-a1f052500fd7@kernel.org>
- <20261003-b4-mmap-prepare-vma-flag-sanify-v4-8-a1f052500fd7@kernel.org>
-In-Reply-To: <20261003-b4-mmap-prepare-vma-flag-sanify-v4-8-a1f052500fd7@kernel.org>
+ <20261003-b4-mmap-prepare-vma-flag-sanify-v4-9-a1f052500fd7@kernel.org>
+In-Reply-To: <20261003-b4-mmap-prepare-vma-flag-sanify-v4-9-a1f052500fd7@kernel.org>
 From: Suren Baghdasaryan <surenb@google.com>
-Date: Sun, 4 Oct 2026 10:13:59 -0700
-X-Gm-Features: AclHuK_YbQsPp6UkU1wteVM53NVi6nuDg9G6v9WzIHWTTGIprDqvC1DHCMGs6A8
-Message-ID: <CAJuCfpHPcgvpR+=CtNVJeFkTn4EkF=hSPH3ZvvpkZQqHS5kzug@mail.gmail.com>
-Subject: Re: [PATCH v4 08/38] docs: filesystems: update mmap_prepare docs for
- discontig kernel pgs
+Date: Sun, 4 Oct 2026 10:18:15 -0700
+X-Gm-Features: AclHuK_AcqqolMBhSGAldWSHQHOOTkitmvHnvL2po1Vgiun02DenXRmiOZ3VQUs
+Message-ID: <CAJuCfpFkfK4gvBPVoSiSdKs_3LR-0-dw_08BVxs-NqCvQK0-Mg@mail.gmail.com>
+Subject: Re: [PATCH v4 09/38] drivers/usb/mon: update to use mmap_prepare +
+ map kernel pages
 To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett" <liam@infradead.org>, 
 	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
@@ -155,145 +155,205 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett" <liam@infradead
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 3, 2026 at 6:35=E2=80=AFPM Lorenzo Stoakes (ARM) <ljs@kernel.or=
+On Sat, Oct 3, 2026 at 6:36=E2=80=AFPM Lorenzo Stoakes (ARM) <ljs@kernel.or=
 g> wrote:
 >
-> Describe the newly introduced discontiguous kernel page mapping mechanism=
-,
-> detailing how to use it sensibly and how the API looks.
+> Replace the deprecated .mmap hook with its replacement .mmap_prepare. As
+> part of this change, additionally take the approach of mapping pages upon
+> mmap rather than providing a fault handler.
 >
-> Explicitly detail the various discontiguous actions available and how to
-> use them.
+> The page span cannot be mutated when an mmap mapping is in place, so this
+> is safe to do in advance (the MON_IOCT_RING_SIZE ioctl operation exits
+> -EBUSY if it's attempted, gated by the rp->mmap_active reference count).
 >
+> Utilise the newly introduced mmap_action_map_discontig_kernel_pages() to =
+do
+> this, which allows for iteration over pages in mon_bin_discontig_get().
+>
+> mon_bin_discontig_init() increments the rp->mmap_active reference count t=
+o
+> stabilise page spans. Should an error arise the core unmaps the VMA and
+> mon_bin_vma_close() drops the reference again.
+>
+> The vm_ops->close hook implemented in mon_bin_vma_close() will ensure
+> correct reference count arithmetic upon unmap (with mon_bin_vma_open()
+> accounting for splitting).
+>
+> The existing semantics are all retained, including not mapping past the
+> range of available pages, with a SIGBUS being raised in a userland proces=
+s
+> that attempts to access past this point.
+>
+> Ultimately insert_page() is invoked to insert each page, which increments
+> the reference count on each mapped page. This mimics what was being done
+> previously, only we pre-map the entire range rather than doing so on
+> demand.
+>
+> The existing fault handler did nothing that required demand paging, and w=
+as
+> presumably implemented this way for historical reasons.
+>
+> One behavioural difference: pages are no longer faulted in on demand, so =
+a
+> page discarded with MADV_DONTNEED is not repopulated and a subsequent
+> access raises SIGBUS, as with other pre-populated kernel mappings.
+>
+> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 
 
 > ---
->  Documentation/filesystems/mmap_prepare.rst | 81 ++++++++++++++++++++++++=
-++++++
->  1 file changed, 81 insertions(+)
+>  drivers/usb/mon/mon_bin.c | 82 ++++++++++++++++++++++++++++++-----------=
+------
+>  1 file changed, 53 insertions(+), 29 deletions(-)
 >
-> diff --git a/Documentation/filesystems/mmap_prepare.rst b/Documentation/f=
-ilesystems/mmap_prepare.rst
-> index 82c99c95ad85..ddb4434d919a 100644
-> --- a/Documentation/filesystems/mmap_prepare.rst
-> +++ b/Documentation/filesystems/mmap_prepare.rst
-> @@ -164,5 +164,86 @@ pointer. These are:
->    sufficient entries in the page array to cover the entire range of the
->    described VMA.
+> diff --git a/drivers/usb/mon/mon_bin.c b/drivers/usb/mon/mon_bin.c
+> index 687f6a8981f3..9d00b21a8153 100644
+> --- a/drivers/usb/mon/mon_bin.c
+> +++ b/drivers/usb/mon/mon_bin.c
+> @@ -1219,6 +1219,15 @@ mon_bin_poll(struct file *file, struct poll_table_=
+struct *wait)
+>         return mask;
+>  }
 >
-> +* mmap_action_map_discontig_kernel_pages() - Maps a discontiguous range =
-of
-> +  `struct page` pointers over the VMA. They must span from the start of =
-the VMA,
-> +  but may terminate prior to the end (leaving the remainder unmapped).
+> +static void __mon_bin_vma_open(struct mon_reader_bin *rp)
+> +{
+> +       unsigned long flags;
 > +
->  **NOTE:** The ``action`` field should never normally be manipulated dire=
-ctly,
->  rather you ought to use one of these helpers.
+> +       spin_lock_irqsave(&rp->b_lock, flags);
+> +       rp->mmap_active++;
+> +       spin_unlock_irqrestore(&rp->b_lock, flags);
+> +}
 > +
-> +Discontiguous Actions
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>  /*
+>   * open and close: just keep track of how many times the device is
+>   * mapped, to use the proper memory allocation function.
+> @@ -1226,64 +1235,79 @@ mon_bin_poll(struct file *file, struct poll_table=
+_struct *wait)
+>  static void mon_bin_vma_open(struct vm_area_struct *vma)
+>  {
+>         struct mon_reader_bin *rp =3D vma->vm_private_data;
+> -       unsigned long flags;
+>
+> -       spin_lock_irqsave(&rp->b_lock, flags);
+> -       rp->mmap_active++;
+> -       spin_unlock_irqrestore(&rp->b_lock, flags);
+> +       __mon_bin_vma_open(rp);
+>  }
+>
+> -static void mon_bin_vma_close(struct vm_area_struct *vma)
+> +static void __mon_bin_vma_close(struct mon_reader_bin *rp)
+>  {
+>         unsigned long flags;
+>
+> -       struct mon_reader_bin *rp =3D vma->vm_private_data;
+>         spin_lock_irqsave(&rp->b_lock, flags);
+>         rp->mmap_active--;
+>         spin_unlock_irqrestore(&rp->b_lock, flags);
+>  }
+>
+> -/*
+> - * Map ring pages to user space.
+> - */
+> -static vm_fault_t mon_bin_vma_fault(struct vm_fault *vmf)
+> +static void mon_bin_vma_close(struct vm_area_struct *vma)
+>  {
+> -       struct mon_reader_bin *rp =3D vmf->vma->vm_private_data;
+> +       struct mon_reader_bin *rp =3D vma->vm_private_data;
 > +
-> +Some actions can be performed across discontiguous ranges.
+> +       __mon_bin_vma_close(rp);
+> +}
 > +
-> +Map kernel pages
-> +----------------
+> +static const struct vm_operations_struct mon_bin_vm_ops =3D {
+> +       .open =3D     mon_bin_vma_open,
+> +       .close =3D    mon_bin_vma_close,
+> +};
 > +
-> +To map kernel pages discontiguously, you must provide hooks using ``stru=
-ct
-> +discontig_kernel_page_ops``:
+> +static int mon_bin_discontig_init(void *vm_private_data, void **private)
+> +{
+> +       struct mon_reader_bin *rp =3D vm_private_data;
 > +
-> +.. code-block:: C
-> +
-> +    struct discontig_kernel_page_ops {
-> +        int (*init)(void *vm_private_data, void **private);
-> +        int (*get)(struct discontig_kernel_page_state *state);
-> +    };
-> +
-> +The ``init`` hook is optional and allows state to be established before =
-the
-> +operation starts, for instance taking a reference count. Nothing is invo=
-ked
-> +after the operation, so ``init`` must not leave locks held, and state th=
-at must
-> +be released once the mapping goes away should be released in
-> +``vm_ops->close``.
-> +
-> +The ``init`` hook, if provided, is invoked prior to the operation starti=
-ng. It
-> +may update what is pointed to by ``vm_private_data`` and/or ``private``.=
- If an
-> +error is returned, then the operation is aborted. The ``private`` field =
-can be
-> +reassigned.
-> +
-> +**NOTE:** The operation may sleep between invocations of ``get``, so loc=
-ks
-> +needed to stabilise state must be taken and released within each hook.
-> +
-> +The ``get`` handler is the key means through which the operation is
-> +executed. The current state of the operation is provided through ``struc=
-t
-> +discontig_kernel_page_state``:
-> +
-> +.. code-block:: C
-> +
-> +    struct discontig_kernel_page_state {
-> +        /* Map state. */
-> +        unsigned long start;            /* Start address of VMA. */
-> +        unsigned long end;              /* End address of VMA. */
-> +        unsigned long addr;             /* The current address to be map=
-ped. */
-> +        pgoff_t pgoff;                  /* The current pgoff to be mappe=
-d. */
-> +        unsigned long nr_pages_mapped;  /* The number of pages mapped. *=
+> +       /* Dropped by mon_bin_vma_close() on unmap, including on error. *=
 /
-> +        unsigned long nr_pages_remain;  /* The number of pages remaining=
-. */
+> +       __mon_bin_vma_open(rp);
+> +       return 0;
+> +}
 > +
-> +        /* User-defined state. */
-> +        void *vm_private_data;          /* VMA private data. */
-> +        void *private;                  /* Mapping private data. */
+> +static int mon_bin_discontig_get(struct discontig_kernel_page_state *sta=
+te)
+> +{
+> +       struct mon_reader_bin *rp =3D state->vm_private_data;
+>         unsigned long offset, chunk_idx;
+> -       struct page *pageptr;
+>         unsigned long flags;
+>
+>         spin_lock_irqsave(&rp->b_lock, flags);
+> -       offset =3D vmf->pgoff << PAGE_SHIFT;
 > +
-> +        /* Users should not touch these, use discontig_kernel_map_*() he=
-lpers. */
-> +        ... internal fields ...
-> +    };
+> +       offset =3D state->pgoff << PAGE_SHIFT;
+>         if (offset >=3D rp->b_size) {
+>                 spin_unlock_irqrestore(&rp->b_lock, flags);
+> -               return VM_FAULT_SIGBUS;
+> +               discontig_kernel_map_abort(state);
+> +               return 0;
+>         }
+>         chunk_idx =3D offset / CHUNK_SIZE;
+> -       pageptr =3D rp->b_vec[chunk_idx].pg;
+> -       get_page(pageptr);
+> -       vmf->page =3D pageptr;
+> +       discontig_kernel_map_page(state, rp->b_vec[chunk_idx].pg);
 > +
-> +With ``private`` being an additional user-controllable state variable,
-> +initialised via ``mmap_action_map_discontig_kernel_pages()``, and
-> +``vm_private_data`` being equal to the ``desc->private_data`` field set =
-in
-> +the ``mmap_prepare()`` hook.
+>         spin_unlock_irqrestore(&rp->b_lock, flags);
+>         return 0;
+>  }
+>
+> -static const struct vm_operations_struct mon_bin_vm_ops =3D {
+> -       .open =3D     mon_bin_vma_open,
+> -       .close =3D    mon_bin_vma_close,
+> -       .fault =3D    mon_bin_vma_fault,
+> +static const struct discontig_kernel_page_ops mon_discontig_ops =3D {
+> +       .init =3D mon_bin_discontig_init,
+> +       .get =3D mon_bin_discontig_get,
+>  };
+>
+> -static int mon_bin_mmap(struct file *filp, struct vm_area_struct *vma)
+> +static int mon_bin_mmap_prepare(struct vm_area_desc *desc)
+>  {
+> -       /* don't do anything here: "fault" will set up page table entries=
+ */
+> -       vma->vm_ops =3D &mon_bin_vm_ops;
+> +       const struct file *filp =3D desc->file;
+>
+> -       if (vma->vm_flags & VM_WRITE)
+> +       if (vma_desc_test(desc, VMA_WRITE_BIT))
+>                 return -EPERM;
+>
+> -       vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP, VM_MAYWRITE);
+> -       vma->vm_private_data =3D filp->private_data;
+> -       mon_bin_vma_open(vma);
+> +       desc->vm_ops =3D &mon_bin_vm_ops;
+> +       vma_desc_clear_flags(desc, VMA_MAYWRITE_BIT);
+> +       vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT);
+> +       desc->private_data =3D filp->private_data;
 > +
-> +In the ``get`` hook, the user must choose how to map kernel pages:
-> +
-> +* ``discontig_kernel_map_abort()`` - Call this to abort the operation, w=
-hatever
-> +  has been mapped so far will be retained, the rest of the mapping will =
-SIGBUS
-> +  if accessed.
-> +* ``discontig_kernel_map_page()`` - Maps a single page, correctly handli=
-ng
-> +  compound pages (if the compound page is bigger than the remaining page=
-s in the
-> +  VMA, then only those pages that fit will be mapped). For a compound pa=
-ge, the
-> +  head page must be passed.
-> +* ``discontig_kernel_map_page_range()`` - Map an array of pages of a spe=
-cified
-> +  size. As with a compound page, if more pages are specified than remain=
- in
-> +  the VMA then only those that fit will be mapped.
-> +
-> +If an error arises after ``init`` succeeded, the core unmaps the VMA, in=
-voking
-> +``vm_ops->close`` if set, which is therefore the place to release any st=
-ate
-> +that ``init`` established.
+> +       mmap_action_map_discontig_kernel_pages(desc, NULL, &mon_discontig=
+_ops);
+>         return 0;
+>  }
+>
+> @@ -1298,7 +1322,7 @@ static const struct file_operations mon_fops_binary=
+ =3D {
+>         .compat_ioctl =3D mon_bin_compat_ioctl,
+>  #endif
+>         .release =3D      mon_bin_release,
+> -       .mmap =3D         mon_bin_mmap,
+> +       .mmap_prepare =3D mon_bin_mmap_prepare,
+>  };
+>
+>  static int mon_bin_wait_event(struct file *file, struct mon_reader_bin *=
+rp)
 >
 > --
 > 2.55.0
