@@ -1,95 +1,95 @@
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+Received: from mail-ed2-f12.google.com (mail-ed2-f12.google.com [74.125.228.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 438942E4257
-	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 08:51:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7399360EF0
+	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 09:02:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.76
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791103884; cv=pass; b=gFM4xXpoutUkXTedQ/TufA5MAN8vi1VXQiPcuCu+KaBkZCxTNUukU8fwpHMHDAXxOeZDNPWh5cpowvTOt806qU3aVQQOHx8JoAeSLglTMaNw/ozMHDIG5K/EoYWd8z4MiTk9UzkA7JtrCn0cKJB6KR91zvGdKm99rSUZckgybRM=
+	t=1791104563; cv=pass; b=FNsYf5hazaaVCCVcMWX/GzENNnTJbEer5KzMuUrH72BZ6X9Nw35vwGmZfwyKRheF7JI0xcyHHf6460yKjFvuHp4NKnscBJzxLMv+D7d4ipRm6Ahs5bHxjeWJEjIx1iil7VwhcYZ7L7f8bKCtsE7uCLqhpaUg+3sWdvPWxruRLAE=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791103884; c=relaxed/simple;
-	bh=a3dq4F5hZcch0kXBpQkEeinaRCHGax4kQvnENoiYn/w=;
+	s=arc-20240116; t=1791104563; c=relaxed/simple;
+	bh=2iADdXB0u89j4TAc4evJkaJgQVI0i6XZPvplCiNFcAg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MHlbPN8I1oZXlOCmsFoiIkoXDOrEk3v3YbFyZesmvZTd8v4qTqZyZocN3gkwY/hOQkr7/l/jeUa4//LyPP0845FoF1uYT3/cC46kdjWYZ18taH8ZGxrw3rdIIzGhlQIwWJfZJ4QhlsDHVD4MtWq+UJA3kV90FaW9rgeYGglTs4Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f9TyHVYP; arc=pass smtp.client-ip=209.85.218.52
+	 To:Cc:Content-Type; b=RcplfAFZuXxAB9CtFu4hxQqQiTZuowBtvGjtsgIC7ombuuZzh88xKu3pCPz4iaPdVqwGP2jqZmOB/+irxb1yAaPEIHU0q5W0LEm0N3YMWOOWZTjwqug6jYiWgYCdTweyOZ3/ORnxtZp6uE99Y16UwbPK5zDjV0jF0gDjTwSlmNs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=seo6/dCG; arc=pass smtp.client-ip=74.125.228.76
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f9TyHVYP"
-Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-c2e62319cfaso71460366b.2
-        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 01:51:21 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791103879; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="seo6/dCG"
+Received: by mail-ed2-f12.google.com with SMTP id 4fb4d7f45d1cf-6a60591ae54so1058734a12.3
+        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 02:02:40 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791104559; cv=none;
         d=google.com; s=arc-20260327;
-        b=V1/6uasQP+6WuOjZd0I43jhDVewtHjSJtnBnXQTGBpkWthqoOdGb0HPojhrczzCh67
-         6vU/f5vSK+jdG4dmTOP1+a48mptsQR3ZO2pGhPKJVPN8Cy9zB25tfDdkrVjj2l6QQXl3
-         uO5DShAkyl9H/gmR36i4GYdi75+4tpoY6aMXEGW/aCXiW6DOXUmxrddNQXCaANTxweWk
-         mW1ZIDOBOkkxhXsymUmjzLcUH5IT2/uikf1MZAp9xne4EDLPeYaPUb7wvAKe8qqYzu8O
-         8EQTinVQu8Z9OvxKC4OKkF246fe65HZdB7/LYclBNDqfaXHf/tJmcuLfINM0r6LqrZ4C
-         ZFdQ==
+        b=ULBKWucGGFm5Wmw8vImyifUyLYxrDcqG1vbOcfcTplVPtspEOlaqvAQsd6nXirEHMv
+         jYy65fWWgHZD+7XmjlnYVkrReVIBki5izB5AR3ixIZFXiWzkXyA0TN+yqEYeQZ78O8f5
+         z10UAT4MXO9k7tODCKoR4IjcRHq4iLIjs3SKulwis9RHmjcHSt48qj2ukHv9+1G70Kko
+         eGSO2fbkQ/Ija1T4iftJE//spSvG/DiVcuHJEwlNHNniIPAs/cgM5cnJTi5GnyBOLesv
+         p5Ct+rZwBOvpBaxr8n3Rq3Sq/L94IE2amt6KuB83PhvCxqGHsZqc7jxdQtxSPFllHqIP
+         ltGA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=IE3W/S+XItDaS0v98Y+ZUAiffd5bjG5l0VA34Ly11+M=;
-        fh=nLtMBa0z4XnxKewoJRZfVDClU1DrFzxI93K4T5eJAFU=;
-        b=ZHiLE0ITVnbmq9EKUqJc/X7X/1LtkVqTuSn9JAiAUiKKt1W+jtAEbSC+uvLnqdXLDi
-         vO2bUvaLGuDXwpbyithuYqQC6K/XEGN4Y0I/1B64HzlWQKf/oo6TEEvy+14QdNSfuifT
-         7lRl4DGI15W27JXeqEY3bXrcqnrykKHxvrvxBDQvD5OsDP5oyhqSgsMs4kxN9wFuoDOr
-         3aj15zwgodEpmPpIHUQSa4sQnjqRpWrw5PP4OAMqNdm49RytXLJvfl1O8POfV+orvuhJ
-         mgU1mGZguwxv8kAnyNZx0AQOsvHCDWlV3f3KFSX/SDQV7Z3FVo8A0tN9b8lMMk4HrgmH
-         KsPw==;
+        bh=4kVu/yq/WaOXMdFOaNW9qNBMm3nKlSEjdOviAUDMdnU=;
+        fh=LklTktD+ELispFclBFEsIyJLvB5o5egavNE/7wMSKgY=;
+        b=Da9LXYSAvEKt6tuV7WM51syy2yeM6wYq7Fas+Ntqy5X7zHFZpT7/PP2KeItXgrTIvG
+         Atc/tt4AMqm6JCzxrVDMNDpt0mDloR6ug2cKCWQwfgLs8mXwsfoi7oJKo2jC2eNWdkQV
+         c24hoHIeQ+y1zuzr92r3de1e2vQVh4V5wPnnr2KYGm0KR8E17lKvBThwAR3E2bh54fHy
+         4paK7NU1fcluwBJjpcpC5yqTu6tsE/ewTZbyb01UXWI8ZtAzT0f41i7HMSVriwojd864
+         HSPgSvllzhWlQ6PJeNqGMxOw8h0hY8JSr+zyZpC0BE/DuDGk6W5SAR/TQX+KqenRRZAG
+         sVvA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791103879; x=1791708679; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791104559; x=1791709359; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=IE3W/S+XItDaS0v98Y+ZUAiffd5bjG5l0VA34Ly11+M=;
-        b=f9TyHVYPwZPuID0bEQBBMQ+acvHfO2TAS3TyEvQeMmySB5xFHrnAFHrq1qex0zhQfR
-         oQ4kM5p/Q1NvLrVhP9VIwh4UGSEaf4sY8TDyUNGghz21meuD/iSPD2LBj8SAVqpbEyTl
-         1UvWMPmPu2I0fsrsr6CJ2HgSlOHinlRBwkj2wLzzYanSb0PaLOU1bwkjBe1P+QwloG7Y
-         rKFg8K6n9P6I6+pRobOBw9ui7pJM3JBlC1xW2fzcKyH8opkzlnuquOi5GeF5CzzazCe9
-         u29X+yO/LxvNFy/EEjP/+eipG0/O25RnA5jf75n+PRoQNZ6xwLsoa/zSMMje5ExQK9dK
-         UG7w==
+        bh=4kVu/yq/WaOXMdFOaNW9qNBMm3nKlSEjdOviAUDMdnU=;
+        b=seo6/dCGJBHmzoZ+l/drKAr6l6gojJLim9pdbQmdKSEVBwKLmRFnBdhgvURHmmodnj
+         CQM/9pnTYiT1l+ms58nNi75DaDLkkrP/StNhPUDzk6fvaJ0i+dIoBq0dRCSaCJorDBYX
+         QUA1K1GHQvEmPmk5/DjAWwAuQ8+4r8BRkP51JOiaTRTUvicb4kDWFeyeTrjzQvswP8KI
+         IkUJNTvR/OrCNgmzqdoButM0a7/+wtLceTPNOjfCAF6EihGct2XQWGWfQpgc3fk7Flr9
+         Ooml+AYV1MchHWh5n1nrE9HqKf/GR/dtPqihD8VhRmFXNBjLxdHyDaMDfKfXGNRUickF
+         39vw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791103879; x=1791708679;
+        d=1e100.net; s=20260707; t=1791104559; x=1791709359;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=IE3W/S+XItDaS0v98Y+ZUAiffd5bjG5l0VA34Ly11+M=;
-        b=J8xIflnXi6RftQUZUMunrxwif1iSFqCE9D6RQ6tZFLJ8j26G3WlaHUcbyHCAxIb+88
-         5rXcutWUCHAqDINIi3bRgNf++VCSNBR6T7if7KrzL9ldGwY7yJvfI32JxP6jEUsQizCu
-         GFtBAzqP1lEuuWA3kJPsd95lIyHz5lIg+gxtp7P0Indwu8vTulDmcNzLLXjcBAVdoZOm
-         Rgr3hcTfSvbEi0h5u5kdqLYpzFJlxQj2iH0uUbj8TD5vjzPKgF4wxHzlywNpc7f/NzXd
-         eyUrf3skm87aVN++6fsyNcIsBNxLuRGzfuyqWCZi/9iBFpAjVAYS+bSTwPEaup2Td6Tz
-         HXBg==
-X-Forwarded-Encrypted: i=1; AKwUvBz4xhVi6TxraK4jtlNVCtmwnxwWZcQ+qa7FrE2ZDl5889olkh9z1rHQGAtC7kZQ00oDf6iVMKGhMt1I@vger.kernel.org
-X-Gm-Message-State: AFq9FYKPe1OwnNW8BI3c12EZiwALA/AaX+DmYswEbiDzUs2h9FzLk+U8
-	VNylp5KZFYiRo2wFa5idG1i9M4BeKojBWgtOnOWlmKd1VbAwAXMqVnh+Uv9smbFe3SgOqat/qsy
-	OAdJWXeruJc7bU+MTxsDVMHE8j2hxIkCMoccK
-X-Gm-Gg: AYBFou0pj5RMZDdetDVFVgsG8mYx2KlS723SpCQQ6MPY5XxFWC1kEAVTxZ0y52PH9/6
-	TNcgVB3ZaZ1HAKx4mX8FbARI4CiPxX0YF0pF7paEcQk6t2niTEM5TA6YGTS+CVsF5PPNsyd3jnv
-	CMhc14o0ZH/ame46urgQGOPO2pILPUJc7ypzy43bfyNp8en6lHwYE40BgQ133q3QbybcXL9/CsC
-	lD6CA4GsJmC6NRnk57/Nyy9hxpnV/83vHkxUdpK5DqVRN+Jp0jjnsrHnjebEgWeCHlmgk7LcYcp
-	HoHMo3xXMWS7Etqo6KEsKIn0I0XlSAF7AOVvhmCVE1fgb8gGOic/b1rBmjMjsualiZ5lVryzmwe
-	karbn1IgeEzsLPoK6UjM1khWOJ+SulVh4a3uNU391KQ==
-X-Received: by 2002:a05:6402:4595:b0:6ab:e30:c9ac with SMTP id
- 4fb4d7f45d1cf-6afad732328mr3533378a12.6.1791103879028; Sun, 04 Oct 2026
- 01:51:19 -0700 (PDT)
+        bh=4kVu/yq/WaOXMdFOaNW9qNBMm3nKlSEjdOviAUDMdnU=;
+        b=bPLNIm+nndW+n+7TbHrtSDE6j3RF8bCl+HPAqIFFFdpMtqZwjdJBmFTDqKllbwdVnO
+         PBLoyOtX80bFWBKpGPtQdC1m5mRZ/CLpOEjTf7ejq6da1BngSnDf1tj41tX9sOXyHK7O
+         yIHdFeK4pZnmQ6DIaV2/zuRi1SX7DLRpTYbspMTRguXscLIwsZWuOPoLYM6liOD/NQCx
+         9LM9Z6Pv/qX92OXx2jhTzuRu9Avos6J8fuM9VBekGilhxptu0SJsClF7k0NFH5hehp8l
+         1b0288tNCbLIWFvacw0aKpaDY8iDUQS8vlTkJMh5Js3xBbdTq2gW3UoBCg4dxu7AXkyE
+         nxUg==
+X-Forwarded-Encrypted: i=1; AKwUvBwRP6Nhx9k/SAeGTccDbr2XyMGXnXsmgGmKWGPrq/Pf900ZojKGlqLwOm0WOeKFvDiG8V9esUTDD8Bz@vger.kernel.org
+X-Gm-Message-State: AFq9FYKQuhZcDEblqurFtr5dzvRHE7siGcYH8xc2BMhNUvYqHPLKWIrY
+	eYK2u9x2sBcZhqwv/zoBHTT6GRThYQIV85Na5asl/QdiakQM2Ihqqg4A6HvK+6oP25HpUYIkOCz
+	4IY+53MIOKpMlJf6RvGks2uuhwEso3as=
+X-Gm-Gg: AYBFou2MwHiXUFPnKNgQqJRe1GJjMqrLYPX5e37Kfix/KU4edubczhbs/pcZPcNbnQK
+	FkCjZEmmlE8zxAEQSXKiy14S0EhHV8Zt8XaNoOn3JZ+yw6rPtJoBfac8VnRzd8snT+Aw/pjUWaZ
+	c8twagH9DMzCw3fncWagAM67Sq+uAwrlyE/vpJS0T4iofyVeMjXqkMFbx0O293WWgb5swno7jgR
+	fX5q7B84Tmn4e2PK4/gwGwOBSxcPhEchY4KFJeF8uwLO9BHXi3nCyaLEXinrYK8FSwBM49KlTH4
+	5D5kkQDAYzavKt1q+GpW0WF14B+gQImS6DLZShThHRB6w2okYqPEQw6OHkQJcmStWGV2OVLgCjK
+	4gDB+y/DvGWJtpv10XUbgyfTXMOll3K4ODcMl1YxyEQ==
+X-Received: by 2002:a05:6402:27d0:b0:6ac:b49e:42a with SMTP id
+ 4fb4d7f45d1cf-6af9e335cd4mr6612425a12.28.1791104558767; Sun, 04 Oct 2026
+ 02:02:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260927005821.8369-1-kaloz@kernel.org> <20260927005821.8369-2-kaloz@kernel.org>
-In-Reply-To: <20260927005821.8369-2-kaloz@kernel.org>
+References: <20260927005821.8369-1-kaloz@kernel.org> <20260927005821.8369-3-kaloz@kernel.org>
+In-Reply-To: <20260927005821.8369-3-kaloz@kernel.org>
 From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 4 Oct 2026 10:51:07 +0200
-X-Gm-Features: AclHuK9KY8WlCdIqvjnP4WQZk1D_MtjB20nxukAu_h3NNW66dw1F-VEMknyuhjU
-Message-ID: <CA+=Fv5SMMMa=tBKkanp0xp9ZU6FtxqJiqgOShotmRs9QNXjuzQ@mail.gmail.com>
-Subject: Re: [PATCH 1/3] sparc32: support futexes on SMP
+Date: Sun, 4 Oct 2026 11:02:27 +0200
+X-Gm-Features: AclHuK-LuHKkhlhvEtgwByXee8TuF66Nw1OhkzhK6l7LcKAy6Spos4bz3m9Gxjw
+Message-ID: <CA+=Fv5SLKZn6Hs3tcxn_wO8k4RW3C0040fOVMVfe8L+oMhpZSg@mail.gmail.com>
+Subject: Re: [PATCH 2/3] sparc32: emulate casa on V8 CPUs
 To: Imre Kaloz <kaloz@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
 	"David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
@@ -101,244 +101,317 @@ Hi Imre,
 On Sun, Sep 27, 2026 at 2:59=E2=80=AFAM Imre Kaloz <kaloz@kernel.org> wrote=
 :
 >
-> asm-generic/futex.h provides the futex atomic ops for UP only, so FUTEX
-> has depended on !(SPARC32 && SMP).
+> sun4m implements no compare-and-swap instruction, only ldstub and swap,
+> so the V9 casa opcode is undefined there and raises illegal_instruction.
+> Complete the immediate-ASI form from do_illegal_instruction() for both
+> ASIs a compiler emits -- 0x80, the V9 primary address space, and 0x0A
+> from gcc -mcpu=3Dleon3 -- so a C library can use one casa for its 32-bit
+> atomics on any V8 part. The opcode is unimplemented, so the ASI carries
+> no distinction the emulated CAS has to honour. LEON parts built without
+> casa take the same trap and are the LEON parts this serves.
 >
-> Implement them in atomic32.c for both. LEON parts that implement casa
-> run it on the user word, as user code updates the word with casa there
-> and takes no kernel lock. Other CPUs have no compare-and-swap; the ops
-> serialize on __atomic_hash, which lets a kernel emulation of user casa
-> share the lock.
+> The CAS is futex_atomic_cmpxchg_inatomic(), so it is atomic against the
+> futex operations and against itself on SMP. Everything else, including
+> the register-ASI form and casxa, raises SIGILL.
 >
-> casa is optional on LEON, so it is probed once at boot. On a part
-> without it the kernel-mode illegal_instruction is fixed up from the
-> exception table.
+> Confirmed on a dual-SuperSPARC SPARCstation 20.
 >
 > Signed-off-by: Imre Kaloz <kaloz@kernel.org>
 > ---
->  arch/sparc/include/asm/futex_32.h |   6 +-
->  arch/sparc/kernel/traps_32.c      |  13 +++-
->  arch/sparc/lib/atomic32.c         | 122 ++++++++++++++++++++++++++++++
->  init/Kconfig                      |   1 -
->  4 files changed, 139 insertions(+), 3 deletions(-)
+>  arch/sparc/kernel/Makefile     |   1 +
+>  arch/sparc/kernel/cas_emu_32.c | 117 +++++++++++++++++++++++++++++++++
+>  arch/sparc/kernel/entry.h      |   1 +
+>  arch/sparc/kernel/traps_32.c   |   7 ++
+>  arch/sparc/kernel/unimp_32.h   |  71 ++++++++++++++++++++
+>  5 files changed, 197 insertions(+)
+>  create mode 100644 arch/sparc/kernel/cas_emu_32.c
+>  create mode 100644 arch/sparc/kernel/unimp_32.h
 >
-> diff --git a/arch/sparc/include/asm/futex_32.h b/arch/sparc/include/asm/f=
-utex_32.h
-> index 6a332a9f099c..2271aad566f8 100644
-> --- a/arch/sparc/include/asm/futex_32.h
-> +++ b/arch/sparc/include/asm/futex_32.h
-> @@ -1,6 +1,10 @@
->  #ifndef _ASM_FUTEX_H
->  #define _ASM_FUTEX_H
->
-> -#include <asm-generic/futex.h>
-> +#include <linux/types.h>
+> diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+> index 497b5714fa8f..fbea79a4ab58 100644
+> --- a/arch/sparc/kernel/Makefile
+> +++ b/arch/sparc/kernel/Makefile
+> @@ -40,6 +40,7 @@ obj-y                   +=3D sys_sparc_$(BITS).o
+>  obj-$(CONFIG_SPARC32)   +=3D systbls_32.o
+>  obj-y                   +=3D time_$(BITS).o
+>  obj-$(CONFIG_SPARC32)   +=3D windows.o
+> +obj-$(CONFIG_SPARC32)   +=3D cas_emu_32.o
+>  obj-y                   +=3D cpu.o
+>  obj-$(CONFIG_SPARC32)   +=3D devices.o
+>  obj-y                   +=3D ptrace_$(BITS).o
+> diff --git a/arch/sparc/kernel/cas_emu_32.c b/arch/sparc/kernel/cas_emu_3=
+2.c
+> new file mode 100644
+> index 000000000000..257f528d9a2c
+> --- /dev/null
+> +++ b/arch/sparc/kernel/cas_emu_32.c
+> @@ -0,0 +1,117 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Emulation of the V9 casa compare-and-swap for V8 CPUs.
+> + *
+> + * Copyright (C) 2026 Imre Kaloz <kaloz@kernel.org>
+> + *
+> + * sun4m implements no compare-and-swap at all, only ldstub and swap, an=
+d
+> + * casa is optional on LEON. Where it is missing, casa is an undefined o=
+pcode
+> + * and raises illegal_instruction (tt 0x02).
+> + *
+> + * Both immediate ASIs a compiler emits are accepted: 0x80, the V9 prima=
+ry
+> + * address space, and 0x0A, which gcc -mcpu=3Dleon3 uses. The opcode is
+> + * unimplemented wherever this runs, so the ASI carries no distinction t=
+he
+> + * emulated CAS has to honour.
+> + *
+> + * The register-ASI form is not emulated: it reads %asi, which V8 does n=
+ot
+> + * have. casxa is a 64-bit CAS and is meaningless on a 32-bit CPU.
+> + *
+> + * The CAS takes the futex ops' lock, so it is atomic against them and
+> + * against itself, but not against a plain store to the same word.
+> + */
 > +
-> +int arch_futex_atomic_op_inuser(int op, u32 oparg, int *oval, u32 __user=
- *uaddr);
-> +int futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
-> +                                 u32 oldval, u32 newval);
+> +#include <linux/kernel.h>
+> +#include <linux/sched/signal.h>
+> +#include <linux/mm.h>
+> +#include <linux/uaccess.h>
+> +#include <linux/ptrace.h>
+> +#include <asm/futex.h>
+> +#include <asm/ptrace.h>
+> +
+> +#include "entry.h"
+> +#include "unimp_32.h"
+> +
+> +#define CASA_OP                3       /* insn[31:30] */
+> +#define CASA_OP3       0x3c    /* insn[24:19] */
+> +
+> +#define ASI_P          0x80
+> +#define ASI_LEON       0x0a
+> +
+> +/* A fault returns -EFAULT, and the caller pages the word in. */
+> +static int cas_try(u32 __user *uaddr, u32 cmp, u32 newval, u32 *oldval)
+> +{
+> +       int ret;
+> +
+> +       pagefault_disable();
+> +       ret =3D futex_atomic_cmpxchg_inatomic(oldval, uaddr, cmp, newval)=
+;
+> +       pagefault_enable();
+> +       return ret;
+> +}
+> +
+> +/*
+> + * Returns 1 if the trap was consumed, either by emulating the CAS and
+> + * advancing the PC or by delivering a fault signal for a bad address, a=
+nd 0
+> + * if this is not a casa we emulate, in which case the caller raises SIG=
+ILL.
+> + */
+> +int try_emulate_casa(struct pt_regs *regs, unsigned int insn)
+> +{
+> +       unsigned int rd, rs1, rs2, asi;
+> +       unsigned long addr;
+> +       u32 cmp, newval, old;
+> +       int fault =3D 0, ret;
+> +
+> +       if ((insn >> 30) !=3D CASA_OP)
+> +               return 0;
+> +       if (((insn >> 19) & 0x3f) !=3D CASA_OP3)
+> +               return 0;
+> +       if (insn & (1 << 13))                   /* i =3D=3D 1: register A=
+SI */
+> +               return 0;
+> +       asi =3D (insn >> 5) & 0xff;
+> +       if (asi !=3D ASI_P && asi !=3D ASI_LEON)
+> +               return 0;
+> +
+> +       rd =3D (insn >> 25) & 0x1f;
+> +       rs1 =3D (insn >> 14) & 0x1f;
+> +       rs2 =3D insn & 0x1f;
+> +
+> +       unimp_flush_windows(rs1, rs2, rd);
+> +
+> +       addr =3D unimp_get_reg(rs1, regs, &fault);
+> +       cmp =3D unimp_get_reg(rs2, regs, &fault);
+> +       newval =3D unimp_get_reg(rd, regs, &fault);
+> +       if (fault)
+> +               goto sigsegv;
+> +
+> +       if (addr & 3) {                         /* CAS is naturally align=
+ed */
+> +               send_sig_fault(SIGBUS, BUS_ADRALN, (void __user *)addr, c=
+urrent);
+> +               return 1;
+> +       }
+> +       if (!access_ok((void __user *)addr, sizeof(u32)))
+> +               goto sigsegv;
+> +
+> +       while ((ret =3D cas_try((u32 __user *)addr, cmp, newval, &old)) =
+=3D=3D -EFAULT) {
+> +               /*
+> +                * Page the word in writably and retry, as
+> +                * fault_in_user_writeable() does.
+> +                */
+> +               struct mm_struct *mm =3D current->mm;
+> +               int fx;
+> +
+> +               mmap_read_lock(mm);
+> +               fx =3D fixup_user_fault(mm, addr, FAULT_FLAG_WRITE, NULL)=
+;
+> +               mmap_read_unlock(mm);
+> +               if (fx)
+> +                       goto sigsegv;
+> +       }
+> +
+> +       if (unimp_put_reg(rd, old, regs))
+> +               goto sigsegv;
+> +
+> +       regs->pc =3D regs->npc;
+> +       regs->npc +=3D 4;
+> +       return 1;
+> +
+> +sigsegv:
+> +       send_sig_fault(SIGSEGV, SEGV_MAPERR, (void __user *)addr, current=
+);
+> +       return 1;
+> +}
+> diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
+> index c746c0fd5d6b..2eb2b0be90df 100644
+> --- a/arch/sparc/kernel/entry.h
+> +++ b/arch/sparc/kernel/entry.h
+> @@ -14,6 +14,7 @@ void handler_irq(int irq, struct pt_regs *regs);
+>  void do_hw_interrupt(struct pt_regs *regs, unsigned long type);
+>  void do_illegal_instruction(struct pt_regs *regs, unsigned long pc,
+>                              unsigned long npc, unsigned long psr);
+> +int try_emulate_casa(struct pt_regs *regs, unsigned int insn);
 >
->  #endif
+>  void do_priv_instruction(struct pt_regs *regs, unsigned long pc,
+>                           unsigned long npc, unsigned long psr);
 > diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
-> index bb149f6cc34b..e1d50820c376 100644
+> index e1d50820c376..69851b19766a 100644
 > --- a/arch/sparc/kernel/traps_32.c
 > +++ b/arch/sparc/kernel/traps_32.c
-> @@ -11,6 +11,7 @@
->   */
->
->  #include <linux/cpu.h>
-> +#include <linux/extable.h>
->  #include <linux/sched/mm.h>
->  #include <linux/sched/debug.h>
->  #include <linux/mm_types.h>
-> @@ -108,8 +109,18 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned =
-long type)
+> @@ -109,6 +109,8 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned l=
+ong type)
 >  void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsi=
 gned long npc,
 >                             unsigned long psr)
 >  {
-> -       if(psr & PSR_PS)
-> +       if (psr & PSR_PS) {
-> +               const struct exception_table_entry *entry;
+> +       unsigned int insn;
 > +
-> +               /* The casa probe on a CPU without casa. */
-> +               entry =3D search_exception_tables(pc);
-> +               if (entry) {
-> +                       regs->pc =3D entry->fixup;
-> +                       regs->npc =3D regs->pc + 4;
-> +                       return;
-> +               }
->                 die_if_kernel("Kernel illegal instruction", regs);
-> +       }
->  #ifdef TRAP_DEBUG
->         printk("Ill instr. at pc=3D%08lx instruction is %08lx\n",
+>         if (psr & PSR_PS) {
+>                 const struct exception_table_entry *entry;
+>
+> @@ -126,6 +128,11 @@ void do_illegal_instruction(struct pt_regs *regs, un=
+signed long pc, unsigned lon
 >                regs->pc, *(unsigned long *)regs->pc);
-> diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
-> index 8ae880ebf07a..be712c2917d5 100644
-> --- a/arch/sparc/lib/atomic32.c
-> +++ b/arch/sparc/lib/atomic32.c
-> @@ -9,8 +9,13 @@
->   */
+>  #endif
 >
->  #include <linux/atomic.h>
-> +#include <linux/futex.h>
-> +#include <linux/init.h>
->  #include <linux/spinlock.h>
->  #include <linux/module.h>
-> +#include <linux/uaccess.h>
-> +#include <asm/cpu_type.h>
-> +#include <asm/futex.h>
->
->  #ifdef CONFIG_SMP
->  #define ATOMIC_HASH_SIZE       4
-> @@ -195,3 +200,120 @@ unsigned long __xchg_u32(volatile u32 *ptr, u32 new=
-)
->         return (unsigned long)prev;
+> +       if (!get_user(insn, (unsigned int __user *)pc)) {
+> +               if (try_emulate_casa(regs, insn))
+> +                       return;
+> +       }
+> +
+>         send_sig_fault(SIGILL, ILL_ILLOPC, (void __user *)pc, current);
 >  }
->  EXPORT_SYMBOL(__xchg_u32);
+>
+> diff --git a/arch/sparc/kernel/unimp_32.h b/arch/sparc/kernel/unimp_32.h
+> new file mode 100644
+> index 000000000000..9ab1705b9d04
+> --- /dev/null
+> +++ b/arch/sparc/kernel/unimp_32.h
+> @@ -0,0 +1,71 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + * Copyright (C) 2026 Imre Kaloz <kaloz@kernel.org>
+> + */
+> +#ifndef _SPARC_UNIMP_32_H
+> +#define _SPARC_UNIMP_32_H
 > +
-> +/* Only some LEON parts implement casa. */
-> +static bool sparc32_casa __ro_after_init;
-> +
-> +static int __casa_user(u32 *uval, u32 __user *uaddr, u32 oldval, u32 new=
-val)
-> +{
-> +       /*
-> +        * casa [%o0] 0xb, %o1, %o2, as a word any assembler accepts. ASI
-> +        * 0x0b is the supervisor address space; the emulated casa in
-> +        * cas_emu_32.c instead accepts the user ASIs 0x0a and 0x80.
-> +        */
-> +       register u32 __user *uaddr_r asm("o0") =3D uaddr;
-> +       register u32 oldval_r asm("o1") =3D oldval;
-> +       register u32 newval_r asm("o2") =3D newval;
-> +       int ret =3D 0;
-> +
-> +       __asm__ __volatile__(
-> +       "1:     .word   0xd5e20169\n"
-> +       "2:\n"
-> +       "       .section .fixup,#alloc,#execinstr\n"
-> +       "       .align  4\n"
-> +       "3:     sethi   %%hi(2b), %0\n"
-> +       "       jmpl    %0 + %%lo(2b), %%g0\n"
-> +       "        mov    %4, %0\n"
-> +       "       .previous\n"
-> +       "       .section __ex_table,#alloc\n"
-> +       "       .align  4\n"
-> +       "       .word   1b, 3b\n"
-> +       "       .previous\n"
-> +       : "+r" (ret), "+r" (newval_r)
-> +       : "r" (uaddr_r), "r" (oldval_r), "i" (-EFAULT)
-> +       : "memory");
-> +
-> +       *uval =3D newval_r;
-> +       return ret;
-> +}
-> +
-> +/* Without casa the illegal_instruction trap takes the fixup above. */
-> +static int __init sparc32_casa_probe(void)
-> +{
-> +       u32 word =3D 0, val;
-> +
-> +       if (sparc_cpu_model =3D=3D sparc_leon)
-> +               sparc32_casa =3D !__casa_user(&val, (u32 __force __user *=
-)&word,
-> +                                           0, 1);
-> +       return 0;
-> +}
-> +early_initcall(sparc32_casa_probe);
+> +#include <linux/uaccess.h>
+> +#include <asm/ptrace.h>
 > +
 > +/*
-> + * Without casa, user CAS is emulated under the same lock. ATOMIC_HASH()
-> + * uses page offset bits only, so every mapping of a word takes one lock=
-.
+> + * Operand access for instructions completed out of do_illegal_instructi=
+on().
+> + *
+> + * Like maybe_flush_windows() in unaligned_32.c this has to be inlined: =
+the
+> + * save/restore chain must run in the trapping window, not one level dee=
+per
+> + * behind a call, or the outermost user window is left un-flushed and
+> + * try_to_clear_window_buffer() kills the task on its next fork.
 > + */
-> +int futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
-> +                                 u32 oldval, u32 newval)
+> +static __always_inline void unimp_flush_windows(unsigned int rs1,
+> +                                               unsigned int rs2,
+> +                                               unsigned int rd)
 > +{
-> +       unsigned long flags;
-> +       u32 val;
-> +       int ret;
-> +
-> +       if (!access_ok(uaddr, sizeof(u32)))
-> +               return -EFAULT;
-> +       if (sparc32_casa)
-> +               return __casa_user(uval, uaddr, oldval, newval);
-> +
-> +       /* Every caller already runs with page faults disabled. */
-> +       spin_lock_irqsave(ATOMIC_HASH(uaddr), flags);
-> +       ret =3D __get_user(val, uaddr);
-> +       if (!ret && val =3D=3D oldval)
-> +               ret =3D __put_user(newval, uaddr);
-> +       spin_unlock_irqrestore(ATOMIC_HASH(uaddr), flags);
-> +
-> +       if (!ret)
-> +               *uval =3D val;
-> +       return ret;
+> +       if (rs1 >=3D 16 || rs2 >=3D 16 || rd >=3D 16)
+> +               __asm__ __volatile__("save %sp, -0x40, %sp\n\t"
+> +                                    "save %sp, -0x40, %sp\n\t"
+> +                                    "save %sp, -0x40, %sp\n\t"
+> +                                    "save %sp, -0x40, %sp\n\t"
+> +                                    "save %sp, -0x40, %sp\n\t"
+> +                                    "save %sp, -0x40, %sp\n\t"
+> +                                    "save %sp, -0x40, %sp\n\t"
+> +                                    "restore; restore; restore; restore;=
+\n\t"
+> +                                    "restore; restore; restore;\n\t");
 > +}
 > +
-> +int arch_futex_atomic_op_inuser(int op, u32 oparg, int *oval, u32 __user=
- *uaddr)
+> +/*
+> + * Globals and outs come from pt_regs, locals and ins from the flushed w=
+indow
+> + * on the user stack. %g0 reads as zero.
+> + */
+> +static inline unsigned long unimp_get_reg(unsigned int reg,
+> +                                         struct pt_regs *regs, int *faul=
+t)
 > +{
-> +       u32 oldval, newval, val;
-> +       int ret;
+> +       struct reg_window32 __user *win;
+> +       unsigned long val;
 > +
-> +       if (get_user(oldval, uaddr))
-> +               return -EFAULT;
+> +       if (reg < 16)
+> +               return reg ? regs->u_regs[reg] : 0;
 > +
-> +       for (;;) {
-> +               switch (op) {
-> +               case FUTEX_OP_SET:
-> +                       newval =3D oparg;
-> +                       break;
-> +               case FUTEX_OP_ADD:
-> +                       newval =3D oldval + oparg;
-> +                       break;
-> +               case FUTEX_OP_OR:
-> +                       newval =3D oldval | oparg;
-> +                       break;
-> +               case FUTEX_OP_ANDN:
-> +                       newval =3D oldval & ~oparg;
-> +                       break;
-> +               case FUTEX_OP_XOR:
-> +                       newval =3D oldval ^ oparg;
-> +                       break;
-> +               default:
-> +                       return -ENOSYS;
-> +               }
-> +
-> +               ret =3D futex_atomic_cmpxchg_inatomic(&val, uaddr, oldval=
-, newval);
-> +               if (ret)
-> +                       return ret;
-> +               if (val =3D=3D oldval)
-> +                       break;
-> +               oldval =3D val;
+> +       win =3D (struct reg_window32 __user *)regs->u_regs[UREG_FP];
+> +       if (get_user(val, &win->locals[reg - 16])) {
+> +               *fault =3D 1;
+> +               return 0;
 > +       }
-> +
-> +       *oval =3D oldval;
-> +       return 0;
+> +       return val;
 > +}
-> diff --git a/init/Kconfig b/init/Kconfig
-> index 8583d9f06c52..9eb8086af7db 100644
-> --- a/init/Kconfig
-> +++ b/init/Kconfig
-> @@ -1875,7 +1875,6 @@ config BASE_SMALL
->
->  config FUTEX
->         bool "Enable futex support" if EXPERT
-> -       depends on !(SPARC32 && SMP)
->         default y
->         imply RT_MUTEXES
->         help
+> +
+> +/* %g0 discards the result. */
+> +static inline int unimp_put_reg(unsigned int reg, unsigned long val,
+> +                               struct pt_regs *regs)
+> +{
+> +       struct reg_window32 __user *win;
+> +
+> +       if (reg < 16) {
+> +               if (reg)
+> +                       regs->u_regs[reg] =3D val;
+> +               return 0;
+> +       }
+> +       win =3D (struct reg_window32 __user *)regs->u_regs[UREG_FP];
+> +       return put_user(val, &win->locals[reg - 16]);
+> +}
+> +
+> +#endif /* _SPARC_UNIMP_32_H */
 > --
 > 2.47.3
 >
 
-Tested on a real SPARCstation 20 (SMP), on both a HyperSPARC and a
-SuperSPARC-II module. Raw FUTEX_WAIT/WAKE and FUTEX_LOCK_PI/UNLOCK_PI
-all work on both (no more ENOSYS), and an 8-thread pthread_mutex
-contention test (1.6M locked increments) finished with zero lost
-updates on both CPUs.
+
+Tested on a real SPARCstation 20, on both a HyperSPARC and a
+SuperSPARC-II module, neither has hardware casa. A hand-encoded casa
+instruction completes correctly instead of SIGILL on both.
+
+I also verified the key property this series depends on: userspace
+casa-based locking and real FUTEX_LOCK_PI/UNLOCK_PI callers correctly
+serialize on the same lock word under contention (40000/40000 ops,
+zero lost, on both CPUs).
 
 Tested-by: Magnus Lindholm <linmag7@gmail.com>
