@@ -1,368 +1,70 @@
-Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42219477286
-	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 17:54:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.180
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791136488; cv=pass; b=hYlC9moEFNQp3HgDmgapLCBQSwFj7/OUDI/UwJDJvhiX6VyF1UCGfPAUjuHBEy7mEAtFJp+Op39U9GQXmYv+tD50VZD6r5Ve2XEs93ISlU1e4yOaJKB6TGsULWHthHcey2zHIzHBZHoQPYkzbfilOGY/IEdAMq9St4rIX9HOcRg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791136488; c=relaxed/simple;
-	bh=Tl26wLyoh9tGv5TRbuijPTjsBuOcR1pJwTFpPgYIuM0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=UFVVn18mzz4VInD33xpdi6/9PnUuAnOh2quEEugC8fikurC+AR8W4GPYXa/46wt9Bjx+oZwKBkc10HXqQlDZJdInslowS1JQNamym8C+u91tRL4FEcXk7vOZRwI/8JL0/wo80Kj1jtZXVCfoTwDkIACPVYJ2Bja7QzL9Hyvz+30=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=mAeYuGFX; arc=pass smtp.client-ip=209.85.160.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2607047C0F7;
+	Sun,  4 Oct 2026 18:02:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791136945; cv=none; b=uL/1eI1CC0mH4QOBGet1emhrxmxTk7d4tbrdE9Bj7r/pu3uB0NKN0pr3yoLTBpAmrNg9+TPU9b9VME4CiEZnYHzOavsIUCTRGPc8St9/efj3nuIBJsx9AoNBWrQtSgep2f5gE5t//HiozgKN4U/nZ7z3u1+VOholEk7wO40VpUc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791136945; c=relaxed/simple;
+	bh=yRs6iOyIksXzAXZLCm/L98/ZXr20yi5TUXOnv8IIzHM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IIruS799dgFqHA0R5dFuO/Sg1G+MrEATX/Ds7NYsA3mzktxpyrMCmTVDMJrZ3gLu7GJOFX5qsY0ZMsJUKtdrgzDtLL1KhX3AiIbmCDBdBXhkMK5tEnoR6YpHmAtHNbEEaRj2z/1GOeD0FdWFQXB09yuj+2b1n036z2PUDWsBcFk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H0l7RULS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="mAeYuGFX"
-Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-533202fe429so249261cf.0
-        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 10:54:42 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791136480; cv=none;
-        d=google.com; s=arc-20260327;
-        b=CgoWftEbR5wFgowDU41LPxoI7mWSGjGJjrxgxGda/moV6t4K87wM1y9vOgQz0/j8Wk
-         S232y2v7tU1rigLw00hhfcHFW5BxhYJJbO9jemxGzVKwnK2eeeY3RobhmH5PdvQ1wYzd
-         rKzXZWfS8tKeH+E5EQxFGon0qDFeHSnfcW8HlQA0VOOKj5JlIxpvI97u2GFv4WOLsQ5e
-         1r9aWwEUcqO7/FxW/CYXtiQFspr3nXZz8TqWCyBL4edNX3mTUPSxQdCGrhfbsBEl3R4Y
-         Q+gbmdYgQKlUdUsorL/bffjk+ubkCyXLosFNBy4aZOlyXuTwqUpPqJDz67Q/jgYqrt5M
-         HONg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=Fdcss6XzKw26cI5TyCzpDNu6o5ifWClMegsH9OJNnig=;
-        fh=tNIK4iSorrLNaiF2PAPsAudMRJeRzHHb6pR1PkbRk6g=;
-        b=BwsqjA5kZq+CvOIPuIKRoGNH+MSBQ0jytio46vVr+T5gL/fJ6OQUSUyO03TJU/L9RF
-         GnxnXxiAvauygUtB0ejs6ZHC+aSdxkroq7LeZejBGcdNlUt3k0p6ZbID3wgthzn8i/Bs
-         9827a6dy5DiHwzTFn/dcJIkRiWHTti3YRFjZwaln0mWfF5lg6kiya+Manx+UZftM87XG
-         +xlsM3rlkE0lx3UZVQYc0bqu8vTVKCrCpUl2scgRyVJ89dcI6D6H9Le2CfdKL7Lg190C
-         DbBa5zibIVTLIfxJRYdrop+FtFlnOBk37nYhqtZMoEMFl1DK4OXTD9ncOzR8WOCSwfz7
-         sceQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791136480; x=1791741280; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Fdcss6XzKw26cI5TyCzpDNu6o5ifWClMegsH9OJNnig=;
-        b=mAeYuGFXA3dYCCyH8vrJNWixzHXLbX3NQXqQClk4VXMJ+YlukS/fatUpo1Ad9yBuLC
-         3Sq0xjBknFvuVOxjB9nFsXUpnmvUTAMQM1kX22AMh3thgOHR6b1o++8ulYH3QQH5aMxN
-         INZa12pRksTCLhUgWMshZbAVKnCglh2c4klyHi16k6Ep9m6MIwgsQ98LfJ2QWbcxSUt+
-         oHtNac+Ms8HnWR0WVibBrD4HwjUg45zo1F+6eTvRAIgBywZe20niKXuQqu4WAshzG7Kr
-         E7LpUuWszQtWjpUfWomibUijgGCBLmMINZOtF31A/UnoHbeU8FZRbSRZqPxxdgI2bujw
-         PpjQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791136480; x=1791741280;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Fdcss6XzKw26cI5TyCzpDNu6o5ifWClMegsH9OJNnig=;
-        b=oPGXO8W2aSKwa6xdnmWZq2HKcHwHsbDk9QliXHkKujxLCqQpo6yK7v7PtmbLO0R2Y1
-         lEvbNOorV9L2/Q2wDPwGLlLqEH3ntJizGlC2DCGoqvyyhITw8MbQActztSAC6Y5eQ1Ys
-         V5g8UaGb/4Z2pSE3PXojrWDthNs5edAsyUOR+B7HI37seFMMQt6V41NIMnmTvZ2uRrcv
-         BEdiK8ST4HVRHjj+ec+GjmInwRtn4mOtniny9DSVGm0a+y9hXGb3PYCuQ/P6yG9RLWOe
-         QQreoJJMWJVB8BXN5Jau3o/Pxw52i33x9Ry87PLoa67IL/TezbEus/Aj/HrWrq1dFvgV
-         Fmeg==
-X-Forwarded-Encrypted: i=1; AKwUvBw4wYfeB2GwWsmsGIgo+ru6G7uFGfYZJ5wFS4Oen5KfdvDzJ92yqnyr2IFYHRhDQo3Y92WOc9x5jShU@vger.kernel.org
-X-Gm-Message-State: AFuF++l04XluOkAZ/2AvTKyeDsjKN6usFVAtdNeFMo2ZRoMqgGW4anQ5
-	0b/BaTfi0jhCQbxlEz/aqd1m30VkVWQqbrYm92Y5SPEkivHqNVj5kOFqSPyfF7HXjoCrTJ3r8yh
-	2fMCpXQG47BH9cWLOGbhOqWGosSAV4m2Dd3jE82W8
-X-Gm-Gg: AYBFou3oqAWtbARxr/BhAiEVnftW5Rkq9k20NUa3J2EPvxBloHkITdjW2l5g7fOEOYK
-	ZBtXwhtKcUILA/n/uXc8hyMs0UVwkI45pM8/lChqTqG595lVgfxlNcSrTjHHW5YA6W1ogYht324
-	sbdbXWjPhvjyMiSMJTSYkIhqG9cZW3rLgTqzLf4mgMo0luiYOSGgzaxcRwdyIcOA13Jn/ToaYox
-	t6XGYWhAlvsMkidB+zIK/ZouYSyf7Z4eSv5+Yvm1CGVrmay8Lt5b8nQdHiENJd0WzchBcH4HE1z
-	h9FlonpFh5A862ONaT8bL9vOA9W5Dr+9fiDk7QPdcPCnl3Vk8EmUTV4p
-X-Received: by 2002:ac8:7e89:0:b0:534:b7b2:634f with SMTP id
- d75a77b69052e-53514799503mr16690141cf.8.1791136478525; Sun, 04 Oct 2026
- 10:54:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H0l7RULS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD05C1F000FF;
+	Sun,  4 Oct 2026 18:02:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791136934;
+	bh=3NrjrMQG6PRCSAYGrvIhG5WZILo0AC3+blI+7TQNQrg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=H0l7RULS+6689LmK4W/cZCuj7+DOqNc/kV+zxBRy6jy+8yZVmqbBJahdHbF4XN61v
+	 UWxc3oGHOBV3H78WNK/GFjLrrraXqT1Q6Z0nvF8zLWh7Y5mYXbnZCHfpkif/alVCly
+	 ZcfF4O5mshEnxBInyjzfuQQHg0VbnMNyrg9Rpn+pJeuNTIHllmWd21rRZrhexlFoVl
+	 quzTMz2QJkY3vaBaUeFFhxS/7of5NBzSW6pADACeyMBd7x/HioBhZK5EHXroUVqmEN
+	 Ux4UqDIB/c5c8yhBQeaGNhSoWTht7UFonVKpQ3J1+dI0/26yOVAm4OzD/hY/fkKDsZ
+	 8U8NPPwavWWyA==
+Date: Sun, 4 Oct 2026 20:02:08 +0200
+From: Eric Biggers <ebiggers@kernel.org>
+To: Stian Halseth <stian@itx.no>
+Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, linux-crypto@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] lib/crypto: sparc/aes-xts: Add optimization using the
+ AES opcodes
+Message-ID: <20261004180208.GD1906@quark>
+References: <20261002072110.1221579-1-stian@itx.no>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261003-b4-mmap-prepare-vma-flag-sanify-v4-0-a1f052500fd7@kernel.org>
- <20261003-b4-mmap-prepare-vma-flag-sanify-v4-17-a1f052500fd7@kernel.org>
-In-Reply-To: <20261003-b4-mmap-prepare-vma-flag-sanify-v4-17-a1f052500fd7@kernel.org>
-From: Suren Baghdasaryan <surenb@google.com>
-Date: Sun, 4 Oct 2026 10:54:27 -0700
-X-Gm-Features: AclHuK-Rg0T0ymL6HRAgNQPZX5D4YqOng-e9RJRoGVP6zixq0eakV-RXfXJpvBY
-Message-ID: <CAJuCfpHM9-VY97TD8yXCEcWirLHik7UPf2_gv5CzqEexD2hbHg@mail.gmail.com>
-Subject: Re: [PATCH v4 17/38] scsi: sg: convert mmap hook to mmap_prepare and rework
-To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett" <liam@infradead.org>, 
-	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Leon Romanovsky <leon@kernel.org>, Paul Moore <paul@paul-moore.com>, 
-	Stephen Smalley <stephen.smalley.work@gmail.com>, Jaroslav Kysela <perex@perex.cz>, 
-	Takashi Iwai <tiwai@suse.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
-	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
-	"Martin K. Petersen" <mkp@kernel.org>, Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, 
-	Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
-	Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Muchun Song <muchun.song@linux.dev>, 
-	Oscar Salvador <osalvador@suse.de>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
-	Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
-	Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
-	Ying Huang <ying.huang@linux.alibaba.com>, Alistair Popple <apopple@nvidia.com>, 
-	Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, 
-	Baoquan He <baoquan.he@linux.dev>, Youngjun Park <youngjun.park@lge.com>, 
-	Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <qi.zheng@linux.dev>, 
-	Shakeel Butt <shakeel.butt@linux.dev>, Axel Rasmussen <axelrasmussen@google.com>, 
-	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	selinux@vger.kernel.org, linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
-	kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
-	fuse-devel@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261002072110.1221579-1-stian@itx.no>
 
-On Sat, Oct 3, 2026 at 6:39=E2=80=AFPM Lorenzo Stoakes (ARM) <ljs@kernel.or=
-g> wrote:
->
-> Move from the deprecated mmap hook to the new mmap_prepare hook.
->
-> We are mapping kernel pages here, so use the discontiguous kernel mapping
-> mmap action to do so.
->
-> Unwind the rather confusing loop and instead map as many pages as we can =
-at
-> one time.
->
-> Note that we do not need to pay attention to rsv_schp->k_use_sg here, as
-> the pages are populated for the length of the buffer at
-> rsv_schp->page_order granularity as compound pages.
->
-> The discontiguous kernel page mapping logic handles the compound pages fo=
-r
-> us.
->
-> sfp->mmap_called keeps the buffer stable for us. As before it is never
-> cleared, so a failed mmap also leaves it set.
->
-> We also remove some useless vma, vma->vm_file NULL checks - these will
-> always be non-NULL if you reached the mmap hook logic.
->
-> We retain log output for consistency, but change what's output on page
-> mapping to indicate that sg_discontig_get() does the work now.
->
-> Note that we drop the VMA_IO_BIT flag for the VMA here. It was never
-> necessary as we invoke alloc_pages() which gives us refcounted folios tha=
-t
-> are fine for GUP to access (VMA_IO_BIT would prevent that).
->
-> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+On Fri, Oct 02, 2026 at 09:21:10AM +0200, Stian Halseth wrote:
+> +#if IS_ENABLED(CONFIG_CRYPTO_LIB_AES_XTS)
+> +ENTRY(aes_sparc64_xts_encrypt_128)
+[...]
+> +ENTRY(aes_sparc64_xts_encrypt_256)
+[...]
+> +ENTRY(aes_sparc64_xts_decrypt_128)
+[...]
+> +ENTRY(aes_sparc64_xts_decrypt_256)
 
-The code looks correct but I must disclaim that I have no experience
-with this driver.
+These four functions are almost identical.  They should each just invoke
+a macro that expands to different code only in the parts that are
+actually different, like what the __aes_xts_crypt macro in
+lib/crypto/riscv/aes-riscv64-zvkned-zvbb-zvkg.S or the _aes_xts_crypt
+macro in lib/crypto/x86/aes-aesni.S do.
 
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+This will generate the same object file with way fewer lines of source.
 
-
-> ---
->  drivers/scsi/sg.c | 115 ++++++++++++++++++++++++------------------------=
-------
->  1 file changed, 51 insertions(+), 64 deletions(-)
->
-> diff --git a/drivers/scsi/sg.c b/drivers/scsi/sg.c
-> index 5408f002e6c0..3f9e08725602 100644
-> --- a/drivers/scsi/sg.c
-> +++ b/drivers/scsi/sg.c
-> @@ -1212,85 +1212,72 @@ sg_fasync(int fd, struct file *filp, int mode)
->         return fasync_helper(fd, filp, mode, &sfp->async_qp);
->  }
->
-> -static vm_fault_t
-> -sg_vma_fault(struct vm_fault *vmf)
-> +static int sg_discontig_init(void *vm_private_data, void **private)
->  {
-> -       struct vm_area_struct *vma =3D vmf->vma;
-> -       Sg_fd *sfp;
-> -       unsigned long offset, len, sa;
-> -       Sg_scatter_hold *rsv_schp;
-> -       int k, length;
-> -
-> -       if ((NULL =3D=3D vma) || (!(sfp =3D (Sg_fd *) vma->vm_private_dat=
-a)))
-> -               return VM_FAULT_SIGBUS;
-> -       rsv_schp =3D &sfp->reserve;
-> -       offset =3D vmf->pgoff << PAGE_SHIFT;
-> -       if (offset >=3D rsv_schp->bufflen)
-> -               return VM_FAULT_SIGBUS;
-> -       SCSI_LOG_TIMEOUT(3, sg_printk(KERN_INFO, sfp->parentdp,
-> -                                     "sg_vma_fault: offset=3D%lu, scatg=
-=3D%d\n",
-> -                                     offset, rsv_schp->k_use_sg));
-> -       sa =3D vma->vm_start;
-> -       length =3D 1 << (PAGE_SHIFT + rsv_schp->page_order);
-> -       for (k =3D 0; k < rsv_schp->k_use_sg && sa < vma->vm_end; k++) {
-> -               len =3D vma->vm_end - sa;
-> -               len =3D (len < length) ? len : length;
-> -               if (offset < len) {
-> -                       struct page *page =3D rsv_schp->pages[k] + (offse=
-t >> PAGE_SHIFT);
-> -                       get_page(page); /* increment page count */
-> -                       vmf->page =3D page;
-> -                       return 0; /* success */
-> -               }
-> -               sa +=3D len;
-> -               offset -=3D len;
-> +       const unsigned long req_sz =3D (unsigned long)*private;
-> +       Sg_fd *sfp =3D vm_private_data;
-> +       Sg_scatter_hold *rsv_schp =3D &sfp->reserve;
-> +       int err =3D 0;
-> +
-> +       mutex_lock(&sfp->f_mutex);
-> +       if (req_sz > rsv_schp->bufflen) {
-> +               err =3D -ENOMEM;  /* cannot map more than reserved buffer=
- */
-> +               goto out;
-> +       }
-> +       sfp->mmap_called =3D 1; /* Prevents changes to buffer size. */
-> +out:
-> +       mutex_unlock(&sfp->f_mutex);
-> +       return err;
-> +}
-> +
-> +static int
-> +sg_discontig_get(struct discontig_kernel_page_state *state)
-> +{
-> +       Sg_fd *sfp =3D state->vm_private_data;
-> +       Sg_scatter_hold *rsv_schp =3D &sfp->reserve;
-> +       const unsigned int order =3D rsv_schp->page_order;
-> +       const pgoff_t nr_pages =3D state->nr_pages_mapped;
-> +
-> +       if (nr_pages >=3D (rsv_schp->bufflen >> PAGE_SHIFT)) {
-> +               discontig_kernel_map_abort(state);
-> +               return 0;
->         }
->
-> -       return VM_FAULT_SIGBUS;
-> +       SCSI_LOG_TIMEOUT(3, sg_printk(KERN_INFO, sfp->parentdp,
-> +                                     "%s: offset=3D%lu, scatg=3D%d\n", _=
-_func__,
-> +                                     nr_pages << PAGE_SHIFT, rsv_schp->k=
-_use_sg));
-> +
-> +       discontig_kernel_map_page(state, rsv_schp->pages[nr_pages >> orde=
-r]);
-> +       return 0;
->  }
->
-> -static const struct vm_operations_struct sg_mmap_vm_ops =3D {
-> -       .fault =3D sg_vma_fault,
-> +static const struct discontig_kernel_page_ops sg_discontig_ops =3D {
-> +       .init =3D sg_discontig_init,
-> +       .get =3D sg_discontig_get,
->  };
->
->  static int
-> -sg_mmap(struct file *filp, struct vm_area_struct *vma)
-> +sg_mmap_prepare(struct vm_area_desc *desc)
->  {
-> -       Sg_fd *sfp;
-> -       unsigned long req_sz, len, sa;
-> -       Sg_scatter_hold *rsv_schp;
-> -       int k, length;
-> -       int ret =3D 0;
-> +       Sg_fd *sfp =3D desc->file->private_data;
-> +       const unsigned long req_sz =3D vma_desc_size(desc);
->
-> -       if ((!filp) || (!vma) || (!(sfp =3D (Sg_fd *) filp->private_data)=
-))
-> +       if (!sfp)
->                 return -ENXIO;
-> -       req_sz =3D vma->vm_end - vma->vm_start;
-> +
->         SCSI_LOG_TIMEOUT(3, sg_printk(KERN_INFO, sfp->parentdp,
->                                       "sg_mmap starting, vm_start=3D%p, l=
-en=3D%d\n",
-> -                                     (void *) vma->vm_start, (int) req_s=
-z));
-> -       if (vma->vm_pgoff)
-> +                                     (void *) desc->start, (int) req_sz)=
-);
-> +
-> +       if (desc->pgoff)
->                 return -EINVAL; /* want no offset */
-> -       rsv_schp =3D &sfp->reserve;
-> -       mutex_lock(&sfp->f_mutex);
-> -       if (req_sz > rsv_schp->bufflen) {
-> -               ret =3D -ENOMEM;  /* cannot map more than reserved buffer=
- */
-> -               goto out;
-> -       }
->
-> -       sa =3D vma->vm_start;
-> -       length =3D 1 << (PAGE_SHIFT + rsv_schp->page_order);
-> -       for (k =3D 0; k < rsv_schp->k_use_sg && sa < vma->vm_end; k++) {
-> -               len =3D vma->vm_end - sa;
-> -               len =3D (len < length) ? len : length;
-> -               sa +=3D len;
-> -       }
-> +       vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT);
-> +       desc->private_data =3D sfp;
->
-> -       sfp->mmap_called =3D 1;
-> -       vm_flags_set(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
-> -       vma->vm_private_data =3D sfp;
-> -       vma->vm_ops =3D &sg_mmap_vm_ops;
-> -out:
-> -       mutex_unlock(&sfp->f_mutex);
-> -       return ret;
-> +       mmap_action_map_discontig_kernel_pages(desc, (void *)req_sz,
-> +                                              &sg_discontig_ops);
-> +       return 0;
->  }
->
->  static void
-> @@ -1415,7 +1402,7 @@ static const struct file_operations sg_fops =3D {
->         .unlocked_ioctl =3D sg_ioctl,
->         .compat_ioctl =3D compat_ptr_ioctl,
->         .open =3D sg_open,
-> -       .mmap =3D sg_mmap,
-> +       .mmap_prepare =3D sg_mmap_prepare,
->         .release =3D sg_release,
->         .fasync =3D sg_fasync,
->  };
->
-> --
-> 2.55.0
->
+- Eric
