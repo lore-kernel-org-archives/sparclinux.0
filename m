@@ -1,242 +1,315 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB1F313CF82
-	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 10:04:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.47
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791108281; cv=pass; b=kgtj0phZ6/ef9d/xcwzbYI7Y6i1FNbmn2bSHM0IiDTeAFkM8D+BMb9PDzEkP91ZjF9IMp+d5yx5YL4luvvBjAyAV7+d+7xP78ZdVGa3NWX8C6u4zPlEDUcclgY/ED5Vpns/fB+j8uzmKq33pckLkC5mEm9/XokIJwqu2TNKJy2E=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791108281; c=relaxed/simple;
-	bh=EBHJJwH5oOGoEiowKEcXjSeW4zCfzR8fzqJl8Snvci0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QL3ulpQY30Nw8AmCyQY439v3d5xWk0xnzcNBZAEccVcFfxXaS4gNyCvGO7wpmaufh3Dif99qbjB6Yq7jAWJvLHFEwF0v+c8ViI20xXhKcToivErwC/6H59nGG38yzUwtVSEJorc0Wj8nOZRZjgqiST8nCTt+IweqrqYnnNPw7oA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ekx5YJ4Y; arc=pass smtp.client-ip=209.85.208.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E2AE2FC00D;
+	Sun,  4 Oct 2026 12:50:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791118235; cv=none; b=A1gqI5ClLscQBSmw1o5g9ooXOsGXFF8VZgEd6SfVbjIhu+8/+3BaEIZ9z6iLqr/4eUwxU4pG5ZylPnT11BNMlEGAH+doBnKZxeZTfIyHzeOlwqK83fb/0a/wSZSPg/cYG5dHiLl3XqA7jpGG/JX5XbdYtzVLNlpZ/5nGC1pDN3E=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791118235; c=relaxed/simple;
+	bh=gvg/uEuunYBpFGP+kj5DUE33VrET+PTZAyQnN4cLGr4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZFTNZqGJQosvX0WS9mmXNhAb/qSUAQtXDepqy6dlANgH+HwdnhadjmWT0ffYijvvEvQLYFUNJsvd5JQEF0zRK9H0REIbO8tTeXYYvYazwYVVKqwuiMs8KHaJYw2djGxpSQXKN4Q5RF8JuPZOVNkesKmrt/v3umzW6misBtx0z7U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=ttKVHQ8M; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ekx5YJ4Y"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6ae27f06c2fso1367186a12.3
-        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 03:04:38 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791108276; cv=none;
-        d=google.com; s=arc-20260327;
-        b=nIUMj3MF5Ch8OZ65b2pi+OkniE6n++qE/AzM+fH2RL+SHSY9AVW/95sTquwUAuLaFu
-         CqxTaKqV5w79UpTimwzN6xrN73N976eVVgkVLHSc2AJyXD5XLlvd8xkuk8UfNrgL1+XU
-         Ej4nrEsJVDxXq0z0fjDU/x8DTj47q1fX9bNawStloDtXMk5+H49eN5JzXdBA0LCY60U7
-         av0IbiLrcv+0EJEumKOOgilij+CtqTSZRMhyk3hLsDL8oExxhjmwjLzF7peAPT6RkZYn
-         dsXG9R7RCLUMe5p4sqBcQshy4CNDsML6r63vIEzeHlyV0aTACgKaa6p9sOFg1Db7EznW
-         Wwlg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=Ihe+WnKzwT1Q+F2TK/d50qmjYhl6srofLOFbWpQYooU=;
-        fh=nn7sXjrly8cYckZKsmW9OklyXlCc/pQPyI469+iwMSs=;
-        b=BoFnlqQmhNvRoA4rzhrOET1vztmt46kZkIRNfRQPsrdKG6qR7Oty6IQLXybbN+cef0
-         xA6eGc2zNxoxCGZJlKjpaYk70b9LM+nZfOGMaOREooMCXSUFCUqZON8ZP4z/cOm0M3uY
-         7RUhnkRnveN9+aNx2DrpfVyqKYsfBQux13Cl1KEmc3damsumxfRjoo1TXt0MJ9EYZJjZ
-         EgMCmntctcFqc7pvAKc3ZxaBA3v3SAMkNsu73+86pwsEbyog2+qceUT4C6vW1sIxMa4d
-         ES86jxDbjLUfDamiHSyP/wqfG+sAHj3crQzPb5TvQaf6AcUbYK9qudvL9AMIOxRgk3xK
-         tH/w==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791108276; x=1791713076; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Ihe+WnKzwT1Q+F2TK/d50qmjYhl6srofLOFbWpQYooU=;
-        b=ekx5YJ4YnCSaVlPJwjoSlH/BUvvQpyOPBG/xyAFerz/WZGXgVtfD0KK6jLSKpwyWCn
-         0h6M8R9oUzvjmh4q2ngFm0uMaDFdq5y37w1NzkOFZSP0SRcTseQBKnqxzm7TGA39G50y
-         MNYAEpvfzpNQHFPqUBGVZE1QKrG4OPJAHnPu8MTwb/RjZNACsTvTHUlvTC2+T5qj8UgI
-         eVgdhoSb+kgePtq8lgfsD1CiUJWxJqSjG33yVYydr8EsF5t8eSvdkv6ZImoAXuZM5tKh
-         maRf1yMST7PWfT5aG5NKr4MCpLXZywhV+wogu2rZrbPf2RKW/KZlDQimX5eJ0+Z5ZgGo
-         H7RQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791108276; x=1791713076;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Ihe+WnKzwT1Q+F2TK/d50qmjYhl6srofLOFbWpQYooU=;
-        b=vVw2vN4+IM9MjsLrTfFrq7tVRvkxPcqiN8HkkzDhmZMXpP2CGd7m7c8vP6MjwzIX3G
-         5Rc8iEd4oKYIK+R65LPsuZxbybiiek46xPYOHBE4K/rf8n9lT+VU7ef41AyWj7jnH9Ar
-         c4uHBBj+BSajAYmDX2pjRl9Uwmzt0Mbqv/hPyEnkLkIwOU6gKbzG/DuL8Tn4CZQA+j6K
-         Qx0wA2c1BIcX60Nl2qnwKjWM8tFmBbfQot9vcslKIfWaNmHXpMPAB6/YTmZQiwOwIULZ
-         1HoGtbIdzIuYrcpXzoIxJQr5KoHb3ewyiVfAwH1PX7kgwTBPW12MsjXyBmmJUKD0Tt7u
-         4n4g==
-X-Forwarded-Encrypted: i=1; AKwUvBwjjc6Oqe7RWfYuhnIa04lHxjcybfZWgwWLGwfd0Laup1OgvWATENYe+jrChMN/TsG96oKvSkqmUc8e@vger.kernel.org
-X-Gm-Message-State: AFq9FYKK3SG5B+k7zWu6/QtJ/KEReCnIWKz7QFpTFmw8J46Pq1YiF7KO
-	kpD0R12NEmnD+9mXRJBS4GoaYbHFiK+0q0KTYU4350DNRAy7+CUv+Ca7222k3LOiFUF9bA4AXIi
-	73NJOz5XRdq0VxReuVQhM1cJqqfpBMxc=
-X-Gm-Gg: AYBFou3X5FjjO846PMbcyxmvgIkkR6cUpJFhHj3nP9WfcgsxOuSmPemrGfnBgWbhYQY
-	gQ2PF6+rqwrdc7InswWqiqqAc7i0XOOulz4garQWY7ylyd0n0clMlLH9R+nB9KGWO41MxfYwb6/
-	fTgEEPKstONZIg0uz0mPX/zdj6DBcjlVZS/on0Q07yEUTOvBCJ9yiqTdzmDE757hFeDNcjLdXCx
-	2Rmqzl+HO4y7GhzotTZ4qPjk88GoVwphE1feazdfMxLijaezC0ZohFAibIQNtvLqCeJfV7KXCoI
-	KRXi1WAed4WgYnZFrw4oKMVXCj+qTs6L6V3XyzFSH9fe71Aeat21FfZJO5f+EL9UP36GUHv6GrQ
-	1PEN1hE0Uw0Uoa5kD7AaZ2/NI+PjGbpghvugrzMqjAX8zp8op91yG
-X-Received: by 2002:a05:6402:46cf:b0:6aa:f0e:a168 with SMTP id
- 4fb4d7f45d1cf-6afad8f072fmr3352298a12.21.1791108276228; Sun, 04 Oct 2026
- 03:04:36 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="ttKVHQ8M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D4981F000FF;
+	Sun,  4 Oct 2026 12:50:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1791118233;
+	bh=3ZtGmx15jwharaXgISQPu3qx8gouZaTHhMJZp2J8OuU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=ttKVHQ8MJkCTUhjQ5o1HgalBMsSny5703FqddDwf7MgN2RrsHP6OWR1RKpunrSu4S
+	 dbQvGT3bydCcrYlgq3oEXw/x2jIQn85+RusouQIxth+NwADkbLdvu+Zvg08H9Asbrf
+	 cZ/1jFdwhbU/PxuLOeuXtgiry66IStfglcI1oWTQ=
+Date: Sun, 4 Oct 2026 14:50:29 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Magnus Lindholm <linmag7@gmail.com>
+Cc: sparclinux@vger.kernel.org, "David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
+	Jiri Slaby <jirislaby@kernel.org>, linuxppc-dev@lists.ozlabs.org,
+	linux-serial@vger.kernel.org
+Subject: Re: [PATCH 7/7] hvc: add an M3000 firmware console backend
+Message-ID: <2026100415-impromptu-sultry-ce6b@gregkh>
+References: <20261002161515.932316-1-linmag7@gmail.com>
+ <20261002161515.932316-8-linmag7@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260927005821.8369-1-kaloz@kernel.org>
-In-Reply-To: <20260927005821.8369-1-kaloz@kernel.org>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 4 Oct 2026 12:04:24 +0200
-X-Gm-Features: AclHuK87PxQTIKtKGJkhA0-iX0j0bWwmt5flwQrpgs4LwD_VD1XKqUH-YVG12O8
-Message-ID: <CA+=Fv5SPfwUVExqExM_cX9yWGa3M1zBo057koD3VRZXVd3DCrQ@mail.gmail.com>
-Subject: Re: [PATCH 0/3] sparc32: SMP futexes, casa and idiv emulation
-To: Imre Kaloz <kaloz@kernel.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
-	"David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261002161515.932316-8-linmag7@gmail.com>
 
-Hi Imre,
+On Fri, Oct 02, 2026 at 06:14:29PM +0200, Magnus Lindholm wrote:
+> Provide hvc0 through the IKKAKU Open Firmware pseudo-console, validating
+> model and console properties before matching. Serialize firmware calls,
+> keep the bounce buffer in locked mappings and poll input each open tick.
+> 
+> Keep output buffers const and bound no-progress retries because HVC
+> retries EAGAIN indefinitely. A stalled firmware call remains unbounded.
+> Use the existing SPARC p1275 interface and HVC output contract.
+> 
+> Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+> ---
+>  MAINTAINERS                 |   6 ++
+>  drivers/tty/hvc/Kconfig     |  10 +++
+>  drivers/tty/hvc/Makefile    |   2 +
+>  drivers/tty/hvc/hvc_m3000.c | 167 ++++++++++++++++++++++++++++++++++++
+>  4 files changed, 185 insertions(+)
+>  create mode 100644 drivers/tty/hvc/hvc_m3000.c
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 3a19da74d00c..5bc9b1cabd0a 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -10728,6 +10728,12 @@ L:	platform-driver-x86@vger.kernel.org
+>  S:	Maintained
+>  F:	drivers/platform/x86/fujitsu-laptop.c
+>  
+> +FUJITSU M3000 FIRMWARE CONSOLE
+> +M:	Magnus Lindholm <linmag7@gmail.com>
+> +L:	linux-serial@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/tty/hvc/hvc_m3000.c
+> +
+>  FUJITSU TABLET EXTRAS
+>  M:	Robert Gerlach <khnz@gmx.de>
+>  L:	platform-driver-x86@vger.kernel.org
+> diff --git a/drivers/tty/hvc/Kconfig b/drivers/tty/hvc/Kconfig
+> index 5866195de26a..0feb7ec98f4f 100644
+> --- a/drivers/tty/hvc/Kconfig
+> +++ b/drivers/tty/hvc/Kconfig
+> @@ -134,3 +134,13 @@ config HVCS
+>  	  will depend on arch specific APIs exported from hvcserver.ko
+>  	  which will also be compiled when this driver is built as a
+>  	  module.
+> +
+> +config HVC_M3000
+> +	bool "M3000 firmware pseudo-console"
+> +	depends on SPARC64_VII
+> +	select HVC_DRIVER
+> +	help
+> +	  Provide hvc0 using Open Firmware stdin/stdout on IKKAKU only.
+> +	  Input is polled; no native UART registers are accessed.
+> +	  Firmware calls are serialized and use a locked-image bounce buffer.
+> +	  Say Y to use the M3000 firmware pseudo-console as hvc0.
+> diff --git a/drivers/tty/hvc/Makefile b/drivers/tty/hvc/Makefile
+> index 98880e357941..5b0277deb7c9 100644
+> --- a/drivers/tty/hvc/Makefile
+> +++ b/drivers/tty/hvc/Makefile
+> @@ -11,3 +11,5 @@ obj-$(CONFIG_HVC_IUCV)		+= hvc_iucv.o
+>  obj-$(CONFIG_HVC_UDBG)		+= hvc_udbg.o
+>  obj-$(CONFIG_HVC_RISCV_SBI)	+= hvc_riscv_sbi.o
+>  obj-$(CONFIG_HVCS)		+= hvcs.o
+> +
+> +obj-$(CONFIG_HVC_M3000) += hvc_m3000.o
 
-On Sun, Sep 27, 2026 at 2:59=E2=80=AFAM Imre Kaloz <kaloz@kernel.org> wrote=
-:
->
-> sun4m has no compare-and-swap instruction and casa is optional on
-> LEON, so SMP sparc32 has had no futexes, and user code on those CPUs
-> has no CAS to build locks from.
->
-> Patch 1 implements the futex atomic ops in atomic32.c and drops the
-> !(SPARC32 && SMP) dependency of FUTEX. A LEON part that implements
-> casa, found by a boot-time probe, runs casa on the user word; other
-> CPUs take the __atomic_hash spinlocks.
->
-> Patch 2 completes user casa from illegal_instruction on CPUs without
-> it, through patch 1's futex_atomic_cmpxchg_inatomic(), so emulated
-> casa and the futex ops serialize on the same lock. It is atomic
-> against itself and against the futex ops, not against a plain store
-> to the same word, so a C library using it has to do its atomic stores
-> with casa too.
->
-> Patch 3 completes udiv, sdiv and their -cc forms from the same
-> do_illegal_instruction() dispatch: SuperSPARC and SuperSPARC-II trap
-> those when the {Y, rs1} dividend has significant bits above bit 51,
-> which gcc -mcpu=3Dv8 output, including libgcc's __udivdi3, can produce.
-> It shares patch 2's windowed-operand helpers and the dispatch block,
-> which is why it comes last.
->
-> Patch 1 comes first because patch 2 is built on it. On its own it
-> races nothing: without patch 2, user casa on these CPUs is SIGILL.
->
-> Magnus Lindholm has an independent RFC covering the same ground from
-> a different ABI: "[RFC PATCH 0/5] sparc32: kernel assisted
-> compare-and-swap, and futex on SMP" (patchwork sparclinux, Message-Id
-> 20260923201830.865553-1-linmag7@gmail.com), with a companion glibc
-> series (patchwork glibc, Message-Id
-> 20260924064228.867909-1-linmag7@gmail.com). That RFC adds a new
-> software trap, ta 0x11 (trap type 0x91), extending David Miller's
-> 2016 CAS-trap prototype at ta 0x23 rather than completing it, so
-> userspace has to be rebuilt to call it. This series instead
-> completes the casa opcode itself, so a binary already emitting casa
-> (gcc -mcpu=3Dleon3 or -mcpu=3Dv9 output, or a C library that encodes it
-> as a .word) runs unmodified on a CPU without hardware casa, with no
-> new trap number and no libc rebuild. Happy to share the futex and
-> do_illegal_instruction() plumbing with whichever ABI lands.
->
-> Andreas: do LEON3FT parts want the GRLIB-TN-0010/0011 "nop; .balignl
-> 16" alignment before the casa word here, or is the plain encoding as
-> posted fine for them?
->
-> Notes, not for the log:
->
-> - checkpatch on patch 1: "Lines should not end with a '('" is the
->   __asm__ __volatile__( idiom of uaccess_32.h; the -ENOSYS warning is
->   the futex API's return for an unknown op, as on every architecture.
->   "does MAINTAINERS need updating?" on patches 2 and 3 is covered by
->   the F: arch/sparc/ entry.
-> - On qemu's SS-20 with two SuperSPARCs and the casa emulation alone,
->   futex() returns ENOSYS and musl's mutex, PI mutex and robust mutex
->   tests fail. With patches 1 and 2 they pass, as does a PI lock
->   contended between user casa and FUTEX_LOCK_PI/FUTEX_UNLOCK_PI on
->   both CPUs.
-> - The casa branch of the futex ops has not run on LEON hardware. The
->   probe runs on LEON only; its fixup path, which a LEON without casa
->   takes, has run only in a test kernel that forced the probe on
->   qemu's SS-20.
-> - The divide emulation has run on no CPU that traps it. No sparc32
->   model in qemu raises the trap, and no SuperSPARC or SuperSPARC-II
->   was available for this series; it is exercised only by build and
->   link.
->
-> Imre Kaloz (3):
->   sparc32: support futexes on SMP
->   sparc32: emulate casa on V8 CPUs
->   sparc32: emulate integer divide taken as illegal_instruction
->
->  arch/sparc/include/asm/futex_32.h |   6 +-
->  arch/sparc/kernel/Makefile        |   2 +
->  arch/sparc/kernel/cas_emu_32.c    | 117 +++++++++++++++++++++++++++
->  arch/sparc/kernel/div_emu_32.c    | 127 ++++++++++++++++++++++++++++++
->  arch/sparc/kernel/entry.h         |   2 +
->  arch/sparc/kernel/traps_32.c      |  23 +++++-
->  arch/sparc/kernel/unimp_32.h      |  71 +++++++++++++++++
->  arch/sparc/lib/atomic32.c         | 122 ++++++++++++++++++++++++++++
->  init/Kconfig                      |   1 -
->  9 files changed, 468 insertions(+), 3 deletions(-)
->  create mode 100644 arch/sparc/kernel/cas_emu_32.c
->  create mode 100644 arch/sparc/kernel/div_emu_32.c
->  create mode 100644 arch/sparc/kernel/unimp_32.h
->
->
-> base-commit: 62f4c998b297cf233997a2b4cd6fc2d2df0319c9
-> --
-> 2.47.3
->
+No need for a blank line, right?  And why no tab used here?
 
-I'm following up on this series after some more testing, overall:
-very nice series, this lets us run modern linux user-space on
-sparc32 hardware again, with minimal changes to glibc, which I
-believe is in line with what Zanella responded on the glibc mailing
-list: get the support on the kernel first, and glibc can catch up
-transparently.
+> diff --git a/drivers/tty/hvc/hvc_m3000.c b/drivers/tty/hvc/hvc_m3000.c
+> new file mode 100644
+> index 000000000000..0ef4c888a6a2
+> --- /dev/null
+> +++ b/drivers/tty/hvc/hvc_m3000.c
+> @@ -0,0 +1,167 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/* Experimental M3000 Open Firmware pseudo-console backend. */
 
-This replaces my own CAS/futex v3 series entirely:
-  https://lore.kernel.org/sparclinux/20260923201830.865553-1-linmag7@gmail.=
-com/
-As well as my previous fix for UDIV/SDIV:
-  https://lore.kernel.org/sparclinux/20260924205646.870950-1-linmag7@gmail.=
-com/
+What will make it not "experimental"?
 
-This series is altogether a better solution for getting sparc32 userland
-up and running properly.
+And no copyright?
 
-One thing worth mentioning for anyone testing this: a stock sparc32
-glibc build (mine, with its own kernel-trap fallback) does not just
-lose a feature on this kernel, it hard-crashes - cas32() falls
-through its HWCAP dispatch to a fatal abort the moment anything
-needs a real compare-and-swap, which in practice means every
-threaded program, including sshd's own connection handling.
-Confirmed this the hard way on real hardware.
 
-The glibc fix this needs in return is smaller than my CAS/futex
-series ever was, once the kernel completes casa
-unconditionally, cas32() collapses to one unconditional casa
-instruction, with the whole HWCAP dispatch, the kernel-trap
-fallback, and the fatal path deleted outright. Built and tested that
-reduced patch against a real portage glibc build.
 
-Tested on a real SPARCstation 20, on both a HyperSPARC and a real
-dual SuperSPARC-II module, so the udiv erratum genuinely traps:
+> +#include <linux/console.h>
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +#include <linux/irqflags.h>
+> +#include <linux/string.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/timer.h>
+> +#include <asm/oplib.h>
+> +#include <asm/spitfire.h>
+> +#include "hvc_console.h"
+> +
+> +#define M3000_WRITE_ATTEMPTS 8
 
- - casa and SMP futex (plain and PI) all work correctly
- - 8-thread pthread_mutex contention, 1.6M locked increments,
-   zero lost, on both CPUs
- - userspace casa-based locking and FUTEX_LOCK_PI/UNLOCK_PI
-   correctly serialize on the same lock word under contention
- - udiv/sdiv: 10/10 correct, including the saturation boundary in
-   both directions, INT64_MIN / -1, divide-by-zero -> SIGFPE, and
-   udivcc condition codes
+why 8?
 
-Individual Tested-by tags follow on each patch. Thanks for doing
-this.
+> +
+> +static int m3000_stdin;
+> +static bool m3000_ready;
+> +/* Keep firmware buffers within the locked kernel image mappings. */
+> +static u8 m3000_buffer[256];
+> +static DEFINE_RAW_SPINLOCK(m3000_buffer_lock);
+> +static struct timer_list m3000_poll_timer;
+> +static bool m3000_poll_active;
 
-Magnus
+Shouldn't these be in a structure attached to the console somewhere?
+Otherwise you have limited yourself to just one of these.
+
+> +
+> +/*
+> + * HVC's idle backoff can exceed the firmware input FIFO's capacity.
+> + * Wake its worker each tick while open; keep PROM calls out of the timer.
+> + */
+> +static void m3000_poll_tick(struct timer_list *timer)
+> +{
+> +	if (!READ_ONCE(m3000_poll_active))
+> +		return;
+
+Why are you accessing m3000_poll_active like this in an attempt to not
+use a real lock?  Are you _sure_ a bool will work this way properly?
+
+> +	hvc_kick();
+> +	mod_timer(&m3000_poll_timer, jiffies + 1);
+> +}
+> +
+> +static int m3000_open(struct hvc_struct *hp, int data)
+> +{
+> +	WRITE_ONCE(m3000_poll_active, true);
+> +	mod_timer(&m3000_poll_timer, jiffies + 1);
+> +	return 0;
+> +}
+> +
+> +static void m3000_close(struct hvc_struct *hp, int data)
+> +{
+> +	WRITE_ONCE(m3000_poll_active, false);
+> +	timer_delete_sync(&m3000_poll_timer);
+> +}
+> +
+> +static ssize_t m3000_io(u8 *in, const u8 *out, size_t count)
+> +{
+> +	unsigned long args[7], flags;
+> +	bool input = in != NULL;
+> +	int ret;
+> +
+> +	if (!count)
+> +		return 0;
+> +	count = min_t(size_t, count, input ? 1 : sizeof(m3000_buffer));
+
+No need for min_t(), why not just min()?
+
+> +	/* Serialize the bounce buffer; p1275 separately serializes firmware. */
+> +	raw_spin_lock_irqsave(&m3000_buffer_lock, flags);
+
+why is this a "raw" spinlock?
+
+> +	if (!input)
+> +		memcpy(m3000_buffer, out, count);
+> +	args[0] = (unsigned long)(input ? "read" : "write");
+
+A string being cast to an unsigned long?  Are you _sure_?
+
+> +	args[1] = 3;
+> +	args[2] = 1;
+> +	args[3] = (unsigned int)(input ? m3000_stdin : prom_stdout);
+> +	args[4] = (unsigned long)m3000_buffer;
+> +	args[5] = count;
+> +	args[6] = (unsigned long)-1;
+> +	p1275_cmd_direct(args);
+> +	ret = (int)args[6];
+> +	if (ret > 0 && ret <= count && input)
+> +		memcpy(in, m3000_buffer, ret);
+> +	raw_spin_unlock_irqrestore(&m3000_buffer_lock, flags);
+> +	if (ret == -2 || ret == 0)
+> +		return input ? 0 : -EAGAIN;
+> +	if (ret < 0 || ret > count)
+> +		return -EIO;
+> +	return ret;
+> +}
+> +
+> +static ssize_t m3000_get(u32 termno, u8 *buf, size_t count)
+> +{
+> +	return m3000_io(buf, NULL, count);
+> +}
+> +
+> +static ssize_t m3000_put(u32 termno, const u8 *buf, size_t count)
+> +{
+> +	ssize_t ret;
+> +	int attempt;
+> +
+> +	/*
+> +	 * HVC retries -EAGAIN forever, so drop this chunk without logging when
+> +	 * the no-progress budget expires. This cannot bound a stalled firmware
+> +	 * call or lock acquisition.
+> +	 */
+> +	for (attempt = 0; attempt < M3000_WRITE_ATTEMPTS; attempt++) {
+> +		ret = m3000_io(NULL, buf, count);
+> +		if (ret != -EAGAIN)
+> +			return ret;
+> +		cpu_relax();
+> +	}
+> +	return -EIO;
+> +}
+> +
+> +static const struct hv_ops m3000_ops = {
+> +	.get_chars = m3000_get,
+> +	.put_chars = m3000_put,
+> +	.notifier_add = m3000_open,
+> +	.notifier_del = m3000_close,
+> +	.notifier_hangup = m3000_close,
+> +};
+> +
+> +static bool __init m3000_property_matches(phandle node, const char *prop,
+> +					 const char *expected)
+> +{
+> +	char value[64];
+> +	int len;
+> +
+> +	len = prom_getproperty(node, prop, value, sizeof(value) - 1);
+> +	if (len <= 0)
+> +		return false;
+> +	value[len] = '\0';
+> +	return !strcmp(value, expected);
+> +}
+> +
+> +static int __init m3000_console_init(void)
+> +{
+> +	phandle node;
+> +	int ret;
+> +
+> +	if (tlb_type != sparc64_vii)
+> +		return -ENODEV;
+> +	if (!m3000_property_matches(prom_finddevice("/"), "model", "IKKAKU"))
+> +		return -ENODEV;
+> +	m3000_stdin = prom_getint(prom_chosen_node, "stdin");
+> +	if (!m3000_stdin || m3000_stdin == -1 || !prom_stdout || prom_stdout == -1)
+> +		return -ENODEV;
+> +	node = prom_inst2pkg(prom_stdout);
+> +	if (!m3000_property_matches(node, "name", "pseudo-console"))
+> +		return -ENODEV;
+> +	node = prom_inst2pkg(m3000_stdin);
+> +	if (!m3000_property_matches(node, "name", "pseudo-console"))
+> +		return -ENODEV;
+> +	ret = hvc_instantiate(0, 0, &m3000_ops);
+> +	if (ret < 0)
+> +		return ret;
+> +	m3000_ready = true;
+> +	return 0;
+> +}
+> +console_initcall(m3000_console_init);
+> +
+> +static int __init m3000_tty_init(void)
+> +{
+> +	struct hvc_struct *hp;
+> +
+> +	if (!m3000_ready)
+> +		return -ENODEV;
+> +	timer_setup(&m3000_poll_timer, m3000_poll_tick, 0);
+> +	hp = hvc_alloc(0, 0, &m3000_ops, sizeof(m3000_buffer));
+> +	if (IS_ERR(hp))
+> +		return PTR_ERR(hp);
+> +	hp->ws.ws_row = 24;
+> +	hp->ws.ws_col = 80;
+> +	pr_info("M3000: firmware-backed hvc0 tty ready (serialized, polled input)\n");
+
+When drivers work properly, they are quiet.
+
+thanks,
+
+greg k-h
