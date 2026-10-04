@@ -1,115 +1,266 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E528A25B2F4;
-	Sun,  4 Oct 2026 14:59:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791125978; cv=none; b=n99W4mBlnUFdrwq5dYqCrCwS1sGXoUe1Z+9lusBlG+ttPZaStKB22EEBrBesXvYACOA9OjNw/c7mhW2SUHFOjTL4n7IAXgSyUXf8Hr1p67HqCNJs4T42KIgjD5EyetJb+M5j79VePlxdJresEF3eEAZXOGBSUSMojSZBeUuAojo=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791125978; c=relaxed/simple;
-	bh=Orlb6LLvhOQgj+NcXKODWX0zj6XSLVD7Bi4tiwCejkI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UIZkqvHozg6zo8vMniXykRshorjgW3943PORPZzeOe+gMAQ5CyzuJgrAJyNwZn/FM0vpS9qc0rrm5TaQfoRsObkt8cds3ZGHrWsXNVv5zNdWbsBygVbo8EuBWrTFW2UtqeBl8LgFWMZJom1WvCce+iKC//LnnCwN9IyCWokFsQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UidJR/h7; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C933A3537FE
+	for <sparclinux@vger.kernel.org>; Sun,  4 Oct 2026 15:24:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.54
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791127482; cv=pass; b=uAV4rHU4Mop8Jqglx2AauW2iEVuT1pK7SoNwAnSMprzkHLJMSsuYQTvMkyeeFEFBYMxqpDrKXWOKCjf4dJoFtojGdvL/kIeSTGcvWVBgrc5KhNlOawWP1MFmxs075IStx2md5Zn0Z2b1fgV+ZtIyZTJ526AVDGwOrprZywq/rRg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791127482; c=relaxed/simple;
+	bh=zfERZtRz42NzMBBtXEPZ9R5a4EowuoieHt1vhQ/10JM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aPo98wKkO/FiAI4+1PBRpYCFOy1Th7UL1PTiuOsJ2fbMpnjLtX0bvl4YsiHri7DBooLT0AlOEYdEHd98i7oNQnJvzghWGR9tj4G4DjDlvieZ/Q9T9GRwiDn/S5NVZdCgP6eQYVK75y3REraBeSLOkFcjUO6UVQUsGzm5Ri3L0N4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kfG4nfR1; arc=pass smtp.client-ip=209.85.208.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UidJR/h7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72F471F000FF;
-	Sun,  4 Oct 2026 14:59:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791125976;
-	bh=xAFVTwE4VxFV5EVjNCpnINt1yxDWvySgQ1H1DrMbvxo=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=UidJR/h7UTMK+pBxHSK6oAOgxjbOCaLvSn8E/rFaMPFRwWd1fAI9csrFi+iKsHEIA
-	 3u5c3fcEaDlkYztAunz2PfyRfy3UxZpQ+1kjpjAFmCBcoExYXK1QowstxPQid9i007
-	 s4wGGDMV4fcL0ELzqBo5fzgUi1E8ZVXWQRnQjJxibhlVXn6QZKQ67oeePcsRV4a6gr
-	 4AaRM2puB0jeGz3xJy7/LiIGqLKHSAEMKw113IgEHN8JVup2HnSYhG0VSD9gBLqniO
-	 2Qm6qAVwmWo+dhq8PrvPhUU46SMr4l0oZYiNUo7jiV8npF9ZmISE41BgT2GhroNYH+
-	 95r5F9qsHD1jw==
-Message-ID: <24db4eb5-19ac-404c-9dd8-c3af42bcf4cf@kernel.org>
-Date: Sun, 4 Oct 2026 16:59:32 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kfG4nfR1"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-6afbc363efeso886573a12.3
+        for <sparclinux@vger.kernel.org>; Sun, 04 Oct 2026 08:24:40 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791127479; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Ac7tJEB7xGvEr3rTv2a5E2OHJXCnXj7ASzFunKdOpoj/phoou1PUUxLmdEj9iTlpl7
+         MIRCs55crIEKZiVPo7gac3/lMYbcV2UmrUAevrywV7rp9PNN4JtSQaEDUrYxfY4FfxCl
+         iUV6hohprr1lN+cBng/Nc2tU3xA53yHzs7xZq5AgT3THzgyG16752dyzES0hdHS0oS24
+         XHUpbHlw/i+hgaJ2EllfXQ5AVx/48wSIRc3ly3HIKiGDTbpP0yyhCn/F2emQfas3aGtP
+         xITzjDpyyMyAvvGgQNY2YrH4/prcGnOUE4M9MXrJ2BSHFCUaqHMCOld3Z09QABVk6myP
+         ygaw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=yUFgvHBaR611JuCHX8PR9qGQAU8yeWMF6UssxzuViXQ=;
+        fh=dLisCXI+Ez4EgNV69qFbTMXitXQN0lKZ1sG8UsTmY9Q=;
+        b=c4BUo/s4d8hE/lyXIkqBvuYMXu54wDQtkIdxrwT24p42VKiZqtLGDbZtkA+LZLRry3
+         LC3b+WO1KdMWpUJ3zLkZfPseKUp7Ii+HIEoyH9gRmGsi78ENbmEv+9/aedi0uOb+fWH2
+         uKw35klRVdz223a7AVcaWfNl+P+jEKF/F9J4ZyprBqy8J0ewC7tzgj66pJUVaXfX10yK
+         aYJ3tqF2LFJsmG2BPbh99GK5rs5rzJo5JvFpUBqJ7PcrPQwfxD3cazluFqL794idiaQp
+         s/65AfxgdXwkJ7PNggRv5cpn8ghfcMl1PlKIfbm+r2+HRnnoG6WHFmUs2TYCc8kPIg5a
+         KwHw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791127479; x=1791732279; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=yUFgvHBaR611JuCHX8PR9qGQAU8yeWMF6UssxzuViXQ=;
+        b=kfG4nfR1qWOn2/f1Rs4K2CHsIKHlIHQPcyewZjfrjRWiP78ikoHzQhjQWMymOTwq00
+         KeZT0AoiTnDDsYmRdwN3fxYU6hRUKbx+hvDBWiU+RcPtPOeHoULpti0kMtPy5wG2BwqB
+         QmKLkVoUJLxc77WPWY7nvY+/bw1Q8r1rOnRHa2XiCqJnqC7o5apNz39zTc5xO7eVSIhY
+         ukAPKKk71SbLELQDv5lf3uJ8izAcgCD2UqsXaFp9bPp3cWM0VibLNCVuioHWFntEAgOo
+         FCOFzvbD9Lu3czjg9bcuRioOg3jxhf3QZRNXWzrIsszHaHk2TAsByZIQrpeRwPqIlWvf
+         cHbQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791127479; x=1791732279;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=yUFgvHBaR611JuCHX8PR9qGQAU8yeWMF6UssxzuViXQ=;
+        b=yFXSzY2+Ca3ix5/23Zo/BTytM2oApsMdwJzRwdv1HMnoc7WfE47kGD1ddz8G5/dzxl
+         S6IMaAhw7cwjJNrmGnAVB57j4muU02uVWKf/fU9etEAuHKmDsAUTcJ1nQD5nBB+ESPV/
+         U7UNPy9xdfTFvZCwNr0BBDi3cKZBbWw0L7XILntLjdAHadgBC62lJqCe6YnIBymryRab
+         uNuMfhGM0lMc7hUEUD4gxgxMdOX6qygTh4gxI6Af1bQEjZEaM4naWoeu2+WNQf+M44NP
+         h2f1Ga3dyWkUNqQiJBC75X8t/KFI0TAU0fLibmyAyI9y2KpKOWxv9gcZIVfR2EPBnrvT
+         cVpw==
+X-Gm-Message-State: AFq9FYKl039KKnsXWw8uvdpBBHBs1mERrkwx2rbUVg/2adt9AHOsT1Xd
+	KqtEfQR7d6PpTD46gxMasraYkzGOPkR6YK3x82AXEiGbluVWSlymC7of5hJEUwC9QXHuIx2jFPQ
+	wkBp9TuDaiFaqUtqwHKkU5cGthF/Bsl21CEiT
+X-Gm-Gg: AYBFou3qiFl+OZOuXXGOURqdIEtkgFah1+hlfsPZ1uk+laSkM0H9OKbMPWVstHz3zwJ
+	5ZrPDJ+My8l01Q4muLkjqU69ZBXwCHj+wMkbfP7fFsiY399K76I784BJW4g1HCBZCtZcd1RypKS
+	U+Vlc3qD73Zo1d069bSPHeiPWM5CunFffWZCogjScsZv8wCmLdRCak077qlZirQFOoa/T3tPbh6
+	nbTtwF3zYWXu0k44r8dIWdUBlfVGANiaDrn+Jjay86RLF+wfCz0cD7e47chMohnbOVHRwxa8kHJ
+	AHaVY3KypEt7TTllQ8UNe4dBLgQAqwZMVoo/AVtBx0aUBJX4JYZo56mYrbbq3PeejFU51CsUocU
+	GWyzZDjuiifAwOveq+vv2lDN0c9+DDOf+CALa8k7piDA=
+X-Received: by 2002:a05:6402:4547:b0:6ac:a828:c0cc with SMTP id
+ 4fb4d7f45d1cf-6afad760efemr3521524a12.4.1791127478724; Sun, 04 Oct 2026
+ 08:24:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 4/7] sparc64: add SPARC64 VII CPU, MMU and SMP support
-To: Magnus Lindholm <linmag7@gmail.com>, sparclinux@vger.kernel.org,
- "David S . Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>
-Cc: linux-kernel@vger.kernel.org, Oleg Nesterov <oleg@redhat.com>
-References: <20261002161515.932316-1-linmag7@gmail.com>
- <20261002161515.932316-5-linmag7@gmail.com>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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
-In-Reply-To: <20261002161515.932316-5-linmag7@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20261002161515.932316-1-linmag7@gmail.com> <20261002161515.932316-8-linmag7@gmail.com>
+ <2026100415-impromptu-sultry-ce6b@gregkh>
+In-Reply-To: <2026100415-impromptu-sultry-ce6b@gregkh>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Sun, 4 Oct 2026 17:24:26 +0200
+X-Gm-Features: AclHuK-uAAu0JuOLh2P2vcb8AMeHq-JogU2rRgtxPU7ZqlRRcEoJsr_m9gxHF6I
+Message-ID: <CA+=Fv5T6sMOxVmS82_VF=XOWudF06y8tWSWLv3XA1aTyAv3JoA@mail.gmail.com>
+Subject: Re: [PATCH 7/7] hvc: add an M3000 firmware console backend
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: sparclinux@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org, 
+	Jiri Slaby <jirislaby@kernel.org>, linuxppc-dev@lists.ozlabs.org, 
+	linux-serial@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 02/10/2026 18:14, Magnus Lindholm wrote:
-> diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
-> index aa4799cbb9c1..11437bbfc73b 100644
-> --- a/arch/sparc/kernel/prom_64.c
-> +++ b/arch/sparc/kernel/prom_64.c
-> @@ -564,6 +564,12 @@ static void *fill_in_one_cpu(struct device_node *dp, int cpuid, int arg)
->  
->  		cpu_data(cpuid).core_id = portid + 1;
->  		cpu_data(cpuid).proc_id = portid;
-> +		if (tlb_type == sparc64_vii &&
-> +		    of_property_match_string(of_root, "model", "IKKAKU") >= 0) {
+Hi Greg,
 
-Are the values documented as ABI anywhere? Usually the compatible is the
-ABI, not the model.
+Thanks alot for taking the time to review this.
 
-> +			/* IKKAKU: two adjacent ITIDs per physical core. */
-> +			cpu_data(cpuid).core_id = (cpuid >> 1) + 1;
-> +			cpu_data(cpuid).proc_id = 0;
-> +		}
+On Sun, Oct 4, 2026 at 2:50=E2=80=AFPM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
 
-Best regards,
-Krzysztof
+> > @@ -11,3 +11,5 @@ obj-$(CONFIG_HVC_IUCV)              +=3D hvc_iucv.o
+> >  obj-$(CONFIG_HVC_UDBG)               +=3D hvc_udbg.o
+> >  obj-$(CONFIG_HVC_RISCV_SBI)  +=3D hvc_riscv_sbi.o
+> >  obj-$(CONFIG_HVCS)           +=3D hvcs.o
+> > +
+> > +obj-$(CONFIG_HVC_M3000) +=3D hvc_m3000.o
+>
+> No need for a blank line, right?  And why no tab used here?
+>
+
+Agreed; I have removed the blank line and matched the Makefile's tab
+alignment.
+
+> > diff --git a/drivers/tty/hvc/hvc_m3000.c b/drivers/tty/hvc/hvc_m3000.c
+> > new file mode 100644
+> > index 000000000000..0ef4c888a6a2
+> > --- /dev/null
+> > +++ b/drivers/tty/hvc/hvc_m3000.c
+> > @@ -0,0 +1,167 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/* Experimental M3000 Open Firmware pseudo-console backend. */
+>
+> What will make it not "experimental"?
+>
+
+That was stale wording from bring-up, rather than a defined support
+status. I have removed it.
+
+> And no copyright?
+>
+>
+
+I'll  add a copyright notice for the v2.
+
+> > +
+> > +#define M3000_WRITE_ATTEMPTS 8
+>
+> why 8?
+>
+
+There is no hardware requirement for eight. The intent was to bound
+no-progress retries because HVC's console write path retries -EAGAIN
+indefinitely; I will revisit the retry policy before sending v2.
+
+> > +
+> > +static int m3000_stdin;
+> > +static bool m3000_ready;
+> > +/* Keep firmware buffers within the locked kernel image mappings. */
+> > +static u8 m3000_buffer[256];
+> > +static DEFINE_RAW_SPINLOCK(m3000_buffer_lock);
+> > +static struct timer_list m3000_poll_timer;
+> > +static bool m3000_poll_active;
+>
+> Shouldn't these be in a structure attached to the console somewhere?
+> Otherwise you have limited yourself to just one of these.
+>
+
+I can group the state into a structure. This backend uses the single
+/chosen stdin/stdout pair, and the buffer must remain in the locked
+kernel image mappings for firmware access. I will also review how the
+state is associated with HVC before finalizing a v2
+
+> > +
+> > +/*
+> > + * HVC's idle backoff can exceed the firmware input FIFO's capacity.
+> > + * Wake its worker each tick while open; keep PROM calls out of the ti=
+mer.
+> > + */
+> > +static void m3000_poll_tick(struct timer_list *timer)
+> > +{
+> > +     if (!READ_ONCE(m3000_poll_active))
+> > +             return;
+>
+> Why are you accessing m3000_poll_active like this in an attempt to not
+> use a real lock?  Are you _sure_ a bool will work this way properly?
+>
+
+Agreed that READ_ONCE/WRITE_ONCE alone do not explain the timer lifecycle.
+I will review synchronization between open, close and timer rearming,
+and make that protocol explicit in v2.
+
+> > +     hvc_kick();
+> > +     mod_timer(&m3000_poll_timer, jiffies + 1);
+> > +}
+> > +
+> > +static int m3000_open(struct hvc_struct *hp, int data)
+> > +{
+> > +     WRITE_ONCE(m3000_poll_active, true);
+> > +     mod_timer(&m3000_poll_timer, jiffies + 1);
+> > +     return 0;
+> > +}
+> > +
+> > +static void m3000_close(struct hvc_struct *hp, int data)
+> > +{
+> > +     WRITE_ONCE(m3000_poll_active, false);
+> > +     timer_delete_sync(&m3000_poll_timer);
+> > +}
+> > +
+> > +static ssize_t m3000_io(u8 *in, const u8 *out, size_t count)
+> > +{
+> > +     unsigned long args[7], flags;
+> > +     bool input =3D in !=3D NULL;
+> > +     int ret;
+> > +
+> > +     if (!count)
+> > +             return 0;
+> > +     count =3D min_t(size_t, count, input ? 1 : sizeof(m3000_buffer));
+>
+> No need for min_t(), why not just min()?
+>
+
+Agreed, will change it to min().
+
+> > +     /* Serialize the bounce buffer; p1275 separately serializes firmw=
+are. */
+> > +     raw_spin_lock_irqsave(&m3000_buffer_lock, flags);
+>
+> why is this a "raw" spinlock?
+>
+
+The intent is to protect the shared firmware buffer in console output
+contexts where sleeping is not allowed. I will check the precise HVC
+calling contexts and lock ordering before deciding whether the raw lock
+is necessary and documenting that choice.
+
+> > +     if (!input)
+> > +             memcpy(m3000_buffer, out, count);
+> > +     args[0] =3D (unsigned long)(input ? "read" : "write");
+>
+> A string being cast to an unsigned long?  Are you _sure_?
+>
+
+Yes: p1275_cmd_direct() takes unsigned long firmware argument cells,
+and the first cell carries the service-name pointer. The existing
+SPARC prom_console_write_buf() uses the same cast for "write".
+
+> > +     if (!m3000_ready)
+> > +             return -ENODEV;
+> > +     timer_setup(&m3000_poll_timer, m3000_poll_tick, 0);
+> > +     hp =3D hvc_alloc(0, 0, &m3000_ops, sizeof(m3000_buffer));
+> > +     if (IS_ERR(hp))
+> > +             return PTR_ERR(hp);
+> > +     hp->ws.ws_row =3D 24;
+> > +     hp->ws.ws_col =3D 80;
+> > +     pr_info("M3000: firmware-backed hvc0 tty ready (serialized, polle=
+d input)\n");
+>
+> When drivers work properly, they are quiet.
+>
+
+Agreed; I have removed the initialization message.
+
+Thanks again for the review. I'll prepare a v2 addressing your
+comments and explain the reasoning behind any design choices
+that remain.
+
+Regards
+
+Magnus
