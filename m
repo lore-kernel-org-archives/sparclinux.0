@@ -1,91 +1,119 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs2-f34.google.com (mail-vs2-f34.google.com [74.125.227.34])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 241CD375AC4;
-	Mon,  5 Oct 2026 13:33:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D4D0391E7C
+	for <sparclinux@vger.kernel.org>; Mon,  5 Oct 2026 20:39:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791207186; cv=none; b=IwQoBn/p4kAH/xe9Xsw8qwg223tuz2atziCQzICiGQ9N9N6c9UKk/fDi37GUTzrGEPZfaXHSuoeEDQguBq8fJbMDNw0yMNlvUjKfTTQFMmIP5sQWCnQ/Fs4I4gQMlNbEZ8lD5FQd1kx291PVmPriM6sHhYQM56geo527FFRZpHg=
+	t=1791232776; cv=none; b=O2v5b4T2pQV4WK2rEd4bGP4yf1AkaOEcH8jel0ct9+QorsuJXyOUDc4vc9o3IiXG9zCoa2gBdmHeSt1UzjBHac0n/a8wMTsn3F8HZ+HXsrcXDw5AjnjYEzSXzlGWbTY2foPl6f3LY57PbF7JJM77PyHe/AItUBOIedYuoxpHtis=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791207186; c=relaxed/simple;
-	bh=aT8PS2E3a7bhd924HAuIfPBfiLuL3+9jINhJTSwiUCI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aFPNTX8c+g4GrmRQo29ElQB9uRaaFQw56xR/zEWwnFGI6a1ZpbrppqB9gKVQoNDKJUBns5kMQ4JUCdJOs8Zpu6ojtZMcCOsIU9mKl9GvyLGtdQ5tpjMAqRF4llDjqC2r+Sr2RfjOIIJKY0hn6mj3vF7EKfQrmqmiCM8I5m0u7q0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E8cHoytT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791232776; c=relaxed/simple;
+	bh=W8+JkQSMqBDxJZXNAx4qDJE766xaxIYGmX4KE6Hx2As=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jDb2+evlFenACuo/q5lOxqtid9AR5+8V6+2U//Xd93uaLbQ78VtCGq3jNR1r0fUoH2WZ5UdAn8d3ymKSgELyagFaUHLHLKWnc7G1wbw9ru8vd6xlwHA3vLMvwMiqOcsMFxm6ZSlh4oLo/x4LB7PnBbtNCEjakDeYA+v065Qkqac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qhkcu7ha; arc=none smtp.client-ip=74.125.227.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E8cHoytT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B8891F000FF;
-	Mon,  5 Oct 2026 13:33:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791207184;
-	bh=vRSjAn2HXlvNPh5TXJ1/OPlTSvXLCZd3301h7Tj9cBk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=E8cHoytTQxKGfJUI+2+DLj0MCjcb74VDeahz5csF72vZZMuQIafv3kB9+S0G55aNQ
-	 QXWjy3/QPf65PMWKJ88VDDpqMeWSB86ftruhhr9CPGb+SGvt9XswJBllpUJcyb3S7o
-	 3N8fFTpNOnk0J8n7Uupc1yPk8O4LZjv/Ha7r6Ib4w6hegn2n+96wNMyhjJu3QbjUQU
-	 qcnGdOMyCVrbkJsuiIaqdfI5NKHbFPfS5QPiHmEtvCo73XZhSeUcx7M6YOrv/EWye6
-	 EAN/wFiFf7+b1zCmRAEWEf2KnvBCgY0X0La9r7PJvEp6BdXUWNjEr6q9q/EJkGwfZO
-	 Gqi+YTYbMGYUA==
-Date: Mon, 5 Oct 2026 15:32:59 +0200
-From: Eric Biggers <ebiggers@kernel.org>
-To: Stian Halseth <stian@itx.no>
-Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>, linux-crypto@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] lib/crypto: sparc/aes-xts: Add optimization using the
- AES opcodes
-Message-ID: <20261005133259.GB3436@quark>
-References: <20261004192812.4145406-1-stian@itx.no>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qhkcu7ha"
+Received: by mail-vs2-f34.google.com with SMTP id 71dfb90a1353d-5e3938dda85so686412e0c.3
+        for <sparclinux@vger.kernel.org>; Mon, 05 Oct 2026 13:39:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791232774; x=1791837574; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=AxI9jOWrXLzRQeo91PfnufO4X1292wU3kDq7ULz84yY=;
+        b=qhkcu7haTWdql7/wAfggVNEt757MobLBEtR+1CZYZRzmAUbzf0qpkH1D7VpRQZ5SsJ
+         f+Mm7bp1jz5Y/8V1E+1tsJo0JKwVibvFKWeqznS3XEba48YVY0g1LHrqiBaFyKpCFfTX
+         GBGgPG2sQDWo6TxJYeBPGPxyXTd15yhK+iNfgl7YPGNoJBT15g1Fw8c+2Ajg5Nn2rqKw
+         rsIgleyczJdOPi6J0yghprW5QAC58lxBZCAizNhUnuEtRoGKtyqHephzRh1EmLf/5pYt
+         MMcgeG8hkaMJEXxOMkBAvUCzdbMBC0iYqrGIQ1q/kC/Yk0nelvZfj1T4SifqJs729fYw
+         iUNQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791232774; x=1791837574;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=AxI9jOWrXLzRQeo91PfnufO4X1292wU3kDq7ULz84yY=;
+        b=pgVe0ZwA4n7Vfxq3qcw4Ay8Zmj0qZLLT2h3nggqhHVV5ezIhooMF2KcpUCq7C0fevn
+         0m1IQcZUibSbTv74OFfNqPgP7sOPBI0eqcV3ZsHCTS1ccefNKpAb3DOyV00g/aexUSA8
+         SCD5kWBqKGN1Dz6M8qAtdcvqW4nXL2RE357ctzaGwQJNhA6eq+GowUa4i3bXNPhtwk7O
+         OFDg2szFG0Zg5FQMbspQ1JwZNggwpHD3W1aOs6BY92DuGoFex0YRXfBj2jR4RZmpyAbW
+         wfUKKSSgKhOnISSn7ocYLWC5YplI2aUh1+GcYkm4rekRp8vZw2TsF3tiIflg/0BoUThE
+         oRlg==
+X-Gm-Message-State: AFq9FYJh7YgJ8HJKIdWUTu6bXTTM7qHQX9Azew4Az2lCfyS1IkhZP+LP
+	F+3kr/GwP5Ji6MtbU+HJYsMltkqdPAUY503yjiscg+ADiQHHBm4tFVEM+x9nrrBqKYM=
+X-Gm-Gg: AYBFou0axWiMk94CptDUgIROIqc+RA+vlq3XldpDHoU/MRQPbSo2BqAZ8RUhz8z/HtF
+	wgCGbUZwHuPfUFbkg/EjLaxjgFOdMP6+qVEhxCpDL4izlao2HPKLcX6Kky8yQKiZx+RKMmzD5J2
+	R5x9GiWHKqD97wgNMMA0sYiAckHFlVSOK7WN+7lwnRg4iWndsUqLqMw05KwceZBq094odW1Y8tB
+	RcGRLybWz/QyGi9Hs+w4Fx8QiQaycH0oo+GwUr1vUs5kPIsZObyYlNYDySkl0FFveFZzM/b1mIG
+	a3LgwUYEXpwRYPSeslTreS1KqWP3XOO77BVffFoBn61XYJ8Nv+tb/TIHOstkhgGUMuURURAEOOc
+	HwkpexaOgHwdd/BYvtnJpC8tPXnQNnSeV2qxrYOmZ9Z0ov3+UQKwlb+XXJvWThL0CzZi7f5xOnW
+	GlMEn1MuqOnS2njStfqVqoRTGa20b/rKb2ackQmY8FJ6DsI79bhBl6B818xp4O5kqz+RfrCM2kP
+	Ytq74hzdRUWnfsXenXwbvhn2yCNLMZsqw0wRE9oF+PIYjIC+i9POzOlLUvZdsu2mJKz0iPpz642
+	RwCQtmTpeTRGmCECkLe84cAaV/wNfYgM/DIk+2zHnvXTJNQR
+X-Received: by 2002:a05:6122:d0b:b0:5c9:c60e:3a4a with SMTP id 71dfb90a1353d-5dab3263c43mr4109827e0c.22.1791232773813;
+        Mon, 05 Oct 2026 13:39:33 -0700 (PDT)
+Received: from ryzen.lan ([2601:644:8000:7a86::e35])
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5e54e8006d9sm542088e0c.4.2026.10.05.13.39.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 05 Oct 2026 13:39:33 -0700 (PDT)
+From: Rosen Penev <rosenp@gmail.com>
+To: sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>,
+	linux-kernel@vger.kernel.org (open list),
+	llvm@lists.linux.dev (open list:CLANG/LLVM BUILD SUPPORT:Keyword:\b(?i:clang|llvm)\b)
+Subject: [PATCH] sparc64: Define p4d_page() instead of stubbing it to NULL
+Date: Mon,  5 Oct 2026 13:39:30 -0700
+Message-ID: <20261005203930.246598-1-rosenp@gmail.com>
+X-Mailer: git-send-email 2.56.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261004192812.4145406-1-stian@itx.no>
+Content-Transfer-Encoding: 8bit
 
-On Sun, Oct 04, 2026 at 09:28:12PM +0200, Stian Halseth wrote:
-> Implement aes_xts_encrypt_arch() and aes_xts_decrypt_arch() with the AES
-> opcodes, for AES-128 and AES-256, two blocks per iteration. AES-192,
-> which IEEE 1619 does not specify, and data that is not 8-byte aligned
-> are left to the generic code.
-> 
-> The tweak is kept as little-endian words, so that multiplying it by x is
-> a 128-bit shift done with addcc and the VIS3 addxc. A little-endian
-> store and an ordinary load through a stack slot give it in the byte
-> order of the data, and the slot is cleared on return. The routines open
-> a register window, as %g4-%g6 belong to the kernel.
-> 
-> With that, xts-aes-lib no longer has to be kept off SPARC. Register it
-> there again, with the priority x86 and RISC-V use, so that it also
-> outranks an xts(ecb-aes-sparc64) instance (priority 300).
-> 
-> On a T7-1 (M7), MiB/s unless noted:
-> 
->                                xts(ecb-aes-sparc64)  xts-aes-lib
->   AF_ALG, 64 KiB, AES-128                     415         1092
->   AF_ALG, 64 KiB, AES-256                     390          936
->   dm-crypt on brd, AES-256:
->     sequential read                          1399         2559
->     sequential write                         1472         3480
->     4 KiB write latency, QD1 (us)            40.6         32.7
-> 
-> dm-crypt now matches aes-cbc-essiv on the same ramdisk.
-> 
-> On a T4-1, AF_ALG AES-256 goes from 238 to 544 MiB/s, and AES-128
-> from 252 to 616.
-> 
-> Tested with CONFIG_CRYPTO_SELFTESTS_FULL, and against OpenSSL over
-> random keys, tweaks and lengths, on both machines.
-> 
-> Link: https://github.com/sparclinux/issues/issues/106
-> Signed-off-by: Stian Halseth <stian@itx.no>
+A sparc64 allmodconfig build with LLVM fails in vmalloc_to_page():
 
-Applied to https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git/log/?h=libcrypto-next
+  mm/vmalloc.c: error: performing pointer arithmetic on a null pointer
+  has undefined behavior [-Werror,-Wnull-pointer-arithmetic]
 
-- Eric
+sparc64 defines p4d_page() as NULL, on the assumption that it is only
+used by stubbed out hugetlb gup code. Generic code now uses it in
+vmalloc_to_page(), ptdump and KASAN. In vmalloc_to_page() the NULL is
+used in pointer arithmetic, which clang diagnoses even though the
+branch is unreachable on sparc64.
+
+Define p4d_page() in terms of p4d_pgtable(), the same way pud_page() is
+defined in terms of pud_pgtable(). sparc64 has no p4d leaf mappings, so
+there is no functional change.
+
+Assisted-by: LLM
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ arch/sparc/include/asm/pgtable_64.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 35a217bf6e5c..c5eff6efe514 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -850,8 +850,7 @@ static inline pmd_t *pud_pgtable(pud_t pud)
+ #define p4d_present(p4d)		(p4d_val(p4d) != 0U)
+ #define p4d_clear(p4dp)			(p4d_val(*(p4dp)) = 0UL)
+ 
+-/* only used by the stubbed out hugetlb gup code, should never be called */
+-#define p4d_page(p4d)			NULL
++#define p4d_page(p4d)			virt_to_page((void *)p4d_pgtable(p4d))
+ 
+ #define pud_leaf pud_leaf
+ static inline bool pud_leaf(pud_t pud)
+-- 
+2.56.0
+
