@@ -1,105 +1,187 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+Received: from MM0P280CU010.outbound.protection.outlook.com (mail-swedensouthazon11022128.outbound.protection.outlook.com [52.101.77.128])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 032DC421234;
-	Wed,  7 Oct 2026 08:54:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791363253; cv=none; b=lO7saQmydb+mwqtjhgQh9YwJ9mxl9czlpEPnn3KmsV2UDdvkyh6axPU3vBpjC6SEBwDeRn/EobSswoZss0SMonEdtkxJyEc0zERs4Pkgg0hQZiyKAMCMIyspjjAfj7zsW9tA0grJR8cu4d2ah4teJOkri1ZsJ5TGdXNJnrA2DFc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791363253; c=relaxed/simple;
-	bh=3ShNl2lMu1cmq20FgjMQHVbcTfnOO76ge4bOi1UA09I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FAvUPJI5hAcGwOk6tgWB5mlo83yqSe4h9Kt3cxbeq1cwR0uAhk+cyvz0MuIs+qS/29LFvEymffZcYUG3LcKQjoyIDznor7azA7ojG8/6wH0s7rgKGa3VaTNBFRtHekYf1wfap3FShzKkAHuxGrbfHjDiySfxikzuiEq8Cz0n4cI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=A/9ZBDLl; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 600704A99C6;
+	Wed,  7 Oct 2026 09:08:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.77.128
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791364299; cv=fail; b=ZxV/XH7H/jH1HVS9y3R3MULVGh0dHI0tbHBpL1STAQowQN7lG6N6geCOXnHjXGcldhUjZe22EvXH6pcXNiNu+ovQuSLjHUVr02kwG7e8SySEpOUrcsXcqYp9pOw0v1NCdu3YYKvh+u/m0wR64D0IyOgFPCQVpZKwv9uCLz+QxDI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791364299; c=relaxed/simple;
+	bh=oOLx6G7r2XQjT1l7zffJZu05OCmdX4H/+aoA8O5vAhM=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=g+wgfyZxcUAJV8UAFzmSAojiB2BpliHSCk5AwcreHLBOWNw5n684tiYCNNAElkOuya+o3d+YG/yuj2c2c5xEo1R9HWRvpDDPzhRGKBJk+8FGVpfqHHgb7SOM6JaiUvfkBzzQcrUcood5m++L9H2+pCiqQ34hke4e0ZnJHT+BWzA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=eOBrZA9r; arc=fail smtp.client-ip=52.101.77.128
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="A/9ZBDLl"
-From: Stian Halseth <stian@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1791363242;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=84hpmUIjn+sU9RD/ARErhaz9x/FcagOmgq7UoC0RwqU=;
-	b=A/9ZBDLlYtDr3vhyGCqcz4QOgxPr9IqwwaVmk+v/FpVBqftMyHqHa3x0Tt1/zD9sOnCxAZ
-	dXO2xVUv+e9CiqIzhQkiEF1kKX4p2SgHLBFes6qOLsaWYoLvtO2x/nMtJFA8Vv8zKkg9PE
-	jBWBc7IhllRNi6fqefM8h5N1gPr28ys=
-To: davem@davemloft.net,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	glaubitz@physik.fu-berlin.de,
-	Stian Halseth <stian@itx.no>
-Subject: [PATCH v2 0/3] sparc64: fix a window fill fixup lockup and two fault bugs
-Date: Wed,  7 Oct 2026 10:53:44 +0200
-Message-ID: <20261007085347.256789-1-stian@itx.no>
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="eOBrZA9r"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=fk4hXr/QyLNAwO0L9s7ruce4+6Uv69vYG9uCUMQOLgo03Uk85OOSv6Yb/ecsJlUfWYvVbUJIXQtG+UmqHpDy16e54ldSv9+enSkExn24Z7S5NvHd77G5xlFiinFaehRgbJmOCUSS/2Nxz+nMUMVJDfr4Gj6++t+Udy7K9FsPDAf5/hojV2SFjDuPHLKcy6b+bULPYwi4Xvw/CW/SyUQw6kqjziwojhNKVrWk26+bNfFyJsFKmq4hH/MGoMReOiyQMXhAI0eULee4czkqQE15/Jex2mIKPGbMXSKwAYvZCLXqZEJcCoYSWTVXnZhyaCMxMMPOZ4xeU/+iZoLPAZ+hKw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=OoKoTgxlwkJFi7CbjuD+Un8M+9clTwxxmUVyoW3lxSY=;
+ b=sPJ1HznR50WnjBtw5s7dJ7TWbH7mpjd7nRdnbLneui6qEyhVkNXosO+OikZ37dESbBqUjgPFqOvdcdUNtLPNALoWwK7QPIwQcYAaSY+e7//u4Lh5sBY2lzjnQy1+22GWNNkfDJmq2LcNdmbZKRaauJq/1yeGWG7b3tjKFzH2ULfSZc76T4CmOz4OgVFyjNCm1wNesQqSLs+sBw+H1eDqvfk37ELKbnpMLPLOtQKAOtaI5zoVxn9gHX5FC0XeCUm3L8obJZMgWGrQYJIP3lEsDYbhlvSdX99d+PG5nmsRQBYmnPwqTWqiE4Ktn4Sny8W23UtVkZW0j7vCh43Fj/Y+3w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
+ dkim=pass header.d=gaisler.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=OoKoTgxlwkJFi7CbjuD+Un8M+9clTwxxmUVyoW3lxSY=;
+ b=eOBrZA9rEN9h/l2bLQrDSOO3Shw4Yh2wcUMxsbjTC7k0Wnt3r80Zd8x5r87AJ+zWWnlg2MXDaAz2hIfM8jP9tyOrz8QbP+14FAZnXvPIKEbIrqh4w5Utx2j0R9KJa6wjf10YrnO1fcR5UqecDV3XW5Fcf8kMCFYTHFvPxQw5uGssl+NC0qtH7CU+F0wVoe/yCv6l32g+3xf28UlrxIR81xsLwbPXX6POrs5Bh1S8T2naLsCx1XC3MWNAZcBKlkqaQAQKBsUfAe8bgdmDrpPFvh3MImMObndZ2dgTXwbVwxuITyEtV2R39/WyPQXErKMSB5Ws8uu5vQP9Mz68aJuLSw==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=gaisler.com;
+Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2f::5)
+ by MM0P280MB1719.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:1e::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.15; Wed, 7 Oct
+ 2026 09:08:44 +0000
+Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::1f13:f10:e16b:7939]) by MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::1f13:f10:e16b:7939%4]) with mapi id 15.21.0472.016; Wed, 7 Oct 2026
+ 09:08:44 +0000
+Message-ID: <051531af-e41a-4d4b-a1cf-07bf69c4037c@gaisler.com>
+Date: Wed, 7 Oct 2026 11:08:42 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 2/2] sparc64: remove dead THREAD_SIZE branches for
+ non-8K pages
+To: Stian Halseth <stian@itx.no>, davem@davemloft.net,
+ sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, david.laight.linux@gmail.com,
+ glaubitz@physik.fu-berlin.de, thuth@redhat.com, regressions@lists.linux.dev,
+ nroach44@nroach44.id.au, kaloz@kernel.org, unixpro1970@gmail.com
+References: <20260927204912.3667-1-kaloz@kernel.org>
+ <20260927212913.3237082-1-stian@itx.no>
+ <20260927212913.3237082-2-stian@itx.no>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20260927212913.3237082-2-stian@itx.no>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: GVYP280CA0032.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:150:f9::12) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:190:2f::5)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|MM0P280MB1719:EE_
+X-MS-Office365-Filtering-Correlation-Id: a78e616b-47bb-415d-2243-08df24529646
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|7416014|366016|376014|23010399003|10067099003|56012099006|4143699003|11063799006|18002099003|22082099003|6133799003;
+X-Microsoft-Antispam-Message-Info:
+	jDajaRKBwQmG1VU7xI/muyLC0XIqbeUzELyUuYeKZzxFnHx87qCggIx73ysZVgm1PPrxMpxyO2ruvDNLyJh0eCDejXE4W/Id+jUWKmfAxHX9qet1/VsXa5fvf6CCOcynv7vwOe272K8NVuKTIDKt66lZ92rJRV+aqYTmk3zVWEvDyGhBWqLbuuMUhXXv6U5o3nrxnvuViQhuij/rZQ9Fmk5c9lDCYv0QOhbT2hX6pCKgC5YxBQrsKslQeMVNr3Cy1TBrTo+UrStRtk+RM7b426ZOZvMeucBMP24Y5N3Hn0DpmASD7qqNuiBV16MBjaWfBpt4JTs24biLHXFy5ZT+bP3p8/4D5qugFiFqiVLmQsGSn2Xs0POsseBHMz70Fm/GxIgqvhnPs2iGyuHoZescORWj9kDHHx6PYBtLAKw+q4fTsCQqE428BzCugMhfvpwRwycbjk9FZPq5Ims8MSfgJHy1jo55rtZZxciIyGojuOIB+h61aIeTSQ7x6CjppHF97N2z4kbuCffVIxTUZwKkq1Xg3kSi6uUXulh1Tvtn9J+G5FgWc13z1nlCqKSGApdIC2ZNJejv/sCUi5CEwfOpcfpyPYdmb5/3fdfAHSg2M6+QF3Q2rotyHzj2JScf60kn7L4hLQALYMxR52bFu2Tlp8qJ4YZNDAULvFM1WWKuf68=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(366016)(376014)(23010399003)(10067099003)(56012099006)(4143699003)(11063799006)(18002099003)(22082099003)(6133799003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?STVuVHU4TFVvbDZVTm8yM3M3bG1jeVg5L3ZLT0V1RmVPQWpMLzFmeW9LcUg1?=
+ =?utf-8?B?VVdhdVdHZkM4ZzdNTGx0TWZub09XV1dUQTgyamNWWmpRTmEva25NZjk2OGVk?=
+ =?utf-8?B?dCtiT1IxbTUyeWRvK1g5djVhSlJsMnByb0RnWURBZEpENXVwTFlGQ0x6QjBL?=
+ =?utf-8?B?b1R0ZjhrYUpiUEdZaFVzeks5dU5zbktjYkhpa2RoaXZNKytRUEVOY2VMRTl5?=
+ =?utf-8?B?WlZFQ1BGdnl1eWxXcmlJREo3UmlVYTQzQWpSd3BoUWhrM3AyQWRxUmdWS29N?=
+ =?utf-8?B?amErRjFQdFJ4VTFtdmpoNnFRbG5iM3V4cXhwL3RlR3JGNXJsdXlaWE1JUHFq?=
+ =?utf-8?B?UWI4a0ZrejJlYks1cjhBMjc5OWZWR0QvZEZUMzJmeFZrdjBVcFZHemhXd1A5?=
+ =?utf-8?B?MnlCV3p5R1hscE5ZeFVqMzVKM0lFVUt1MVdKZ01VUXZSN1l3QVJTc1IxdC9V?=
+ =?utf-8?B?SW9oYlo3YXZIa2tFNjVhNWc3VS9oUHJ1QzdHL2tIWnM2WWswckhlRjQ3UFMy?=
+ =?utf-8?B?dXRmZlgxOEpua053ZnNKUThUTm9RTUdjd3dmY2NHQWt3bVM3ZFBUeWd1a0t6?=
+ =?utf-8?B?cUpRNGlIbW82VEVzeXhVcGdPRkx6UUM2T3o3WkJkenpzWitjb2N4ZEp1ZGM2?=
+ =?utf-8?B?ditaS0YzZ1VwdzNpQjQwakREckNXMGNRSXRRV3drMHN5cmRvYjdhMWMzeHVm?=
+ =?utf-8?B?MHBuSldGT3B3THBSODVsS3hLR0tjeC9Zc3lwZWtXZzVEVEJ6VUU5SkZsejky?=
+ =?utf-8?B?d2VqNG1OWFR6Mlo5TkgrVW5KVUlMbXJ0WVdrR3BLMnFVaWV4Q0JpbktHSU1D?=
+ =?utf-8?B?NmJ4OFZNRHprZXZnVGcwdHpMS0cyV0JKYnVxMHpvaUpONTRqWjlRcW5pekpG?=
+ =?utf-8?B?aERjTUROKzJTa2NnSzBhQzlsb0Z3eUo0djhBNHdYNTA5aHExSEZJOUJOMHBr?=
+ =?utf-8?B?M3U1TytXVWM2dXAwYnJsQy9LQjNobDZ2VGxmVDNFWE83bVNVREROd0tlN2Nh?=
+ =?utf-8?B?RzBpMUU4OU1xZjg0ZlJVU1diNFd6dEVodXdjLy95WjFnMkVFTCtOQjNpVFVK?=
+ =?utf-8?B?QmpXR2YvcDBTNlhOM1ZVczBGeEtRRjMwZGFnS3gza1lLQ05XancrZUxhd3hW?=
+ =?utf-8?B?T2JWUFFkSjJwc0MyTUJOMkdvbGxJZERmK3h1U0xEbGY5aTA0VUkrYmdpV0xF?=
+ =?utf-8?B?TFVIbURHZGdlc2d2S2srcDNZZDBkWGwzSFlHLzhXdjhvZGlpL3FoQm5FbUFJ?=
+ =?utf-8?B?bmF2bFhBSFhGcm5qZ3ZDb0sxNHdzdUl4b0hmUVZGZDdtOW5keHA2SWwrOEF1?=
+ =?utf-8?B?SXRzTmlkNXphR2UwaWtXNS9yNGkzM1B1N3NOQUxWTGZEdEJPSStYQ1JQOUli?=
+ =?utf-8?B?ODR4amZ2YlpiSTM2SWZmeU0yYzY0aGFNc0w4ZDNFemg5ckxkRStmUmY5RnBK?=
+ =?utf-8?B?WFhVdmNuMVE1eU9DNi9wSmxSNEZabnR6ejhXLytYcUJ1VVVIalNRemhCbG8v?=
+ =?utf-8?B?dVFPZkdFNWNZYjQ3OGxRbG5aYlJFZ3JWY3czUWdWVXZnYWpJdW5OSkppdFAz?=
+ =?utf-8?B?d28rSWZTcnBqT1A0YlpKQVE3UUFmTTIyOXppNjN2R1VvU2FQaFVlNmtpREpz?=
+ =?utf-8?B?YnZqUHhIZkJudkNXWmROSVNWN3dubGZwVk9jMlpTSmx5NkRLT094dk8rV0dJ?=
+ =?utf-8?B?clV5RkVyQ0VyaGg0MUlWeWJTVHZyOGxVNWI3RmZZNXVHTng1WjBSK1M3UmR2?=
+ =?utf-8?B?a05Tdm9LNVdySkJQMmROdm5Cd0k2WU9mTHhiOU55V1JWOG5FdnNqQTBJY0Na?=
+ =?utf-8?B?Q29OeWtDd0FvQWdTMS9ESHdvTm84QW52bFVkREtYUFYvSmphVWYzVTFOWnox?=
+ =?utf-8?B?VHdRRTd1N0liYVVJVHpnODRmRXpDeDFtd3JUNktkc1lvay95amQ0eHI5UXB6?=
+ =?utf-8?B?WDBteWUrbWlYVXFDcmpmNURLNDdRc0lXSWQ5RFBicTBBbGpnanpnbi9vMzgw?=
+ =?utf-8?B?cFV1RkhoaGFscGdvRTJ2dHhqY3ZjMkl1WFBPVEFYQzExVWlZL21hQXF3NStX?=
+ =?utf-8?B?alo2VXN5aXIwTGZIOXhUVjFXMHpxamJ4V3ZUR2NBY1pLOXkwbUJFU0ZIVHNB?=
+ =?utf-8?B?ZDhkN2toQm1Dbnl0aGtXbmFCZU1QQWRZNlg2eUNhOWVQZVRidmFrRytCNk5D?=
+ =?utf-8?B?Y1Avc2g1MXpFV0Ura2VQZUExbkZYc2x0TEU4UFFGZTMweUQ1NldvRDhnZlQv?=
+ =?utf-8?B?Qm1idENrRG10ekZjVWlQNlRacnh3RlgyNnhkTU5Lc21kT2VSQVh6MXVHZnVJ?=
+ =?utf-8?B?aW5SU214TEhaejExK1NmckZPS1NUdjZQWTNrSnZuWnJkbE5oZURGMm5qWkZ5?=
+ =?utf-8?Q?CHR+1B1oSMglVtRg=3D?=
+X-OriginatorOrg: gaisler.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a78e616b-47bb-415d-2243-08df24529646
+X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Oct 2026 09:08:43.8217
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 1dOMH3RphjgkB9XuZW58dr09AZYmtcbaHGd+KNgbli/fXKmieYHGFjHHWOGRyHRzhUHF1dICZSu2JYsSI4XeEzjhXKJWMpqRtQlVk4nZP5U=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MM0P280MB1719
 
-A register window fill that faults is mishandled in three ways on
-sparc64.  The first wedges the CPU in kernel mode and takes the machine
-with it; the other two corrupt what the kernel reports about the fault,
-and were found while chasing the first.
+On 2026-09-27 23:29, Stian Halseth wrote:
+> Commit 15b9350a177b ("sparc64: Only support 4MB huge pages and 8KB
+> base pages.") made 8K the only base page size, so PAGE_SHIFT is
+> always 13 here and the else branches have been dead since. Remove
+> them.
+> 
+> Fixes: 15b9350a177b ("sparc64: Only support 4MB huge pages and 8KB base pages.")
+> Suggested-by: Andreas Larsson <andreas@gaisler.com>
+> Signed-off-by: Stian Halseth <stian@itx.no>
+> ---
+>  arch/sparc/include/asm/thread_info_64.h | 10 ----------
+>  1 file changed, 10 deletions(-)
+> 
+> diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
+> --- a/arch/sparc/include/asm/thread_info_64.h
+> +++ b/arch/sparc/include/asm/thread_info_64.h
+> @@ -99,13 +99,8 @@
+>  #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
+>  #define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
+>  
+> -#if PAGE_SHIFT == 13
+>  #define THREAD_SIZE (4*PAGE_SIZE)
+>  #define THREAD_SHIFT (PAGE_SHIFT + 2)
+> -#else /* PAGE_SHIFT == 13 */
+> -#define THREAD_SIZE PAGE_SIZE
+> -#define THREAD_SHIFT PAGE_SHIFT
+> -#endif /* PAGE_SHIFT == 13 */
+>  
+>  /*
+>   * macros/functions for gaining access to the thread information structure
+> @@ -128,11 +123,7 @@
+>  #endif
+>  
+>  /* thread information allocation */
+> -#if PAGE_SHIFT == 13
+>  #define THREAD_SIZE_ORDER	2
+> -#else /* PAGE_SHIFT == 13 */
+> -#define THREAD_SIZE_ORDER	0
+> -#endif /* PAGE_SHIFT == 13 */
+>  
+>  #define __thread_flag_byte_ptr(ti)	\
+>  	((unsigned char *)(&((ti)->flags)))
+> --
+> 2.53.0
 
-1/3 is the lockup.  user_rtt_fill_fixup_common() re-enters the kernel
-without passing through etrap, so %asi is left as the ASI_AIUP that
-rtrap set for the fill while the primary context has been restored to
-the kernel's.  Every subsequent %asi-based user access then translates
-in the kernel context, and a user address below the VA hole can never be
-resolved: the fault repeats forever, the task survives SIGKILL, and RCU
-eventually reports the CPU stalled.
+Reviewed-by: Andreas Larsson <andreas@gaisler.com>
 
-The reproducer in the v1 cover letter moves %sp onto a page, flushes the
-register windows, mprotects that page PROT_NONE and takes a signal, so
-the fill on the signal return path faults.  It needs no unusual
-configuration and wedges a stock kernel in a few seconds; mind where you
-run it, as the machine needs a hard reset afterwards.  On a fixed kernel
-it prints PASS and exits.
+Picking these two up to my for-next.
 
-2/3 and 3/3 came out of that investigation.  do_fault_siginfo() decodes
-the instruction at regs->tpc to compute si_addr, which is not the
-faulting access when the fault came from a spill or fill; in one capture
-it decoded a branch and reported the contents of %g5.  And the huge-page
-path in the TSB miss handler tested TL after switching the global
-register bank, so it consumed a fault code and a PTE that no longer
-existed and killed the task with SIGSEGV at an address that had never
-been mapped.  That one needs CONFIG_TRANSPARENT_HUGEPAGE and only
-appears under load.
-
-1/3 is reproduced and fixed on an UltraSPARC T4-1 (sun4v, Niagara4) and
-on a Sun Fire V240 (sun4u, UltraSPARC-IIIi), which between them cover
-both forms of the global register bank switch, SET_GL and the
-PSTATE_AG|PSTATE_MG write.  2/3 and 3/3 are tested on the T4-1, where
-with all three applied a Go toolchain build now completes five times
-running with THP enabled, having previously died within a minute.
-
-Link: https://github.com/sparclinux/issues/issues/87
-
-v2:
-  - 1/3: reword the comment above the %asi write as suggested by
-    Andreas: state the restored invariant first, phrase it as why the
-    write is needed, and leave the failure-mode details to the commit
-    message.  No code change.
-  - 2/3, 3/3: unchanged.
-
-v1: https://lore.kernel.org/all/20260828123707.1852437-1-stian@itx.no/
-
-Stian Halseth (3):
-  sparc64: restore %asi in user_rtt_fill_fixup_common
-  sparc64: use the fault address for si_addr on window fixup faults
-  sparc64: decide the TSB huge-page window fixup before the bank switch
-
- arch/sparc/kernel/tsb.S       | 24 ++++++++++++++++++++----
- arch/sparc/kernel/urtt_fill.S | 10 ++++++++++
- arch/sparc/mm/fault_64.c      |  9 +++++++++
- 3 files changed, 39 insertions(+), 4 deletions(-)
-
--- 
-2.43.0
-
+Thanks,
+Andreas
