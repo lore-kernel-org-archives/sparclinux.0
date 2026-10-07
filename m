@@ -1,43 +1,39 @@
 Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0338B4248B1;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 032DC421234;
 	Wed,  7 Oct 2026 08:54:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791363253; cv=none; b=d/jcsO3kr9GST9oGEpeVs+eoaN3R6StiTCn9iZvnk5m9COwX9nkC+P9hj2wRCf4ROT9+g3LHF2vf1T9/IRNLtLAA0nzGu5nHRLSMHA2z0ZPBCu9HhXHLgpD7yjNzVgI0FRhRxV3cQhxGKrwdRMbCQ3WYsYdSfYb9e4B7zyM8Le0=
+	t=1791363253; cv=none; b=lO7saQmydb+mwqtjhgQh9YwJ9mxl9czlpEPnn3KmsV2UDdvkyh6axPU3vBpjC6SEBwDeRn/EobSswoZss0SMonEdtkxJyEc0zERs4Pkgg0hQZiyKAMCMIyspjjAfj7zsW9tA0grJR8cu4d2ah4teJOkri1ZsJ5TGdXNJnrA2DFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791363253; c=relaxed/simple;
-	bh=K79vlzXYWw3CvEgvvmtGGMrJC8UJeWVLj611Jlz92m4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kvXlppJOWMn02mMp0pjI0MvIBTmgMtSPm+w/RXCVhxouOHu+ZycJaXH60WFNQ3J84xCQQEuxlspZs+ALgUWxUpM6MEdGDSTQ3TGnM4qx8i48fZNZALzGWfvIeHpGfkMpt6mrOV8rIxgan1SPLHipSLXdS2a1kCJyICyKw43bZ98=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=Ish0B32k; arc=none smtp.client-ip=91.189.121.228
+	bh=3ShNl2lMu1cmq20FgjMQHVbcTfnOO76ge4bOi1UA09I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FAvUPJI5hAcGwOk6tgWB5mlo83yqSe4h9Kt3cxbeq1cwR0uAhk+cyvz0MuIs+qS/29LFvEymffZcYUG3LcKQjoyIDznor7azA7ojG8/6wH0s7rgKGa3VaTNBFRtHekYf1wfap3FShzKkAHuxGrbfHjDiySfxikzuiEq8Cz0n4cI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=A/9ZBDLl; arc=none smtp.client-ip=91.189.121.228
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="Ish0B32k"
+	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="A/9ZBDLl"
 From: Stian Halseth <stian@itx.no>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
 	t=1791363242;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uG6WXrhXnKBKpiGA0s+l6Wrv278sqV1lyaa62FnwDQY=;
-	b=Ish0B32kRnKResOPqHgYLWJIsuZ+/iafQCBxldQrbjvQRslwuXEcaQELjkCbHomN0F/PYl
-	sTG/xhchihVtP5Odc3bRftd0f9WG6wTmvEDb4uRf/33Kx1GcY6dzM4Qk+5L+ut8GctZPAc
-	uquIDcu8X2xfZ3t+QCXXAHfF+PVUhCU=
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=84hpmUIjn+sU9RD/ARErhaz9x/FcagOmgq7UoC0RwqU=;
+	b=A/9ZBDLlYtDr3vhyGCqcz4QOgxPr9IqwwaVmk+v/FpVBqftMyHqHa3x0Tt1/zD9sOnCxAZ
+	dXO2xVUv+e9CiqIzhQkiEF1kKX4p2SgHLBFes6qOLsaWYoLvtO2x/nMtJFA8Vv8zKkg9PE
+	jBWBc7IhllRNi6fqefM8h5N1gPr28ys=
 To: davem@davemloft.net,
 	Andreas Larsson <andreas@gaisler.com>
 Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	glaubitz@physik.fu-berlin.de,
 	Stian Halseth <stian@itx.no>
-Subject: [PATCH v2 2/3] sparc64: use the fault address for si_addr on window fixup faults
-Date: Wed,  7 Oct 2026 10:53:46 +0200
-Message-ID: <20261007085347.256789-3-stian@itx.no>
-In-Reply-To: <20261007085347.256789-1-stian@itx.no>
-References: <20261007085347.256789-1-stian@itx.no>
+Subject: [PATCH v2 0/3] sparc64: fix a window fill fixup lockup and two fault bugs
+Date: Wed,  7 Oct 2026 10:53:44 +0200
+Message-ID: <20261007085347.256789-1-stian@itx.no>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -46,47 +42,64 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-do_fault_siginfo() prefers an address decoded from the instruction at
-regs->tpc whenever one could be probed, falling back to the fault time
-address only when it could not.
+A register window fill that faults is mishandled in three ways on
+sparc64.  The first wedges the CPU in kernel mode and takes the machine
+with it; the other two corrupt what the kernel reports about the fault,
+and were found while chasing the first.
 
-That premise does not hold for a fault taken during a register window
-spill or fill.  There the instruction at regs->tpc is the one being
-resumed, not the access that faulted, so compute_effective_address()
-fabricates an address out of unrelated register contents.  In one
-capture it decoded a branch and reported the value it found in %g5 as
-si_addr.
+1/3 is the lockup.  user_rtt_fill_fixup_common() re-enters the kernel
+without passing through etrap, so %asi is left as the ASI_AIUP that
+rtrap set for the fill while the primary context has been restored to
+the kernel's.  Every subsequent %asi-based user access then translates
+in the kernel context, and a user address below the VA hole can never be
+resolved: the fault repeats forever, the task survives SIGKILL, and RCU
+eventually reports the CPU stalled.
 
-Use the fault time address for FAULT_CODE_WINFIXUP.  It may only have
-page granularity, but it is the address that actually faulted.
+The reproducer in the v1 cover letter moves %sp onto a page, flushes the
+register windows, mprotects that page PROT_NONE and takes a signal, so
+the fill on the signal return path faults.  It needs no unusual
+configuration and wedges a stock kernel in a few seconds; mind where you
+run it, as the machine needs a hard reset afterwards.  On a fixed kernel
+it prints PASS and exits.
 
-Fixes: 70ffc6ebaead ("sparc64: Fix top-level fault handling bugs.")
+2/3 and 3/3 came out of that investigation.  do_fault_siginfo() decodes
+the instruction at regs->tpc to compute si_addr, which is not the
+faulting access when the fault came from a spill or fill; in one capture
+it decoded a branch and reported the contents of %g5.  And the huge-page
+path in the TSB miss handler tested TL after switching the global
+register bank, so it consumed a fault code and a PTE that no longer
+existed and killed the task with SIGSEGV at an address that had never
+been mapped.  That one needs CONFIG_TRANSPARENT_HUGEPAGE and only
+appears under load.
+
+1/3 is reproduced and fixed on an UltraSPARC T4-1 (sun4v, Niagara4) and
+on a Sun Fire V240 (sun4u, UltraSPARC-IIIi), which between them cover
+both forms of the global register bank switch, SET_GL and the
+PSTATE_AG|PSTATE_MG write.  2/3 and 3/3 are tested on the T4-1, where
+with all three applied a Go toolchain build now completes five times
+running with THP enabled, having previously died within a minute.
+
 Link: https://github.com/sparclinux/issues/issues/87
-Signed-off-by: Stian Halseth <stian@itx.no>
----
- arch/sparc/mm/fault_64.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
 
-diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
-index e326caf708c60..c37b24f757f43 100644
---- a/arch/sparc/mm/fault_64.c
-+++ b/arch/sparc/mm/fault_64.c
-@@ -165,6 +165,15 @@ static void do_fault_siginfo(int code, int sig, struct pt_regs *regs,
- 
- 	if (fault_code & FAULT_CODE_ITLB) {
- 		addr = regs->tpc;
-+	} else if (fault_code & FAULT_CODE_WINFIXUP) {
-+		/* The fault came from a register window spill or fill, so
-+		 * the instruction at regs->tpc is the one being resumed,
-+		 * not the access that faulted.  Decoding it would fabricate
-+		 * an address out of unrelated register contents; the fault
-+		 * time provided address is the real one, even if it only
-+		 * has page granularity.
-+		 */
-+		addr = fault_addr;
- 	} else {
- 		/* If we were able to probe the faulting instruction, use it
- 		 * to compute a precise fault address.  Otherwise use the fault
+v2:
+  - 1/3: reword the comment above the %asi write as suggested by
+    Andreas: state the restored invariant first, phrase it as why the
+    write is needed, and leave the failure-mode details to the commit
+    message.  No code change.
+  - 2/3, 3/3: unchanged.
+
+v1: https://lore.kernel.org/all/20260828123707.1852437-1-stian@itx.no/
+
+Stian Halseth (3):
+  sparc64: restore %asi in user_rtt_fill_fixup_common
+  sparc64: use the fault address for si_addr on window fixup faults
+  sparc64: decide the TSB huge-page window fixup before the bank switch
+
+ arch/sparc/kernel/tsb.S       | 24 ++++++++++++++++++++----
+ arch/sparc/kernel/urtt_fill.S | 10 ++++++++++
+ arch/sparc/mm/fault_64.c      |  9 +++++++++
+ 3 files changed, 39 insertions(+), 4 deletions(-)
+
 -- 
 2.43.0
 
