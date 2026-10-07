@@ -1,66 +1,65 @@
-Received: from MM0P280CU010.outbound.protection.outlook.com (mail-swedensouthazon11022114.outbound.protection.outlook.com [52.101.77.114])
+Received: from MM0P280CU009.outbound.protection.outlook.com (mail-swedensouthazon11021099.outbound.protection.outlook.com [52.101.76.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0458B22157B;
-	Wed,  7 Oct 2026 05:57:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.77.114
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D32443F483C;
+	Wed,  7 Oct 2026 06:14:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.76.99
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791352628; cv=fail; b=rVlovrXUQr436cHS4kWrZy4dQ9/ppkSyAQyiAuSbyLg7Jkaf46Qr4EORDmVLv8yByQTbOM1xDxu7aV6hy93DIaNRCOWKlFNLchHnD+xcFzWDFMXmP5oeSE65pD6PiuQnliQcW407ZsKfJ+ylzZCxehhK7qq6iWsCsIPC5WwnuZQ=
+	t=1791353651; cv=fail; b=h037A0xGiFfWyzhPC3FfqyWajmGHwVOjyeco9gKQwaOaoTNiVCUlMyO8hpFfsUWVcz+ECsr9IhTvWiCCdT9mmaEfAcMMRKJA9Yxr5Nw6zKZyIc5hZgLpwnhPZIKT45d0BqF86w3osXcan83ih2fwGpPfqDvs0WchJ8Ss4O7miZg=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791352628; c=relaxed/simple;
-	bh=R7ukRC4N2TIU3wPeT6dOPWNnfH3XvbJvH6SdIc71igw=;
+	s=arc-20240116; t=1791353651; c=relaxed/simple;
+	bh=qiDHoYzxAYqBEa2guzqPGUZD2AKCGfo0LQGF+EBotdk=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=Q8iU0DnKSdHcj49mPkVShLtX5LjehAD4m4qXeh6b9trGl4v26jx2SCY/75tgL/PzmR7yGqjbLq3ytfggo3gBv9cgouvZ/qAeK8f5MMLLkOh9aDOgX1Kx8TWUK18RcjsLueilE/0hq1p3RxmNJAGYjB5URySJutWQaab0lEAAnzM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=DgLC+6VC; arc=fail smtp.client-ip=52.101.77.114
+	 Content-Type:MIME-Version; b=o7/zPt7xg8XCADU1Wjk546XHZ2a49ROZUSVYKlnjaRiy/w8tH/Tqiq6nrudQ5iBO/09yWQ/qwJnq+ak8njpyaALn+bnx8DvIHB1O9HoGEshqfY1jcQFF8hZKYatCyhzACaElkkOhl9NDKTDCSXaJFz3rTnZ7bf1Ttrih+ku50aE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=nwtZ8IB3; arc=fail smtp.client-ip=52.101.76.99
 Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="DgLC+6VC"
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="nwtZ8IB3"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=jEvRo1u+e8uyaWrY2UF/thYyB0vJW4WA2SlGyFiOLR/Q8QFpXyVTwQcxWLQ4GoGv9wSN+bgVRgnbC7fVmIMjsBdCdH1WZJ0pEZfCvHVK80J1tPTWkIwc0Je3XQ6GW8fxeN2MVA3qEaNtqQ3sVY7fVNRH1gaMhWNqbTQha1vFK32/ReYk4K9ewlvdp8xKmh82GYvUw1pE2IY26YGFjve/Cdj4avP1Q2RzK+LAPiZubAhBSNp1HZ0H2iBAjtnvU0kLwtkwbJs9PhnUm/MQUNjWRLFgRPqrHvTI80BUw/LsDoMawEclhslMSZ2lj4fg/S7jBQE2cX7Oqm1mTe5ssAMs9g==
+ b=vrOGTod5tYm9FFW1MhEpqicWYtVgrUdrPvkDsL5cm68KyDaajfKyZUaKBILsz5Iol+E6Mu93uKjeA2bDujW6VP6ekwxasgAPDFclLAAG5xXMBwAHdZjkRmAq8lFkIEOHyebPEBOYaozv+zdxv3HT+Gsjrv1BR3HmmHtlKz44cxpG13iBoDhKEzWDEPst0mTYbJUs6jGbfMTYMtm5QWAWu1ijL0ZobvH9rNtlkF6aw34qneu848FLUT69k71x4vZprOVRgyNtpbpewHa7S+XGj1DptbKK2X8lUGMWn5LOFhIMRdDFyYqw9gosUtOrDRGjLhQZ5z0+XlPr5ZXZrkZEuA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=gncYjaI/qFSw8MTeEHHeK2eW3Kh8lZZeaA+SysWEut8=;
- b=Yj28fZYrJ3czHKz432lkqHSQJwK2j0ASuCO5khBZhSvcPqMtnquCgBFDUFV8+REkR+8/SKOo6e3aVV3qZvKuD7Jfur3xWWMNp9wSPl4aODLmGmw1c4iiGaCUY+n8xBwkXT1LdE2wT6CC/5y7Rmq2zcBYi6GCrD/tH3mZhsG2P9mHIL04+OG4QeZoQqqmQPmbxBz3MrntxybFh7rWxZiCY71M93qOX6rH/CXCdawpWLpL5kT5DdKuSFhA/R8b82O5OpiQXaUORiSM90YMgrilASLe1DuE/rtfTFWoYcUFQ+lqD/C6YGOXKIxD/ZONfnp1PYWc/+htwgrPRr+ODnrVfA==
+ bh=mc85+L0FurgD9zWyyIOuDUOYkCbM/k/j8YTMvLlDTBc=;
+ b=sdp1xJSl3ywbo24zyB4zct9VGpQ+H0djwTthWq5rbKGGv0peMFTP5g7GSOg1Rr3qsYUXMwDOCWC2n1zvVfAVnN16AIl4m6wYEFgNEYW4a+RP8CdNr21kNkVuDRRpj9cp3/eYHHmpfYzEPc9sYQw3GacbAFYoovHwW7xl05J2YPalqUbxXHv+EPGN19GHMI3PphR0nmDTb3ORIqIdnnRosXb+RyhMy2hybJvFoJkZjOp2uwNtjbmIyS9crmxK01h0HUlCETk9he+avIEi3CF9ZKnl7nZqcJpaIIiR7SDkX5o5C+HWYF4EmTqMmGipA0AlZ01gSgsNAUTIOklq/OUQBQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
  dkim=pass header.d=gaisler.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=gncYjaI/qFSw8MTeEHHeK2eW3Kh8lZZeaA+SysWEut8=;
- b=DgLC+6VCq5mR1BJOgtcrArqC4nOHuGO59ELfLTw5cx0KO+asxdDiOXaF+5L5qxQLsg9++IlM4n2B9+fPSuOupJzYlJZ1HsEQZJJv3p2j+55eXNhDSU4lRYq7zd6GKR8u4wTOxl6RQUTJcZy1juB/z61RrIWJUaIzDToWsTKsfwiTr9CVSg0MPRR7dIzE6cFC/JiQeD4W547zbwVCdFpBp1KOloKz341K8wTzN6dFesm7WsMYG2CHLe70oON1rBPMAVpnmtnVhi52t4/sBP3bczqDRwMDDV6kz+5QeQnkooCH2NamUXQGrbnToJf1CJkmXo2BDZ5iRAsjbD+D9Hz3ig==
+ bh=mc85+L0FurgD9zWyyIOuDUOYkCbM/k/j8YTMvLlDTBc=;
+ b=nwtZ8IB3cr0DeWbX/sUHQxJGkq0eVrSVu7tAIoapYmL3XzxwbAAr5nV6hSWQvBJ1Ku+9YIaVHpv3+PWoT7/9x7KODod8HIh6xkJPlbR9MdP02dOkTOCqf1K6y3lnjHSixQbpxcebMH4iw48nGZ+6Sj5Mtf8GIqjh35NLT06f7FPoZQPj94ggqWrbFqJPX/Wmm/btkXuW6a63Q1gCY+BHKjgLGXmHOHbb8w+YQRBX29O0vNFCvgLLt9IYwZmYD8HiS0cAs5gbxt74fBqXoyHNX774IUQZ/DYR+6xIciCk2JY7BXZx37OyoEOevJO4ehlqJeGH9WpeokVpChtJ5lfHVg==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=gaisler.com;
 Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2f::5)
- by GVYP280MB2223.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:34d::14) with
+ by MM0P280MB0166.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:d::18) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.15; Wed, 7 Oct
- 2026 05:57:00 +0000
+ 2026 06:14:03 +0000
 Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
  ([fe80::1f13:f10:e16b:7939]) by MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
  ([fe80::1f13:f10:e16b:7939%4]) with mapi id 15.21.0472.016; Wed, 7 Oct 2026
- 05:57:00 +0000
-Message-ID: <8f605908-3315-4e05-b30a-5f298f93635e@gaisler.com>
-Date: Wed, 7 Oct 2026 07:56:59 +0200
+ 06:14:03 +0000
+Message-ID: <f32e114c-718f-46d7-9388-fdc5c382ddaa@gaisler.com>
+Date: Wed, 7 Oct 2026 08:14:02 +0200
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] sparc64: Fix comparator problem with timer interrupts
-To: Stian Halseth <stian@itx.no>, tglx@kernel.org, davem@davemloft.net,
- sparclinux@vger.kernel.org
-Cc: Tony Rodriguez <unixpro1970@gmail.com>, linux-kernel@vger.kernel.org,
- thomas.weissschuh@linutronix.de, regressions@lists.linux.dev,
- glaubitz@physik.fu-berlin.de, linux@leemhuis.info,
- torvalds@linux-foundation.org
-References: <20260519022421.5978-1-unixpro1970@gmail.com>
- <20260831180728.3097740-1-stian@itx.no>
+Subject: Re: [PATCH v2 0/2] sparc64: add seccomp filter support
+To: Stian Halseth <stian@itx.no>, "David S . Miller" <davem@davemloft.net>,
+ Kees Cook <kees@kernel.org>, sparclinux@vger.kernel.org
+Cc: Andy Lutomirski <luto@amacapital.net>, Will Drewry <wad@chromium.org>,
+ Oleg Nesterov <oleg@redhat.com>, Shuah Khan <shuah@kernel.org>,
+ linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+References: <20260902072745.3412940-1-stian@itx.no>
 Content-Language: en-US
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20260831180728.3097740-1-stian@itx.no>
+In-Reply-To: <20260902072745.3412940-1-stian@itx.no>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: GV2PEPF0001A334.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:158:401::699) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+X-ClientProxiedBy: GVZP280CA0089.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:150:275::9) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
  (2603:10a6:190:2f::5)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -69,166 +68,116 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|GVYP280MB2223:EE_
-X-MS-Office365-Filtering-Correlation-Id: c2552528-8fc1-4191-0f09-08df2437cdb4
+X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|MM0P280MB0166:EE_
+X-MS-Office365-Filtering-Correlation-Id: bf4399d7-03a1-485d-a7d2-08df243a2f6a
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|366016|376014|23010399003|10067099003|56012099006|11063799006|4143699003|18002099003|22082099003;
+	BCL:0;ARA:13230040|23010399003|1800799024|7416014|366016|376014|6133799003|11063799006|56012099006|10067099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	uKPVBsYLJVktFpS0wPdMCg/KbKgINs9vOBWCVuBOqmQchokgPc8O3u/3GWBS8B2QIAlKD9R7+zgeKRJXoU0+36FJYdXyduq0PEZqNg4hWaQu0oVNOwTposTm6EJdDbG5dIGWpxUs7XiHm8gdzSF/2YULOmUNWCKJnsE93eIYpIq33fIQYPYC/hx1CVOW+fB0mHTgpzhClNT4Dfgy0KieLtiT15C/SbLDj8znThvo4f3E296j97j+B0+XicATujrRc8bwqGlAHbfVGTQ19qJbhHJrfEOUnXN90isil2doQlawHshb4vC1YXV9F8jWzU2OyCmDJTW3q1fIlp1UcrPzxtSUV80E21JJjqi5R819cHOJkdj5TiNaSECNsxqMXsljtiv1XAeRHWENsrjbFll4hNVkeqaCH13xOj57QSk8DuGQu0G+Ryjy33CMHnZZeSvq2ExlKSShkQ4ubg7LHvPJO+gJiH4M4sGQOZki2DsEjOSKHNQbScfYk7K+OqTE/MwNke9ljEea0MildpWmezgLibzoCUvEqGvbRLJS1FNqTAj01C4xPJE6uwMEDU36dH8pEV+Ho2C+0l7RdXLrERulc+DZGUDqP/C9wPhwEsZk16LZuGoylU1KuxiaTy/Ge4A9
+	CwwnDstVdWeI8VWfKn0KlllPnJA5UuCECD7+rXNdrnOyD2PVJfD8F3v6QZEcdYGE4aBf6/Mvj6RcExLNQu6RyicvPoXzY5ubQUgoGNub75ZPAj2z6CGNrdDiClhOqrSNmpIDyK1souwNe0jrNAXcFjVkw0rzFYSu/o8a7LgJTtvJOOij6rEz5rVidSZaBk8y/6jz3vL6Fq+ifNCmuvG2pOY1DcC0JMwucnGzq2yHJOCFjGG0htnGbUWa/n4m4D7mfSX1summKVBReo3m1OaGMOcI9OxD499IYZTU5zmgj0zEtJZdcqTwMj2jjIW1X7M2CtPv5APtZzBPbXZReGvlRnCvnlgYCTmJAo47umS3q6pAP+4WhEvPKTDFR6xipluPi52fdB+risz8I1vfz57tul71D3u3JkkxLMJ+ENlysB31B5nK8IbTGCNl/bVmfyGU7iLnPJ6H/V4KutPF2JUCL3sP2e2tQrN3+z/KBBxSeUzvd8oAPZK+R5mMiHq0Tuy8KMxKx68VKHjVE3G9go910WOh/8deNQsPbFcf5HecoGTtC8YJSdJgWmqqQ9JvlnludxAE/xy6W949k24syVRLyrNhN9eMEwpMJyaCSqfwr3xOmO9VAkTtYTROwitwhiEU6Bi1NHgVsdDAZ9YXKjDs191T5tNCg94eY1j12h2ILJ4=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(366016)(376014)(23010399003)(10067099003)(56012099006)(11063799006)(4143699003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(7416014)(366016)(376014)(6133799003)(11063799006)(56012099006)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?WFBrNXJidmJJRDVueHM4cmJiS3JKMFhHUGYrOEVJTS9xQ1lXdlptSUFBK3ky?=
- =?utf-8?B?NWlldDEwMWllOTRaTUY0N2NrYmltalhsbllsTzdnb1VnaWphaWN2amZONitV?=
- =?utf-8?B?VTRtYldsRFVsOThSaVJXeGhXWi9LaXVENTh0cmlxQ2d4N0dIRkFEbFJhVzgz?=
- =?utf-8?B?dzJtbjhDaThSclVOeStHRFZYbndFL1JLOXdTQzRBaWxkZnRqRncvSWJ0TTFk?=
- =?utf-8?B?Rmg5N3lJNlYrVi82eHpPQjZ4RWtzNmFRa1RRTStkaVdKL3lwZm5ka1hUOG5N?=
- =?utf-8?B?RUtYMG9RYXNBZFFmK1R3cE1PRjJ3M0dKUlloZ0gwWTdxTXZWTFhjQ0RoTGw1?=
- =?utf-8?B?MkVMMUVPNUEwbHZKNmVSb2M0SVZmVGlLNHkwMDRUdFFuSHBab3l5YTNCRFov?=
- =?utf-8?B?bEdHNHVHOXVCTDZYZVNDRTFhMXBtRHd3QWV1STFHekpxZlpsVUJ2dnFDejJv?=
- =?utf-8?B?dEh4UGxlWlBTTHMrV29PZ2xnY3RkSEpmaHM1MWZva2Q0VTZGV2FqYUVYcENB?=
- =?utf-8?B?YWh4L3UvM29UcWNScmtGZWp6em5XNnZMbzJ2L3dsbGNXQVJlbE5TeGxpWGdH?=
- =?utf-8?B?MkZaaE92anJIR2NydDVwYmxVTnNtdVVBQUZFTlQ2bGRGb2o0dHdtNHJkVDcy?=
- =?utf-8?B?TWdBOGozRVBRZENCSkJrc0F6L3FpWXk3dnQ0d2tGMXR2UHdYaHQ3Tm9PWVlz?=
- =?utf-8?B?MmxWRlczY2J5NmRPNlRnSGRzZkpzY0IxaFVBeVJqUlJYalV4TW84WGc4dUlC?=
- =?utf-8?B?MlM4RjhXUjRiZzlpVkVaNnNJVnkrbTRwQTd5S0RhbUFwYkZweFpCRnVMamJ6?=
- =?utf-8?B?M0FUVmlDYUkzakFlcmdoU0ZlMEVxTzhwazN4dFJBcDNDNW5PTUt4a1hFSjRX?=
- =?utf-8?B?Wk1ZYTJ4TXp4UGxwUmkrY291Kzh2aFlGQUdpTWZ5Q1I3am5VKzU0N3gxdHIz?=
- =?utf-8?B?VjhlOGs4bmxKcnJkRmRBTnVGd2dIODh0a1o0eWhMWFVXNzJrNGJaQnlyK3Zi?=
- =?utf-8?B?VVNOdlo0ZmliYmt4bERCL1g4TnlHb3BrWGt5K3hpcS84dWFMZHFHTEJaMm5X?=
- =?utf-8?B?UUQwM0dPdFQ3bzI0RUxicWdmMmV4VlBOa1lycEIyVTI2ZkZoeG1McHB3MzFZ?=
- =?utf-8?B?MW1FVWNtUWUzQm5LY3ExRzlBUDFvaThnbHUwb0tuQkdSUHVSbDFwN0E3N091?=
- =?utf-8?B?QzczZGRMZnpSR1hoN1VPaEJ1bHkrYjN4YjNTQ1FiQ1JpeGI1UTJUVXloYTlr?=
- =?utf-8?B?SmkyUnV0bDRuVFhPcmJYN2NwbEhaNXZKbDBjdzFrS1E3bEliQTJMTUlOWjNs?=
- =?utf-8?B?dTE4TkpYckNWWUFrbnY3TXNFT0JzTGp5Y2hKaytFZTZPZzc2czF1bWFxSjh1?=
- =?utf-8?B?WmxNU0RxSnRJTmhDMWpzMm1keTl3NTd3MjNqTUZONWFtaEJIMnQzR1ZxaWVk?=
- =?utf-8?B?YWJ3cUx6VmlkSnJ6S2xTLzFUY1ZGRjRKNmI2TzlqNWJKZzBxeFhQelR1Tmgy?=
- =?utf-8?B?UW8vSWVMNjRvM2pHcnk5TFZhTjFrY1k0OUo3bGtGYTJoOS9uQkRSeTNrZThq?=
- =?utf-8?B?ZUgxdHdVQUlaR2dqTldMVHovSXM2MnlRUEdlSlE2Wm05dFhtRWprclpnd3ll?=
- =?utf-8?B?cXBGemhCVDg3TUxjTXpKWDBmR2d4c3BxNEJkK0thQTZqRzVJSzhMRi9pVUNs?=
- =?utf-8?B?UVlQR21iZWx6NTBzODVYaWpoNzlRQjV0VkFEZ3IrNitGQ0dYOW9YekhOeXdz?=
- =?utf-8?B?OXBQWmNlQzVjTTJMQ3FSbGlHZzliWVd4eWdIMjQxNENvZnFQeHRhTHFJakRp?=
- =?utf-8?B?eVg1R1hSSDFSUkRBQ0JYeHNjRmc5R3NteWlaVjdRanNUOC84VU0xZ3R3M3dp?=
- =?utf-8?B?Y2pqak1IdkM4SldLZVAxOXdVRHg0b3VXdDl2RVRhOUlmWVRrMmpiQXdlZHdX?=
- =?utf-8?B?RmVFeGFFVDRtWGVrb2d1ckVkWldWcXk4MjR2NHp3UjcxNXRwWlc2S090R0xK?=
- =?utf-8?B?UVAxSVRBK2lDV1VIUHNUZnllMkE4dEduZC9sTGZBYU1ZdEcwZ0g1ZDU0bVlI?=
- =?utf-8?B?S2FDZVFPb25XWmh6WUZFbnRlclBNT0ZBR1RmMGxRNU84TXVSYmM3cDcvcysv?=
- =?utf-8?B?alJmMy9HOEFES0RwOHNKTWU4NXhGZXhnUE04VUJJQjlhbUpPNU5kNHhqZ0s2?=
- =?utf-8?B?K0hRQ0JEU2FPa1hpNWpISXJLSXc4VmdjNGg2clk1VHMrZDVUa3JWYXJLZ1kv?=
- =?utf-8?B?ZGpnKzkxaG9JSkUxOWJzbWlmVldicHBIOGdOTEk0Z3Z3Ymt4R3BINnZQanNO?=
- =?utf-8?B?a0ZOaWhyU1dXR2tHN09UNEdmWGFwYVJ0a0ZlQ0RLQ0VzSmVMZkZONmVEcGxM?=
- =?utf-8?Q?gm8gJOufUUGwmP48=3D?=
+	=?utf-8?B?UjR4V1JORExadlRVNWRWVWFxWWl1elplY21Sc2dWcGF2cGU4VlkrSHdLeHU1?=
+ =?utf-8?B?M2QxTmpvZlJpT3AxWWJTQVN2ZU1pVXFrcDNyMFZFSm9uMTE3dDFKT3Q5SGpu?=
+ =?utf-8?B?SkNtZE1TaHhYUk1vWG1xYnJ5QnNlOHRxQ25JS0xBeUM3bFZoem1LbkNmWW1k?=
+ =?utf-8?B?RTRwZ09jY1E3UDlJQ2ZOeUpmS2U1ZmxsSXpZY2JBTG9ReGZydUUrQi9wNnVj?=
+ =?utf-8?B?K0JFSW16d1JySTFvbjcrQmo1SHdJK0IvKzFsSC9JdG85VUJuMHFXSjFudE9m?=
+ =?utf-8?B?bjNGNkZRTmVkMHZvN2FtVjQ3cVRUc1hQNFpHUnBUTnR0RE5OSldkTit0RTA1?=
+ =?utf-8?B?UE5IcWxad2Z1Y0ticWZYa0FpVFRJR0t2OTVGOU5TdmVQNXRTTkpKZ2Yrci9Q?=
+ =?utf-8?B?R3BHZyszTGh2WDJCanNOWVZScXN2ZEdBVkZtcGlWMStHaDh3YU54Y0U1bERz?=
+ =?utf-8?B?N2xNMDJhbHMxYXcrUkRWOGtJcno0NDNUQ2lpdjNNRDg1c2tjbVVmb2F4MzNp?=
+ =?utf-8?B?OWpLZFkwaUFVZENMRkRnZjMyTEdTbVR1UC9DL3pKL25SeE9DOUZXamdraVda?=
+ =?utf-8?B?NTIxWkxFSmo1OEp3NkREQWZEZ0NyWnNkNFhpc2RzMHoyelhZa0VYVm1NUGZT?=
+ =?utf-8?B?U3FlVHVOUG5zeGVlNXNPT0tHZEFEVkJWQXJtMzNoL1Q4b25ONkxxdHdaUG04?=
+ =?utf-8?B?T3liSjU1MFdhSlV2eGM0M2QxWTdMdGxsbmVqYzcyS0JQcUFBRVd6MThEMkF0?=
+ =?utf-8?B?TlcxeDlyUlQ4Zk1rTUw5WkhGY1RvdnpQRm44TjF5dGJxRHhnSjB4RjlZV0tl?=
+ =?utf-8?B?a2YvWEFESUQ0b2hkMDlDOWZnNC8xWi9ydXhHTGQwUjVzOGx2N2xhS3V4cDhW?=
+ =?utf-8?B?UWVEb1dlc3puZU85RTd6NDg0NlJsZDFmbzQ3SXB4YlR2elY3U2FDQi8yaG9M?=
+ =?utf-8?B?Y0g0TWRvY1FVOGZBSHdyMG4wN24wdjduNVBiaFpNQWpEemFITVMyRWdISk5L?=
+ =?utf-8?B?eG16QkZkdDlXYlJ3S1FmNXBhY3VTY0dSN1JJZW92dHdwN09SMW9mQ0RxTVFx?=
+ =?utf-8?B?SElHbkJoRnNOV0lYcUhTMkVVY3BneG4wQlpJWmhQUCtqNmlwOGkvQUZFbDNM?=
+ =?utf-8?B?MFFURVZIZk1zNDU3S2ZhSjVaZzlnOWVTTGE1SXJ5WkFOcEFDSWNTT0xIWjh0?=
+ =?utf-8?B?bEduVHpUTXljRHhTOVFTb0NEcWdYYjlHdVZZUUZDaWs2RkExYTVMM25UOWFM?=
+ =?utf-8?B?R05PQmhxaDErQUR0YUM0SHVFc1k2ME9RRWhBcHNJZFRXekRHWWt6VzF4ZXJF?=
+ =?utf-8?B?M09hdG5pS2NJTms5Rm05K21jbzcrejQ1ejhBdjdMQ0dPK3hWV2hoTDYzN29z?=
+ =?utf-8?B?YlRqQ1NPb0Uzd2RicW1oWXFseE9aN3pTSS9NOFhaUzc1TERXM1FrSDV6STJk?=
+ =?utf-8?B?ejZLamtQYVplZ3lIRndUZmhhRDgxNU0rRnhqdkdaRVVGWWtBN0lOZkZ5Z0Ni?=
+ =?utf-8?B?cFhuNStqQ1ltdXYvRzg1blFHTk40dURXZzZsVi9tbGVoa0JEUTVNY01iTWNK?=
+ =?utf-8?B?WjZ5bVU0THYxeGQvdGw1RCtGMERySkZNU21TM0xvQmp1cW9BYTQwdEtxK0Vz?=
+ =?utf-8?B?UWZkdVc5THlEbTJhVUh3U2NmeDAyMEZwR3E3QWZSNG5hUW5LckE1b201TWty?=
+ =?utf-8?B?RVhOUDZaTUVJS1lJZi8wcDdSVStJMzJFTXY5OWh2Qi9NbTJnN2ZkUDVSZmtT?=
+ =?utf-8?B?a1NMaTh6MS9ONEZUUmhKMmxZRFJSb0ZyZlhTeUUrSjlsQThWcTkvRUJCKzdw?=
+ =?utf-8?B?ZklsSmlsb0toNjlpcGpaV1lvQmdZTm5RVVJjMUY0eXFSR2JmN1RIaXdMb2Ft?=
+ =?utf-8?B?WnVOK1VWbll4NS82dUw4eGRTZ1pNdDBmY2VqKzZyK3I2TTZ0dkxFbzc3VkZn?=
+ =?utf-8?B?b0xBREo5V1lZZGRIYVVtTTEwazBKNmhsazhuS0xySWpFQjBpYVI1OU1SRzRW?=
+ =?utf-8?B?dlBmVFZ0dFBQTy9BdDgxUlg2YjBDVElJWDgvekw4ZXl6ZzF6WllQMXFWMUlv?=
+ =?utf-8?B?TEt6M2FKMUlTeTYrZzMvdk05ektXMnQzWmxxdTVrUjNhdEljQkN5YTBhSXZH?=
+ =?utf-8?B?ZWFtWXg5bWFXc1VSTVRRQ2JqL0duQ2Q5WWJqRUNuMnNZRHlxMFVMUld5V3BW?=
+ =?utf-8?B?VjVZd1hzbnp4dy9nK0V6eWNqTzJLdm82UWM2TFg5YnRKQTliNFFKT1MxYzJs?=
+ =?utf-8?B?T3ViTWIxaG9pWVhtNUZIRVpLeEJ5NkhJREVmM1h0cElOZ0E2QStob3B5TjVR?=
+ =?utf-8?B?MmRYYnNtUWRxQy9uTlZ4Y3pPTVJ2SEk4THJJWWpqNGNCWS9IV1hkT2ttQlNp?=
+ =?utf-8?Q?ZvyTgkV7Ry5cH6t8=3D?=
 X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c2552528-8fc1-4191-0f09-08df2437cdb4
+X-MS-Exchange-CrossTenant-Network-Message-Id: bf4399d7-03a1-485d-a7d2-08df243a2f6a
 X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Oct 2026 05:57:00.3833
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Oct 2026 06:14:03.3051
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Y61bDqNuANMZ4t+SYH1SHD6MPO3Y8G57yNBEsgGmOrNAEV8ntl0f5lf6K+cZTS/yRlDCCCpxUrKwtOWn2jNeqc55V5sm6TmGEcZCZBBliTw=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVYP280MB2223
+X-MS-Exchange-CrossTenant-UserPrincipalName: 8+xAc+N7A5yas3LS9aM469dHvnL6CodzsDYE1+QAIlhswwLCVYJgyBd5/8srZt/0s88/7K0YmcrY21AncG7vvzyG2bHBy/bSoCfT86ydIKE=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MM0P280MB0166
 
-On 2026-08-31 20:07, Stian Halseth wrote:
-> From: Tony Rodriguez <unixpro1970@gmail.com>
+On 2026-09-02 09:27, Stian Halseth wrote:
+> This adds SECCOMP_FILTER support for sparc64.
 > 
-> The tick/stick/hbtick add_compare() implementations program the
-> comparator and then check whether the write took effect in time:
+> The arch prerequisites have been in place for years, so patch 1 is
+> mostly about the missing piece: letting seccomp veto a syscall, and
+> returning to user space with the return value the seccomp core set in
+> pt_regs rather than the -ENOSYS the assembler stubs used to force on
+> any denied syscall.  Patch 2 teaches the seccomp_bpf selftest to
+> drive sparc64's registers.
 > 
-> 	exp = read_cnt() + delta_ticks;
-> 	write_cmp(exp);
-> 	return (read_cnt() - exp) > 0;
+> Tested on an UltraSPARC T4-1 (sun4v):
 > 
-> A nonzero return value means the expiry time was already reached
-> before the comparator write could take effect, so the interrupt may
-> never fire, and the caller retries with a new expiry:
+>   - tools/testing/selftests/seccomp/seccomp_bpf: 95 passed, 0 failed,
+>     16 skipped (uprobes and other optional features)
+>   - libseccomp with its pending SPARC support (libseccomp PR #471)
+>     passes its full suite, 5190 of 5190, including the live tests
+>     that require kernel SECCOMP_FILTER
+>   - docker containers run confined by the default profile, and a
+>     custom SCMP_ACT_ERRNO profile denies as expected
 > 
-> 	return tick.add_compare(delta_ticks) ? -ETIME : 0;
+> The libseccomp side is https://github.com/seccomp/libseccomp/pull/471,
+> and the tracking issue is https://github.com/sparclinux/issues/issues/11.
 > 
-> The check only fails the write when the counter has advanced past the
-> expiry time, but not when it is equal to it. In the equal case it is
-> unknown whether the comparator write took effect before or after the
-> counter reached the expiry value, so the compare match - and with it
-> the timer interrupt - may have been missed. add_compare() then
-> reports success, the caller does not retry, and the CPU is left with
-> no pending timer interrupt.
+> v2: drop the local regs-struct definition in the selftest in favour of
+>     PTRACE_GETREGS64/PTRACE_SETREGS64 and the uapi struct pt_regs
+>     (Kees Cook); patch 1 unchanged.
 > 
-> This results in stalled hrtimers and RCU stalls / hangs under load,
-> observed on SPARC S7-2 and T7-1 systems:
+> Stian Halseth (2):
+>   sparc64: add seccomp filter support
+>   selftests/seccomp: add sparc64 support
 > 
->     rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
->     rcu: rcu_sched kthread timer wakeup didn't happen for 5259 jiffies!
->     rcu:     Possible timer handling issue on cpu=100 timer-softirq=15
+>  arch/sparc/Kconfig                            |  2 +-
+>  arch/sparc/include/asm/seccomp.h              | 15 ++++++++
+>  arch/sparc/include/asm/syscall.h              | 11 +++---
+>  arch/sparc/kernel/entry.h                     |  2 +-
+>  arch/sparc/kernel/ptrace_64.c                 | 28 ++++++++++-----
+>  arch/sparc/kernel/syscalls.S                  | 28 +++++++++++----
+>  tools/testing/selftests/seccomp/seccomp_bpf.c | 36 ++++++++++++++++++++
+>  7 files changed, 99 insertions(+), 23 deletions(-)
 > 
-> Treat counter == expiry as failure as well, so the caller retries
-> with a new expiry time. After this change S7-2 and T7-1 systems no
-> longer hang.
-> 
-> Diagnosed-by: Thomas Gleixner <tglx@kernel.org>
-> Link: https://lore.kernel.org/all/87tssb6olo.ffs@tglx/
-> Link: https://lore.kernel.org/all/871pfcznw0.ffs@tglx/
-> Link: https://lore.kernel.org/all/20260519022421.5978-1-unixpro1970@gmail.com/
-> Signed-off-by: Tony Rodriguez <unixpro1970@gmail.com>
-> [stian: rewrote the changelog per review of v2, retested]
-> Signed-off-by: Stian Halseth <stian@itx.no>
-> ---
-> v3:
->  - rewrite the changelog: describe the write/readback ordering and the
->    direction of the equal-compare case per Thomas Gleixner's review
->    https://lore.kernel.org/all/878q9fxywc.ffs@tglx/
->    (the code change is identical to v2)
->  - add the Link: tags to the original debugging discussion
->  - picked up with Tony's agreement after v2 stalled
->    https://lore.kernel.org/all/10382506-3f57-4b33-8356-34f23fb5f153@gmail.com/
-> 
-> Tested on an UltraSPARC T4-1 (sun4v, stick variant): 9.1M hrtimer
-> reprograms in 90s across 32 threads with 10-500us expiries, no
-> stalls, no lost wakeups (worst oversleep 657us).
-> 
->  arch/sparc/kernel/time_64.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-> --- a/arch/sparc/kernel/time_64.c
-> +++ b/arch/sparc/kernel/time_64.c
-> @@ -146,7 +146,7 @@
->  			     : "=r" (new_tick));
->  	new_tick &= ~TICKCMP_IRQ_BIT;
->  
-> -	return ((long)(new_tick - (orig_tick+adj))) > 0L;
-> +	return ((long)(new_tick - (orig_tick+adj))) >= 0L;
->  }
->  
->  static unsigned long tick_add_tick(unsigned long adj)
-> @@ -277,7 +277,7 @@
->  			     : "=r" (new_tick));
->  	new_tick &= ~TICKCMP_IRQ_BIT;
->  
-> -	return ((long)(new_tick - (orig_tick+adj))) > 0L;
-> +	return ((long)(new_tick - (orig_tick+adj))) >= 0L;
->  }
->  
->  static unsigned long stick_get_frequency(void)
-> @@ -411,7 +411,7 @@
->  
->  	val2 = __hbird_read_stick() & ~TICKCMP_IRQ_BIT;
->  
-> -	return ((long)(val2 - val)) > 0L;
-> +	return ((long)(val2 - val)) >= 0L;
->  }
->  
->  static unsigned long hbtick_get_frequency(void)
-> --
-> 2.53.0
 
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+Looks good to me, and selftests runs fine for me as well. Thanks! We have a soon
+incoming patch set adding support for sparc32 as well on top of this.
 
-Picking this up to my for-next.
+Kees, are you ok with the selftest changes being taken through my tree?
 
-Thanks,
+Cheers,
 Andreas
 
