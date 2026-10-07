@@ -1,62 +1,64 @@
-Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7D93DB626
-	for <sparclinux@vger.kernel.org>; Wed,  7 Oct 2026 17:41:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D4BB3ED5BB
+	for <sparclinux@vger.kernel.org>; Wed,  7 Oct 2026 17:41:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791394906; cv=none; b=evPpPsjhojdMhFrAhqfWmuyKrd834pkEvglw8qUiDhcZgt309InWqgd7ABB3vwm9iLPSL/YsYQ8PuHFuk/GaCaAivFNmFfJVs4T/Ph6/1u3YYwrCdliT99ZsI1o9/eA2QhQMJGwZM92QEzLSpQ/JGDx5rEyfAdlCheilLznS1FI=
+	t=1791394907; cv=none; b=jO1Qe+dy5xjjSaG2qvyR669kR2K9MD7VDI3zGqMhOsvKWpIItKjM7aUMw5BRyZ7oOt06At1b+0fPjcG+IYDBslLSw4kBbkKqiqqk4c0h86A7jOJ8WRd/6s6+P2LLh0dPPG+r4Y5zN0YURcV1lPq2OY3X9A+HNKqYXKGf9feUWHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791394906; c=relaxed/simple;
-	bh=5LqR81PLeUYNmaQcMI8mEWAwJMm2KQwCGHVpdWIy9uw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=n/LE3RMpeBLzr8mN57XOIt3DQQZD9YFxD/2JlivvpQg5o1XRgjzSO83Z+pXn0R8dIKk5ZIaYatNsT51uob05/fk15dOBH67yd8V9anL74zdC+Gx0e7YGUFXEeAv91sq9S29UETHQ3L5UUU76sjGvUownB9em7gKR9PQRG0gxL6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AwQHQZOB; arc=none smtp.client-ip=209.85.208.53
+	s=arc-20240116; t=1791394907; c=relaxed/simple;
+	bh=Xk5HW6iHgeHF8sKpghX9kJ+ATqknktzLKDmcmvhn+s0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=nRfSUeaersAIED6RfFMIAGZSRZDXox3FgUWePPebhgYG6oOF3YelbRtFlH9Nx7Wy4dbomKeSsAZduUKEkkE/jd0C8B4yGb86ijfZzGggYfMMo7cqlSLwqmzpLBsqX7Ilhc+xnX78LJ+SWpHfxWPfemSWHto7nRQA9x9G+2k9pes=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nKSbkNEi; arc=none smtp.client-ip=209.85.218.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AwQHQZOB"
-Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-6af9befd04cso5934450a12.2
-        for <sparclinux@vger.kernel.org>; Wed, 07 Oct 2026 10:41:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nKSbkNEi"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c2e2007dd8bso334224866b.2
+        for <sparclinux@vger.kernel.org>; Wed, 07 Oct 2026 10:41:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791394902; x=1791999702; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=5GD/jKW9Q4eoAJdmj93S1XE6ucuAUkHSvVfI2BqPTc0=;
-        b=AwQHQZOBXoBIttL02VpdNkTtrt/B5LnGNhOD7rTcCMdADb7q8QpX55d2dgbCRPO8Ny
-         cDeXKsr7PHQZg/io8ROEA9vIGPxAAPWWDNw3fBLC6z8oOhT8hffkptC+zRqacPe/2/5l
-         U5gH+5qoTyjwIQ+/OZEO4yzkeNGAFeKSfb/mUUv1fn6wyn4FDjhbZTKkOg/9KO9UmGBX
-         vacg765BUxDIe7zcUZdX4r2QOJlWEfD2yXFkZumbJzW4CiXuXV8Xe7rz9a5zK1ZVu6MQ
-         JcL3uwCoTmrvvl4/dQud83Mf2Yxv1q2wqwzB0qfuiVbuahqAyJxn7HUX6lrVVJbKYsTf
-         KBmw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791394902; x=1791999702;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1791394903; x=1791999703; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=5GD/jKW9Q4eoAJdmj93S1XE6ucuAUkHSvVfI2BqPTc0=;
-        b=rfawJJdTygEIgw3T1qF+5LiDy0aBzGcSjtwxpzCnmiMypBzeBl0vkJjMkJOCMWOeSX
-         JQsAINm7ZecbRw7O133h4Zr4cMN2mnqrelSeb25YMP3uXJtXY8pR9WRc9NcSxxFaSC6v
-         kB/o3frhusBQ5QqTwlFkMRFWJXr0JTDYk6qJ9IIODwroizsrz9ctfwvPJwFyCD6nyJo4
-         Biv+kNa0+m+q9oMCzPoypmCxYDark9m4ES5WvkVp6cxAWXYq6/adtzZpNFWR5WKjf/wC
-         B+YsPYF2wRi5+6m4kcLj5DcZYvcpwmwulfh2dcirZEbb6XMIt2m4Dd4YxVvHa5KUg4No
-         mZ0Q==
-X-Forwarded-Encrypted: i=1; AKwUvByeVYP7zZzAj/uzXma/rm/8qc7f7IhzM1zUD4Q1MM74V9DNblfyvyIYpCHkRqUQutIqYv6aLWY88rrL@vger.kernel.org
-X-Gm-Message-State: AFq9FYKNUoGPBQmJ7hA2JRxL86My9FHc8wYrqYRUTm4XriaF2S+LI3c6
-	gDJb1geRvBW2ZCdei//0iTDRQJt6sOvPuvgN/g3p1O9+BOvCaiGL1Dsj
-X-Gm-Gg: AYBFou0CPLIiAxLp0NyjlbbLJiD17Ali6Byy3l1gVyNVkzzzFhBlLfj9GgQTJiwDrLp
-	KD1UNlImvafTsqGdZEoORGiZj+eLBq9pjszI3WclSt0CJvv3Q2yTl/coupx+WoupRa3RToFQShA
-	+jQRHKyRCgG/in898mvnFwMzOOYpUa80tRYo29jFOILkbGoe4qYgHpRSdZRxRPEE8b40BCT4m79
-	FcUBmj/h4FpezC90zFWa+KPBHXN/1QbNqK2UnQ8I8qEtTrMX+3milcvLl24K03iYCdWOuumlMDA
-	l0ISvcLQMsvF0nxBxkhEXtJYRqvdNZFuXIW98/wo/rxlkZfsEWX02JNAkHnO/iGkyij+uKViv7p
-	IE3Ky9CkezM5CI+zgYYWsTaDBMprDZ1kyGehkxqU94kY/QktgCk8sUKeK6VF6nrR/Qhmrt8a8B3
-	y906LTIb9y0G9Jkw3P4Y1UfwNS0ZMtBAEMQp4HksopiATjoEfBYe1hHlmupYHTtYtEiLdtMLiS4
-	eYsSOp7eUhPgJ7qWuR0/qWU+n3sR2iahNuRGoOghc9S+e1ivXs=
-X-Received: by 2002:a05:6402:44c8:b0:6ac:62aa:e3e3 with SMTP id 4fb4d7f45d1cf-6aff2953907mr2244503a12.29.1791394901814;
-        Wed, 07 Oct 2026 10:41:41 -0700 (PDT)
+        bh=VgwIZlTH0lKclnCFBSlWFJ3rfoI779fFQpV/lMz8kts=;
+        b=nKSbkNEiOPLK0GgBdIzbTT59ysTeYZ6ziL6+tHo8Kawx4L/Yl6aKk90y/lKk7Awxao
+         Bbri2ZzYvH6k8qzPC51xTI1DY2RmFgvRylQskk+Ly7qeiWblRta8d6/IFYa1kNL0pVEb
+         Ev5f4Qgiz88XZZ/UliN7RJEg0l2kHql7jOAkNKjkLvf5hLC0IA91RDlgay4xm9ZHmSxe
+         fi1IFMPo0rrieiBsmYx/tj2hkjh+wXFHShVrc3rzMLFlNdsTVMT/sRvWZL6M3dh3upCM
+         OsHLboRsTHogH5J3C+O1e2Gyr/lGk3xr0nCwoT4GTwz7CKaLRYj0ETbHuzViPOMbdziH
+         4Rog==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791394903; x=1791999703;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=VgwIZlTH0lKclnCFBSlWFJ3rfoI779fFQpV/lMz8kts=;
+        b=Px0bY7OFNDUbGDRnSdqLLbvGjJh2+USl5ApLUe+7vV8uLUysn+EpqM/nTfRSL54dgP
+         7O+DmpVQ2QkJBy8DWnrB+4OMu5vsqDvpdeMXpobq60U+Nge5+RJ3c9gbFazaxo4x3HT+
+         jrpD/fIwdh6bmPLVjv2T63NBoOMvk3NFrt7Boh5z0dqT85O/Ia7iO1cQeZ2HieauIsMr
+         mwfh/kky9/CCPPHPO+HG7vkmsdZxyuT80/uPHr1E4T6oFJPfhSU9De0iA2wn2258sqoc
+         DSGecZuDVCqnF56fjhsiSSTLQkmGXAqelOUrxUVAD3WzYRNYRfiUCY0iLNs0bvYZxe4T
+         SCRA==
+X-Forwarded-Encrypted: i=1; AKwUvBzVdkvjpyqKOoxGo9kWt5vsVn6TFciQLmHiLqsHIwfJN1W9vDhc5QsnhbBYs7BdtaFdLKPXNp3eypYx@vger.kernel.org
+X-Gm-Message-State: AFuF++kB/Cisw4Y6NcDszp6k+XW2LIKjoBJRt1jNmnPOUSvN2y0DSZy2
+	O1iId5xewUxYgdTP6wZYhDg6ztlI1Nl7jI4arW2ZG4KJV/M3O5UfaRKL
+X-Gm-Gg: AYBFou3a+0BxMk+pIiFRy+YeEgTrCuOILDOuCYYA7QUrp+8GeAu9g5RTXab0ixeoroH
+	aTzJmkYcmzyNYdxFv4lSZaUajBeBUrEFyqs9oLotBRCahXQtDD01f+oxL/lS18Ys9ng2jh7iHQH
+	+Ch6eEvco/bnmwLxJkbFLsSu4L3EnH3kOg3170F3Z81abe0TkwHsqTxWr7dHjguM9IbytMB2hc+
+	5N1yqPRDGOjdr/PEKbvcqNJruiLz0PV2rgefwuY/buyVJDOyJc4U28AHJ1/ll6CFDc8YJhOA7cs
+	IJJlXJ7nkylhkZ//RBhrAYm7Bwxmi5oFCPN/6c8bmH0ZNqfSygp0hicEhpmzVouYNn4nrYsQVx+
+	N87iOYcP25mj7YPuDCjSedP7g6ijZ0GH3mm+jThkkVzqjv1rUtkCYq/yBovg0078gdhtqSEoz9T
+	xUdCFgPlnMDcUs+K3biWNMkkEB6KaU+WPjK7j9PO9Ozh4/TcX3HmGBOMBmfTvz5fGyRtpJxEaU/
+	9K1w2QQdiXZ6xX0bloIkRAzdzkTp6w9LlfQp3qa
+X-Received: by 2002:a17:907:86a3:b0:c2d:f76e:f030 with SMTP id a640c23a62f3a-c317bd4c293mr310630066b.13.1791394902899;
+        Wed, 07 Oct 2026 10:41:42 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b009e80cd8sm356802a12.8.2026.10.07.10.41.40
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b009e80cd8sm356802a12.8.2026.10.07.10.41.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2026 10:41:41 -0700 (PDT)
+        Wed, 07 Oct 2026 10:41:42 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -64,10 +66,12 @@ Cc: sam@ravnborg.org,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linmag7@gmail.com
-Subject: [PATCH v5 0/6] sparc32: replace sp_banks with memblock
-Date: Wed,  7 Oct 2026 19:41:09 +0200
-Message-ID: <20261007174128.959307-1-linmag7@gmail.com>
+Subject: [PATCH v5 1/6] sparc32: use memblock when mapping the kernel
+Date: Wed,  7 Oct 2026 19:41:10 +0200
+Message-ID: <20261007174128.959307-2-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20261007174128.959307-1-linmag7@gmail.com>
+References: <20261007174128.959307-1-linmag7@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -76,101 +80,83 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Replace the sparc32-private sp_banks memory description with memblock.
-
-The first two patches convert the SRMMU consumers that already run after
-bootmem_init() has populated memblock. The third patch moves memblock
-population to prom_meminit() and applies the mem= limit there. Patch 4
-removes an unused address bitmap before patch 5 moves the early memory
-setup into setup_32.c. Patch 6 removes the now-unused sp_banks array.
-
-This work is based on an earlier eight-patch series by Sam Ravnborg.
-Patch 2 directly carries over Sam's memblock sizing conversion. The series
-has otherwise been substantially reorganized and reworked for the current
-kernel. It retains the sparc32 mem= command-line option by using
-memblock_enforce_memory_limit() and uses memblock's exclusive range-end
-semantics throughout.
-
-The series applies on top of Andreas Larsson's for-next branch at
-22a749706e3b (sparc64: decide the TSB huge-page window fixup before the
-bank switch), which includes the sparc32 relocation and Viking fixes.
-setup_memory() preserves the sun4m/sun4d PAGE_OFFSET probe and diagnostics
-from that branch, removing RAM below the mapped physical address using
-memblock instead of trimming sp_banks.
-
-Link: https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.com/T/#t
-
-The v1 series was boot tested on a Sun SPARCstation 20 with dual
-SuperSPARC-II CPUs (SM71).
-The v2 series was boot tested on a Sun SPARCstation 20 with dual
-ROSS HyperSPARC (RT626) CPUs.
-The v3 series was cross-compiled with the SPARCstation 20 and LEON
-configurations as well as boot tested on a Sun SPARCstation 20
-with dual ROSS HyperSPARC (RT626) CPUs.
-The v4 series was cross-compiled with the SPARCstation 20 SMP configuration
-and a sparc32_defconfig-derived LEON configuration, both with HIGHMEM
-enabled. Boot tested on a SPARCstation 20 SMP (ROSS).
-The v5 series was cross-compiled with the SPARCstation 20 SMP and LEON
-configurations, both with HIGHMEM enabled. Boot tested on a SPARCstation 20
-SMP (ROSS).
-
-Changes in v5:
-- Rebase onto Andreas Larsson's for-next branch, resolving the patch 5
-  conflict and preserving the updated phys_base handling, including the
-  sun4m/sun4d probe restriction and diagnostics, from the relocation fixes.
-- Retain Sam's Reviewed-by tags on all six patches.
-
-Changes in v4:
-- Use max_pfn in LEON's _pfn_valid() check, preserving the bounds of
-  last_valid_pfn instead of restricting the check to lowmem, as requested
-  by Andreas Larsson.
-- Correct the description: LEON systems can use highmem.
-- Carry Sam's Reviewed-by tag on patch 5; all six patches now retain his
-  review tags.
-- Rebase onto Linux 7.3-rc1 plus the three prerequisite patches; adjust
-  patch 6's context without changing its code changes.
-
-Changes in v3:
-- Add Sam's Reviewed-by tag to patch 4.
-- Initialize max_pfn in patch 5 and use it as the highmem zone limit.
-- Use PHYS_PFN() instead of open-coded PAGE_SHIFT conversions in patch 5.
-- Remove the obsolete highstart_pfn and highend_pfn declarations.
-- Use the generic PFN limit declarations from linux/memblock.h.
-- Document removal of the duplicate private HIGHMEM summary.
-
-Changes in v2:
-- Add Sam's Reviewed-by tags to patches 1-3 and 6. Patch 6 is the
-  unchanged source change from patch 5 in v1, renumbered by the new patch.
-- Drop the unused sparc_valid_addr_bitmap in a preparation patch.
-- Use for_each_mem_pfn_range() and the standard max_low_pfn variable in
-  the early memory setup. The change to LEON's PFN check made in v2 is
-  corrected in v4 to preserve its original bounds.
+memblock already contains the available memory ranges when map_kernel()
+runs. Iterate those ranges directly and remove the sp_banks-specific
+mapping helper. memblock range ends are exclusive, so use end - start as
+the range size.
 
 Suggested-by: Sam Ravnborg <sam@ravnborg.org>
-Link: https://lore.kernel.org/r/20260817153237.GA702187@ravnborg.org
-Link: https://lore.kernel.org/r/20260901214611.60560-1-linmag7@gmail.com
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+---
+ arch/sparc/mm/srmmu.c | 47 +++++++++++++++++++------------------------
+ 1 file changed, 21 insertions(+), 26 deletions(-)
 
-Magnus Lindholm (6):
-  sparc32: use memblock when mapping the kernel
-  sparc32: use memblock to find available system memory
-  sparc32: populate memblock from the PROM memory map
-  sparc32: drop unused valid address bitmap
-  sparc32: move early memory setup to setup_arch
-  sparc32: drop sp_banks
-
- arch/sparc/include/asm/highmem.h    |   3 -
- arch/sparc/include/asm/leon.h       |   2 +-
- arch/sparc/include/asm/page_32.h    |  16 ---
- arch/sparc/include/asm/pgtable_32.h |   3 +-
- arch/sparc/include/asm/pgtsrmmu.h   |   1 -
- arch/sparc/kernel/setup_32.c        | 117 ++++++++++---------
- arch/sparc/mm/init_32.c             | 167 +---------------------------
- arch/sparc/mm/leon_mm.c             |   1 +
- arch/sparc/mm/srmmu.c               |  69 ++++--------
- arch/sparc/prom/memory.c            |  51 ++-------
- 10 files changed, 103 insertions(+), 327 deletions(-)
-
-
-base-commit: 22a749706e3b0f857d5169a61f2f86a160eb9abd
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 9a74902ad181..110e2f248c60 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -817,39 +817,34 @@ static void __init do_large_mapping(unsigned long vaddr, unsigned long phys_base
+ 	*__nocache_fix(pgdp) = __pgd(big_pte);
+ }
+ 
+-/* Map sp_bank entry SP_ENTRY, starting at virtual address VBASE. */
+-static unsigned long __init map_spbank(unsigned long vbase, int sp_entry)
+-{
+-	unsigned long pstart = (sp_banks[sp_entry].base_addr & PGDIR_MASK);
+-	unsigned long vstart = (vbase & PGDIR_MASK);
+-	unsigned long vend = PGDIR_ALIGN(vbase + sp_banks[sp_entry].num_bytes);
+-	/* Map "low" memory only */
+-	const unsigned long min_vaddr = PAGE_OFFSET;
+-	const unsigned long max_vaddr = PAGE_OFFSET + SRMMU_MAXMEM;
+-
+-	if (vstart < min_vaddr || vstart >= max_vaddr)
+-		return vstart;
+-
+-	if (vend > max_vaddr || vend < min_vaddr)
+-		vend = max_vaddr;
+-
+-	while (vstart < vend) {
+-		do_large_mapping(vstart, pstart);
+-		vstart += PGDIR_SIZE; pstart += PGDIR_SIZE;
+-	}
+-	return vstart;
+-}
+-
+ static void __init map_kernel(void)
+ {
+-	int i;
++	phys_addr_t start, end;
++	u64 i;
+ 
+ 	if (phys_base > 0) {
+ 		do_large_mapping(PAGE_OFFSET, phys_base);
+ 	}
+ 
+-	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
+-		map_spbank((unsigned long)__va(sp_banks[i].base_addr), i);
++	for_each_mem_range(i, &start, &end) {
++		unsigned long vbase = (unsigned long)__va(start);
++		unsigned long pstart = start & PGDIR_MASK;
++		unsigned long vstart = vbase & PGDIR_MASK;
++		unsigned long vend = PGDIR_ALIGN(vbase + end - start);
++		const unsigned long min_vaddr = PAGE_OFFSET;
++		const unsigned long max_vaddr = PAGE_OFFSET + SRMMU_MAXMEM;
++
++		/* Map low memory only. */
++		if (vstart < min_vaddr || vstart >= max_vaddr)
++			continue;
++		if (vend > max_vaddr || vend < min_vaddr)
++			vend = max_vaddr;
++
++		while (vstart < vend) {
++			do_large_mapping(vstart, pstart);
++			vstart += PGDIR_SIZE;
++			pstart += PGDIR_SIZE;
++		}
+ 	}
+ }
+ 
 -- 
 2.43.0
+
