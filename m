@@ -1,61 +1,78 @@
-Received: from GV3P280CU013.outbound.protection.outlook.com (mail-swedencentralazon11020111.outbound.protection.outlook.com [52.101.75.111])
+Received: from MM0P280CU009.outbound.protection.outlook.com (mail-swedensouthazon11021119.outbound.protection.outlook.com [52.101.76.119])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2CC23D3CE3;
-	Thu,  8 Oct 2026 08:47:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.75.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEBE547CC96;
+	Thu,  8 Oct 2026 09:20:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.76.119
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791449233; cv=fail; b=mCuY8d+18VF3RxyPH0zLVcSIngdBCWfU/KuPaaGF96poRIXrnE7jMyB4QSIposTSCUe4X6awhxSgcabeIB8K1wAHTenJP6a57nuZbTWsgveP3NZ5GfBkhZScrvIN3DFkOQ5mcqOCjO/iOcNLW2GoLw14OiT8LPv63wYFScJhCZ0=
+	t=1791451234; cv=fail; b=VgKrDqLs+n7QhMn1/6lmWYxNZUH6uOA1h67/ScsWc4pr8pXFA+I3coTBKKgb0JGHsnSn5wsMeG1cMsiHo+56KC1fzyPTcMStL+e7dZjmP2q+0eNEZwxwS+hsB0rVYYwi4vzI7Nufy+vDD+v8GcI3vx3C7EUZS40lg+kpI8mmxB0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791449233; c=relaxed/simple;
-	bh=09j/SUWqt/Ymo1RPdatO0/cV7AwbkdYDaL6z4n7qWR8=;
+	s=arc-20240116; t=1791451234; c=relaxed/simple;
+	bh=wtvnzL/Kn0HI0k7QQxqspt8rc8xVg1usSxpWUAewq9U=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=QR7YQo8pj2bC8db883XW4G1r1Dp7FDPxXe4auT45mTgfgp854yNAMyrU6MAYXmwFbvtK7C4+YCGuSvwNBiFP8lB0doDodz59waEfZqWnFs5ML3GvcbV0F+320oy2Aevma34WQ/KGFTB1DRH0fr/ZtoxsE3LBxu9q21dBTSBm5QQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=uK5pJLHW; arc=fail smtp.client-ip=52.101.75.111
+	 Content-Type:MIME-Version; b=Tu+sVqz8WH5P3FdkywXKoLFCBcJcbL6HOi1zUWrXS+gFZPBYFbES+MWJXtccsSlc6XyMlLO+9RyAq0g54y95PnkJaSTZeetS1Zj6UEcGfhRqUnJnhY9lh3AgVObYhvf8apfHbR3GyKNbz0Se6m7Qvfj765jylDEI2rzqn2N3bhw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=INuFnRN8; arc=fail smtp.client-ip=52.101.76.119
 Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="uK5pJLHW"
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="INuFnRN8"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=CGdK4jquMTl6MbGRypwqpxQqKml1mAAlvel6KbZr88T8qKAMCG3uoknKdoQidPG2zSyGCvmwDqk9tEYtebuS6hdrZ7O+Fz902Tq1RJ1w+Ic1aI5yUrjrDvS6Q323pIeea4wGh6Qvzcege7vIPQ18L3ONNGnNeGpNhMLOb9aiYv+rUR/1tPyFT2u+XgK3NPk3DN4evW65HE5QUonqGYLB0LqwdGw1oZGh2jO6CAoctJ2cgckz9FfXr7ETUYYu+CHKrkUGAxfy3c+DQ9X7L6l/FPpP5kmyEsxcFG5f2qJ9RqqS60kQTdTuMog+Fa4IHCM8cqUIOy64lZxm+KPb3LXPIw==
+ b=wWYCaXyqJi4ZWPF6qGx6PPahhWGHET64lXKc47FBjG7p2ybmlaSw3rSqwcUE/w6495DBBi00Msx1Pad4CqMHlQlVM/qJIb43Q5vas6TnhUz2FdJfY3o6B2lwCryb05C+irQEX9CK9zOP4PCPwtgggpydvj9tiGz5gFS6IjMBwPI6bAh3/u5LsJOt+jF5jWza6nAnQNwx7cGLV5HlOz3lAZgm2cs+gOYRAbkzrFUX7971nLmSWo/Vtm1aZx2dKuksQVEeWsAvwcOHAAlC2BAH2vckuGtUVDeqtRen6KsZsXENvEjTjnymAkIWFVRdV6NxSVMk43cdlaX24bz4xvnycw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=lS5sC5gYfMP9m/TTRoeZC50eHiT7fxkIBClQfPB6WFs=;
- b=nBEV97MjwiejMIuTDg47UNyz3TD2pqGZnjof9X/6qGjtVjxqXZcKEwfKqG60WeQYjoBN4+pPrpYGQt942DRgdiLVDZqz4GHa5S8j/Ch8cuiLtUkJ6H9rC+f4lXoHD/SsxA/J142DbhNrDyOGzlA/vP+HS55Sk7eO/OKG3KRDylW2QxqY5F/h5pc94fs+0wIzSyGFFK9jIdznzVUeyzOVctlHqx7XqRNJhFgfUaJcby/gIZAM4efMwRDGoTYeJASztuuUyMSEuvLKAQ+/FM6C04LFdEAccsMybvmADdmGpEEco5MWQGPTw28GV27CGJMRjxmBAmMTSD6sbKxqbhtHPg==
+ bh=nChlZmlrvLWslmoho1/5aTc9r9JcLlsuI9ltEi1anog=;
+ b=EWlQpJR1KYsOvtPjPBUbxCi4oXSmjhItlg/0F5aiUdQvXqIqDoCkmDk8i9oy4P1UZrVAO50NbeQ2qOyuzNSviNYashd2A8Iio0MztmgBkxQtH8DrkGsak+6QUS5bTPwAObwhg6jYu7nAYFdphTRQNywuypUTYJT/jkCyrJ9wD715p9Nijg4YPW7QZCwJmjdD5lPzVTSrr5yeqR3JkVu02DcEbyuv9s+t7ECmIaAbzjrAq85WOSi50rlHBNq4tuWFkqH6xfbV3WD7KshbsfI9ufAaE4aHcWpvGYL5/aaP+AGRDHan8ZnF+AtHymELnX+JmRaqAwL9nnBZoN4FVLBWTA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
  dkim=pass header.d=gaisler.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=lS5sC5gYfMP9m/TTRoeZC50eHiT7fxkIBClQfPB6WFs=;
- b=uK5pJLHW9BTpynHBwzcyO+65zxPulv+JnafQDOOsvX9zHl0qj4S+vPdpBPmGZbMDfmjuyY2SemzsaV0zK6QSMWtVdR2O71OtYdIQTiO66mmHVyuso0r8vxjB0M5euvyEnUsa9O3NvfcTMr/GJgt5Zc6ynSmrpNs5xpfBKC9r4N7KjfC2OVFtx2zt7AYUHEORCevlDsgGmv74zFBjaHCdBvODEsjxbLYuZL1vD6xawGx5kYnZ0AsFIN9bLuAFOVLwBwXq7f3KM8+a6D2rBXRE5nuQHqNsqVQDbN/TIHHTMd++1FumXy/bxL05KN22vHYdOjU2nOIXNXF5RReaPU0x7A==
+ bh=nChlZmlrvLWslmoho1/5aTc9r9JcLlsuI9ltEi1anog=;
+ b=INuFnRN8HZTZOmhztmeE+FWSg1C4ii9V9BgUPQhgDJ8RNd+LGyBWi29rZlGXHvH4Z0GZukAbrrEUd0nzmbqjHKg79DgHWjVgSQ0gc4YaqpMmpuSQB1UaoPfWU4gZjqGOATUuLN7KeBByoJkt4/4D6lM0ztbm/o5DPbwPmtuEgBaTMP0iptchQ/0h5NNjuKKvSwcf3Zc7zJKLoWCgKKhqaM0rYpC5qZi9c5buiMvfMK5GC5lkxReIkyvtUoaD2PFCY5fggNJ/0O0fl7QtbwSDi8zqAFCsedpUclVBHil2D/RLwqNrbjWzjN+WTGlLd8zLfiUjSYM5paTFCQs0O7ZJJA==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=gaisler.com;
 Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2f::5)
- by MM0P280MB0631.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:14::6) with
+ by GVZP280MB1086.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:f5::15) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.17; Thu, 8 Oct
- 2026 08:47:00 +0000
+ 2026 09:20:17 +0000
 Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
  ([fe80::1f13:f10:e16b:7939]) by MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
  ([fe80::1f13:f10:e16b:7939%4]) with mapi id 15.21.0472.016; Thu, 8 Oct 2026
- 08:47:00 +0000
-Message-ID: <96053042-bc15-407f-872b-ad99a979eeb4@gaisler.com>
-Date: Thu, 8 Oct 2026 10:46:58 +0200
+ 09:20:17 +0000
+Message-ID: <c24fc419-7bee-4fe4-be12-9aa378d49af1@gaisler.com>
+Date: Thu, 8 Oct 2026 11:20:14 +0200
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 0/6] sparc32: replace sp_banks with memblock
-To: Magnus Lindholm <linmag7@gmail.com>, davem@davemloft.net
-Cc: sam@ravnborg.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261007174128.959307-1-linmag7@gmail.com>
+Subject: Re: [PATCH 8/8] mm: Drop pxd_ERROR()
+To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org
+Cc: samuel.holland@sifive.com, David Hildenbrand <david@kernel.org>,
+ Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
+ Lorenzo Stoakes <ljs@kernel.org>, Yoshinori Sato
+ <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
+ WANG Xuerui <kernel@xen0n.name>, linux-alpha@vger.kernel.org,
+ linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
+ linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+ loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+ linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-um@lists.infradead.org, linux-arch@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
+References: <20260831054331.625505-1-anshuman.khandual@arm.com>
+ <20260831054331.625505-9-anshuman.khandual@arm.com>
 Content-Language: en-US
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20261007174128.959307-1-linmag7@gmail.com>
+In-Reply-To: <20260831054331.625505-9-anshuman.khandual@arm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: OS6P279CA0006.NORP279.PROD.OUTLOOK.COM
- (2603:10a6:e10:30::7) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+X-ClientProxiedBy: BE1P281CA0084.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:b10:78::11) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
  (2603:10a6:190:2f::5)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -64,173 +81,141 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|MM0P280MB0631:EE_
-X-MS-Office365-Filtering-Correlation-Id: 926857b6-09c1-4447-80ac-08df2518b777
+X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|GVZP280MB1086:EE_
+X-MS-Office365-Filtering-Correlation-Id: 83646bf6-eeda-498e-e234-08df251d5e2c
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|366016|1800799024|56012099006|11063799006|10067099003|18002099003|22082099003|6133799003;
+	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|7416014|56012099006|4143699003|11063799006|10067099003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	t3qw2B/DPrKw6z/QNLIMrv8FMmOs6vZ9niqzwRvExFUAA00JTLci1WsxgYCvAw+0/aErMbURhgMG9S8/6Ya2VV6yvIASWavc8jF86idJM95uggWNHGUCp3JRHDFTGFws9JJ8yVC6oyYDxpfOb+L99Q7y2V1TmGkSByP7jtac1tdxumEysT8G09WxHAjSdgKRQKjZ32ZE2wRbgQDn0Nk/V6pJV62ggrx36aDsiWPJnBO2sjR85z22GHHWLYoF/arPOkY8YeCIGx8qS11S9d2nFdttRRXOTzIxWBnbiv9vzN90WPJ0NSEe/AVSYtjKaOBeZwCQZbnDwgyBDLQ88bzC+cjbv3z6dvnY2IgJzCSURdu+t9uu8xDTaS7cGNlFnDg6MqwNIAx/k5tAX2GGhLxMXeg2t19xD8Ri7AOkgUtxT94DsCeosYp0ifef2HhbbGn5cbSCZkBsGO1hG8hEM7sh1jU5PMjbMpKJxO3/HqtWg5xB5cz2nchFSWqtyKPGMbmE5ukvZqTz3FhxkTACtmfnb85Ke6W+hglyBDfH6Sjw+Jm8jEAPepYjwkM9HupgupyUA0VFWCYhBTgSC2oeh6NSkTLD/T7pYDtwHj/ES+fc984nXvbEx2XJI9gdWHIy3qa6
+	NC/qpKPoxiyUAIaFboaEX4yQJbeZ+vmHWvsqeQ5kGT8l7X9fcYqp9eBx5WDlxiVvR0L+48Kj8haTuGmN+ee23fz3oSbjQL0jDYSXa+8gvblI86UZZh4H3rc1iI63OnAtUl/Bc29s8THJfx5bFeLN0emAE2uZAHoMFHy90APywhP9Z8AjykGKVGL0t0c2nvMe3PsGovHxRyjauii+CaAg7FIwI2CS/HOCQfII4YJSPtE4I0SRp+V6w4RmvmGuzeCsqZSrWw82tVXGVw0nRXYEEjprr2bBi/k2erOTWX+ty2uFPb9NPtUYLqYJ9PHu+KDHk4Q/vhMUK3yGm+xZ+4lHwTIkrPlcoR9I3RrI4QZlUmJ2jnb0OByBCKTN6WeW3SPL7RUqYcLSHKhK7REebKrFE0KT0iexUictJu2Fnotxo5BB3aWPdM5djXsume4Uu/+LrZgrVePGx8jVXrq7s0fx3tDDa8Its7qN4Q+p0W/zrq+NcYe8ULVC7XRuOjK0vRn8IJYPzelV1nlbTqr5dOdn1l7Ngd1FRLzsM1A/gAKUICvJl7+yqtc729F6ZYuOPgHw3w2EZKjndGEXmpox7kfKl6X1HCrim3tkhks2tAZ3SktjZtPITkfZDdVBJ/FfT8XA3Aw4kbnTbKOULc4nRgbN9ElLoKLj3Wvavjhkq2aZS/c=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(366016)(1800799024)(56012099006)(11063799006)(10067099003)(18002099003)(22082099003)(6133799003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(7416014)(56012099006)(4143699003)(11063799006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?ZVhNMStIc2JnOTR5dk8wMFRQeGpFTVRJOG9kL3gzd1pnYzR5OUNBTzdaenZ2?=
- =?utf-8?B?c0YvMW5OOG1PNUpBckNRbXptYlRTMHJMOVZ6bVQydlNRNWJQMTRqU28vNllB?=
- =?utf-8?B?WStwTk1va3V5MWtSZ0Z0dFZCZ3NRMk9rUDhYOTJwM1QxMmR2VmxSWVRFQ2tR?=
- =?utf-8?B?Tm1EM00xV1d4ekJsRk14TWlFK1VORmQ4Nzc2cXhza2tnejJZY3dyZ3FEUDg0?=
- =?utf-8?B?RU1iSllVeHd2QW9iUzZ1RjV6S2hiY1BLVlRhUTBNVlIxWkZRb2lYY25mbnR6?=
- =?utf-8?B?Vkp2di9TUGJMMTF5NHNEMTg5ZFdCYlp2MnQwTytxb1I3b1hraGhmTHRLZ0or?=
- =?utf-8?B?cHN1V2M5N1ZLNzA3d2QvclhuRmJVVVdUeTBjUHQzTGt4aFdXOTNNQlBkZjhM?=
- =?utf-8?B?Ym5tYmdHbjEyRXh4ejF2cE5BMUREdDhuQ01UR3kvYjg1ck9rQ3pDL24wTnVF?=
- =?utf-8?B?aTlVdGFpb1pCdGJWa0RHZU93c29QdGRRSnE3Z3lFdjh3Tm13Z2tlOTlENWRh?=
- =?utf-8?B?UC9wbzJrUEpxV1FSOWs1UmtYOEdUY3FycndMUExVd09VT2pucFJ5K2xOUDdH?=
- =?utf-8?B?cmwzV3piYXlkaTJ1ZENhcytMbEhpNXo1NzlwNHFFV0pQckoxNGlwUjJnaWRS?=
- =?utf-8?B?aldPUERkVWhBUXZWMWJsbUpvaDczcVFXckFLcllZSjgrQU5GYThab0R4N0Rl?=
- =?utf-8?B?TnRLZzMySnhlWXZMcXJuK2o3SUVEeStyaUhSekpsbjVPWGR4aVZ2RHdPbXFq?=
- =?utf-8?B?MG5EZFBSK1BTMG9GeTg4R2F2VWc5bDVSTzY4UnE3M3FuRXllbUw4RU93Mzdm?=
- =?utf-8?B?NW1OeDk3TTJoZVRDNktkR3lNclVLaGRrUExjNW9YU3ZDS0orRVoyeXFKaUJL?=
- =?utf-8?B?Y3cyaWtXWFVHUW1ZT3VPUk1RS3FGWEtDSmg0dU1rODNjd1UvTHJTMW9hRlMr?=
- =?utf-8?B?akY4VFBsWjFIWTZMaFNVTmF4elgwaUZYenAzYTVPcllvbDFtTks1Vjd2YjE2?=
- =?utf-8?B?elpHSnpUV0hCRExSV01lb2UyR2RLU1htL0g0cnRxVGU0R01GVHdEVUx3Z2d6?=
- =?utf-8?B?ZXpzZUdtM3MvdnhBNi9Ram1BWTFaS1BsSFBLazBuZzYxdjVEUTFnSFRJcTFh?=
- =?utf-8?B?VXBLM1FXSU92L0dTY2JCK0hBdEVaMlVVMkl3MGVwam9YdUNsVE9uZ2psRkli?=
- =?utf-8?B?NUpzWkR2djI1VFZZdTlHdVRsVHpDOUtQOHZpb0xNbDg4ek5ZdHV2c20yYWJO?=
- =?utf-8?B?QWVENDd0cU5HTDVsczBFUWNZSW9pOS93Z1ZNb0oxaURPNjJ0a0xKdkw0azhS?=
- =?utf-8?B?elo5ejNibmMzSWZFSnlEWjFjZzRKN01ud2lZNXplektOZVQ1NUVVbkltVjly?=
- =?utf-8?B?dUZLVlZldllxL04zcEd0TndrZjQrOWJ5VW5tRGpsb21wSWFDOUtNVEJVQnpF?=
- =?utf-8?B?Z1UwMVV1bGZEazNxbzIyOWowOWpHWmhUSmZzR1NwUzJkeC9kTTFOQTVhcnIx?=
- =?utf-8?B?U3owdUs3ZnV3emJ3Z2VSTmt0WU9mYzFTUWRBdXZQMXd0MjBFbkxRcW1LakhY?=
- =?utf-8?B?QnNJNzVSZEZ4YjRtd1NlU2pFdE5LQ1QzS0xxRndQcHVBa1hWUE1rd1JTUlkw?=
- =?utf-8?B?ZzFUWGFxUXpXYkJYK212Wll2UC9HNmJmdnRPTUJXcW9mejhxRytMcGx1WlBB?=
- =?utf-8?B?VlVUNWxBeUVhR2RCd3lteE1Wd2tydDlIRXlhTldsaCs4V09rVnFsTTQzbWw4?=
- =?utf-8?B?YlY5N2RINTk3UE5DcmFJUk9HNyt3MGprSGdpNWRYMTNjZytzZ0dRSUtNM1Ez?=
- =?utf-8?B?bkJmNWtGNnFDY1pzYU9ockI0YlVlUGlCdWVPSXovWWJSb2Y3UUtNaVJTYlFW?=
- =?utf-8?B?ZjBCY04rSktQb3NYRVpZWHhJTFp4TEtLN0JYQTFYYytkZ2tidVVMSkxpWWdj?=
- =?utf-8?B?bHhrdEU1TkNicFRKNzdpb1daU29mbzJ1SlBnY29ObXU1YzA1enhZNldPT0o3?=
- =?utf-8?B?Z2xxR25MZGxFcHl4cTVYRDQyVU1JMGdUQzIxTHdFM1JacjJpdDJlMGRoejN3?=
- =?utf-8?B?bG02S0hsU0VhUGVjV25QeGNtRjlGQ0xzTVRtS2djZ2pwSVRZUURDS2dNbEln?=
- =?utf-8?B?YkxFdElVbkgrcHdhRTlCdXJ1SGNrajJacUpYSmk0WHErWE0wSWcrT2xiQmlp?=
- =?utf-8?B?N1N6WUxYa01ncWpDb2doU0VJeHp4UmxWbFVpangxUi9iOHJvYzFrdFhTYzV0?=
- =?utf-8?B?SXh0YVA5QnJQdTljSkRCdkFNOFE1RDlvSVYvdXM0a3hpaDVuM2pOd3hjck9C?=
- =?utf-8?B?VXBFcnN1MlpLZVFjQ2hWV1gvV2VzYk5ZbEMrWlJyTWZkQlB5bS9Mbi83ajlq?=
- =?utf-8?Q?mYXW18fMprNkugZI=3D?=
+	=?utf-8?B?Qnc4WTMwaVBFYzJqcExMa05CL2Z6N2lPTHJIWHJ6RkNtSjQ4YTA2YWhOWHNP?=
+ =?utf-8?B?c3h4MGNyVWpGRXAxYkV5a0VycHRMZmJ4cENISm5EeHF6NFR4U0grNHpzVFNw?=
+ =?utf-8?B?SitEcWRXSExhV2gvMW5hZUQweld3N2JSdVEyZGRDckVZMXZ5SlNzSklhcmk5?=
+ =?utf-8?B?VEt1RHBCbXFKb0lDcVBwRXdFOHRDUTNqemh4TFExRnJhM0ZzTTR2N0JVYlZ1?=
+ =?utf-8?B?VlA1YXo4RHIrbFRpa2QxeFM0VWJwVzQ1WGlaQmdBTFhnK1VLaHllLzdqSFNL?=
+ =?utf-8?B?WE9BWUlhaHJKZkNPd0kvZ2U5TEZTUWZHOHVtMTduYW1wdUlaTTIxeFFmU3Qw?=
+ =?utf-8?B?QWxmQ1NNSHgraGRsb1pkbmVORHF2eDF0bUFWTjBiNXFzZDczRDZ5R2xqdFRR?=
+ =?utf-8?B?Kzhmc3ArU25pcDQyUEpkekh5RmxrVnV0TFVCajVUN2czMGc4UGFqZEx2SEpl?=
+ =?utf-8?B?NVVVcjBRaFoxb24wVmZrTVBOR2FoYnRaUFpZSmxXcnVvV2w5TzEzaVgzODNh?=
+ =?utf-8?B?eWdPV0J4ekp4bkVpdGUxY2RLYTRSWGZqSUlwVHNRdlFyMVEwNTZLcVQ3dlh4?=
+ =?utf-8?B?UGdtOGNwb2g0d2MwQ0Y3ajRUVWRMc1dIbnRsVTFpSTJtclZzNFFPc255cnhQ?=
+ =?utf-8?B?TU5abWFjbjBrS25UU01WMzhjdU9VZTZuVUpaQ2xBSHBSOWlGejFWK3RLaldG?=
+ =?utf-8?B?RkJERVNnbHJnWFZTUkxTVjBlVTJ1d1JNdmkwUWhROHZtMUM2dlJJeHQyRmdl?=
+ =?utf-8?B?UW5MU0cySjFHWUpkZ1RQSTA3SE82Rlczb1hqakhiVi80U3cxT2swK0t5OVcw?=
+ =?utf-8?B?UjkyekRsR0JuZTk3QWZuR0RwYjV1SUNUbnNwaFBOQjA1TEdKWFRRRTNNNyt0?=
+ =?utf-8?B?Y2YrTmZralIvNllYNG1aKzRONTJrZWYvTFFBbjg1S0lEcmZ3amo4UVMwWTZ6?=
+ =?utf-8?B?Sm1VZXc4aStLMWx4dE9PWElQZlg4eXhaRGMwcHlVWFlJNE53NXh2ejl3NVZH?=
+ =?utf-8?B?Y0dyaVc0bm9xVXpDV00ySWtnT1AzSElIQTJieHlKTys2a1ZpRDdUVElIKzBw?=
+ =?utf-8?B?Yk9sRWlTQTlKeUZpQUYydnIvazY3ZjVBYXkzZXdZWjAxRlYrYXAxKy9PU2gr?=
+ =?utf-8?B?UFo1U0hFSGRzUUZwYmFmalNmVTBrNHVmTmVSVVEwUGFxL0VlWHVCL3dIMFhN?=
+ =?utf-8?B?ajNyNDJwblBVbjRDR1dvVHpuNEx6VUk5MldTY0ptMEgrNUZVUlRCd3kzMlB6?=
+ =?utf-8?B?bnNBb1lya3pVd2g1YzJwVFpHNzUrRlJEVHdyMGg0dDBQck9zL0w0SGRjcC9S?=
+ =?utf-8?B?NHM3L0RyU3hIaWl6QnFzbEcwZ3NwWG1uc0FsOGg4citQTTFRTWdKdEdORi9R?=
+ =?utf-8?B?WEwySCtxUDBxYkRmMzhmNHVSVWR5SjgzeEt1WFN3U3lVKzdZY2k2UzBURmda?=
+ =?utf-8?B?YXUvTFo3c0EvTVNnR0dieTh2VzRrWGJCY0prTWc0Z04vWXpJbFFVcjZLc3hF?=
+ =?utf-8?B?WDRBbUFkbzBTMzMzcnIxTGlJTW9QOW1zVU5HSkc4NFNkLzczV3hYTUtzcjRY?=
+ =?utf-8?B?WitCZ1g3SzNjbXFONGNDWEcxWlUyR0piM2p6dThwQlREaXFzWDhoYlc5Unlk?=
+ =?utf-8?B?dWpjRk00c25DQW9ITEVTU0ZITDRJSm50MWZoeGNFRjlVZzlqZXBxVmIwbnFL?=
+ =?utf-8?B?bnRRakpsRC82V3R4ZzBRbGl0aEtBM1A0UlduY2xCUUp5Q05VVXNpNFgxM0tS?=
+ =?utf-8?B?U0loRGpFckpUUElXTkRSV01VV3hXN3F0QXBOMjRxWUJYY0V6QTdEZThMZDEv?=
+ =?utf-8?B?SU04Y0VqU21ydmNCS3VMOXNQK2psemZXRHk4UDZPOFpvcmV6eFlndi9ocm9v?=
+ =?utf-8?B?eXRVampFMmZvNVBQSCsxVGxkbXVCcENac0RGOXhnMldaVmhaelhlcXB0dnB3?=
+ =?utf-8?B?RFdack1RQVdGVU94RWxQQXBsdlNrd0pTRkVneVFVRXZybnM0ZUVLMHYyRDVC?=
+ =?utf-8?B?UkVKb0h2Qk13VVNiOXNkUWs1RHpKd2UvU2lRVlgvRnU5VlJ3ell6czZPN1Bk?=
+ =?utf-8?B?d2VHdDZVUTdaYWIrYkdmYXFmNktSQjhyNWVlRHNOZ2c3RTJyL3puSm40V2lQ?=
+ =?utf-8?B?RnJwQjhzRnp0bUZVeWx0bUxVN0E3NlJadU9oOGFDOGNRbFVjdzRxNjl4ek8v?=
+ =?utf-8?B?UzFka04xY01xUEV4TmRoc29xUEcydDM1Z05kNWhmMjl3OVhHTnJDUVJ5WGth?=
+ =?utf-8?B?cFFId1A1RHJEbitNS012U2x6NTcwM0gvbk9rekpFYVZZbG4zYS84elM5b2lY?=
+ =?utf-8?B?d3N0d0dNS3h1RWRYR0NLUmFaeVVVWlByVURvc3JuTFh1SHp2SkxtSVpGZUE5?=
+ =?utf-8?Q?yjjhfEohdeTOoAqE=3D?=
 X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 926857b6-09c1-4447-80ac-08df2518b777
+X-MS-Exchange-CrossTenant-Network-Message-Id: 83646bf6-eeda-498e-e234-08df251d5e2c
 X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Oct 2026 08:46:59.9203
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Oct 2026 09:20:17.5038
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8PD98MN7Ojg52A92PRrYHdU04fshTfKiFN9rKIw1M6y+QcggnChn+o7sd51beHzzFp28t8xTGT0ItX9+Cqob+3NdEQVaTv0uTdZLvclC354=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MM0P280MB0631
+X-MS-Exchange-CrossTenant-UserPrincipalName: 5BZfB4EAaSFJ84qYftmRVMohK/eymk8QLHXJzzFm4elUHya77EOOlIY25xck2qu/+rvHfHMgpADg5257wP54q4lxf3y+8uFBxp0svqv6SU8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVZP280MB1086
 
-On 2026-10-07 19:41, Magnus Lindholm wrote:
-> Replace the sparc32-private sp_banks memory description with memblock.
+On 2026-08-31 07:43, Anshuman Khandual wrote:
+> There are no more users left for any pxd_ERROR() either in generic MM or in
+> the platform MM. Hence all these platform macros along with their generic
+> fallback could be dropped across the tree.
 > 
-> The first two patches convert the SRMMU consumers that already run after
-> bootmem_init() has populated memblock. The third patch moves memblock
-> population to prom_meminit() and applies the mem= limit there. Patch 4
-> removes an unused address bitmap before patch 5 moves the early memory
-> setup into setup_32.c. Patch 6 removes the now-unused sp_banks array.
-> 
-> This work is based on an earlier eight-patch series by Sam Ravnborg.
-> Patch 2 directly carries over Sam's memblock sizing conversion. The series
-> has otherwise been substantially reorganized and reworked for the current
-> kernel. It retains the sparc32 mem= command-line option by using
-> memblock_enforce_memory_limit() and uses memblock's exclusive range-end
-> semantics throughout.
-> 
-> The series applies on top of Andreas Larsson's for-next branch at
-> 22a749706e3b (sparc64: decide the TSB huge-page window fixup before the
-> bank switch), which includes the sparc32 relocation and Viking fixes.
-> setup_memory() preserves the sun4m/sun4d PAGE_OFFSET probe and diagnostics
-> from that branch, removing RAM below the mapped physical address using
-> memblock instead of trimming sp_banks.
-> 
-> Link: https://lore.kernel.org/sparclinux/20260816075141.3489194-1-linmag7@gmail.com/T/#t
-> 
-> The v1 series was boot tested on a Sun SPARCstation 20 with dual
-> SuperSPARC-II CPUs (SM71).
-> The v2 series was boot tested on a Sun SPARCstation 20 with dual
-> ROSS HyperSPARC (RT626) CPUs.
-> The v3 series was cross-compiled with the SPARCstation 20 and LEON
-> configurations as well as boot tested on a Sun SPARCstation 20
-> with dual ROSS HyperSPARC (RT626) CPUs.
-> The v4 series was cross-compiled with the SPARCstation 20 SMP configuration
-> and a sparc32_defconfig-derived LEON configuration, both with HIGHMEM
-> enabled. Boot tested on a SPARCstation 20 SMP (ROSS).
-> The v5 series was cross-compiled with the SPARCstation 20 SMP and LEON
-> configurations, both with HIGHMEM enabled. Boot tested on a SPARCstation 20
-> SMP (ROSS).
-> 
-> Changes in v5:
-> - Rebase onto Andreas Larsson's for-next branch, resolving the patch 5
->   conflict and preserving the updated phys_base handling, including the
->   sun4m/sun4d probe restriction and diagnostics, from the relocation fixes.
-> - Retain Sam's Reviewed-by tags on all six patches.
-> 
-> Changes in v4:
-> - Use max_pfn in LEON's _pfn_valid() check, preserving the bounds of
->   last_valid_pfn instead of restricting the check to lowmem, as requested
->   by Andreas Larsson.
-> - Correct the description: LEON systems can use highmem.
-> - Carry Sam's Reviewed-by tag on patch 5; all six patches now retain his
->   review tags.
-> - Rebase onto Linux 7.3-rc1 plus the three prerequisite patches; adjust
->   patch 6's context without changing its code changes.
-> 
-> Changes in v3:
-> - Add Sam's Reviewed-by tag to patch 4.
-> - Initialize max_pfn in patch 5 and use it as the highmem zone limit.
-> - Use PHYS_PFN() instead of open-coded PAGE_SHIFT conversions in patch 5.
-> - Remove the obsolete highstart_pfn and highend_pfn declarations.
-> - Use the generic PFN limit declarations from linux/memblock.h.
-> - Document removal of the duplicate private HIGHMEM summary.
-> 
-> Changes in v2:
-> - Add Sam's Reviewed-by tags to patches 1-3 and 6. Patch 6 is the
->   unchanged source change from patch 5 in v1, renumbered by the new patch.
-> - Drop the unused sparc_valid_addr_bitmap in a preparation patch.
-> - Use for_each_mem_pfn_range() and the standard max_low_pfn variable in
->   the early memory setup. The change to LEON's PFN check made in v2 is
->   corrected in v4 to preserve its original bounds.
-> 
-> Suggested-by: Sam Ravnborg <sam@ravnborg.org>
-> Link: https://lore.kernel.org/r/20260817153237.GA702187@ravnborg.org
-> Link: https://lore.kernel.org/r/20260901214611.60560-1-linmag7@gmail.com
-> 
-> Magnus Lindholm (6):
->   sparc32: use memblock when mapping the kernel
->   sparc32: use memblock to find available system memory
->   sparc32: populate memblock from the PROM memory map
->   sparc32: drop unused valid address bitmap
->   sparc32: move early memory setup to setup_arch
->   sparc32: drop sp_banks
-> 
->  arch/sparc/include/asm/highmem.h    |   3 -
->  arch/sparc/include/asm/leon.h       |   2 +-
->  arch/sparc/include/asm/page_32.h    |  16 ---
->  arch/sparc/include/asm/pgtable_32.h |   3 +-
->  arch/sparc/include/asm/pgtsrmmu.h   |   1 -
->  arch/sparc/kernel/setup_32.c        | 117 ++++++++++---------
->  arch/sparc/mm/init_32.c             | 167 +---------------------------
->  arch/sparc/mm/leon_mm.c             |   1 +
->  arch/sparc/mm/srmmu.c               |  69 ++++--------
->  arch/sparc/prom/memory.c            |  51 ++-------
->  10 files changed, 103 insertions(+), 327 deletions(-)
-> 
-> 
-> base-commit: 22a749706e3b0f857d5169a61f2f86a160eb9abd
+> Cc: linux-alpha@vger.kernel.org
+> Cc: linux-snps-arc@lists.infradead.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-csky@vger.kernel.org
+> Cc: linux-hexagon@vger.kernel.org
+> Cc: loongarch@lists.linux.dev
+> Cc: linux-m68k@lists.linux-m68k.org
+> Cc: linux-mips@vger.kernel.org
+> Cc: linux-openrisc@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linuxppc-dev@lists.ozlabs.org
+> Cc: linux-riscv@lists.infradead.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: linux-sh@vger.kernel.org
+> Cc: sparclinux@vger.kernel.org
+> Cc: linux-um@lists.infradead.org
+> Cc: linux-arch@vger.kernel.org
+> Cc: linux-mm@kvack.org
+> Cc: linux-kernel@vger.kernel.org
+> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
+> Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+> Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+...>  /*
+>   * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
+>   * are !pte_none() && !pte_present().
+> diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+> index f89b1250661d..5a5f54a090f5 100644
+> --- a/arch/sparc/include/asm/pgtable_32.h
+> +++ b/arch/sparc/include/asm/pgtable_32.h
+> @@ -40,9 +40,6 @@ void load_mmu(void);
+>  unsigned long calc_highpages(void);
+>  unsigned long __init bootmem_init(unsigned long *pages_avail);
+>  
+> -#define pte_ERROR(e)   __builtin_trap()
+> -#define pmd_ERROR(e)   __builtin_trap()
+> -#define pgd_ERROR(e)   __builtin_trap()
+>  
+>  #define PTRS_PER_PTE    	64
+>  #define PTRS_PER_PMD    	64
+> diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+> index 0837ebbc5dce..44d1333065a6 100644
+> --- a/arch/sparc/include/asm/pgtable_64.h
+> +++ b/arch/sparc/include/asm/pgtable_64.h
+> @@ -96,16 +96,6 @@ bool kern_addr_valid(unsigned long addr);
+>  #define PTRS_PER_PUD	(1UL << PUD_BITS)
+>  #define PTRS_PER_PGD	(1UL << PGDIR_BITS)
+>  
+> -#define pmd_ERROR(e)							\
+> -	pr_err("%s:%d: bad pmd %p(%016lx) seen at (%pS)\n",		\
+> -	       __FILE__, __LINE__, &(e), pmd_val(e), __builtin_return_address(0))
+> -#define pud_ERROR(e)							\
+> -	pr_err("%s:%d: bad pud %p(%016lx) seen at (%pS)\n",		\
+> -	       __FILE__, __LINE__, &(e), pud_val(e), __builtin_return_address(0))
+> -#define pgd_ERROR(e)							\
+> -	pr_err("%s:%d: bad pgd %p(%016lx) seen at (%pS)\n",		\
+> -	       __FILE__, __LINE__, &(e), pgd_val(e), __builtin_return_address(0))
+> -
+>  #endif /* !(__ASSEMBLER__) */
 
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
-Tested-by: Andreas Larsson <andreas@gaisler.com>
+Perhaps a bit of a pity to lose the printing of the address of the pxd
+that a number of architectures did before this series, but i have no
+strong opinion.
 
-Picking this up to my for-next.
+Acked-by: Andreas Larsson <andreas@gaisler.com> # sparc
 
-Thanks,
+Cheers,
 Andreas
 
