@@ -1,128 +1,119 @@
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
+Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 357AD4F3EC0
-	for <sparclinux@vger.kernel.org>; Thu,  8 Oct 2026 18:23:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.49
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791483806; cv=pass; b=uxMSYgAeh2XyVtiyOfHrGlVVoAFHIu/Ro+gQaE2uQmZMMIkAYeCXWEIDMSJJ7yRlQ/z6X3i2U0CUR5VpQQltXgi5ZlktEekNxJljs2xV2XuwrBi2vpgBpKPBYbenbCkV4TqvFdL2yr1mXfCdic1fYOfRP82mnQzFjuVqT3uVmns=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791483806; c=relaxed/simple;
-	bh=Of40/D+2q7EuNroFiUgmRpSmrGdz3Ew/fHYx5vQm+dc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Q/VOMNfA+vU5pSZUOzSfyZBqE7qAOXoy/Y31VGRtEfFqbgJRW16AkTfoscUmunD2py3fOROn3mpuggzggZ7JtrF+vhEwa76RrQNt6d6Thpu3sZITbFO+SDjR2GLLc+6t/HbWVDCpMq9y3LFZQkJZrij+CbtryeTAb3v/WLI+PG4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TzWY/B4K; arc=pass smtp.client-ip=209.85.208.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8073D3B8409
+	for <sparclinux@vger.kernel.org>; Thu,  8 Oct 2026 19:17:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791487036; cv=none; b=B/5nZ7fGMP2oySY52gcf+HQlimDOZMYkm86hLNzLPDFqpaHDuUsSScWF8mxhcpHWcHMG3og2rS0JJPV3qF8Tt8KeU1kZMVpu44ST3F85XdB2Z1NN5lJEYLD+GCmk/Lm9EgCdME28nl7/iwjwL8d5tFgniw+4qC6YEjeIRKkmaA8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791487036; c=relaxed/simple;
+	bh=41LTbWVjpTvo4M1E4NbCgmRFCizGUSRpVOrbjrIjkRY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ll969zEugCGkPioQ5iDckC/CbYkmXjPIRatHpbH3KdXzlp5BeO+zjGROpiFDPAlKRxbQ/m36EtPpXRqqt/gwK24mbt84iwxefe7QOjixIlMHhM7NXZypr2n7EQgWqraaCDnxt5zO+emeGvjjIZEvymmaOH2gbLqkNIDKSsCxKhk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=W37UHwyy; arc=none smtp.client-ip=209.85.219.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TzWY/B4K"
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-6a9bd4db6ccso7458943a12.0
-        for <sparclinux@vger.kernel.org>; Thu, 08 Oct 2026 11:23:23 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791483802; cv=none;
-        d=google.com; s=arc-20260327;
-        b=HZpobfeTiyqxNFOJmChCTxWTK4R+REoWoVFIrOCWvz5i7E5J7iC6P+LKjwo7bW5Nbv
-         RotTwmEmDbVHDqjgGpiXuvPGMaIFa+PiTRm4yZg91+xVKOC3y/i2P53iYj9VynYXyvs+
-         847tuWU+092tGTYrKsWmCGExsAm3sT3Qs6xQMtCKhPrus7/drfdUArCapyRuMzscbbvj
-         tRg0xgQzWBI6+vUJN4E5RusmJPNEvAMVcK0g15DJvK1PgCnEtnWM1igyCaDzvrxgadnL
-         hh+6ogSp+qo8XDkiZBxmwNU5L2SoHg38TmW9aMb3HQjW7niwewsqsh084+qC8cUIC5dj
-         Rzeg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=5qGB3yTtCVZXrcHj1e2uK63lVVVjDF5LreVlgkZI4Tg=;
-        fh=dteoxZ+/4XMmELrlPlg/FlQC2vj68EXU/fxFn0SVx1o=;
-        b=qsNl+1DvEqVV4hQb9JsIZLiJR1M7/6DcAK80+zQiQswTSKaE/H0GrYF4KKi1wXb9CD
-         z3+Ky2qqKCjbc3iUqVBnMiHrEjCfqrtV+JsY4x3yn2ZI+9B0Tyq6aCVbrt4oY3yxYjDg
-         3laG/6Tok5zJwSpGPuJcprGy5e7U7D18ZJhGxsUZrPvFgKFZarsPFUT1y5WNp0/bOfe/
-         LYwOyXQVPGFyFE2RpR4LaPGx3iAM+nzQ4rdvwMxOXg0ZOF6yAEP8wlU72fuHH/ucX1bQ
-         p7T1Nxbxi7DfDxBqJlGfFROuCP74ZcFwi2Dfg5xVT135xXFH2MugpqeEZOP+Exh08rGD
-         LHSg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W37UHwyy"
+Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-919abb3335fso13848316d6.0
+        for <sparclinux@vger.kernel.org>; Thu, 08 Oct 2026 12:17:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791483802; x=1792088602; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=5qGB3yTtCVZXrcHj1e2uK63lVVVjDF5LreVlgkZI4Tg=;
-        b=TzWY/B4KvWsgzmObIAZmNHbTrlXsmAG6OR+fL7vmQBtxa3eXDUgmkt4RfyarQtszHJ
-         UjWcfVm7WlufvVCxuvOCQgYjpHSeApakemW7RuVduFZRBvyFugP0p3+T08A4Pxk5PeO/
-         Gzd5mc/bQxmxqsGT5GYo+Ggl1/ncJ7OqOT7phm+NCq6TkZjCsW2igzexmYNsEngLsMoN
-         bhsfBD22/IS/MEz9AAAHKFU6McUVaZLyR11/IpDFV/edUSdBD979ca1Lcd/3Dei63ubJ
-         4b1EbPaiZWc7SJEOUHm3CS16lqb+22/BX/kYv5n48BIrfhlznedte4iiBOvMve+91vmQ
-         VuqA==
+        d=gmail.com; s=20251104; t=1791487034; x=1792091834; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=WUu+rVVcA0+9TqEMKJogDIMf7RBcjtzwW2+KKNlVxXE=;
+        b=W37UHwyyO9QRs5wjYNWroqMNExP8R9dbTpNj2zvJhaVCHnBxwoXQxxqufz1+9VeP3/
+         HCnWy0V11RelkewyfIiOfV5HesTK26DNzqk/75tsWJKwKNeZTBMiIpnZw1l7farGtMJy
+         PUWwtEk2sGJLsU9ONpgt8Gbt7ljtduVk/csdk5m+mlisFk6qIil6nZ8M8JGSkGJFdMFa
+         4cZ++6mt3Qf/RE3z7Bx6/81VmorpHxh2Kkgo/5nB2atIQwONJY5wGdvi+hvtnZ9opiAb
+         plSVuVVa6/7nj92eExc/LF/kDItko0sfq9tLHiSTZhfdpOIwnQ9FU58pfYEPbxYqNaal
+         p+Mw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791483802; x=1792088602;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5qGB3yTtCVZXrcHj1e2uK63lVVVjDF5LreVlgkZI4Tg=;
-        b=2paZUn14gOcifOXOWpY/s9L3RBOfhpvnjx5ERNsQFn9tqOc0kZ6MTjoxy8ALOJsFkG
-         /qaw7Auogavc0CYD87iMfvVIFq6Cd4eruluXgwZRVMotggcZCtrP+CFb5oQBQN2RxVdS
-         1I1JgDDUe9+syxcVfVC0qJnAzPCcqNxAQ5XCfjhBPJrYj3N4kzuMIPTE8uGZ+5TBZ5iS
-         PJPq5ZJ+IA95ncJekRBV8FKlkDww6XpzJzkmcFAL3BP1+li/3pz3bmFMBNiLxFHuqvJu
-         BZgXnJ7GftMCD1yFY1fuSlo/Z0+Rge/yeFco2Q5PCoSe5lXO622I2bOKz3rPMy7GDG8b
-         yiqw==
-X-Gm-Message-State: AFq9FYIo00+T9p3H5HyqJMd4rDOUcGvv4MglUDc3JlaBEfdm7XQC/oi9
-	OVOLw0XJkWz/Ny5VGC1HcY2LG9K57i+s2xlBcKjCaurp55bVH+zNHFoyQ95mTu8yL41Lkn9riBu
-	OR3Df866W4jjBDISUJ0W7JJFpCSK2aVc=
-X-Gm-Gg: AYBFou25KoWkVY6XW5QpjiCa7/1tq0JDDZRtzLVrkOxLdr4//y/uUgnnoS6R5LSNbQ1
-	emqJxewKJh1NOEHykn4R81TWR8avmZJRh6xZrwqb2sSF2pDnwb+eVmNs2dSWmYvr2cO9D4YGSxP
-	0wNoUm0WdRPAAP2vVdHuM+6yFOhTe4pSpJXiX3VOTBxNAOKgRjeQ/m4LL+TEhTSvwvVjLlMYWsw
-	qPa1Yd9TFGfa2evLG6dBv0Vmn2bOM8JpH4WfHCsCr+9zwWIzSQzRNbK908x2v1z5LBxcYnIHove
-	9ool8HU9rD2LBP5ljztIIxOpdykgLzQxjYNDKMesGhuDxjEgbKeMzimKUCFyLY6qDTkzfiuOPBM
-	sSl/2Ll5luOF6slNuoiwbMN4qJOfsotpUZwqSzAjGhA==
-X-Received: by 2002:a05:6402:2348:b0:6ac:b3e7:2357 with SMTP id
- 4fb4d7f45d1cf-6aff28fc46cmr6370997a12.21.1791483802293; Thu, 08 Oct 2026
- 11:23:22 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1791487034; x=1792091834;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=WUu+rVVcA0+9TqEMKJogDIMf7RBcjtzwW2+KKNlVxXE=;
+        b=Wmo/WF9jB2v3RXYQHTpxvdBLPAhS2yBYXRNFi+eUljOWYIYqJ177+3W3RXr2Nynt04
+         MqqaWtmmjQm/gJapsHnKA8jzIszrN/mYRqEpzJCH6DXIMGJGgmpH/I7TlCecNf99SDo9
+         x0YMOBtunfc/M7hJtcOHqdYrXKgvm9gcJNKqIck/9zgIVLYiw73JrHRrzBkyFRMJqc1G
+         Gf+GJbYxiMXbf8b0WRlD1xZephRPv0t8/iWzn+rrqaiYuBkQFAbpxNGCj8SswuNdKdF8
+         MlUetWi/tWM7VL7lWssnt1PMEC2Y4MbKGsqNgHdoeUmzUP4h/PlXOlGJLenLC/tiywq3
+         vIlw==
+X-Gm-Message-State: AFq9FYLYcCz0K64Y109JraTAzHzqO8q84X2aOMqy1kAUykNXGHz7QYy0
+	HNrLxRBZNROJhc2j/0GbUfL1TAjHvIrA7EMcDCsbjMbaqCWZbrPN0TWM/UqXFNls
+X-Gm-Gg: AYBFou1aJXXuUmtDXAALKCDxVbCq62iu5icfCMuQtKKyeKc1xyZxz38kKgQi6G/SP80
+	7QBD9PvGrNiSFzLsYnFG6J9xqAMk7gvTga+d/l/8ooMxU6blaNjty8a74GW1Ku5zyLZcldaOtGJ
+	pgzguRmlvZnCJCJd0YRXsFgP8R564hl3jmIJRfVbwXHHbV6oCTuZnCdpKlY80muv4N4vldxBSUG
+	5rnpGNC7AR07P1TtdlGzWu7i9cBHHP9jpBbDYSiC3aX0DudLBL6zOg9oHRnPesGVqu35lgm3Zz+
+	Zw1HQy+O6ncm2oynZeHEvSEkfaBEHs//tH0ZvkBil/mR2x8YzlYMyE6MMBqaFsh29qx8PB7Bhzk
+	RF4GGMNY2sdxbawtLZ7Papa4lwhBxkAnTy1uXDuuRt3zZf79pcxbOiqJyYNtB5H6viq8DBmtYBr
+	I290YExd9ph1mfiAcqCatyjIzP0RpfvbyHldY/V9Vxmy3XGYa3wRSWeJ0F1L6UfyONrVqKW8KiQ
+	PnDoJMAT1U3gMXbxsOYOwrV67XHLvRDy07k+7zCHA7HxFJDcj4OK4Y1s7yh4ics8gDkoXoH62EU
+	tGsf1AXbben1fITKjeJMY45SppsRV3m69Tq6xdhmjeGX7znW
+X-Received: by 2002:ad4:5c6f:0:b0:919:952d:f5b8 with SMTP id 6a1803df08f44-91b53c8beedmr229366d6.50.1791487034251;
+        Thu, 08 Oct 2026 12:17:14 -0700 (PDT)
+Received: from ryzen.lan ([2601:644:8000:7a86::e34])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91b5199b032sm4046936d6.4.2026.10.08.12.17.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 08 Oct 2026 12:17:13 -0700 (PDT)
+From: Rosen Penev <rosenp@gmail.com>
+To: sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>,
+	linux-kernel@vger.kernel.org (open list),
+	llvm@lists.linux.dev (open list:CLANG/LLVM BUILD SUPPORT:Keyword:\b(?i:clang|llvm)\b)
+Subject: [PATCH v2] sparc64: Define p4d_page() instead of stubbing it to NULL
+Date: Thu,  8 Oct 2026 12:17:11 -0700
+Message-ID: <20261008191711.223236-1-rosenp@gmail.com>
+X-Mailer: git-send-email 2.56.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261002161515.932316-1-linmag7@gmail.com> <20261002161515.932316-7-linmag7@gmail.com>
- <20261008095802.79671bd1@kernel.org>
-In-Reply-To: <20261008095802.79671bd1@kernel.org>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Thu, 8 Oct 2026 20:23:11 +0200
-X-Gm-Features: AclHuK_YT4n7UtkmP7VNOeDIFq25O2F-pzFmRQ2myWVzNADzZnCn6eteznczwqQ
-Message-ID: <CA+=Fv5RzceCozPFvpffbgoiV=V6t+mRxgk+UzF=TEBNO9aaeUg@mail.gmail.com>
-Subject: Re: [PATCH 6/7] tg3: normalize inherited M3000 register byte order
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: sparclinux@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org, 
-	Pavan Chebbi <pavan.chebbi@broadcom.com>, Michael Chan <mchan@broadcom.com>, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, Eric Dumazet <edumazet@google.com>, 
-	Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi Jakub,
+A sparc64 allmodconfig build with LLVM fails in vmalloc_to_page():
 
-On Thu, Oct 8, 2026 at 6:58=E2=80=AFPM Jakub Kicinski <kuba@kernel.org> wro=
-te:
->
-> On Fri,  2 Oct 2026 18:14:28 +0200 Magnus Lindholm wrote:
-> > M3000 firmware can leave BCM5718 vendor registers byte-swapped while
-> > standard PCI fields retain normal byte order. Match the Fujitsu 10cf:16=
-5a
-> > subsystem, IKKAKU model and swapped revision/product signature before
-> > restoring host control; reject failed PCI accesses or register readback=
-s.
->
-> Is there any dependency on other patches in the series?
-> if not please send this patch out separately
-> --
+  mm/vmalloc.c: error: performing pointer arithmetic on a null pointer
+  has undefined behavior [-Werror,-Wnull-pointer-arithmetic]
 
-There are no code dependencies on the other patches, so this can
-go through the netdev tree independently. It applies to v7.3-rc1.
-Booting the M3000 to test it requires platform support from
-the rest of the series.
+sparc64 defines p4d_page() as NULL, on the assumption that it is only
+used by stubbed out hugetlb gup code. Generic code now uses it in
+vmalloc_to_page(), ptdump and KASAN. In vmalloc_to_page() the NULL is
+used in pointer arithmetic, which clang diagnoses even though the
+branch is unreachable on sparc64.
 
-I'll send this patch separately as requested, dropping it from the full
-series as I send out its v2.
+Define p4d_page() as a NULL function to silence clang's warning on an
+unreachable branch. sparc64 has no p4d leaf mappings, so there is no
+functional change.
 
-Thanks,
-Magnus
+Assisted-by: LLM
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ v2: use a NULL function instead.
+ arch/sparc/include/asm/pgtable_64.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 35a217bf6e5c..54e563eb0efd 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -851,7 +851,7 @@ static inline pmd_t *pud_pgtable(pud_t pud)
+ #define p4d_clear(p4dp)			(p4d_val(*(p4dp)) = 0UL)
+ 
+ /* only used by the stubbed out hugetlb gup code, should never be called */
+-#define p4d_page(p4d)			NULL
++#define p4d_page(p4d)			static inline struct page *p4d_page(p4d_t p4d) { return NULL; }
+ 
+ #define pud_leaf pud_leaf
+ static inline bool pud_leaf(pud_t pud)
+-- 
+2.56.0
+
