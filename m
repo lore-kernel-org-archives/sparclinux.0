@@ -1,119 +1,138 @@
-Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
+Received: from mail-lj1-f181.google.com (mail-lj1-f181.google.com [209.85.208.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8073D3B8409
-	for <sparclinux@vger.kernel.org>; Thu,  8 Oct 2026 19:17:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791487036; cv=none; b=B/5nZ7fGMP2oySY52gcf+HQlimDOZMYkm86hLNzLPDFqpaHDuUsSScWF8mxhcpHWcHMG3og2rS0JJPV3qF8Tt8KeU1kZMVpu44ST3F85XdB2Z1NN5lJEYLD+GCmk/Lm9EgCdME28nl7/iwjwL8d5tFgniw+4qC6YEjeIRKkmaA8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791487036; c=relaxed/simple;
-	bh=41LTbWVjpTvo4M1E4NbCgmRFCizGUSRpVOrbjrIjkRY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ll969zEugCGkPioQ5iDckC/CbYkmXjPIRatHpbH3KdXzlp5BeO+zjGROpiFDPAlKRxbQ/m36EtPpXRqqt/gwK24mbt84iwxefe7QOjixIlMHhM7NXZypr2n7EQgWqraaCDnxt5zO+emeGvjjIZEvymmaOH2gbLqkNIDKSsCxKhk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=W37UHwyy; arc=none smtp.client-ip=209.85.219.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4D4B3D093E
+	for <sparclinux@vger.kernel.org>; Thu,  8 Oct 2026 19:29:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.181
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791487784; cv=pass; b=COkCfZW4Ziy7IiDfzqSkBEmqhzt+kxXUAPtEYji6sLAvHsS/qIgz2zOP1oE3VgGEeCc3heutATid2rW1vPFCQe6qyrUnZ2UXtdJdv1XSm1dKNujzWTXpdZpmcgHMqY6m3ZMEXWlQaUIaCaRJWSKeKg2OiWTkbbjpu9vm/bYY3XI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791487784; c=relaxed/simple;
+	bh=bH3Ys777xJyJceuaHq+fKZvqaHs2+JI/CEfT6ut+TY0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=e4Gd7jR6lJDo0OZjdMX6BVjq5ehMZ9cx3IQcgCvL26xT/YdsOJojumS2CcERX/APLzYiulnKpdr2VxSYiX2rYb81GT6RSb0oS6qmbyqP/y+AFb4fJJmR0T9zsHLn7OI696AogIBfVuCvFIfj2z8aoT86+7vCqlMdx7C8MWgRpyc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wn6s8tb1; arc=pass smtp.client-ip=209.85.208.181
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W37UHwyy"
-Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-919abb3335fso13848316d6.0
-        for <sparclinux@vger.kernel.org>; Thu, 08 Oct 2026 12:17:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wn6s8tb1"
+Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-3a9bcdf29a6so5290841fa.1
+        for <sparclinux@vger.kernel.org>; Thu, 08 Oct 2026 12:29:42 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791487781; cv=none;
+        d=google.com; s=arc-20260327;
+        b=scoYdATC3X3g3d55SlBQzge7KZr+ZxQUPSgYf2JsNrmXXrBRoZbR/2aEwxRWuJuPyz
+         ALw0qGTuI/8NDArux7t6VtPHW31SqmwlxV5fjrk1YAw7mrStuHE7X3rJaCbDHacJDZ8A
+         wayMM5z3tUfbBq7jt79v1dqLKtCju4KN4Cc8zESZ3fAHiWRWwfO6rmxVSPXFSoNdSNtr
+         L6WPkAkOUiZW7Mf4SBvegYygQnk2NRrXAf9ILra3uzv0xJJeYcDe73LyFqWAjAlgIbeN
+         h6z9T72MFDe3Z4ZWYt/4sNr1lenzhLnFENKigsb6XMDBEOP6/P5ZTEBZ1989Djbda9yC
+         AKQA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=bH3Ys777xJyJceuaHq+fKZvqaHs2+JI/CEfT6ut+TY0=;
+        fh=HeKhKpF3RKTS+x8znuBx4u2B8nzY3tSzhKSCJlvcUlI=;
+        b=VpAlKRnhl58WwWLAlyOIfGbWfJmAbj/fqFHmP4lpjunR2bgzGHafkU7tVDQeiWz3eQ
+         XS2ZNd9pySb5mMmw5E53cqPrxt2jg2FwwVq9bN0r2WLquZfUrRYtHpKDp/3FLHMk9m1i
+         539/CQI33PJc2khFSR2Q++AWt1OhS6n37l0mkQST9e9qZRz1zqpscTvP6F1+497CZ8Ax
+         IKkwrTp3jTBiC2ajcsHvxugfMvrps8KVN4oJ9/8DR+AxcJuBk2iyJncLgd8ja2/56Hgt
+         JczUK8aNax99yWup4ryD9iUcdzRms8wwKM2inZkKEBQO50NMyVK5DmSOP0LtGAVjb/E3
+         BNKQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791487034; x=1792091834; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=WUu+rVVcA0+9TqEMKJogDIMf7RBcjtzwW2+KKNlVxXE=;
-        b=W37UHwyyO9QRs5wjYNWroqMNExP8R9dbTpNj2zvJhaVCHnBxwoXQxxqufz1+9VeP3/
-         HCnWy0V11RelkewyfIiOfV5HesTK26DNzqk/75tsWJKwKNeZTBMiIpnZw1l7farGtMJy
-         PUWwtEk2sGJLsU9ONpgt8Gbt7ljtduVk/csdk5m+mlisFk6qIil6nZ8M8JGSkGJFdMFa
-         4cZ++6mt3Qf/RE3z7Bx6/81VmorpHxh2Kkgo/5nB2atIQwONJY5wGdvi+hvtnZ9opiAb
-         plSVuVVa6/7nj92eExc/LF/kDItko0sfq9tLHiSTZhfdpOIwnQ9FU58pfYEPbxYqNaal
-         p+Mw==
+        d=gmail.com; s=20251104; t=1791487781; x=1792092581; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=bH3Ys777xJyJceuaHq+fKZvqaHs2+JI/CEfT6ut+TY0=;
+        b=Wn6s8tb1eiVxlv5gZBq8iT3KJpGjQLvnTO/AHZIgEXjIZG+Lhz3cBxz9g6pMTSivp0
+         wtTeLJOmaAiPJSlSQOd9Ej4zOx0wKZ4ym1gMaPC+5iNC/XwmE9do2x1yWrR0ZsT3WHTh
+         w+VsM0qSr/2GWJx1SzOM6Eby6osj7AxkURxNuREKFU3Ova6vf++oZ9+etNFhyam1NALj
+         Od2bQ1cx/eFsFP3UDnGod8REDTBpuxc5k3J6frNul3JoTNVqwgWMjVadxVY7lHJthEaH
+         ilc/QMDjwZp2s7n7giziRaMUj+76BvUF4Ofor4aLNHTC8T1qC9C6ChFjGbX5KO1AgKQ0
+         k8YA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791487034; x=1792091834;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=WUu+rVVcA0+9TqEMKJogDIMf7RBcjtzwW2+KKNlVxXE=;
-        b=Wmo/WF9jB2v3RXYQHTpxvdBLPAhS2yBYXRNFi+eUljOWYIYqJ177+3W3RXr2Nynt04
-         MqqaWtmmjQm/gJapsHnKA8jzIszrN/mYRqEpzJCH6DXIMGJGgmpH/I7TlCecNf99SDo9
-         x0YMOBtunfc/M7hJtcOHqdYrXKgvm9gcJNKqIck/9zgIVLYiw73JrHRrzBkyFRMJqc1G
-         Gf+GJbYxiMXbf8b0WRlD1xZephRPv0t8/iWzn+rrqaiYuBkQFAbpxNGCj8SswuNdKdF8
-         MlUetWi/tWM7VL7lWssnt1PMEC2Y4MbKGsqNgHdoeUmzUP4h/PlXOlGJLenLC/tiywq3
-         vIlw==
-X-Gm-Message-State: AFq9FYLYcCz0K64Y109JraTAzHzqO8q84X2aOMqy1kAUykNXGHz7QYy0
-	HNrLxRBZNROJhc2j/0GbUfL1TAjHvIrA7EMcDCsbjMbaqCWZbrPN0TWM/UqXFNls
-X-Gm-Gg: AYBFou1aJXXuUmtDXAALKCDxVbCq62iu5icfCMuQtKKyeKc1xyZxz38kKgQi6G/SP80
-	7QBD9PvGrNiSFzLsYnFG6J9xqAMk7gvTga+d/l/8ooMxU6blaNjty8a74GW1Ku5zyLZcldaOtGJ
-	pgzguRmlvZnCJCJd0YRXsFgP8R564hl3jmIJRfVbwXHHbV6oCTuZnCdpKlY80muv4N4vldxBSUG
-	5rnpGNC7AR07P1TtdlGzWu7i9cBHHP9jpBbDYSiC3aX0DudLBL6zOg9oHRnPesGVqu35lgm3Zz+
-	Zw1HQy+O6ncm2oynZeHEvSEkfaBEHs//tH0ZvkBil/mR2x8YzlYMyE6MMBqaFsh29qx8PB7Bhzk
-	RF4GGMNY2sdxbawtLZ7Papa4lwhBxkAnTy1uXDuuRt3zZf79pcxbOiqJyYNtB5H6viq8DBmtYBr
-	I290YExd9ph1mfiAcqCatyjIzP0RpfvbyHldY/V9Vxmy3XGYa3wRSWeJ0F1L6UfyONrVqKW8KiQ
-	PnDoJMAT1U3gMXbxsOYOwrV67XHLvRDy07k+7zCHA7HxFJDcj4OK4Y1s7yh4ics8gDkoXoH62EU
-	tGsf1AXbben1fITKjeJMY45SppsRV3m69Tq6xdhmjeGX7znW
-X-Received: by 2002:ad4:5c6f:0:b0:919:952d:f5b8 with SMTP id 6a1803df08f44-91b53c8beedmr229366d6.50.1791487034251;
-        Thu, 08 Oct 2026 12:17:14 -0700 (PDT)
-Received: from ryzen.lan ([2601:644:8000:7a86::e34])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91b5199b032sm4046936d6.4.2026.10.08.12.17.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Oct 2026 12:17:13 -0700 (PDT)
-From: Rosen Penev <rosenp@gmail.com>
-To: sparclinux@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>,
-	linux-kernel@vger.kernel.org (open list),
-	llvm@lists.linux.dev (open list:CLANG/LLVM BUILD SUPPORT:Keyword:\b(?i:clang|llvm)\b)
-Subject: [PATCH v2] sparc64: Define p4d_page() instead of stubbing it to NULL
-Date: Thu,  8 Oct 2026 12:17:11 -0700
-Message-ID: <20261008191711.223236-1-rosenp@gmail.com>
-X-Mailer: git-send-email 2.56.0
+        d=1e100.net; s=20260707; t=1791487781; x=1792092581;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=bH3Ys777xJyJceuaHq+fKZvqaHs2+JI/CEfT6ut+TY0=;
+        b=2tjBgZETk0dTTm3+6CJpLRztWHT94J/Vol4yrJfYVpIXT4FlKNwv3/j7PTO9e8puq6
+         yMq2yTGVg9Qr1BzgiOewJW4d/5iU8mL6fQaZabswVdC33yZOK2NLdIVKSaMcoxNf8EMM
+         /yGcYwF7mrRqabTs0iX7MXRPLvMruX4WckKUUvvxuLOqBx5uoEhapVZrmVuXXOfzdSpi
+         lR7/tcqF3RZ2h43y76TMre7P6EgsGaN2wr9t/QMLD03zIKY0PEyIBJklNdWt3UPjVytj
+         4YprCj+dNfPiKRBD8uqp4+/hpFx0M/Wtil+PaoneTfiuGKD34dpuA5BLKCTVbedRVRWp
+         VBaA==
+X-Forwarded-Encrypted: i=1; AKwUvBw5h4av95jPLBfv6cRshGfwJrxJlbnwxPMGpbm27xYCYgnks9b5WmISJLgnIOh2+6pvAhGhnME4mXlE@vger.kernel.org
+X-Gm-Message-State: AFq9FYKW5dgc32JoyDSjZ/UuusSXKcx8SwFGx69S73QZRc9Ki6wMDKcV
+	FAqwr74fSMtOe6kiACvdV5BcxRbyLqc+HVkq7bqSmdEA/SOP8h/quW40i1NVJbvVd+Xj1slVrCW
+	0gxTHjNbHSFS8sCeeT9tCTtoP3C09YCU=
+X-Gm-Gg: AYBFou0hCl2Fp72UtxRu2j74RgBpD4Hahs3WAppCjX051KJ7NDFwq0TIAz17dDiaSra
+	8oByWu0HzdPFEOYhJwRodsr7kHrZxf3p3bsLcV0B3WI5OC5tZNZtaK9OrJ3O3DtVGYsnBjVLVsi
+	gqO4jtbZLwkdV7mYYNRsGibquZbzza5aROiC61FfK8CvWz/rHjCtocuNpfPZFlkxlr+VfzjBoNf
+	GArH4k02sk/wPyYvNcf7nl19/erVD5OKbVdJjkYjijZAFWby42nMbp7MnREqSeDdFZp0Gxftwpn
+	/nVYf9W3AL32zRYq5E8+fJ79+fvkNeX0UQpBoC0iTGwk5Lgd72suvaKB1dCmjhWhLIztP/j/1Pi
+	6TrEn2IMVxH6DmA==
+X-Received: by 2002:a05:651c:15c4:20b0:3a6:58fb:8540 with SMTP id
+ 38308e7fff4ca-3a9c2a6f0d9mr491601fa.19.1791487780457; Thu, 08 Oct 2026
+ 12:29:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260803-alpha-fp-exceptions-v1-0-c99d75608e60@gmail.com>
+ <20260803-alpha-fp-exceptions-v1-3-c99d75608e60@gmail.com>
+ <CA+=Fv5QUxT-T0XgXccAF=1_6Dz=nCpY=NQu=ruOrYjbB+q7YCA@mail.gmail.com> <CA+=Fv5S_ZrHedEVPR9Oet2Egg2hwy33pEqEXaQa0zGdQdNjWRg@mail.gmail.com>
+In-Reply-To: <CA+=Fv5S_ZrHedEVPR9Oet2Egg2hwy33pEqEXaQa0zGdQdNjWRg@mail.gmail.com>
+From: Matt Turner <mattst88@gmail.com>
+Date: Thu, 8 Oct 2026 15:29:27 -0400
+X-Gm-Features: AclHuK-YAox1Xf7NjC5L8Z-SfaibsiX2e4acSu8a9kwaQSKw1rOePouwIqBhWL0
+Message-ID: <CAEdQ38EM0FyqYZH6b30oxScZ481dGqnsqu23iePLdx2gCpqzxA@mail.gmail.com>
+Subject: Re: [PATCH 3/3] alpha: determine tininess after rounding in the FP emulation
+To: Magnus Lindholm <linmag7@gmail.com>
+Cc: Richard Henderson <richard.henderson@linaro.org>, linux-alpha@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, stable@vger.kernel.org, 
+	Michael Ellerman <mpe@ellerman.id.au>, Yoshinori Sato <ysato@users.sourceforge.jp>, dalias@libc.org, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-A sparc64 allmodconfig build with LLVM fails in vmalloc_to_page():
+On Fri, Sep 4, 2026 at 2:13=E2=80=AFAM Magnus Lindholm <linmag7@gmail.com> =
+wrote:
+>
+> Hi everyone,
+>
+> Adding Michael, Yoshinori, Rich and Adrian directly, although this
+> is an alpha series, patch 3/3 also touches the shared soft-fp code in
+> include/math-emu/ (op-common.h, soft-fp.h), which your architectures
+> build against too (confirmed by grepping arch/{powerpc,sh,sparc} for
+> includes of those headers; parisc/m68k/mips/x86 have their own
+> separate math-emu and aren't touched).
+> The new _FP_TININESS_AFTER_ROUNDING macro defaults to 0, so the
+> intent is no behavioural change on your side. The new guard it adds
+> in op-common.h is a regular runtime `if` rather than `#if` though, so
+> it still gets compiled against your macro instantiations even if it
+> should dead-code-eliminate at -O.
+> No action needed if it builds fine for you, just flagging since it's
+> tagged for stable. Let us know if it causes any problems, or feel
+> free to ack if you're happy with it.
+> I've reviewed and tested patch 3/3 on alpha already (Reviewed-by/
+> Tested-by posted).
+>
+> Thanks,
+> Magnus
 
-  mm/vmalloc.c: error: performing pointer arithmetic on a null pointer
-  has undefined behavior [-Werror,-Wnull-pointer-arithmetic]
+Hello all,
 
-sparc64 defines p4d_page() as NULL, on the assumption that it is only
-used by stubbed out hugetlb gup code. Generic code now uses it in
-vmalloc_to_page(), ptdump and KASAN. In vmalloc_to_page() the NULL is
-used in pointer arithmetic, which clang diagnoses even though the
-branch is unreachable on sparc64.
+Could a maintainer of this code find time to have a look?
 
-Define p4d_page() as a NULL function to silence clang's warning on an
-unreachable branch. sparc64 has no p4d leaf mappings, so there is no
-functional change.
+We can take it through the alpha tree, but we'd certainly prefer some
+review first.
 
-Assisted-by: LLM
-Signed-off-by: Rosen Penev <rosenp@gmail.com>
----
- v2: use a NULL function instead.
- arch/sparc/include/asm/pgtable_64.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 35a217bf6e5c..54e563eb0efd 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -851,7 +851,7 @@ static inline pmd_t *pud_pgtable(pud_t pud)
- #define p4d_clear(p4dp)			(p4d_val(*(p4dp)) = 0UL)
- 
- /* only used by the stubbed out hugetlb gup code, should never be called */
--#define p4d_page(p4d)			NULL
-+#define p4d_page(p4d)			static inline struct page *p4d_page(p4d_t p4d) { return NULL; }
- 
- #define pud_leaf pud_leaf
- static inline bool pud_leaf(pud_t pud)
--- 
-2.56.0
-
+Thanks,
+Matt
