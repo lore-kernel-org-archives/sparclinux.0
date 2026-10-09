@@ -1,135 +1,182 @@
-Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from GV3P280CU013.outbound.protection.outlook.com (mail-swedencentralazon11020092.outbound.protection.outlook.com [52.101.75.92])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80DAD3BB112
-	for <sparclinux@vger.kernel.org>; Fri,  9 Oct 2026 12:53:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E64D81A682B;
+	Fri,  9 Oct 2026 14:32:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.75.92
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791550394; cv=pass; b=giKkLeHyXW1lJuMXHx7VqUFDdp95ITqyOfSg+A+5OWYlmERr9WHZJl59tMFcAKChWV6bfT0My6y5fqOVF9BjEnC7R9qAA0EdFRgjOyX0L9ugFPFUeFByKIx5EiqoFTjQeKiFu8K0tphNNdfnv0GNDH5EkR8FmcDz5OxHBJ/O5Qs=
+	t=1791556357; cv=fail; b=raxhLZiKJS4GHOwLP8xsEAUnAas+PyVM7GNzYh9/fAVQHaGOos6MVgCvpRq2742W+P2NE3gKbLHVik7RvgwX8FjiBFClXx24TnMio2dJJoqjn7z0giSXMzLsOF3aiKSIH37iw/o6hTzwzGZYlYxKtpmGFUA97M2gdgN/tux8q2U=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791550394; c=relaxed/simple;
-	bh=Z82pTd9B92P9L7FdZhm2lYoAuLSq6EAjasYSS9dt8qE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=OWv6vBqpVSZYHwS4N/etebpf690oH/WrYrVNc3RoNhaoI7W1U9nu+h0oK5PBtVA9D2MSv5xn9nU1CisV0nBNdBmwrG56KJ2IHPZqzsW+kYQAOvx4f+4DSA2JAhlmqxK/hAWIImYlvzZ5f8LOM1+CSjIqxXqHXzAdIuCwZBR8sOI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ifsh87Ll; arc=pass smtp.client-ip=209.85.208.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791556357; c=relaxed/simple;
+	bh=sPvP5z9iWSFcXoI8UOLaevwcDnAb+eOH+cB9WZ7ecnE=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=OS4PouAA3Ffj4n1n2FYB9cjoTHPhXX9OtQvvlkfZxXH0toojrXgfmUrIPabnQbqOyOuwKAEHKH4FaqiIVkiPjVMjKcr3mk5DzPYeNlzMEQkd6b2v1mxvnclCXKl1fhIDccLRyalBbCTldanCwKZj+6AevcILSnRyMikWKeJexr4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=Tz5UyM+1; arc=fail smtp.client-ip=52.101.75.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ifsh87Ll"
-Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6b170129413so1958105a12.1
-        for <sparclinux@vger.kernel.org>; Fri, 09 Oct 2026 05:53:12 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791550390; cv=none;
-        d=google.com; s=arc-20260327;
-        b=MHreQBCOQ2HR0Jf3eEkMoJ8oEApQm9jYy7XdEWyQbWb+fYCHslZMDuz7n7vTnRZ5mq
-         0MW3Mj4YjMYDtTO/87E5rmHxiuIbsmdFPrJRbZkqlgGraADSMt8uLg/hSamzMEwCyuR7
-         XNyU/yhDifIxwRbxwmcHswFFsUmNfXH+IGd0iLx0KfJKSOKks9eaZsZfCCpehflZ15Io
-         CYmwrTbId9prYEnm81nhJcRjBp5wzVVMbeVypsOq9zE88rGwAJ2DJ+Zu6qpo+Enrns23
-         KRhyjulJHXpPbXZVBmQ9nXXVUiTxtlv6+XvM+FCE0pdziySh3HaBTxThVS678ete2JxU
-         FzHw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=5vMZXYMYLUNNQlIgyE1yknyh4fPOMVeuczGExkJ8JXE=;
-        fh=kuFrjmKHCW0FB8pv1bqzsAsFCzYBxSC6SWUEGlqqJyE=;
-        b=nZu+DiG5bC24nO+kzXHqJ3a6z2LqUDwZ5oJfFaE+S/2UBbdc+hX9zw1TyEvjji5etP
-         OsTn7qPrKYB5rB2tr52lFb/l61/z71WWP81S53tsfk0W2zrVaEhRbS8Vr7756rKRfZ6Q
-         0lX1qwam8qCb4hKlvxrVUwGSd0hmnjUZYpaLp8PGj4heR9Sr1arv4kQqwUHXGsHZlG9j
-         uiEJ1zWKiLGBRm7W3b8tHghN4HgNZ6JKxDAe/kJjH0Eq/fHTNtv9+htUWeA+KrR7dJNF
-         RdrrZrisdOrmDvm4lww0AAJcklTPKD1XGRRRWWrYakFWxGn/hQF3Nl4WvDp0uYKpT84q
-         wN0g==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791550390; x=1792155190; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=5vMZXYMYLUNNQlIgyE1yknyh4fPOMVeuczGExkJ8JXE=;
-        b=ifsh87LlCN3wkWRcmDkQ60dk2vICGEyqa/7HAf24ZPWmzJygOFJFEFd/Ap2pale/Y5
-         RJ4UR+C34UlrOvZuK6akVfOgLFtZn2Eayw2SxxUc8y1qbDw1luHugqGuinmlChwPOreG
-         k2JyIOrrVWP6y/TkPZ5UjBXweBOydjaP7guPO5yWmOUtH1ELuDy4p4r8w0itCSiXAMSe
-         jQpaaoju2Wf3qFA8SjG22MjAxWmVXeEL4dL5ANOQv3ICeeMzzJsbheJ0hZLmSnJXfmu7
-         goZOzxXb6LwZA2pRrhHqAxHbcdZUNN5vA7wUxbFZKT5SnAiJl216AHAf6nqCO9BZWVid
-         Y0iA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791550390; x=1792155190;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5vMZXYMYLUNNQlIgyE1yknyh4fPOMVeuczGExkJ8JXE=;
-        b=wg47PJb6kCTBPpgVjuCiW9ImKZ75DWx7lEaS+R3NIhnBd+5QGFz1hCNMaZrGEPyvkZ
-         4xEQFnSDKUYMI5JEfCfbrtJVIzhfPUC7ZAJ0uPqFJ1ZBVyPBM0TH6jKiq7ajSRtZAGPJ
-         7FkNq9uIVe7yfOvQT3SUbD1+nrF7AjwgwuXfPxmJPiPpCv/OIiImRNuIpvO8+Xm+GPyt
-         Udxv9r4OBIcruDL09ui3vvc49FuWZc6vOIhmmcQanoETwhu1giVdGzP+IqpjjIyV2yQA
-         hJApg3YYx71a2GFLuSxs2ukSH6cC6yG9JoUWNs/ZHzkZFpDiiVOt25ToqxAOaU8Wmrwg
-         qY8g==
-X-Forwarded-Encrypted: i=1; AKwUvBwXuZOEueFQwXq7cx0WwxxVZGOLw5ivMCb11WRO/2DG1GZkNNb5t2kkjE6P97osvfS5C59oQOlH2Lzv@vger.kernel.org
-X-Gm-Message-State: AFq9FYKGUu4lvRDI32CbsOsbgyZAJFLEzXup8Ud/TRsgZv+BzvFc+FPe
-	d0wnppMMaYrcg053AACCQM8eabiGvE0GOhJvqhkocBvFSgskg7TxpbjLrtwyqJagKdoyTZmu8RU
-	5fWLRx3TWAK4hWGmxOqsxC2tPiieeZbE=
-X-Gm-Gg: AYBFou3+JTC26miDR/m8O4zH17UJdFP0z+vAVm5BQELVqTH9OWBDeqyuySJSEFE5PoH
-	kn+smZl9DKuJnHTOoanOWbXkpV6+BNVl9iboDETApRDAQxEbYKhVz0T8J+a7YiJ7hPU6GtnAnHw
-	Ui/bvfXD5hBxm9pTkAUzf79E1ipnLRWrfOf6BEs/96ElvZOZOi+YYUJow6WWJ/npFKaMMXE19da
-	zdWz8K+/yaza2S+0ravkQLiW7uP4WWXJ+CmsS+/hMCXtbH5SFt40cx4Zpl9DVbyNIL7iRPTUfO0
-	cWmzwG+tq0iTovFL469nlJvPU3k7bf0rk06w2voCM9tVwa91jxoWuxIYaSHTTmRWIx8zC0I9VxN
-	jY5PK+9G5R4eiI97gH+G/ZekfBHRrudIc2V+TXGdpaaI=
-X-Received: by 2002:a05:6402:450f:b0:6aa:f2cb:754c with SMTP id
- 4fb4d7f45d1cf-6b17c25d3ffmr1597123a12.10.1791550390235; Fri, 09 Oct 2026
- 05:53:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="Tz5UyM+1"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=stS76oeycJbnkA2BoqXA67fdzrUc++LvRdtv1arXc0WoerWjEwD8qDid+hCdukem91UaMAy7otH+cRMmAIViU9zfkNd9xnt+K+2IQTlyLZUM5vaGgloIV5dCi/n0uHGFe2y01IBBj4QO6bv/8TjjeIn1oRMHfL1EcljANSnv4IJuvm4DsPzXo7A4BTOw0P8LdtCp+XGB68v1zbRAWBHX/SX6nnbmIlz6JEwu1VJPh95OD2tv1REYcnILdgV1enMinjibtqLAzj7f6KQ1tfbi3CLq9fXKtBnMIzAhbFlHzLIEdXi/mplNAU7EiuarXsp4Tk43mgSuMuX5g4BrmYTwNw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=5vFp2RSX23nVxHdxhdn86Iyj7+JNq7bSELEXYtBybkA=;
+ b=MEYFTgJk0CVsN0TV+gw+VZxyAypbSA1swHjjHExs6lXK4F8rsVOeCiIH8NehMbzwBs6dqtE8a0lCwisDU5gl+ceXZwRW/AaFBUi8KWRtOwkjDS21lZ44w4/z4QzaIrJuMZTp/zBNOXuh3nhWSP5bq6eOfzl982v+B2GC1S+jPbYou41VbA3OUkzYEnC4VlQhZY7v0ePk1/QMReGKPM4vmpQwDqkhCsO2cCS8cgPIJxrsqBoI8WrUCbwQw0znwJRca0jYzyT9+mjIhcF2YbChWV7RRt/FP0xlyG29cgDksqvh/vUjKPf3E4sEgTRZSUJg7zXbhUMlcCh0z2B+FTsq5A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
+ dkim=pass header.d=gaisler.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5vFp2RSX23nVxHdxhdn86Iyj7+JNq7bSELEXYtBybkA=;
+ b=Tz5UyM+1DDbE/uDdfKhO1M7ozIj6iQlVwiB6My9TUuW1RUKtBe57+Z9HyJXEPhGkWxPUEeqWEQZO36scrgLxwuCcUFYAlbReyXmUj3Uy4oHT/sHkMRDRC4mHNrX2jhCTjLwGsWPa3s9JnojbYy3FnMdlvi8XnSrZqs1iwAt69R+Cg7h1qyVzvDIlRm+jlCTH1MGLjJXLKDRI5j89Ax98rO3k2e0xh7HRw1rYuFYpGQwQDk+Tq9cZkBYJZ2+u6AQ9mKr7UUZ1jkOWJrVQeKTIEKAueoAkSjpd+XGK4KEv+qKJkJR0SYt3V6Ig61MRVdLRSrZdGkIUngp7C6Vtteyh9A==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=gaisler.com;
+Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2f::5)
+ by GV3P280MB1062.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:f0::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.17; Fri, 9 Oct
+ 2026 14:32:28 +0000
+Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::1f13:f10:e16b:7939]) by MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::1f13:f10:e16b:7939%4]) with mapi id 15.21.0472.016; Fri, 9 Oct 2026
+ 14:32:28 +0000
+Message-ID: <a379628b-14a3-4fe0-847e-aa48d16bc7a0@gaisler.com>
+Date: Fri, 9 Oct 2026 16:32:26 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 0/2] sparc64: add seccomp filter support
+To: Stian Halseth <stian@itx.no>, "David S . Miller" <davem@davemloft.net>,
+ Kees Cook <kees@kernel.org>, sparclinux@vger.kernel.org
+Cc: Andy Lutomirski <luto@amacapital.net>, Will Drewry <wad@chromium.org>,
+ Oleg Nesterov <oleg@redhat.com>, Shuah Khan <shuah@kernel.org>,
+ linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+References: <20260902072745.3412940-1-stian@itx.no>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20260902072745.3412940-1-stian@itx.no>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: OS6P279CA0097.NORP279.PROD.OUTLOOK.COM
+ (2603:10a6:e10:3d::19) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:190:2f::5)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261008220433.965791-1-linmag7@gmail.com> <038bffb2-e40d-44bb-b7ce-53e9de32e50d@lunn.ch>
- <CA+=Fv5QvhYd7EqVBYKWVgvf92SLE=FjE8EYcZvUQ7HKdx2kc3Q@mail.gmail.com> <becc8f95-4650-477b-b1c7-cc4952e5e980@lunn.ch>
-In-Reply-To: <becc8f95-4650-477b-b1c7-cc4952e5e980@lunn.ch>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Fri, 9 Oct 2026 14:52:57 +0200
-X-Gm-Features: AclHuK8k--wFHWgEgasHO9Vp771hJjGyFtQegdxLzMtXg-Ear1hkFG0UCoGNSGY
-Message-ID: <CA+=Fv5TU1rOUimi8f+e0R4_48ki+X3qzD_+1QPyviTnJz-irvA@mail.gmail.com>
-Subject: Re: [PATCH net-next] tg3: normalize inherited M3000 register byte order
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: pavan.chebbi@broadcom.com, andrew+netdev@lunn.ch, edumazet@google.com, 
-	kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|GV3P280MB1062:EE_
+X-MS-Office365-Filtering-Correlation-Id: 376dfa3a-a3d6-4079-645d-08df261224cf
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|1800799024|23010399003|366016|6133799003|22082099003|18002099003|10067099003|11063799006|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	npr8uT+Az9nHC2YIiB+n5/3XYWl9GXiW30wWwziVGWjduHrl34/aHaOSAC91MrD9LFreaySws/Id5B6ELaZpmKTZyHiqIAPqsJIKCBt9adwYsFvRLx08v/AyaowvE5ikGTJdVUAmnipCXXKs1F+OPG3T7//R3NukSCdeNKE9NhgQszLpUXO33SehQFbxp5gBbXdulxbNyZ760NZyfa1KrKc+T5fWi/6ZmGBxVvnRL75SK0BU0l0LVZJhWHH0Mj6H0pJxahTPymMJtzoknJKYCqT313fNzqs6yuTzexIBVx9ih26dC2ZKh4vo9JQIYnkfuNBWcH0oYbXwqgDM+U73+wJzxVo2wbqQ5CcczQp2jagolm0n0I/eoVFUYCmhOjl9FgjC+pj7nf1sWrZ+37SZ2P5kTdaqhNYcjl7rly7eI+eZrHrz075BXE7POGWcLFTgHvfETuyCxWr1nVDIpyZt85UD1GhKhMGt1Xj9kzYhPESQaPDu8FZQDMg/B4CaV95zU0yOYK5aoPZjjbCWZfxaHVm7FgB6T0bY1UHH4p2bbYi2X/iAhNH+qHyrk+lWXNZTqj6mtQOSD7+d/IH2AkGE1LPYmoeTnx0IfqRcX3NADZDeCbH+l3U+pIOvTyfYHjNwy9zbWdYYbum1ggFRsxnOfPnHXIthrgTU2GXoW7B9ZFo=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(23010399003)(366016)(6133799003)(22082099003)(18002099003)(10067099003)(11063799006)(56012099006);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?aXZJT3djc1RjZmtIZjVzTjNTSlR2WTdlYUJWbmRWTmN3dXZUVUdKT1VYT3Uw?=
+ =?utf-8?B?cmJLS09wT1VpY1lxaXg2L29xMzBCeU1BUFhUTUt5a0puUDlWUUlUZ2xVZzBS?=
+ =?utf-8?B?NVpwdXB4M1lPVm1PcDNBWmowWFN0U2xqc25BbFMwQ04wbSthTUI2ZlhsMGdu?=
+ =?utf-8?B?R2ozMVlnaWFROUFETk5DeTFSQ2pEbnJYa0hhZy83VVAxSGMvbUkxVDl0OGNK?=
+ =?utf-8?B?ejN4dTFlenR0dTh4THA4ZEZuYS9XL1Y1VC94SytMazEvSEhHKzcyQnJUS3pK?=
+ =?utf-8?B?dVozWHpiRHdLa1BERGl6aWpKd3FXMm5UaDdRWHVKdThlT2ZqMzdpcVdhVysz?=
+ =?utf-8?B?NDVrcnBuUk9tTDQ3aG1remoxcnlkSGxIdTR3OFBYSU5EUU55MEZHVDJDRmtr?=
+ =?utf-8?B?NmdXVDZDck1LSEdxMzhNTTc0WWZmOWE3ckVPY1BPSjlPci90aHg2S3V2a2lo?=
+ =?utf-8?B?Z0pBdFd0ZGJGc1lNTE9VR3Q4bGJyZXU1d3h1cTRJMldmUDkxWEZPeUJrZ1Zh?=
+ =?utf-8?B?UVAycTdSbHhFTEJRanVZNFdOTWdOVGZCanRLaXAzcUZzQjVHU1RhMzAvL25i?=
+ =?utf-8?B?RmxJcFE4cW5sVCtzdzIzMjJ2b3QraDFnaEp6aFlIK1g3UEdKSXZzZi9VM2hq?=
+ =?utf-8?B?N041OU1XckFtRDhDZi9RRStGUkh3cE1PS2lreWROTXpqdDJQYWxjTUpKUlhZ?=
+ =?utf-8?B?LzAzYVlhc01QcGlSMUlLTWorblQrMjZHcHd5c01CdkUxWU9nd3pBcFA0dS9n?=
+ =?utf-8?B?UGlkNy9PdzZjUFJMMzJtSmtYRGFqaklmNTN1MXYyMXBlRWR2QXlWNGVYeVFh?=
+ =?utf-8?B?N0xERlo4Z3JibHNWYzVGNDVhbW5Rb1JWN1NNMVJwY3NJaHFaaWpvckdld2RE?=
+ =?utf-8?B?QkNob0tKbkhhYmF3V0c2eTVWMm8yNXNFenFDcFhmdXpiQXMwR2NSZGFWbWYw?=
+ =?utf-8?B?VE0yYm5MNC9MVXJub2ZmYWU2M0xrZWxvVGlYazFjOXgyWW1pb1RreTNyY2Zu?=
+ =?utf-8?B?WXJkeGJlbHJXL3FCdHJtaTNpQTFVdXNNZnhxdjVHK3JoZjlwbWI0dEEwSXd6?=
+ =?utf-8?B?U2lIeEMzM2RPcDA0WGhqWVA1NXp6bk5iVmJ4c1d6VUd2a2daNHFieWxOSng5?=
+ =?utf-8?B?UTFkN2hRNyt6TFdSdkFKMmNZOUh5YitHQlNCQXlIOUJkVVY1UkhLVmtFOXNt?=
+ =?utf-8?B?WWdBeUwvcmdFQ1dFaU5oNmVGdkVtQ1FPL0VSTDJpNXhXMFNXOWlZOGV4SUY3?=
+ =?utf-8?B?QWNTQTVvTGI0ZHAxNGVnWHNqWW5laDJkbWk0TTkrM3duKzVseDlTcVQyTU5n?=
+ =?utf-8?B?eC9UZ0xjdHBob3VTUGZrRXd5RDdId1M3MnR3UUNBTCsxSHk1TUxmZ1JaYUZU?=
+ =?utf-8?B?V21KMm92S2d1VHM3UE1YWXAwT1dwd2h5dzNlRVN3cnhRVU9rcDU1UlJXOXhW?=
+ =?utf-8?B?VEJIbTZCT0hZZnVsREpZaUI3UkQvZFpqYWhkNDBndFBXeFFVYkg5QTczV1N2?=
+ =?utf-8?B?NGdTWEtRTHVUWlNRd0ZTNUlDRXFEK1MxQlpueHRnQ2QwSlIzN1NNYWlLR1Bn?=
+ =?utf-8?B?Zk1Jdlc5ckZoamRMQmF6eEpTZUhUbmZLc09iSHBrakRQRjZxblVsMU11dk5j?=
+ =?utf-8?B?cks2UVFpVGpjNXZsVkZHd1MySC9MMTdZWUtjSXZkV0dXcnErZlgyeXRXdldt?=
+ =?utf-8?B?bUpLMFF1M29lK2lDcVRYS0lBWDNiUGVwa1NreG5XMlJJR0lxQUZVcTh1eXJs?=
+ =?utf-8?B?aWR6NXU0dVhUKzVYWi82aHRLb2YxamJ1NEYxbWtxcXFkNmQwQXprdi9MNFVn?=
+ =?utf-8?B?VThNbk1FVFdHV1FkaWhUZ0VoZ0dhK0pTSzdGMVJZSkd5ZjRRREFsMFA3bWRF?=
+ =?utf-8?B?MWtZUGo4R01qSlJTaHo2aXdYTmhDUi9HRmNCWnF3R0RBS2QycEJDK1VDUHI0?=
+ =?utf-8?B?cEU3TmpmWVYxSGFZSzZsaWJxUVdSbUNqcDI0bCtYWWZuTEF5L2h5WEhIQ3k0?=
+ =?utf-8?B?UjRlMTFLSUhFbEF1OGZxaEVadmEveStMdEdjZ3hTYU0xYU1HNUxQelhHb2pU?=
+ =?utf-8?B?d1pybG9SM3J4UWNmcTNOeFhqL1NrRy92NzlLMVRteFZwWDYwajdTU3N2NUFK?=
+ =?utf-8?B?REY3WVJVUkNiUUIrY0xrYktWenN4RjF4NVJ4SWdQalEweVpSUGRvMmFhbndx?=
+ =?utf-8?B?SXEyZ2p6a1Y1YVRyOWN1M04vTi9tUEZySjZlaTc1anRBTlgweldRU005blIz?=
+ =?utf-8?B?NjJYNmdvcnpKV2RYSklzRkd6NlpibjdXcTR1TjEzUkVITWc4K1IvSmNiYVBn?=
+ =?utf-8?B?T3hRMFZaZzRSVGpqdnNkRVUvVGRwQzZvV002cGFhZXZKMkVlMlR2c3B0b3N0?=
+ =?utf-8?Q?AB91rwwCqjeRATFI=3D?=
+X-OriginatorOrg: gaisler.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 376dfa3a-a3d6-4079-645d-08df261224cf
+X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Oct 2026 14:32:27.9727
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Z363wGJ5Ep2YXaGmAWGUWtvky1sn3uR/wDY+RVFXUXhTcFygOo1Em9i4TreM96ceVbueZFpQmscFtb8HjIqVdVDg2BEMfuAuaIDgvRH69+o=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV3P280MB1062
 
-Hi Andrew,
+On 2026-09-02 09:27, Stian Halseth wrote:
+> This adds SECCOMP_FILTER support for sparc64.
+> 
+> The arch prerequisites have been in place for years, so patch 1 is
+> mostly about the missing piece: letting seccomp veto a syscall, and
+> returning to user space with the return value the seccomp core set in
+> pt_regs rather than the -ENOSYS the assembler stubs used to force on
+> any denied syscall.  Patch 2 teaches the seccomp_bpf selftest to
+> drive sparc64's registers.
+> 
+> Tested on an UltraSPARC T4-1 (sun4v):
+> 
+>   - tools/testing/selftests/seccomp/seccomp_bpf: 95 passed, 0 failed,
+>     16 skipped (uprobes and other optional features)
+>   - libseccomp with its pending SPARC support (libseccomp PR #471)
+>     passes its full suite, 5190 of 5190, including the live tests
+>     that require kernel SECCOMP_FILTER
+>   - docker containers run confined by the default profile, and a
+>     custom SCMP_ACT_ERRNO profile denies as expected
+> 
+> The libseccomp side is https://github.com/seccomp/libseccomp/pull/471,
+> and the tracking issue is https://github.com/sparclinux/issues/issues/11.
+> 
+> v2: drop the local regs-struct definition in the selftest in favour of
+>     PTRACE_GETREGS64/PTRACE_SETREGS64 and the uapi struct pt_regs
+>     (Kees Cook); patch 1 unchanged.
+> 
+> Stian Halseth (2):
+>   sparc64: add seccomp filter support
+>   selftests/seccomp: add sparc64 support
+> 
+>  arch/sparc/Kconfig                            |  2 +-
+>  arch/sparc/include/asm/seccomp.h              | 15 ++++++++
+>  arch/sparc/include/asm/syscall.h              | 11 +++---
+>  arch/sparc/kernel/entry.h                     |  2 +-
+>  arch/sparc/kernel/ptrace_64.c                 | 28 ++++++++++-----
+>  arch/sparc/kernel/syscalls.S                  | 28 +++++++++++----
+>  tools/testing/selftests/seccomp/seccomp_bpf.c | 36 ++++++++++++++++++++
+>  7 files changed, 99 insertions(+), 23 deletions(-)
 
-On Fri, Oct 9, 2026 at 2:09=E2=80=AFPM Andrew Lunn <andrew@lunn.ch> wrote:
->
-> > > Is there a legitimate reason you would want the bytes are swapped?
->
-> You missed answering this. I'm guessing, but does the hardware offer
-> this to make big endian machines more efficient?
->
-> Please could you look at the driver and think about what would happen
-> on a big endian machine. Is the change still correct?
->
->         Andrew
+Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+Tested-by: Andreas Larsson <andreas@gaisler.com>
 
-You're right, my earlier reply missed the underlying question.
+Picking this up to my for-next.
 
-That is a plausible reason for providing the hardware swap mode:
-it can accommodate big-endian accesses without software byte
-swapping. I haven't verified Broadcom's design rationale.
+Thanks,
+Andreas
 
-However, Linux tg3 already initializes misc_host_ctrl with WORD_SWAP set
-and BYTE_SWAP clear on both little- and big-endian builds, before
-this helper runs.
-
-The helper restores that existing setting. Its swab32() compensates
-for the device's inherited register state, not CPU endianness.
-Subsequent accesses use the normal driver path, and the separate
-__BIG_ENDIAN handling for DMA remains unchanged.
-
-That is why I believe the correction is appropriate on either
-endianness. The runtime tests were on the M3000 running big-endian
-SPARC64.
-
-Regards,
-Magnus
