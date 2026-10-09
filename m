@@ -1,21 +1,21 @@
 Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A3703B5DE9;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A5044E4323;
 	Fri,  9 Oct 2026 18:04:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791569045; cv=none; b=jYiVBakl1AZbLBWaPCo1+3TRfkT7qaMbPal6GkkbatFxswQB1n/Di+jCxgbomufJk7gw66uzqIl3foH0Vu74Pe+NxIWZbyFBKOMtZ/6o6qRF/7bHHqDOQhU29LGU5aJc8Hsw9UnfMU1KzqbQzE7sblWqh9Ol7/7xbpYVphe6f7Y=
+	t=1791569045; cv=none; b=qnk1x0JuojQcsVgas4dIZ6Y4qWwMaImywPUO3tn7oW2k7s3i5SuFqsQKUm/kRa7vvr1jvtS+Y5v6CKHouQE+b4eqQ1LfJSzSpRqNHFuOVnMP7QkDLoju/Kic4oecyhkSW0dtX8xdzshr6IGZEWjecD0p/MIBD9V+8+ikGzKJ66c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791569045; c=relaxed/simple;
-	bh=7TULG9lK6U4XeHhBQjK7W/ceTkcSJmwKhKVJyGt41no=;
+	bh=zF4eawWVHXbX/4hxfZYhuDugnjeCgP822sX/plN6R8c=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IGGCWiVInhRYfJ/AocoaETK2jQtbVZwbrHOpM1JTSjpKiB20ZGzrORhvOcGzO4mIu6ccrA6DnQG8SYJEeFVysDaa2/0V67Ch88QjLzgsNuaKU8j4Uo/VySTJ+7xKh6mHHsXHFQgl5zgbSiTejiL0F7A6GbgMifR1huv3WW0SAJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=TUiELfTu; arc=none smtp.client-ip=91.189.121.228
+	 MIME-Version; b=BJ5naUmwlpsLcHtdrYwskwTPGnI7Vzg12uRQZ1PV62u+P49skSjWK7DblUp/idd6cYwTBZXhwgkiWTwp04QLc0mcLSfTD/RIVk2cjZwbW+f8YgFveh/wC63xNymf2nFZG4M+BAqroJy8hAQIjk8VGShuBigQucLzXV/PNUuTMoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=Vd/7LIVw; arc=none smtp.client-ip=91.189.121.228
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="TUiELfTu"
+	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="Vd/7LIVw"
 From: Stian Halseth <stian@itx.no>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
 	t=1791569035;
@@ -23,10 +23,10 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=25qrz+MBMeEFHctM4Gq1jlyM3/vqPwqFRRuDqnMBpI0=;
-	b=TUiELfTunGoWmCItMxxBRtf6/lXrbBDSq70cfHr4UkogbCRmSeSYdj60E3MHtFFkPJNWRZ
-	rt1VjoOCXrH2/RlSvdTgph6exDETrw+JvNM3vSXvGBQlFbAJiKXAQAHSXydZ9n8viUHaAa
-	egD3rx+y0RVzAHzwiGi0QjpcaLGxYwk=
+	bh=X1Tmk8hKir8hCNQtLO+SolipxeNQ9+JCzf7F9gQQ7qg=;
+	b=Vd/7LIVw0GawC7MuLX1qNNd4/iMCyBUmOtggccoNjmK3i8zBMK1JJotDP0N6LzS+oNzSrl
+	3dYtYsthpX78aZ3ojVXl7bkkM+sEBc75UpoA+j6Cfag9QXk9xwNtpmppvJLbD3sxhaCYF3
+	II15MrUGyWtyj+BlhdSoOxXw3XP10FA=
 To: "David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>,
@@ -35,9 +35,9 @@ Cc: Masami Hiramatsu <mhiramat@kernel.org>,
 	linux-trace-kernel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Stian Halseth <stian@itx.no>
-Subject: [PATCH 1/4] sparc64: kprobes: Single-step from an executable instruction slot
-Date: Fri,  9 Oct 2026 20:03:32 +0200
-Message-ID: <20261009180336.1315684-2-stian@itx.no>
+Subject: [PATCH 3/4] sparc64: kprobes: Resume after a delay slot at the saved next PC
+Date: Fri,  9 Oct 2026 20:03:34 +0200
+Message-ID: <20261009180336.1315684-4-stian@itx.no>
 In-Reply-To: <20261009180336.1315684-1-stian@itx.no>
 References: <20261009180336.1315684-1-stian@itx.no>
 Precedence: bulk
@@ -48,84 +48,51 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-kprobes single-steps the probed instruction from kprobe->ainsn.insn[],
-which is part of the kprobe itself and so lives in the linear mapping.
-The sun4v linear mapping is not executable, and every probe hit oopses:
+After single-stepping an instruction that does not branch, execution
+resumes at the saved next PC, followed by the probed address plus 8.
+For an instruction in the delay slot of a taken branch the saved next
+PC is the branch target, so after the target execution goes back to
+the probed address plus 8 instead of continuing at the target plus 4.
 
-  sun4v_insn_access_exception: ADDR[fff800005b0cd66c] CTX[0000] TYPE[0006], going.
+Use the saved next PC plus 4, which equals the probed address plus 8
+for any other instruction.
 
-Allocate the slot with get_insn_slot(), as other architectures do. It
-comes from executable memory in the module area.
-
-Fixes: c4bce90ea2069 ("[SPARC64]: Deal with PTE layout differences in SUN4V.")
-Closes: https://github.com/sparclinux/issues/issues/110
+Link: https://github.com/sparclinux/issues/issues/110
 Signed-off-by: Stian Halseth <stian@itx.no>
 ---
- arch/sparc/include/asm/kprobes.h |  7 +++++--
- arch/sparc/kernel/kprobes.c      | 12 ++++++++++++
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/kprobes.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/kprobes.h b/arch/sparc/include/asm/kprobes.h
-index aec742cd898f2..8cc9697846fa1 100644
---- a/arch/sparc/include/asm/kprobes.h
-+++ b/arch/sparc/include/asm/kprobes.h
-@@ -11,13 +11,16 @@
- #include <linux/types.h>
- #include <linux/percpu.h>
- 
-+#define __ARCH_WANT_KPROBES_INSN_SLOT
-+
- typedef u32 kprobe_opcode_t;
- 
- #define MAX_INSN_SIZE 2
- 
- #define kretprobe_blacklist_size 0
- 
--#define arch_remove_kprobe(p)	do {} while (0)
-+struct kprobe;
-+void arch_remove_kprobe(struct kprobe *p);
- 
- #define flush_insn_slot(p)		\
- do { 	flushi(&(p)->ainsn.insn[0]);	\
-@@ -29,7 +32,7 @@ void __kretprobe_trampoline(void);
- /* Architecture specific copy of original instruction*/
- struct arch_specific_insn {
- 	/* copy of the original instruction */
--	kprobe_opcode_t insn[MAX_INSN_SIZE];
-+	kprobe_opcode_t *insn;
- };
- 
- struct prev_kprobe {
 diff --git a/arch/sparc/kernel/kprobes.c b/arch/sparc/kernel/kprobes.c
-index 191bbaca99212..608efda8cb948 100644
+index 38e6d9b51a207..327d83188a978 100644
 --- a/arch/sparc/kernel/kprobes.c
 +++ b/arch/sparc/kernel/kprobes.c
-@@ -52,6 +52,10 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
- 	if ((unsigned long) p->addr & 0x3UL)
- 		return -EILSEQ;
- 
-+	p->ainsn.insn = get_insn_slot();
-+	if (!p->ainsn.insn)
-+		return -ENOMEM;
-+
- 	p->ainsn.insn[0] = *p->addr;
- 	flushi(&p->ainsn.insn[0]);
- 
-@@ -62,6 +66,14 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
- 	return 0;
- }
- 
-+void __kprobes arch_remove_kprobe(struct kprobe *p)
-+{
-+	if (p->ainsn.insn) {
-+		free_insn_slot(p->ainsn.insn, 0);
-+		p->ainsn.insn = NULL;
-+	}
-+}
-+
- void __kprobes arch_arm_kprobe(struct kprobe *p)
+@@ -211,13 +211,14 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
+  * 
+  */
+ static unsigned long __kprobes relbranch_fixup(u32 insn, struct kprobe *p,
+-					       struct pt_regs *regs)
++					       struct pt_regs *regs,
++					       struct kprobe_ctlblk *kcb)
  {
- 	*p->addr = BREAKPOINT_INSTRUCTION;
+ 	unsigned long real_pc = (unsigned long) p->addr;
+ 
+ 	/* Branch not taken, no mods necessary.  */
+ 	if (regs->tnpc == regs->tpc + 0x4UL)
+-		return real_pc + 0x8UL;
++		return kcb->kprobe_orig_tnpc + 0x4UL;
+ 
+ 	/* The cases are call and the branches BPcc, Bicc, BPr, FBPfcc
+ 	 * and FBfcc.
+@@ -294,7 +295,7 @@ static void __kprobes resume_execution(struct kprobe *p,
+ {
+ 	u32 insn = p->ainsn.insn[0];
+ 
+-	regs->tnpc = relbranch_fixup(insn, p, regs);
++	regs->tnpc = relbranch_fixup(insn, p, regs, kcb);
+ 
+ 	/* This assignment must occur after relbranch_fixup() */
+ 	regs->tpc = kcb->kprobe_orig_tnpc;
 -- 
 2.43.0
 
