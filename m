@@ -1,160 +1,128 @@
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17A0044162A
-	for <sparclinux@vger.kernel.org>; Fri,  9 Oct 2026 06:29:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.42
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791527346; cv=pass; b=jAIYA4XB33PRO72QQuvqdu3us4K/CL/PAifEZDzR9eI7LmrlxuPhrETiOtU6R0PrIu3RQIcNBl5nluBMm+hsLAej+2OIqsTVZWXBBE4KoOTYBb3uQ4QIRMSZIn6lPD27UvkeDxG9O3XtckrdYzyTelnWwqWx/7qsayUv8iHQI1E=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791527346; c=relaxed/simple;
-	bh=Y5NCAAj+S8CVX/AK6zeAmzUsBUrcPbh6f/6GokfhsQE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=OgnkMNqjBQVT5w4fsWVmR8fskH9/3CRj/ycf6ACLVXGb3CuuIHe9DcUnM6bX+v+xnAGQ6T50ogSmUpd/GNoCsa0utGDA5MxVoPiA9s7y57ZfZNxmEXu3BTj1lmwc14/qTk9yJ8ljOcMacugppfZsMCCI9MQb4P5n3nPWvtruC8Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WFB9ma93; arc=pass smtp.client-ip=209.85.208.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2DDB3BB113;
+	Fri,  9 Oct 2026 06:55:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791528943; cv=none; b=NH2FXGQNvuVMG5LYUNeIGWX+08dW1uWtG56juY5RZoE9tw6snrOorhqbyBVYYmdIXYNaOHl7d8che2miT9bV5GWr+hjQczUKLTyuPwwQxzAhs0lRzO83gN1Gzz4U4cStCWYQEHdNTzo7xyHeiOQz5dD5xhUDonxofiXxIWDXvb0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791528943; c=relaxed/simple;
+	bh=TFly4YRi98bd3xcBpu6fw8QMIpY1nTYbC6E/AtorbGU=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=SN4+/NwHrxNmDaCDqpC0WDPjT6Q1nVKGkhHFh9vEBiwbQksdFaJ9YfB+CrAE2M9RPiz62VCjoXU/nDmuIwnmmBhsx9NsaToG7pAJkxEMQxvrypLC11wXuFUZkOzM22/pM8vu6yBttbnXVu16Xhau/Y3RddEVSjbidD8lXwQaJ+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=ireJgISA; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WFB9ma93"
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6a9e5ba741aso5653659a12.3
-        for <sparclinux@vger.kernel.org>; Thu, 08 Oct 2026 23:29:04 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791527343; cv=none;
-        d=google.com; s=arc-20260327;
-        b=YAtZlTqh7NL1Z660c+l8XKI2pVNjfYS9rdVwo7yaDNdD3L8zR+37/D0DEX2rLlp758
-         /9TiggJGnGbFMBrIGrUzTVpPjBQmIvzPeeOtXGfel7SnVprnoLak75pWRFct2iWS06CE
-         6i5cgDx/oFyl4kZuSwWjcJemY7L/sxtRBhytHFlYhX7kWSiSqe8nhsbjI75YuZdg0ReK
-         kroHTjqRm905qIKl2AXaTeDiSwP5uMHuaN7YaCgUw7ghvwyqBe9SLhRGTaE9MkyzhCmZ
-         zS/ckcn6l4dy4ZS+lJX7JaW48bF8oc8J+IdsC5sdj1//wMXXxosIaYRszxhGgTNGM1X8
-         PqhQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=U1VUoDa7q17rAeqnY7bbHsgshGRs6k3XUU7zBz6pXTY=;
-        fh=uYNo5zto5z/9IbrVujMR7YmMnlfCVMSHHeQzd+qt2tg=;
-        b=I2O7TXdIMNQQbgcvvLwapDuJhMYLosmPPogYmwi48ZLDlF2wbRTd+DjjZUH3dpHEDf
-         QrqL2Dq8aWgvDEeEcM0y/kIxkwXt8NG+hMS25XBgU7u2QQutYjOWXuP0HlfDjJ3EA43T
-         +Gu8KEULNxRjK2RUyPiNKHbrD2Q3LGZglyfJHuTAlPDyV2HmyDaqyxnYWrYoQxCEJYu0
-         TVqjwcMMnYBkt6o7s23ac/6iHFzj91R/UG0ZMzMkoxaKmA+j9t5iqNdUCi+2TY0UO4zq
-         dPq8bC/8TlD/PLqVmceJDh/Riov+UO1KWbrpT4yTUb3Yd4Mi3kONir5+HCgqbsduI4bQ
-         Gk2w==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791527343; x=1792132143; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=U1VUoDa7q17rAeqnY7bbHsgshGRs6k3XUU7zBz6pXTY=;
-        b=WFB9ma93JZ3Nl1BNB3eZkXfmHvUmBSt2pU5rbVClkK9djK3bnXDrFrGVfa71uw5j9r
-         bso5qwjiFI9JVSoYThINt2nTUnJzeJS/I9eRmPtI/JZJLbKsGvZ/cm9IjjcQJ3V/ugy5
-         l8jD+oE8aZ/S+iTPpYw29e5dyjcKPnUr7xsIzT/liKjKFNfSyOK6Y3b0JjV/tUojU+NJ
-         hrBCo3BsdHtDTJZYYcYgQHbUaRdK5sLU3oTtl7zhHSHXSZn6noIo3Cbiq5Do9AGj2f2A
-         NHVGjmmKksg2WcAQlRyyRreXCDvAVbJgKW0HlTGm+Wf/CE70A4TnNcxDq9WXfhgh4BE8
-         55TA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791527343; x=1792132143;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=U1VUoDa7q17rAeqnY7bbHsgshGRs6k3XUU7zBz6pXTY=;
-        b=Kh8Q2KGPoPfmUE904Us+/FZcue+NFBd6Top0/Kay0Krf0PjRGysxVonQcoQz9Ubnsz
-         +T3xDxHWao1CBr6ScVknIbTiFtnGtBHxf1/l4BkuIESh090NTguQBzZ+pT/ExwcxuXYE
-         T20wDlc4iV9jpAUpt9iHBvOUomrTzucq5sZBwitTvkBgRxNp/bRU4hxF0vNsoKu/dnZ+
-         mjkqIPGHIasqDsyVIaNzUEGdsaHOrWErH0EmeKDi3P659ozYv5VKG0VK8X5jWWEnACqA
-         Z5j+iGPkwmp+HRouv8C11wsajWXD4TDw1KFZXRxBipXpARvy8opD9uDxuMXTfyI4ROE1
-         Eusw==
-X-Forwarded-Encrypted: i=1; AKwUvBwyR+eNWZ2dVTUyr9BMZck6/fwaeV5/aOvI9ETqGt6g7f2hXrs9//LmK8lN83hfqwNuq9TP5cKJmdAh@vger.kernel.org
-X-Gm-Message-State: AFq9FYJAFVfQXhNEXAk+T7C4hfDQrNKZT+9BzWTeN/ausHCouciTgRto
-	+Jry9up613jcERdaz9oCrputiYEKqztVb51Cfh2hNkn1lXFfWjyyitYVwF0yS7kUcDZofzdfSc+
-	Z3m+8mEpZjoucg76UMPywExVFa7HEZzE=
-X-Gm-Gg: AYBFou2Sjt597aT/+9XvJYuq4uUqvp+sD44NoQljderELEDIafBWug8w75bMdHxX0dJ
-	gg7UTlpgzwXIR1CA06Uvfbqa96T+DOcTwDs06cJ9yHLwNEzQVZx2Ri3Dj8WEk4zUqAvSTxmPKFW
-	BG0ommzacmWgcWMazvrJE01uGWKcYAJd1RqDovitCPjLmmmz57ZL3OuSoo95sr2tnQfsv/PWnRV
-	qSx5mi/ZjMPWBOY54bNBwGfe4QKGDdJfl1CVeldAruP4DdWxQ9EzIquj3IiBExvMjm1iKyABaMX
-	cl5QEV+5HCZEJmbDKYASy5Vm4wweSPVCkgcYhYO6itLamNFUc/k7QuKcE1tpTCQAilPVM3q5qP6
-	N9R2BnQwaqVkp2QVJTuT5/5TWVbUKxSXzji/q4Y1j/Q==
-X-Received: by 2002:a05:6402:450e:b0:6ac:9a44:d409 with SMTP id
- 4fb4d7f45d1cf-6b17c1dec0cmr625458a12.4.1791527343140; Thu, 08 Oct 2026
- 23:29:03 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="ireJgISA"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=/rQu8tiHfx3yHjUrmgq/27APde4aL0+gwH1XMh/5v+0=; t=1791528939;
+	x=1792133739; b=ireJgISAmrIyQOyZKO6WijSlyeTiZ2/cMyhQYXVO1bw6HQPc8i7j3HnS4GT5W
+	T+YqcTlbwWT4c/5tflu3tZgfXyXRIugmw1hQVayZyFgpsHmNbpX5c6KzrtAfN3nPQecDh4iclV2Pn
+	eqiMofWSOPNXKlZ9uOBSRYGwYFJmOa1rEcKi/UlOQlkTUEu/GWM1fTpsrz+ROHcmfEbr/Yfzqrtm8
+	sZHkP2sGckKWLBGpGQhLluGRltL+sHEmVg+q6nS47ujPg+6aKf3uYq+EKOrgcUiQqghRWex2BBKNI
+	CXiJCTICMiQ8pNdZXaShNPp9KAHgofidT0OfyYYSpgoKoJDgLw==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.100)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1xF4Vu-00000000TCp-0DF8; Fri, 09 Oct 2026 08:55:30 +0200
+Received: from p5b13a90a.dip0.t-ipconnect.de ([91.19.169.10] helo=suse-laptop.fritz.box)
+          by inpost2.zedat.fu-berlin.de (Exim 4.100)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1xF4Vt-00000002Msd-3Pis; Fri, 09 Oct 2026 08:55:29 +0200
+Message-ID: <b9870d3274294bc7207de5637b29e55c125f6ffc.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH v2 0/2] sparc64: add seccomp filter support
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Andreas Larsson <andreas@gaisler.com>, Stian Halseth <stian@itx.no>, 
+ "David S . Miller"	 <davem@davemloft.net>, Kees Cook <kees@kernel.org>,
+ sparclinux@vger.kernel.org
+Cc: Andy Lutomirski <luto@amacapital.net>, Will Drewry <wad@chromium.org>, 
+ Oleg Nesterov <oleg@redhat.com>, Shuah Khan <shuah@kernel.org>,
+ linux-kselftest@vger.kernel.org, 	linux-kernel@vger.kernel.org
+Date: Fri, 09 Oct 2026 08:55:28 +0200
+In-Reply-To: <f32e114c-718f-46d7-9388-fdc5c382ddaa@gaisler.com>
+References: <20260902072745.3412940-1-stian@itx.no>
+	 <f32e114c-718f-46d7-9388-fdc5c382ddaa@gaisler.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.60.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261008220433.965791-1-linmag7@gmail.com> <038bffb2-e40d-44bb-b7ce-53e9de32e50d@lunn.ch>
-In-Reply-To: <038bffb2-e40d-44bb-b7ce-53e9de32e50d@lunn.ch>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Fri, 9 Oct 2026 08:28:51 +0200
-X-Gm-Features: AclHuK-JpJJ8BWVdNGK7pt4HrpIyJkAQKyqnfpnG3fkPyd0w-Sx8RYMtjvqDjms
-Message-ID: <CA+=Fv5QvhYd7EqVBYKWVgvf92SLE=FjE8EYcZvUQ7HKdx2kc3Q@mail.gmail.com>
-Subject: Re: [PATCH net-next] tg3: normalize inherited M3000 register byte order
-To: andrew@lunn.ch
-Cc: pavan.chebbi@broadcom.com, andrew+netdev@lunn.ch, edumazet@google.com, 
-	kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-Hi Andrew,
+Hi Andreas,
 
-On Fri, Oct 9, 2026 at 3:13=E2=80=AFAM Andrew Lunn <andrew@lunn.ch> wrote:
->
-> On Fri, Oct 09, 2026 at 12:04:03AM +0200, Magnus Lindholm wrote:
-> > M3000 firmware can leave BCM5718 vendor registers byte-swapped while
-> > standard PCI fields retain normal byte order. Match the Fujitsu 10cf:16=
-5a
-> > subsystem, IKKAKU model and swapped revision/product signature before
-> > restoring host control; reject failed PCI accesses or register readback=
-s.
-> >
-> > Keep this in probe so failures can abort initialization; SPARC firmware
-> > enumeration skips PCI_FIXUP_EARLY. Normal rebinds and other platforms
-> > retain their existing path.
-> >
-> > Use tg3.h's MISC_HOST_CTRL_BYTE_SWAP and TG3PCI_GEN2_PRODID_ASICREV;
-> > the inherited state was observed on M3000 hardware.
-> >
-> > Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
->
-> > +/* M3000 firmware can leave the on-board BCM5718 registers byte-swappe=
-d. */
-> > +static bool tg3_is_m3000(struct pci_dev *pdev)
-> > +{
-> > +     struct device_node *root;
-> > +     const char *model;
-> > +     bool match;
-> > +
-> > +     if (pdev->vendor !=3D PCI_VENDOR_ID_BROADCOM ||
-> > +         pdev->device !=3D TG3PCI_DEVICE_TIGON3_5718 ||
-> > +         pdev->subsystem_vendor !=3D 0x10cf ||
-> > +         pdev->subsystem_device !=3D 0x165a)
-> > +             return false;
-> > +
-> > +     root =3D of_find_node_by_path("/");
-> > +     match =3D !of_property_read_string(root, "model", &model) &&
-> > +             !strcmp(model, "IKKAKU");
->
-> The DT Maintainers generally don't like this.
->
-> Is there a legitimate reason you would want the bytes are swapped?
->
-> Can you not just probe the registers, and if they are swapped undo it?
-> Does it really need to be conditional on the machine?
->
+On Wed, 2026-10-07 at 08:14 +0200, Andreas Larsson wrote:
+> On 2026-09-02 09:27, Stian Halseth wrote:
+> > This adds SECCOMP_FILTER support for sparc64.
+> >=20
+> > The arch prerequisites have been in place for years, so patch 1 is
+> > mostly about the missing piece: letting seccomp veto a syscall, and
+> > returning to user space with the return value the seccomp core set in
+> > pt_regs rather than the -ENOSYS the assembler stubs used to force on
+> > any denied syscall.  Patch 2 teaches the seccomp_bpf selftest to
+> > drive sparc64's registers.
+> >=20
+> > Tested on an UltraSPARC T4-1 (sun4v):
+> >=20
+> >   - tools/testing/selftests/seccomp/seccomp_bpf: 95 passed, 0 failed,
+> >     16 skipped (uprobes and other optional features)
+> >   - libseccomp with its pending SPARC support (libseccomp PR #471)
+> >     passes its full suite, 5190 of 5190, including the live tests
+> >     that require kernel SECCOMP_FILTER
+> >   - docker containers run confined by the default profile, and a
+> >     custom SCMP_ACT_ERRNO profile denies as expected
+> >=20
+> > The libseccomp side is https://github.com/seccomp/libseccomp/pull/471,
+> > and the tracking issue is https://github.com/sparclinux/issues/issues/1=
+1.
+> >=20
+> > v2: drop the local regs-struct definition in the selftest in favour of
+> >     PTRACE_GETREGS64/PTRACE_SETREGS64 and the uapi struct pt_regs
+> >     (Kees Cook); patch 1 unchanged.
+> >=20
+> > Stian Halseth (2):
+> >   sparc64: add seccomp filter support
+> >   selftests/seccomp: add sparc64 support
+> >=20
+> >  arch/sparc/Kconfig                            |  2 +-
+> >  arch/sparc/include/asm/seccomp.h              | 15 ++++++++
+> >  arch/sparc/include/asm/syscall.h              | 11 +++---
+> >  arch/sparc/kernel/entry.h                     |  2 +-
+> >  arch/sparc/kernel/ptrace_64.c                 | 28 ++++++++++-----
+> >  arch/sparc/kernel/syscalls.S                  | 28 +++++++++++----
+> >  tools/testing/selftests/seccomp/seccomp_bpf.c | 36 +++++++++++++++++++=
++
+> >  7 files changed, 99 insertions(+), 23 deletions(-)
+> >=20
+>=20
+> Looks good to me, and selftests runs fine for me as well. Thanks! We have=
+ a soon
+> incoming patch set adding support for sparc32 as well on top of this.
+>=20
+> Kees, are you ok with the selftest changes being taken through my tree?
 
-Thanks for the suggestion. I've tested a revised approach without
-the machine-model or subsystem checks. It checks the BCM5718 register
-state, leaving a normal revision signature untouched and requiring
-the swapped revision, byte-swap bit and product ID before correcting
-the byte order. Both register readbacks are checked afterward.
+I think it should be safe to take the tests through your tree although
+it would be nice if Kees could ack the changes.
 
-On the M3000, all four ports normalized at boot, with no additional
-normalization on driver rebind. Link cycling and bidirectional
-file-transfer checks also passed.
+Adrian
 
-I'll send v2 shortly.
-
-Thanks,
-Magnus
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
