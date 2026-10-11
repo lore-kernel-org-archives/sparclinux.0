@@ -1,92 +1,100 @@
-Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
+Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1107344A3ED;
-	Sun, 11 Oct 2026 13:33:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7944F339387;
+	Sun, 11 Oct 2026 16:29:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791725625; cv=none; b=VRk1s6+eEN7aTo2okjh6f9ZtkARHBGrIOlUU6/IquPIt49/EwRj6wnwKGf7xG5nwGr1LJp2dKE+QW6kAtO2cVzrvwIYNZkCVqXekz1McNVBCNzKgvG0Blkw1O6uaCbQT8G4QqERHt4dGK9CDm3Vk/Slf1TJmExeU04NlV3GJNu0=
+	t=1791736176; cv=none; b=IISxrZEscddXP3XjJKGJvLIvmgwEcmMPGuwkMy/HL8FYMES3FJ8g56UXu30yVapVj0Z31GsS4+2Z2nCyLFlQZHUJhkh5JeVTAEAbTVvksBffAnW4svLCpeByT8zPgSuX8pPN7ON9RNIjPUVOzbAaHuPmV/TXpXZXylbJ6MBSxz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791725625; c=relaxed/simple;
-	bh=HOnRafXWuKE72C/S23cH6++NT6CqQhr4UAAHfdBw9Zo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Vf02H13zbNGwvM8fQR2O+Ukxv1RBcAZy1opTrKqdIglhgTbe37kCIzX4WBcpA6Wbv5UXZklhfy9wmZM05EtPsdi0bhTz/1aRX/E4W6Jaq4e4e1q2u3Y1aDVv/AWO/othMUQdm+Qxi7Ef8OGRul1ZtS93TwwlsssULxGrFq+BSIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=XD5lEmY3; arc=none smtp.client-ip=156.67.10.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
+	s=arc-20240116; t=1791736176; c=relaxed/simple;
+	bh=WndzLhBb0HUUX0sO0798zNIc9+X+/xCoKEm0WMcuE88=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rus8y/hUEwiUgQ0gi4i1RPKZYqT/Mq+yHf2Mlkg2oE2mxHRaNduDuLhTeZ7LRXHmYoKPvsP5qkaLtB8vzUUv/lpcvQrIs9QKqVWthzWULQ1kyn7XaPRz/UdTPWgh3DDxPe9T8U8VPpuuRcq5ANUYt0zBxvX9lpRYA04wk+rTfrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=XADCc8U9; arc=none smtp.client-ip=91.189.121.228
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="XD5lEmY3"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-	s=20171124; h=In-Reply-To:Content-Transfer-Encoding:Content-Disposition:
-	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:From:
-	Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:Content-Disposition:
-	In-Reply-To:References; bh=5p6ZdRwQER1NYntwkVUYNtDCW+pWTolFozIqkDncQWw=; b=XD
-	5lEmY34PTVRKve2sYa6osmERrvO2YtHUqHk2NcJsTlo6V6/ywRFY5s/Vm+88pICnwY6idRKl1Xvqu
-	pE2kXaXoTQbilR6qLToDWUZKPWHYchBuuPlMC36jVBNBWr+gRl7kgktPzHLuxBX4Ti7BaobMJWdp1
-	2xlmh22o4tspqSY=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-	(envelope-from <andrew@lunn.ch>)
-	id 1xFtgH-00A6Mw-Hs; Sun, 11 Oct 2026 15:33:37 +0200
-Date: Sun, 11 Oct 2026 15:33:37 +0200
-From: Andrew Lunn <andrew@lunn.ch>
-To: Magnus Lindholm <linmag7@gmail.com>
-Cc: pavan.chebbi@broadcom.com, andrew+netdev@lunn.ch, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next] tg3: normalize inherited M3000 register byte
- order
-Message-ID: <c8bc138e-2d62-4ee8-9020-5f1091efe015@lunn.ch>
-References: <20261008220433.965791-1-linmag7@gmail.com>
- <038bffb2-e40d-44bb-b7ce-53e9de32e50d@lunn.ch>
- <CA+=Fv5QvhYd7EqVBYKWVgvf92SLE=FjE8EYcZvUQ7HKdx2kc3Q@mail.gmail.com>
- <becc8f95-4650-477b-b1c7-cc4952e5e980@lunn.ch>
- <CA+=Fv5TU1rOUimi8f+e0R4_48ki+X3qzD_+1QPyviTnJz-irvA@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="XADCc8U9"
+From: Stian Halseth <stian@itx.no>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
+	t=1791735627;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=I2h0x6MRK97TXy17q/oGa0pHMkpomhGIicSPhvbv6/g=;
+	b=XADCc8U9B8QaYAchNDAG8w3uziok9xva1leOsMX6XlYarOzrlxHLQiQNEA2yRR9eYfHsJD
+	7tcUmPT3d8Cz1A7pCmSLBgwzP9OKi+w/aHtUT76trhQpWU5UnKoKsXeAkYiDPwZXaY43+/
+	EGaVAudImrmY0ja78Nii6cGyHZEjtJ4=
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Suren Baghdasaryan <surenb@google.com>,
+	"Liam R. Howlett" <liam@infradead.org>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Andreas Larsson <andreas@gaisler.com>,
+	linux-mm@kvack.org,
+	linux-fsdevel@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Stian Halseth <stian@itx.no>,
+	stable@vger.kernel.org
+Subject: [PATCH] fs/proc/task_mmu: fix lost maps entries above 2^63
+Date: Sun, 11 Oct 2026 18:20:19 +0200
+Message-ID: <20261011162019.922436-1-stian@itx.no>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CA+=Fv5TU1rOUimi8f+e0R4_48ki+X3qzD_+1QPyviTnJz-irvA@mail.gmail.com>
 
-On Fri, Oct 09, 2026 at 02:52:57PM +0200, Magnus Lindholm wrote:
-> Hi Andrew,
-> 
-> On Fri, Oct 9, 2026 at 2:09 PM Andrew Lunn <andrew@lunn.ch> wrote:
-> >
-> > > > Is there a legitimate reason you would want the bytes are swapped?
-> >
-> > You missed answering this. I'm guessing, but does the hardware offer
-> > this to make big endian machines more efficient?
-> >
-> > Please could you look at the driver and think about what would happen
-> > on a big endian machine. Is the change still correct?
-> >
-> >         Andrew
-> 
-> You're right, my earlier reply missed the underlying question.
-> 
-> That is a plausible reason for providing the hardware swap mode:
-> it can accommodate big-endian accesses without software byte
-> swapping. I haven't verified Broadcom's design rationale.
-> 
-> However, Linux tg3 already initializes misc_host_ctrl with WORD_SWAP set
-> and BYTE_SWAP clear on both little- and big-endian builds, before
-> this helper runs.
-> 
-> The helper restores that existing setting. Its swab32() compensates
-> for the device's inherited register state, not CPU endianness.
-> Subsequent accesses use the normal driver path, and the separate
-> __BIG_ENDIAN handling for DMA remains unchanged.
-> 
-> That is why I believe the correction is appropriate on either
-> endianness. The runtime tests were on the M3000 running big-endian
-> SPARC64.
+When a read of /proc/pid/{maps,smaps,numa_maps} resumes, m_start()
+rewinds *ppos to priv->last_pos so that the vma which did not fit into
+the previous buffer is shown again. It only does so for last_addr > 0,
+meaning to exclude the start of the file and SENTINEL_VMA_GATE, but
+last_addr is a signed loff_t holding a vm_end. sparc64 maps shared
+libraries, anonymous memory and the stack above 0x8000000000000000, so
+the rewind does not happen there and one entry is lost at every read()
+boundary.
 
-Please expand the commit message to show you have thought about this.
+Reading the maps file of a process with read sizes from 64 to 8192
+bytes in steps of 64 loses lines at 126 of the 128 sizes, smaps at 123
+and numa_maps at 97, and the proc-maps-race selftest fails 4 of its 6
+tests. Python's sys.remote_exec() reads maps with fgets() and fails
+intermittently when it misses the libpython data mapping.
 
-       Andrew
+Test for the two values that are not a vma end instead.
+
+Fixes: 5631da56c9a87 ("fs/proc/task_mmu: read proc/pid/maps under per-vma lock")
+Closes: https://github.com/sparclinux/issues/issues/111
+Cc: stable@vger.kernel.org
+Signed-off-by: Stian Halseth <stian@itx.no>
+---
+
+Notes:
+    Tested on a SPARC T7-1 (sun4v, 7.3-rc5), a T4-1 (7.2.9) and a Sun Fire
+    V240 (sun4u, 7.3-rc5): no lost lines at any read size afterwards, and
+    Python's sys.remote_exec() test passes 20/20. On an amd64 KVM guest maps,
+    smaps, numa_maps and the proc selftests are unchanged.
+
+ fs/proc/task_mmu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index 5c54aebe21182..cdce513edcb1d 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -339,7 +339,7 @@ static void *m_start(struct seq_file *m, loff_t *ppos)
+ 	 * Reset current position if last_addr was set before
+ 	 * and it's not a sentinel.
+ 	 */
+-	if (last_addr > 0)
++	if (last_addr && last_addr != SENTINEL_VMA_GATE)
+ 		*ppos = last_addr = priv->last_pos;
+ 	vma_iter_init(&priv->iter, mm, (unsigned long)last_addr);
+ 	hold_task_mempolicy(priv);
+-- 
+2.43.0
+
