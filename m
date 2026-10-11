@@ -1,150 +1,150 @@
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com [209.85.128.182])
+Received: from mail-yx1-f54.google.com (mail-yx1-f54.google.com [74.125.224.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B96AE3290C7
-	for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 19:18:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCC112C0303
+	for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 19:28:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.54
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791746293; cv=pass; b=m9WMJqIuwCT+40z0ogsGNWYSUcemHOMf0vVY+pnbughmom/4W5k/yW0ZFRqCOSbDLPvPHJi7qX6s++A9AlEVmtpNFnGZFJNeCPMvuOqzHmGR147M4hLe2+jly4Umbyl3E1kowCUzqbxcUo6HVQyUl4S6QDU+i287izvTfPzyblo=
+	t=1791746921; cv=pass; b=CR25JlHizS26/k4XoLIKpz9bpIoTJrhKQ0mUaJ/cvQVLNZLu89sM6SiFcy7paJRC4fSWEFBYZCh0NT9aVVD0HCu6fAAin/kZDsrHEcsIkUZF9wxxn5qodnhHXxgLOw1NS4dacLCgPcaypxhZg8HObu8QPMz+EYVLs57/xV0ymGU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791746293; c=relaxed/simple;
-	bh=IWM92jlv8+bItDuNLx6rWhbjIBftHslCpZwGdPKFMhA=;
+	s=arc-20240116; t=1791746921; c=relaxed/simple;
+	bh=BLEABgEnE8rYAQd8iA6vK+bI7h+sKyrVuNbJ+ipNorc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=a2ePBgLdZjIqJt1JtmSlc6zD5FT9ekpqpARgDsQJ9wMcV6COkzZLV1zRvjsENMB4Ks6iSZPPFMANQHsXx91EvhkQJK6weeIWWpc5CK3BnYiVN9w6zWaw5zp1TnatwA04dG9tXvqfBKPJVSnzJ60NRb7kAlB8lzuc4MiR4ZW0bog=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BPhi9XT8; arc=pass smtp.client-ip=209.85.128.182
+	 To:Cc:Content-Type; b=hQtju2RL9+NR/dR68XoqIQrSKFJNsZYHt3CPNHzM8m1j4hbjIkrgp5vQaG06RXsk2R5O6fSlYZ959HvDyl20lu/EJurjdgM5bkM/0v80NuJ+FxnKGTjs2vgyOY/FBJ04oS2p1KcO0Nhi9jaDIbOY5RqfbOgABb6REO4s9Ob9WUk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MRkDF3k0; arc=pass smtp.client-ip=74.125.224.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BPhi9XT8"
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-8ab395abf79so7024937b3.0
-        for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 12:18:11 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791746291; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MRkDF3k0"
+Received: by mail-yx1-f54.google.com with SMTP id 956f58d0204a3-677b5148acaso943460d50.0
+        for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 12:28:39 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791746919; cv=none;
         d=google.com; s=arc-20260327;
-        b=O3i7oWYe/DKg6mNND6iZ/zU7xhFb/XZZNGbSEHXMUbLZ+Xe+pBlfLmcag+anSMM2FU
-         OScRgHDnzRsjMjZBfYTBUXXUFnOFjAxWaJAIdnJCXskDK66wAK7qlGQjqcK/k9GmnT43
-         dYfyCLvLe/OqByEUkrHGi9vPXRdoNRJjrfe17bS52NrFSOEU45xSnMu/qBcq/oaB4+mD
-         wKzIqA7sPhwsdtb/A9H3eCFFjjZrI8lgTFFeU1g9d1T9BauTLzGlW0Sgsuu7PDMMyWC/
-         8fXwF0sJHiu2BnLj1jJlORplSzYc8UEJ4WYtlKKZsIresvaxB/o5Bs3DmWEPFjzholSm
-         9Jzg==
+        b=FzGEc9NflJs+DHNs//uXtx01KidjkG0dNmB69ChgGp/oWgQThgxQ/M9wUSPWRB6g/2
+         kCIGXGqehcWf6VE+gY0gng3d6JJL577+3aQ0aT41gFXnrz/wwRGd8jAiI4Ss2G0zr2Gq
+         85Tn0lMblBiKtbylQgCiEaOuJIxgwH1MHTCpEFYpyTJ+UtFfvZiv859vdnp+vBxDcWjI
+         O0gZI8OzVkqD18J01BhhBQ7PGSJ7/K03pzkGcGS+0RzjsF0aDVQ4eX0OT01AYzhMmSs0
+         ZW06324Y3pH4qutuhhlbBRyU519rY/ULYz38FCyz8cGbah0D2KQ7oIQJ+y6qPZ3f9fSj
+         5kag==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=yLIfFMIqaxLJpdrdg/vzw0VW5DZQ1Rbzs/ibWNjyDT8=;
-        fh=60G+xt41yAJwUwe/khu5QMqeRAXSzh9thZtSUdKc2+o=;
-        b=H9oAJ7Hp2MqS20KOVytuEH7CP4KEfAIFaMaRLZ5RSAOEI69+A3bu/xE0YH9XYTC26X
-         lUzn1ueBr0lu3IrVWfmQ55QkobhwDsReJ46OAPW5s8d7xcQ725cilBp7iGptp3UsAMyl
-         wIgwbTc26V+BRbOY9jfOiljj/yk6DtSTGawHYHbqPn9K/FRDUxhGha9TT78Yx0yvRxQD
-         Y4WEW8yA7UrBpBKQB5RqWI5BWi9QyrB/P8wX94CEvKwy6a/qQQa0sD1+3MZNPBTbD2im
-         6dtDXveImRHFklh8GiiuZNHWj6ObottLoQrT/09QrvARqUWW1YtP7fhAL054oTZv2iuo
-         AmFg==;
+        bh=uIoUJ4//XLHXKPGzWcHseIlVJr2mS00wCM4xkDYRnJQ=;
+        fh=loDIP39DikOeOIW8kmgZjnsUOxdJmsmOrrj33OOIrh8=;
+        b=syc7o0NYzDNrw7RHyz+eHJ5PEfztwLVbLxtl6p2TffWfCrccvyxSquYnQKcXy10fHE
+         t2u1zkBDy7SY8SGZxpf8KXXsGQQ3ONv313iwPpN/+QJHFlkNctyIcWe12ECKdARGd1Qo
+         oPLfUScyPXGiztBd51ERCLmxs+0858awDObl7i5fiCk0u+h8LYBDD39XPeGBmwq4EVYn
+         bEwV1LAWCqE/od5RiRaZOA072f0jtXFRoAcrk4FTp5gIxz4rMwYPAI6V9YOqZLt97+Ke
+         aARM/UM+uSWLtVcDwF42CDspP6Kaq5rmqfLNCINpRcwC315AYUUdsPS+7ngFRofb7w7U
+         TxvQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791746291; x=1792351091; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791746919; x=1792351719; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=yLIfFMIqaxLJpdrdg/vzw0VW5DZQ1Rbzs/ibWNjyDT8=;
-        b=BPhi9XT84rYDt+zxZ6gXkQxgHxvWlpvvlOPox30hZfYx2xsDsxCCGmjdxQ4kqO2uoT
-         mehK5dqkmYwyd0P93bROzbUnemwIjqF3MsB2Etm0u9qzrXqIOXjzIpuFjvw+000+/e00
-         kimg5GnrdclIHLmmFNXWQA/ErOIg2Z0P2kVHwgMumn1DWs2OdlnIAO1nnudzOocBmzTH
-         VhcJUNy1fQkJ3v6yg/FMXvsbSB+zfRJRGE72XKO0/R1ZfFRUlbXs+IYX5Qzb1Wt2BN9g
-         GITHrd5GN7iruDqYacitZ/MX5LmbH/Ts6ZjqGsC5Sulor/LO2OqWIpi1GmnN5cOU9W65
-         ri6A==
+        bh=uIoUJ4//XLHXKPGzWcHseIlVJr2mS00wCM4xkDYRnJQ=;
+        b=MRkDF3k0xCCXdziUjawv6bpNREPc3/s70nKgLS9ojSFWAdvfvCefIXIYsfoyaugC3A
+         3pGUyBS73oPXZwl3ZZNNKV4DEhUQyJkzOK++2Vqh6oeIRlasqRmcy4WwDfyq8SRLim7n
+         LZIFsCMznlin/YAgoU5iFzrIPu3OSPNNW3QDKmwmaK0nJ6FFUMtttyemssQuBniSzUWW
+         +3hBUcEhLcUx0jVpJa94w/s1I4peqpHAJ+ErmCFAH94QtmcH/+uhwSNJgm7CzJTRzm51
+         M7b52PRhDuKMgadClO87w1+rM0vRNcUANWIzwzmK4io3Lvy+XtoXTKUhoWg3YhpkT5Ez
+         Sqpg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791746291; x=1792351091;
+        d=1e100.net; s=20260707; t=1791746919; x=1792351719;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=yLIfFMIqaxLJpdrdg/vzw0VW5DZQ1Rbzs/ibWNjyDT8=;
-        b=dDrnOYQhvyDbhI8rZTEsKhDSqlz3LfweaWqGIdIhLpk6CeoAI2NBOAEhKXUUk3z5rI
-         +cJcVf89HLL/LX19jBwkC5TdlqZ6ZrN16KFhjRR9bNpBqfQTfDvO2DGLSA/V+u6eN9eH
-         ZBf60zGHgT72KZCBXnmKET1KPEbUbt48a9Tz+uaZrd/RNuMilYMF39ElT4ufYVgna0OS
-         f9xCVMF885+ml/KCMFvHh9V2Oo60J1AjaB3eW+IZfdLJahRehhbeKCT+FVvJwn550dz5
-         jFeGohGKB5A2771TunFdBdMUbsyaTJqztr5NLSl0AIt83Lm/x4pBUiwaUrH+/guWM6zN
-         efVg==
-X-Forwarded-Encrypted: i=1; AKwUvBzjgYwc2sgizW/db2w/FI0mTsl9qN9DNZW4PrbJzbvTrMQsl2n9cllwAl08+rjU5YcprFiZ3la8GVmK@vger.kernel.org
-X-Gm-Message-State: AFq9FYLsyd47ixj3qK3h6IaoKZN/SgowQyL1zEcrX1BLdz2f6o64FI4w
-	440vLuzc1dRN/ItkLfUctsVnWV5pM//pPiRCeP0kMwuWtJMP0H4NnSaPiWMp5QVEr6sWWGKKvBa
-	sN+aeiKx5tLmeNsc/Bpjo+l2aVcgYL1Y=
-X-Gm-Gg: AYBFou1t8a9Kkp+IAKOA/hg5KILIEDMNjLBpwkwQW7K2QSDTsbqiznMbnYqopwU0toH
-	BJMYlK6JPAFk/o4TgVSBKCyRoDhHeXp70iFM/AuPxuDWY5QgS1sOtKTIrf6Z0U9JxaKqMh+7fiV
-	g7R4Bu8KjN33of9nzzSx0FRRrRF89VhYkp+j18jD8ThbDBRiVDMp549+XZkOpXyekPB61ONaUi9
-	knXGtiiaBzqSTL6siYKPkjiUUGe8/x80k9sMgLzt/S7vTJuUUZAg7D0/Myw7ocLo0Wf3pH5vCxV
-	s5kGwlVj2ZPVz6VUeIHWE5CBfWUkDJdWzGEuMCrPxOz7VKS+fG0D8uxBGZ2NVvd2m3/p1onwdts
-	711eHYeZZEyLb2d/sZskWwjpMriL2J+7UExVY+aKvBxlUktATWQ7V
-X-Received: by 2002:a05:690e:43cc:20b0:677:d1d9:1277 with SMTP id
- 956f58d0204a3-67936aa750cmr1760899d50.82.1791746290718; Sun, 11 Oct 2026
- 12:18:10 -0700 (PDT)
+        bh=uIoUJ4//XLHXKPGzWcHseIlVJr2mS00wCM4xkDYRnJQ=;
+        b=BAL8Zh/eYr1nIy3urQcKnB1SusQN5shPbRpZ55u6mnxK76Q1QRChhg7PV053JLcB4O
+         d7UlmFu9cy2uhtw6OL4MTKq9is5VHTiesWmYJLXKrhs9VtOrr/aIa3YF8yzZJOkJZmYo
+         cjGQblB1S3qJ6/Q8V7l9WM2qFE4alsIpEOwCMmVz0o1zou6MMQ0AVbP2iJ1IGkzS8+aI
+         hB6ehHSzKk5jgz78vH6Z/6pIakpy7QEatf/68Q+HsdYrbyIHDnTBfaTdESSzwY8CMaJs
+         ivVNRoe+Gq1KZNluszdK7wUQzxkJeFPcbBoei+4qgTHgw3ZmogNuX9UVVdM/Kfdt/46v
+         +hhg==
+X-Forwarded-Encrypted: i=1; AKwUvBwFEmxMmdBiz1DUSAvngiSz3L6F4V4S6HNPg874mvSHMXbmkvQtdyt7k+GgoEp9lBvgSorPRCEyTxXv@vger.kernel.org
+X-Gm-Message-State: AFq9FYI63n19QrPlBrLgCczBdkcdAHZDNYoETMNlk9AbS+jmRrYXNwpl
+	Zn+KKYCTE0zb8tTQE1FkQvhJO1p2RCFWmuhKzBRHspb0NdJmrvUhx2uPiAoY4lcnDlv9PA7ZSwq
+	1hIDqwQ7fsg04Lzo+axAgIjWaiEaxEzBkWXfDmSo=
+X-Gm-Gg: AYBFou0kf3W2RE6kEH3JEm+qiQRFf8J2hojMbFjgnyLwn+IV9HEXc9Ya+Vk9moHdj/2
+	omUtqMX6MwUykEF+n/BSdh0QsMPAfQQdi2Cs+3IUqgMceSBXfozJdWEH7a3OA9+jMK1E2jrJloo
+	sptLhJm3DGVX0VK/aQ7k5NxPkB8zHCRbmT+nDdl2Mcvwj1fkCRArz2Q65xpsNQMLXFd417I9Tpe
+	HlkLZej5+dZKuP5CZLm28gUd2tl9x/bK9w3mnYrPtnsJemCmfdVnL0msPd/qoH9q5bMrm6U95JV
+	cQQLcx5l9nsdhCHie7p1YAHEGCRZZgcklMujo5855EIRpg5dWTKMbXGLfXRzSWG5o39yVEHfHLx
+	tXBa3L+A/i9DNNR1vTfjkWMo8kBGhh2CADFFClZ1f0vmIwt/hnVr8
+X-Received: by 2002:a05:690e:43d3:b0:673:8cbe:c16e with SMTP id
+ 956f58d0204a3-679360595ddmr1290533d50.69.1791746918680; Sun, 11 Oct 2026
+ 12:28:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261008220433.965791-1-linmag7@gmail.com> <038bffb2-e40d-44bb-b7ce-53e9de32e50d@lunn.ch>
- <CA+=Fv5QvhYd7EqVBYKWVgvf92SLE=FjE8EYcZvUQ7HKdx2kc3Q@mail.gmail.com>
- <becc8f95-4650-477b-b1c7-cc4952e5e980@lunn.ch> <CA+=Fv5TU1rOUimi8f+e0R4_48ki+X3qzD_+1QPyviTnJz-irvA@mail.gmail.com>
- <c8bc138e-2d62-4ee8-9020-5f1091efe015@lunn.ch>
-In-Reply-To: <c8bc138e-2d62-4ee8-9020-5f1091efe015@lunn.ch>
+References: <b74cffe77f82562fae8cf611349e765f1f38af2c.camel@physik.fu-berlin.de>
+ <14ae2aabb9e681a69818d3e02da8273cd12261b8.camel@itx.no> <69c1798a6409879a70474c10e3d653fdb37c7246.camel@physik.fu-berlin.de>
+ <ef8e85c1fc00c999e74b2d43048bfa67997c13a2.camel@itx.no> <01bd740a7b5f2c5cd12b4ba025fb9a53573188bf.camel@itx.no>
+ <ed3c37da1320ac19bd45dbfaa89957d9a8c05e0f.camel@physik.fu-berlin.de>
+ <b85e047233f5b38cdbfbd7af852ce30055680b47.camel@itx.no> <c4fd9e838043b2b552ea9c33dfaf716a5e9d5b6a.camel@physik.fu-berlin.de>
+ <6a37e24972e63cf3c6212644e7c3f18a8a9c06da.camel@itx.no>
+In-Reply-To: <6a37e24972e63cf3c6212644e7c3f18a8a9c06da.camel@itx.no>
 From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 11 Oct 2026 21:17:58 +0200
-X-Gm-Features: AclHuK_XYA2IeX8EB_wQ6S_Y8XgepVmJIFtOKL2to5kfxrIk9XqHG7Csp2E4u_w
-Message-ID: <CA+=Fv5RiKoE07MVn5qRS1+WtLXUVO+HrXyLpVCcXGoCb7X6X3w@mail.gmail.com>
-Subject: Re: [PATCH net-next] tg3: normalize inherited M3000 register byte order
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: pavan.chebbi@broadcom.com, andrew+netdev@lunn.ch, edumazet@google.com, 
-	kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Sun, 11 Oct 2026 21:28:26 +0200
+X-Gm-Features: AclHuK-nIFmalB4GuEIorrewu--1XC3StbQgKc4FxbrF1MWh7noJhY1zIqKs8t0
+Message-ID: <CA+=Fv5TZYv53K=c9QFhwCSXJMVyCi5Kv6WjPKUcrPxEpU2BKUg@mail.gmail.com>
+Subject: Re: Mount crashes with SIGILL on v240 on for-next
+To: Stian Halseth <stian@itx.no>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, sparclinux <sparclinux@vger.kernel.org>, 
+	Imre Kaloz <kaloz@kernel.org>, Andreas Larsson <andreas@gaisler.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Andrew,
+Hi all,
 
-On Sun, Oct 11, 2026 at 3:33=E2=80=AFPM Andrew Lunn <andrew@lunn.ch> wrote:
+On Sat, Oct 10, 2026 at 10:45=E2=80=AFPM Stian Halseth <stian@itx.no> wrote=
+:
 >
-> On Fri, Oct 09, 2026 at 02:52:57PM +0200, Magnus Lindholm wrote:
-> > Hi Andrew,
+> On Sat, 2026-10-10 at 22:18 +0200, John Paul Adrian Glaubitz wrote:
+> > Did your kernel ever crash with CONFIG_CGROUP_BPF enabled? That was
+> > my original reproducer.
 > >
-> > On Fri, Oct 9, 2026 at 2:09=E2=80=AFPM Andrew Lunn <andrew@lunn.ch> wro=
-te:
-> > >
-> > > > > Is there a legitimate reason you would want the bytes are swapped=
-?
-> > >
-> > > You missed answering this. I'm guessing, but does the hardware offer
-> > > this to make big endian machines more efficient?
-> > >
-> > > Please could you look at the driver and think about what would happen
-> > > on a big endian machine. Is the change still correct?
-> > >
-> > >         Andrew
-> >
-> > You're right, my earlier reply missed the underlying question.
-> >
-> > That is a plausible reason for providing the hardware swap mode:
-> > it can accommodate big-endian accesses without software byte
-> > swapping. I haven't verified Broadcom's design rationale.
-> >
-> > However, Linux tg3 alreadThanks, I'll expand the commit message with th=
-is explanation in v3.y initializes misc_host_ctrl with WORD_SWAP set
-> > and BYTE_SWAP clear on both little- and big-endian builds, before
-> > this helper runs.
-> >
-> > The helper restores that existing setting. Its swab32() compensates
-> > for the device's inherited register state, not CPU endianness.
-> > Subsequent accesses use the normal driver path, and the separate
-> > __BIG_ENDIAN handling for DMA remains unchanged.
-> >
-> > That is why I believe the correction is appropriate on either
-> > endianness. The runtime tests were on the M3000 running big-endian
-> > SPARC64.
 >
-> Please expand the commit message to show you have thought about this.
+> No, but my V240 (Sparco) runs OpenRC, so even the test kernels built
+> with CGROUP_BPF=3Dy had no cgroup BPF programs attached.
 >
+> Since v2 fixes it for you, could you send your Tested-by in Imre's
+> thread?
+> https://lore.kernel.org/all/20260928132102.1707-1-kaloz@kernel.org/
 
+I've been following this thread and made some tests on my system.
+I tested Andreas' for-next on a single-CPU Ultra 45, built with GCC
+15.2.0/binutils 2.45. It boots successfully both with and without
+Kaloz' v2 D-cache alias fixes.
 
-Thanks, I'll expand the commit message with this explanation in v3.
+However, the same source and patches built with Adrian's full config
+consistently panic while initializing the LSISAS1064 controller. The
+failure is a Cheetah deferred-error trap reporting =E2=80=9CBus error respo=
+nse
+from system bus=E2=80=9D, usually in MakeIocReady()/WaitForDoorbellAck() in
+mptbase. Building MPT into the kernel instead of as modules does not
+prevent it.
 
+Starting from a working lean UP config, I enabled the following options
+incrementally without reproducing the failure:
+
+  - kernel-side XZ module decompression
+  - modular MPT/SCSI and ext4
+  - FUNCTION_TRACER, FUNCTION_GRAPH_TRACER and DYNAMIC_FTRACE
+  - JUMP_LABEL
+  - SCSI_SCAN_ASYNC
+
+The latest kernel has all of these enabled and boots successfully.
+
+So the failure appears to depend on some other part of Adrian's full
+configuration, or an interaction between several options. I will
+continue narrowing the config differences.
+
+Regards,
 Magnus
