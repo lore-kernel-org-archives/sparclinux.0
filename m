@@ -1,150 +1,222 @@
-Received: from mail-yx1-f54.google.com (mail-yx1-f54.google.com [74.125.224.54])
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCC112C0303
-	for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 19:28:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.54
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791746921; cv=pass; b=CR25JlHizS26/k4XoLIKpz9bpIoTJrhKQ0mUaJ/cvQVLNZLu89sM6SiFcy7paJRC4fSWEFBYZCh0NT9aVVD0HCu6fAAin/kZDsrHEcsIkUZF9wxxn5qodnhHXxgLOw1NS4dacLCgPcaypxhZg8HObu8QPMz+EYVLs57/xV0ymGU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791746921; c=relaxed/simple;
-	bh=BLEABgEnE8rYAQd8iA6vK+bI7h+sKyrVuNbJ+ipNorc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hQtju2RL9+NR/dR68XoqIQrSKFJNsZYHt3CPNHzM8m1j4hbjIkrgp5vQaG06RXsk2R5O6fSlYZ959HvDyl20lu/EJurjdgM5bkM/0v80NuJ+FxnKGTjs2vgyOY/FBJ04oS2p1KcO0Nhi9jaDIbOY5RqfbOgABb6REO4s9Ob9WUk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MRkDF3k0; arc=pass smtp.client-ip=74.125.224.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42C2745FFA4
+	for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 19:42:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791747768; cv=none; b=Yu3jaK5lYFLch9dS/TmXWwdJJebRA0fos6RE6RXT0nX4qbKEIEJwDrI5IMixji54+D6FqaTT+z4lrylnpvJRIUiyqUjU9q7M/jFqKoDdFzZxL9x+6qounoU7ukiZfK0HUt2ZT9979zlg7jUJGGeR2t88eJZXsxx6YBXqwsUbmx8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791747768; c=relaxed/simple;
+	bh=duwhY6Tg9tFTL1XOXarBBsKmWEqDi2jVDN3dH3CmJ4Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mVvLAyH+9MqtM0yYjXf/HPWFWl/ol1CK2WFJta0KD5F/Is5dIqgcRtASlno2Fs4jz5bo5zJzeInDvVYjuSboLsBuHyYUqWnajvBALWHh6WpFFnPGTvsUenLkqohw1KanQxqfVZHVKuxXqoRDLKXwOAGY5D9XlOL/aEEedtMMXGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h50CcZEV; arc=none smtp.client-ip=209.85.218.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MRkDF3k0"
-Received: by mail-yx1-f54.google.com with SMTP id 956f58d0204a3-677b5148acaso943460d50.0
-        for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 12:28:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791746919; cv=none;
-        d=google.com; s=arc-20260327;
-        b=FzGEc9NflJs+DHNs//uXtx01KidjkG0dNmB69ChgGp/oWgQThgxQ/M9wUSPWRB6g/2
-         kCIGXGqehcWf6VE+gY0gng3d6JJL577+3aQ0aT41gFXnrz/wwRGd8jAiI4Ss2G0zr2Gq
-         85Tn0lMblBiKtbylQgCiEaOuJIxgwH1MHTCpEFYpyTJ+UtFfvZiv859vdnp+vBxDcWjI
-         O0gZI8OzVkqD18J01BhhBQ7PGSJ7/K03pzkGcGS+0RzjsF0aDVQ4eX0OT01AYzhMmSs0
-         ZW06324Y3pH4qutuhhlbBRyU519rY/ULYz38FCyz8cGbah0D2KQ7oIQJ+y6qPZ3f9fSj
-         5kag==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=uIoUJ4//XLHXKPGzWcHseIlVJr2mS00wCM4xkDYRnJQ=;
-        fh=loDIP39DikOeOIW8kmgZjnsUOxdJmsmOrrj33OOIrh8=;
-        b=syc7o0NYzDNrw7RHyz+eHJ5PEfztwLVbLxtl6p2TffWfCrccvyxSquYnQKcXy10fHE
-         t2u1zkBDy7SY8SGZxpf8KXXsGQQ3ONv313iwPpN/+QJHFlkNctyIcWe12ECKdARGd1Qo
-         oPLfUScyPXGiztBd51ERCLmxs+0858awDObl7i5fiCk0u+h8LYBDD39XPeGBmwq4EVYn
-         bEwV1LAWCqE/od5RiRaZOA072f0jtXFRoAcrk4FTp5gIxz4rMwYPAI6V9YOqZLt97+Ke
-         aARM/UM+uSWLtVcDwF42CDspP6Kaq5rmqfLNCINpRcwC315AYUUdsPS+7ngFRofb7w7U
-         TxvQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h50CcZEV"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c2e4df2e26fso166733966b.2
+        for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 12:42:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791746919; x=1792351719; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=uIoUJ4//XLHXKPGzWcHseIlVJr2mS00wCM4xkDYRnJQ=;
-        b=MRkDF3k0xCCXdziUjawv6bpNREPc3/s70nKgLS9ojSFWAdvfvCefIXIYsfoyaugC3A
-         3pGUyBS73oPXZwl3ZZNNKV4DEhUQyJkzOK++2Vqh6oeIRlasqRmcy4WwDfyq8SRLim7n
-         LZIFsCMznlin/YAgoU5iFzrIPu3OSPNNW3QDKmwmaK0nJ6FFUMtttyemssQuBniSzUWW
-         +3hBUcEhLcUx0jVpJa94w/s1I4peqpHAJ+ErmCFAH94QtmcH/+uhwSNJgm7CzJTRzm51
-         M7b52PRhDuKMgadClO87w1+rM0vRNcUANWIzwzmK4io3Lvy+XtoXTKUhoWg3YhpkT5Ez
-         Sqpg==
+        d=gmail.com; s=20251104; t=1791747760; x=1792352560; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=P57ESlsV9SvC7jAyaXBqTiZZ0EEN4K1kw22rWzkVaQw=;
+        b=h50CcZEVKgMXP+VS13OBpeU9Qm+RLcRIl957khv4EIB90D/wHkS3s23xF6jwkK/gOr
+         nu8PZbvUu8eHVE/u3Jzww8RN2G0GTDREMEamlkoPW+2Cfm9V2JlGIVTU3eBYiAB9c4rS
+         V8qnLW2I2wy/7gZQhoB6RP3MClVrQ/tauQlx8poQbxfNkXYAVJHmc8fNwGRrQt5tXhTf
+         XcDNRViDF4fvuZfT9tPR9nIHtiP1hBQ8Et2AvcfxiSOGc3PznsoIzO65fIPXpV6msB8M
+         c8Ok3O55SpKc0/sFZfDPug60j6bvzaz+6l4fWLcZnIKDiwLGYZQZUNP5PV9xlOts8G2z
+         DPrQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791746919; x=1792351719;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=uIoUJ4//XLHXKPGzWcHseIlVJr2mS00wCM4xkDYRnJQ=;
-        b=BAL8Zh/eYr1nIy3urQcKnB1SusQN5shPbRpZ55u6mnxK76Q1QRChhg7PV053JLcB4O
-         d7UlmFu9cy2uhtw6OL4MTKq9is5VHTiesWmYJLXKrhs9VtOrr/aIa3YF8yzZJOkJZmYo
-         cjGQblB1S3qJ6/Q8V7l9WM2qFE4alsIpEOwCMmVz0o1zou6MMQ0AVbP2iJ1IGkzS8+aI
-         hB6ehHSzKk5jgz78vH6Z/6pIakpy7QEatf/68Q+HsdYrbyIHDnTBfaTdESSzwY8CMaJs
-         ivVNRoe+Gq1KZNluszdK7wUQzxkJeFPcbBoei+4qgTHgw3ZmogNuX9UVVdM/Kfdt/46v
-         +hhg==
-X-Forwarded-Encrypted: i=1; AKwUvBwFEmxMmdBiz1DUSAvngiSz3L6F4V4S6HNPg874mvSHMXbmkvQtdyt7k+GgoEp9lBvgSorPRCEyTxXv@vger.kernel.org
-X-Gm-Message-State: AFq9FYI63n19QrPlBrLgCczBdkcdAHZDNYoETMNlk9AbS+jmRrYXNwpl
-	Zn+KKYCTE0zb8tTQE1FkQvhJO1p2RCFWmuhKzBRHspb0NdJmrvUhx2uPiAoY4lcnDlv9PA7ZSwq
-	1hIDqwQ7fsg04Lzo+axAgIjWaiEaxEzBkWXfDmSo=
-X-Gm-Gg: AYBFou0kf3W2RE6kEH3JEm+qiQRFf8J2hojMbFjgnyLwn+IV9HEXc9Ya+Vk9moHdj/2
-	omUtqMX6MwUykEF+n/BSdh0QsMPAfQQdi2Cs+3IUqgMceSBXfozJdWEH7a3OA9+jMK1E2jrJloo
-	sptLhJm3DGVX0VK/aQ7k5NxPkB8zHCRbmT+nDdl2Mcvwj1fkCRArz2Q65xpsNQMLXFd417I9Tpe
-	HlkLZej5+dZKuP5CZLm28gUd2tl9x/bK9w3mnYrPtnsJemCmfdVnL0msPd/qoH9q5bMrm6U95JV
-	cQQLcx5l9nsdhCHie7p1YAHEGCRZZgcklMujo5855EIRpg5dWTKMbXGLfXRzSWG5o39yVEHfHLx
-	tXBa3L+A/i9DNNR1vTfjkWMo8kBGhh2CADFFClZ1f0vmIwt/hnVr8
-X-Received: by 2002:a05:690e:43d3:b0:673:8cbe:c16e with SMTP id
- 956f58d0204a3-679360595ddmr1290533d50.69.1791746918680; Sun, 11 Oct 2026
- 12:28:38 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1791747760; x=1792352560;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=P57ESlsV9SvC7jAyaXBqTiZZ0EEN4K1kw22rWzkVaQw=;
+        b=1Sz/IdQLcgV0fvHFaPY5iMj6wTFPx/0IwSotNA+0lKFunskriDE3uOZWZMvrMmA9bP
+         oPB482S0DqJvhgcUHaeL6Q9XWHgFTWwG+3jOkhRvRw/1axKA5tFBLluLV1ZB/6FR8a9j
+         zR/iL78bmj4KGiSYFkBJQ9ThlRonxwCVJMuIfgyei44+4B37kz0Jxt+X+W9HaHARKL7a
+         sI61tdHZc870iLlRd4K/GUxokEMwuyMgTSxQbCJrcF8XF4t7aD0jWafsZxCw+6YtTDN9
+         JWnw7JPS0uYJOVp4P8z9+j3TNe+BfuttvC0yKf4CXk1Qk3YjSDMf37T0BxdEU9sMHjkD
+         aYBw==
+X-Forwarded-Encrypted: i=1; AKwUvBzO+icQQDAmRJsuuYIh6ui4xNTQnjdXGNqfueiuhMykpco7O2557S1VzcaAQlFpo5ePWtPV4q46t/+o@vger.kernel.org
+X-Gm-Message-State: AFq9FYJc0iCD0i9Xdw6C10X2T381zQpZ7bXCIEX4+mj6rMS7kAVqlWl8
+	1PdisriQEHOwvFRN79z3/SqDWkhHj65u3Wk01K1dD2+OZbU/QhWS8kTD
+X-Gm-Gg: AYBFou3YwemIaPQSwcStW/JJR+zgpzZqP04byUeGQ7Dl0MJwpm4AucUVgMHDb4jy7ly
+	2NQv1XxYASJHBxuv2tt6F+A6o6c3LYLI+adRO10FZIDXefE62A1B0jYbAJH8K9Burh8kjfEGakC
+	o5V18oxYWr7TRJ8FB5Jtx5HUf/z8wM08piI1yi85x6h4uCOf5Yh6MpOf3NRU6qFeOhsugLAiM43
+	qWv0jawfvACS8+GIbN/Fav3AJtk8o+OxVMBK3QmJbUAW8sU67K0PtBIdD9aAQZRaHDdC5EG74mG
+	ogQ0wSzzbqG5Fc4gGbdTDNEE6unirLcjOuRfrsVbdIsxRbugbzK6TdcpXF9iSkbiqeYteLBVzCr
+	hiHbv7e4P9f1g/kle6MC8n+jVIk/KPUKMbJCE3vI42r34YNQLz33yduJjFjdMT6T01HaFmRQVxM
+	UlPFm6HFgmU7VxTIRzeBTAokfWAq28NwpPVf7AU6hLQFo1DeRt3PRd0eGhgfjFnWP09kVnmDPaS
+	vjLlx0PzNq5Oj9m2xX6xGkYEb7+DYDgbajDdf3e
+X-Received: by 2002:a17:907:968f:b0:c31:8c48:e18b with SMTP id a640c23a62f3a-c31a9afb3b6mr819944966b.14.1791747760150;
+        Sun, 11 Oct 2026 12:42:40 -0700 (PDT)
+Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c31a9a74bcbsm387266166b.38.2026.10.11.12.42.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 11 Oct 2026 12:42:38 -0700 (PDT)
+From: Magnus Lindholm <linmag7@gmail.com>
+To: pavan.chebbi@broadcom.com
+Cc: andrew+netdev@lunn.ch,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netdev@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linmag7@gmail.com
+Subject: [PATCH net-next v3] tg3: normalize inherited BCM5718 register byte order
+Date: Sun, 11 Oct 2026 21:41:58 +0200
+Message-ID: <20261011194228.981141-1-linmag7@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <b74cffe77f82562fae8cf611349e765f1f38af2c.camel@physik.fu-berlin.de>
- <14ae2aabb9e681a69818d3e02da8273cd12261b8.camel@itx.no> <69c1798a6409879a70474c10e3d653fdb37c7246.camel@physik.fu-berlin.de>
- <ef8e85c1fc00c999e74b2d43048bfa67997c13a2.camel@itx.no> <01bd740a7b5f2c5cd12b4ba025fb9a53573188bf.camel@itx.no>
- <ed3c37da1320ac19bd45dbfaa89957d9a8c05e0f.camel@physik.fu-berlin.de>
- <b85e047233f5b38cdbfbd7af852ce30055680b47.camel@itx.no> <c4fd9e838043b2b552ea9c33dfaf716a5e9d5b6a.camel@physik.fu-berlin.de>
- <6a37e24972e63cf3c6212644e7c3f18a8a9c06da.camel@itx.no>
-In-Reply-To: <6a37e24972e63cf3c6212644e7c3f18a8a9c06da.camel@itx.no>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 11 Oct 2026 21:28:26 +0200
-X-Gm-Features: AclHuK-nIFmalB4GuEIorrewu--1XC3StbQgKc4FxbrF1MWh7noJhY1zIqKs8t0
-Message-ID: <CA+=Fv5TZYv53K=c9QFhwCSXJMVyCi5Kv6WjPKUcrPxEpU2BKUg@mail.gmail.com>
-Subject: Re: Mount crashes with SIGILL on v240 on for-next
-To: Stian Halseth <stian@itx.no>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, sparclinux <sparclinux@vger.kernel.org>, 
-	Imre Kaloz <kaloz@kernel.org>, Andreas Larsson <andreas@gaisler.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi all,
+Firmware can leave BCM5718 vendor registers byte-swapped while standard
+PCI fields retain normal byte order. Detect this from the host-control
+revision marker, byte-swap bit and swapped product ID, without matching
+a platform model or PCI subsystem. Prefer the normal revision marker
+so already-normal controllers do not enter the normalization path.
 
-On Sat, Oct 10, 2026 at 10:45=E2=80=AFPM Stian Halseth <stian@itx.no> wrote=
-:
->
-> On Sat, 2026-10-10 at 22:18 +0200, John Paul Adrian Glaubitz wrote:
-> > Did your kernel ever crash with CONFIG_CGROUP_BPF enabled? That was
-> > my original reproducer.
-> >
->
-> No, but my V240 (Sparco) runs OpenRC, so even the test kernels built
-> with CGROUP_BPF=3Dy had no cgroup BPF programs attached.
->
-> Since v2 fixes it for you, could you send your Tested-by in Imre's
-> thread?
-> https://lore.kernel.org/all/20260928132102.1707-1-kaloz@kernel.org/
+Hardware swapping can accommodate big-endian register accesses, but tg3
+already initializes misc_host_ctrl with WORD_SWAP set and BYTE_SWAP clear
+on both little- and big-endian builds. Its normal MMIO path uses
+readl()/writel(); on SPARC64 these use little-endian accesses. Restore
+that existing register mode rather than choosing a mode based on host
+endianness. The swab32() on the initial write compensates for the device's
+inherited state; subsequent accesses use the normal driver path.
 
-I've been following this thread and made some tests on my system.
-I tested Andreas' for-next on a single-CPU Ultra 45, built with GCC
-15.2.0/binutils 2.45. It boots successfully both with and without
-Kaloz' v2 D-cache alias fixes.
+DMA byte ordering is controlled separately through GRC_MODE. Leave those
+settings, including the __BIG_ENDIAN handling for non-frame data,
+unchanged. Check both register readbacks and keep this in probe so PCI
+access or validation failures can abort initialization.
 
-However, the same source and patches built with Adrian's full config
-consistently panic while initializing the LSISAS1064 controller. The
-failure is a Cheetah deferred-error trap reporting =E2=80=9CBus error respo=
-nse
-from system bus=E2=80=9D, usually in MakeIocReady()/WaitForDoorbellAck() in
-mptbase. Building MPT into the kernel instead of as modules does not
-prevent it.
+Limit detection to BCM5718, whose register layout and inherited state
+were checked on M3000 hardware. Other controller families retain their
+existing initialization path.
 
-Starting from a working lean UP config, I enabled the following options
-incrementally without reproducing the failure:
+Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+---
+Changes since v2:
+- Expand the commit message in response to Andrew Lunn's review: explain
+  the existing register mode on both host endiannesses, the purpose of
+  the initial swab32(), and the separate big-endian DMA configuration.
+- No code changes; the diff is identical to the tested v2.
 
-  - kernel-side XZ module decompression
-  - modular MPT/SCSI and ext4
-  - FUNCTION_TRACER, FUNCTION_GRAPH_TRACER and DYNAMIC_FTRACE
-  - JUMP_LABEL
-  - SCSI_SCAN_ASYNC
+Changes since v1:
+- Detect BCM5718 register state without OF model or subsystem matching.
+- Prefer the normal revision marker and retain checked PCI accesses and
+  product-ID/readback validation. Use dev_dbg() for successful correction.
 
-The latest kernel has all of these enabled and boots successfully.
+The unchanged v2 code was tested on big-endian SPARC64 with M3000 v2:
+normalization at boot on all four ports, rebind without further
+normalization, three active-link cycles and a 16 MiB bidirectional
+transfer with matching SHA-256. Kernel taint remained zero. Standalone
+SPARC and x86-64 CONFIG_OF=n driver builds passed; no little-endian
+hardware runtime test was performed.
 
-So the failure appears to depend on some other part of Adrian's full
-configuration, or an interaction between several options. I will
-continue narrowing the config differences.
+ drivers/net/ethernet/broadcom/tg3.c | 72 ++++++++++++++++++++++++++++-
+ 1 file changed, 70 insertions(+), 2 deletions(-)
 
-Regards,
-Magnus
+diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
+index 73a4b569b03e..ef0f6e5f6440 100644
+--- a/drivers/net/ethernet/broadcom/tg3.c
++++ b/drivers/net/ethernet/broadcom/tg3.c
+@@ -16248,6 +16248,65 @@ static bool tg3_10_100_only_device(struct tg3 *tp,
+ 	return false;
+ }
+ 
++static int tg3_fw_byteorder(struct tg3 *tp, u32 *misc_ctrl_reg)
++{
++	struct pci_dev *pdev = tp->pdev;
++	u32 prodid, expected_prodid, normalized, readback;
++	int reg, err;
++
++	/* Prefer the normal revision marker before testing the swapped state. */
++	if (pdev->device != TG3PCI_DEVICE_TIGON3_5718 ||
++	    (*misc_ctrl_reg >> 28) == ASIC_REV_USE_PROD_ID_REG ||
++	    (swab32(*misc_ctrl_reg) >> 28) != ASIC_REV_USE_PROD_ID_REG ||
++	    !(swab32(*misc_ctrl_reg) & MISC_HOST_CTRL_BYTE_SWAP))
++		return 0;
++
++	/* Standard PCI fields are normal; verify the swapped vendor registers. */
++	reg = TG3PCI_GEN2_PRODID_ASICREV;
++	err = pci_read_config_dword(pdev, reg, &prodid);
++	if (err)
++		goto config_error;
++	expected_prodid = swab32(prodid);
++	if ((expected_prodid >> 12) != ASIC_REV_5717) {
++		dev_err(&pdev->dev, "unexpected swapped BCM5718 product ID %08x\n",
++			prodid);
++		return -ENODEV;
++	}
++
++	normalized = (swab32(*misc_ctrl_reg) & MISC_HOST_CTRL_CHIPREV) |
++		     tp->misc_host_ctrl;
++	reg = TG3PCI_MISC_HOST_CTRL;
++	err = pci_write_config_dword(pdev, reg, swab32(normalized));
++	if (err)
++		goto config_error;
++	err = pci_read_config_dword(pdev, reg, &readback);
++	if (err)
++		goto config_error;
++	if (readback != normalized) {
++		dev_err(&pdev->dev, "BCM5718 host-control readback mismatch %08x\n",
++			readback);
++		return -EIO;
++	}
++
++	reg = TG3PCI_GEN2_PRODID_ASICREV;
++	err = pci_read_config_dword(pdev, reg, &prodid);
++	if (err)
++		goto config_error;
++	if (prodid != expected_prodid) {
++		dev_err(&pdev->dev, "BCM5718 product-ID readback mismatch %08x\n",
++			prodid);
++		return -EIO;
++	}
++	*misc_ctrl_reg = readback;
++	dev_dbg(&pdev->dev, "normalized firmware register byte order\n");
++	return 0;
++
++config_error:
++	dev_err(&pdev->dev, "BCM5718 PCI config access at %#x failed (%d)\n",
++		reg, err);
++	return pcibios_err_to_errno(err);
++}
++
+ static int tg3_get_invariants(struct tg3 *tp, const struct pci_device_id *ent)
+ {
+ 	u32 misc_ctrl_reg;
+@@ -16272,8 +16331,17 @@ static int tg3_get_invariants(struct tg3 *tp, const struct pci_device_id *ent)
+ 	 * sure that indirect register accesses are enabled before
+ 	 * the first operation.
+ 	 */
+-	pci_read_config_dword(tp->pdev, TG3PCI_MISC_HOST_CTRL,
+-			      &misc_ctrl_reg);
++	err = pci_read_config_dword(tp->pdev, TG3PCI_MISC_HOST_CTRL,
++				    &misc_ctrl_reg);
++	if (err && tp->pdev->device == TG3PCI_DEVICE_TIGON3_5718) {
++		dev_err(&tp->pdev->dev, "PCI host-control read failed (%d)\n",
++			err);
++		return pcibios_err_to_errno(err);
++	}
++	err = tg3_fw_byteorder(tp, &misc_ctrl_reg);
++	if (err)
++		return err;
++
+ 	tp->misc_host_ctrl |= (misc_ctrl_reg &
+ 			       MISC_HOST_CTRL_CHIPREV);
+ 	pci_write_config_dword(tp->pdev, TG3PCI_MISC_HOST_CTRL,
+
+base-commit: cee9395acd8043be0644b25c34bfa86623f2b935
+-- 
+2.43.0
+
