@@ -1,45 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EBA94DA9AA;
-	Mon, 12 Oct 2026 21:34:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68DE03DAAA0;
+	Mon, 12 Oct 2026 21:41:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791840890; cv=none; b=GFWSNgqpEnwkWoIGCb/Qes+4UBcY+3eIhOg9jPzh6JAcHE7wdFEHLcZRCHjCmQxVAFE30oktRfUAOtxk/0fXxvRpmwONdynaBC8LHrSG+Zaciqjp0WgLbamVC4zltGOafwlsOgQ1Id0ETlhVWua1116fX4kbzUOEVXDSql/aCrE=
+	t=1791841281; cv=none; b=nKfkMFla9a4PQGgTBlqPGJa1ZonbWcZRPMXOv/bmN9KrJLmQgn9GKJawXPISSdFP103PXDzkPZDtUA08Bt13kAJzhTsi4naRJmIcZMZXMH3audNFyvIyUry/5D5pWxWsdNrdCRHp/whh4K/CU6iVNmVu6WoY90BciVvxwgLhcSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791840890; c=relaxed/simple;
-	bh=2rYQqctxIJ2NAfH8d5iXblRfcvOqUMnrMip1eofojvk=;
+	s=arc-20240116; t=1791841281; c=relaxed/simple;
+	bh=FX6S1QZ4xR5qAw23oNd2jsRpyqj3JES0gYmStuLzVT4=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=ZSyTMYmJ45xcWN2SDEBi89YMEBwokuqGNu+s8h/km3IiEWuT2ntYvii0AtBzvEfdJIdEgivkHpI1jhYQRrq6oRddTPhHyc48D/wjs5QBReA9/1bh0W17U/Our0Fxpi2uQQyM0ooPP/HhHBkgAUlig1HXkin+4plC93FoJLMlPEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HENcQPzl; arc=none smtp.client-ip=100.103.45.18
+	 Content-Disposition:In-Reply-To; b=bFEb9O2NV+gz7ZxW/NwQPZgUK872Ref4JwHiiqOHZFkeSIAxo5JBJ9Z+Up9SDH9dpAs4kmd8U+OXskmO7fkqOF+Ldgdg6Qx+sno75DcAoWv85LAI0b0Z4dgNXz5W2DH6dPiAAixrmzF94oGjvpNQkdm1/3WfFVapHhSf6XJR3qM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qat2e1qx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HENcQPzl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C4411F008A1;
-	Mon, 12 Oct 2026 21:34:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qat2e1qx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 013321F0089B;
+	Mon, 12 Oct 2026 21:41:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791840888;
-	bh=+k/A8cNCSgFkxc2tpT06bk4634W3QnFn4AnLpYa6IdI=;
+	s=k20260515; t=1791841280;
+	bh=uclfDJqxVRuBwPN4wlb2dOjibX2hswNkqttKPgsmqvA=;
 	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=HENcQPzl2lLQKWet8buJsvIU9gf4FXwjfIYCelfQDQPmPjJxz3KqOpYdwDZudafVZ
-	 Z3o1JqQOOZuYRCXPTmeBItGIj1dAX59mnCWc+gKqNyNkhZwsiqbIqYM8O2o9ZpB2e+
-	 wuuHRN9/wzrfpZfnfuT6IrfkNiYm7UtP+tlbdGQspPluyy03NXuhyH7QHXmwiSo2P9
-	 6DFwu/IAwnPSwde3a9dEyKgYmO6M32OMcppRRsMW5f4fdeqX51bd24gWO2IcZSY4BI
-	 dPrpJefJv6B7EK0qC8cOH/fZlaVeW2L1EVM4PKniM8V/vWcBj16QqQmlo1hwOJynt2
-	 pgw6vk/SA8FTQ==
-Date: Mon, 12 Oct 2026 16:34:47 -0500
+	b=Qat2e1qx51JO0792wtYeHxWk+FmgNB/Bi97OyrQ7D97Gbxd9Ml6M3DCiXiJ29YchU
+	 qYjb+kePH+/6FWQDi5SlEpt748N8Se/nO4nIAdqaPG9gLEYXZK0E65CmwZ6tapvBlU
+	 eH+a0BadNVUm8Y+b9DIT+OJUnRzJlg5YyhcXuji57Fq5HcVdS60RyC/Mj5jwio6/KK
+	 qPXkYUoYQG/U9wmY1uGCk+TakPSSB9or8KrTGf+pRfXHozEYFIBqUlEHbhw81doaGy
+	 D68IldSl2EmOIqlyZme77lZXTPpAqZZ9RnWOIvU/pVkEmN7RqB5qG/qEYft3jX5Pyh
+	 jJvtXPS/AZ5Kg==
+Date: Mon, 12 Oct 2026 16:41:18 -0500
 From: Bjorn Helgaas <helgaas@kernel.org>
 To: Imre Kaloz <kaloz@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org,
 	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
 	"David S. Miller" <davem@davemloft.net>,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-	Shivasharan S <shivasharan.srikanteshwara@broadcom.com>,
-	Srinath Mannam <srinath.mannam@broadcom.com>,
-	Michael Chan <michael.chan@broadcom.com>,
-	Florian Fainelli <florian.fainelli@broadcom.com>,
-	Vikas Gupta <vikas.gupta@broadcom.com>
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Subject: Re: [PATCH] PCI: Avoid D3 on PLX PEX 8532/8533/8548 downstream ports
-Message-ID: <20261012213447.GA1392402@bhelgaas>
+Message-ID: <20261012214118.GA1398471@bhelgaas>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -49,8 +44,6 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20260927105609.8813-1-kaloz@kernel.org>
-
-[+cc several Broadcom folks, help with possible switch erratum]
 
 On Sun, Sep 27, 2026 at 12:56:09PM +0200, Imre Kaloz wrote:
 > Runtime PM suspends an idle downstream port of a PLX/Broadcom PEX
@@ -62,16 +55,13 @@ On Sun, Sep 27, 2026 at 12:56:09PM +0200, Imre Kaloz wrote:
 > This surfaced on sparc64 once commit a5fb3ff63287 ("PCI: Allow PCI
 > bridges to go to D3Hot on all non-x86") let bridges enter D3hot. Keep
 > these downstream ports out of D3 by setting PCI_DEV_FLAGS_NO_D3.
-
-I don't really have any objection to this, but I am concerned that
-this quirk only applies to a few specific devices, but
-https://admin.pci-ids.ucw.cz/read/PC/10b5 shows a TON of
-similar-looking switches that I assume have the same behavior, so
-this may be just the tip of the iceberg.
-
+> 
 > Fixes: a5fb3ff63287 ("PCI: Allow PCI bridges to go to D3Hot on all non-x86")
 > Cc: stable@vger.kernel.org
 > Signed-off-by: Imre Kaloz <kaloz@kernel.org>
+
+Applied to pci/pm for v7.4, thanks!
+
 > ---
 >  drivers/pci/quirks.c | 18 ++++++++++++++++++
 >  1 file changed, 18 insertions(+)
