@@ -1,121 +1,101 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BC4E3ACA4C
-	for <sparclinux@vger.kernel.org>; Mon, 12 Oct 2026 10:07:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.44
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791799648; cv=pass; b=nWWvXbM6BrmI5hnzzsW1HaWoga8b6j8zZEsrQ/RwiDDp0WQgj2KjWBJjOGJ6bFFOjjzDISB3vgpI3CTkCcFnD+08vD2tiwWTbH/3StpIbcRv+hqhdklcDPsq0H6dPok0SaRbH9/LVGG3vvc8iFGyG3HD2P5VYNE/DPSb+sfshKQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791799648; c=relaxed/simple;
-	bh=IuzwAnw1rUh62l+FmVmzDScNQgvfcu8ImYzQ4ZCCZ48=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=J9qVfFLjDaT5/b2F4p8nQFdrxqXX2e87a3H3IBrBEOIFAFCMqrmdZgybT2uryhqNvhp7u5MSryaAsbaO4tMa16VynxQQnsf6yUojQmJnZNTsK5S7Sd1XlcK9YCD//IZveso9gaOa5UNh4q651J4pQwwzd1SfHqfJmFRylBSd/mY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kCDaeE30; arc=pass smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B95C47F3AE
+	for <sparclinux@vger.kernel.org>; Mon, 12 Oct 2026 10:10:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791799823; cv=none; b=hMo44xuFB3YdSiyHWe5cobjeh4tEyoT1ZEm+dsTkN5f4COg8vFbcWLt/YM2wHIzEve2OFHZhWHgnbiMMakdyosoh3crQIzlngAQ47vxiHNspHxFLIjK+WpMn3gPFdpXitjalpvpXnwKZqXJ0TSYLNFg+u7hUPtpJ95D+Ql6nRAA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791799823; c=relaxed/simple;
+	bh=+DbMSoiQc5wpr6QZbKXbG6hNluqFD2dWM7GClh0hfEw=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Y6ZfuMaKJN8fRQ6MaxmjWjP5zMzQmz+FA/W4qYo/Uya0RfB/rgIYze6hpsTuQ42EyFk6H3f4GPvkt1Y0ui8b4Pqbm3zumjMTQfTmV8GZQr2Hm6IO6AjvCv9oQOMUQgRi2vU6tYO+mHIDZdSlosgmrQW1p1kgfOGLVvs4upsbauo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=Wdeijydb; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kCDaeE30"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-c360ab7a6f9so29968666b.3
-        for <sparclinux@vger.kernel.org>; Mon, 12 Oct 2026 03:07:22 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791799640; cv=none;
-        d=google.com; s=arc-20260327;
-        b=cT1l5eNPYnvAMR7QNeJwau4tW/seHyGccZ9QTECOZBaNAibCc0FxZcL9nvtypOenNt
-         6ib0Sd8wTKsJAZPCZnWmkiyN5Gyl6UP3wPtESxWhSKHFd9FXUg6x+OwH0gYHzXBK8NwY
-         R9ZIw71TZq410NocXOiPTHE7HPRL+5b372Z3GR75arObjblDA5w99MvPuUaeXF1dtDpg
-         F+WKNzYLMCaAs6vF9xoz896DwlsnjuhV4j2lenWrNwJ4fBKHJeCxlYGzeb+MnbUuaPiH
-         /4DWKqcli201Q4D7hJh9BtCJOnU184EpR8hYXNQBgLehNLo4eGQE6uR67M4JCsZybMTA
-         if2A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=IuzwAnw1rUh62l+FmVmzDScNQgvfcu8ImYzQ4ZCCZ48=;
-        fh=E2Ygc0dXGZn/my4KcNTlIV87X46B6hS5wfK8VzHiLAs=;
-        b=MWyPsnLcWMczWc3l3pSPoIPIaN/sJfUYdVHatitFMd6saqqfKC0cKIdxg/D8JpiCCm
-         yhno4mbXTDTMp+5OOZ9QPgt1F+iE/oDGIkLn1B18GtVQbKsbjwBtDBLvfsGpIOmC/8Xo
-         2iSPS7N9FPUFI7cC/jgZ8jNPDRmGwmylPbEfJdDBmGN2q1snptwFhuL4hVyngAgWjnSX
-         1i6lQxkpSC2dc2/7lhGFZ36O4hmqwDdmPnF1viXf4DRBjMb7erbTFlzHlbJ/Sl/yo0tW
-         xRZYVNQ90qLhOuYG8zRmMpmBhYUl30r8ko0n+sUyrl2wx5cbvKTMdyyo9PBS0cT/GgYB
-         GIEQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791799640; x=1792404440; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=IuzwAnw1rUh62l+FmVmzDScNQgvfcu8ImYzQ4ZCCZ48=;
-        b=kCDaeE30LnlwUU4V575RsBvUGBQLpO16MEoed1QgUkNcHO2H7YrgkRRN4avRWM04Hg
-         R6VcYwNkaIiMDdcQK4F1rQNMkW+/36wSOkm7ZVezvQ9FSS/UGdZQ8nXtpWg91Z9QoZ0W
-         4iNXrOdrwIken1VXvGG0hWoKXW83gl7MZBBFyRIxwCfbq2u4On4j2uRE/R9SPIHOp3SN
-         Nf2SRu8vibWOrpFfquAG8qVgn+UEmM+7zHytKeDKTTvpG63pIbbKFdzj/92nLOmsgJfG
-         CM6FDzmS+G78SUXCR1RzNdS7094DV7SiwGN3A5HAxVWc1h9MURe12KpdqznJO3Ex/xkF
-         3LDA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791799640; x=1792404440;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=IuzwAnw1rUh62l+FmVmzDScNQgvfcu8ImYzQ4ZCCZ48=;
-        b=sFWF+4HvtDEMTPw8cHta97OTx+VufuqqyATgCMYtThM3b1FV/Mb9SHFwQqVNOAWQe9
-         23eOPNDz+xRGtaU9SytpbtxH3Fyw8D8o08MqIvsKEWc0E53viYLgc8xdyOyH2fTlzbsP
-         e403+xJT/sEOVU+aiqMUGG8M+q/tt0N1d0+fUEzyUJXKy/3T5Qy+ZVCVH19SvVTYD/P6
-         YFN9aciLHi2svK0e6KSuv1NnF71irW3/jG/XgPhNECpLSCE8iSFCuBR0wB1MOnmft9CG
-         tbysJmdIZQdbov84StXUgJCjcOAMgyfJFi86ni/TqNZUEVNBFSAiY8rw/sYeHHKDSz7v
-         ZU8A==
-X-Forwarded-Encrypted: i=1; AKwUvBwZebBZAhRrxUh9hP3Kdy21q1mXjwr/5+RxpPXi/eJqk44joAHjEO/cftF1YJtCmPZhfa7omxpdVQel@vger.kernel.org
-X-Gm-Message-State: AFq9FYJrREMEHLwMssPpVyJXDOeG7r6OdwZ0YAmTb0gc7JM4SKslmMl4
-	zJHWit6bvD79Bf3q61KzEJLeOD54mGxFtXzGAWC2eoQ4bF65Z5AIGAhUaqmm21HNbGHdPWoaFvs
-	zy1RIIAwQN1IvQ83oRqwQBxHR8H673UYSfY7lLEk=
-X-Gm-Gg: AYBFou2XVpgf5Zluqz4XpEdWj7CcEt/oBlQHmENUuE64aY8wVtLqnZz2zBwe+51OgoM
-	48+CZe5RTnRiRAZ7t8x1/v2mddEb85cKa3QtUBi+Gld8yDMHW+axSWwDj7CvVg+v/zcgTIGFjs7
-	gtk2DqGw5XlOFX3J5FxSqP3lX7Ny7Tp/41qTwFzVDcCyqtYh73kvseUVTxSx1gKD1bVkroPsO6S
-	HZn3iO1C5034YT8eBIALdetEFUAGdtE4QTI8AYNVHDdRl6DTUhEREeMOPgtjNrCgHDTApfcVvBU
-	vod25zm4RmAEHXys8NWW/Xy6OjliB2NAgwlgp7CXheoiqyjdwVwwyr/ygIcj7GEfefB5HG6Epu7
-	xcplfPowgM0ZuGQ7aMx2pJyX0ynyChkiEC9B/Iilg6g==
-X-Received: by 2002:a17:907:7ba3:b0:c29:f5d5:5aa1 with SMTP id
- a640c23a62f3a-c31aa097acdmr942387766b.43.1791799640254; Mon, 12 Oct 2026
- 03:07:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="Wdeijydb"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=CWZQIK3Xb3imIK4HFMFxMDMIljdADDMBJ8kJJvmCVLg=; t=1791799810;
+	x=1792404610; b=WdeijydbxzKMdb7MIVA/AigaXBGvXQLJE4OGApNRrHmksIHG6N8C1D7PtfJ4n
+	IUZBYrildGsDbF3yTOGSG/O2nzhwjUtiuNQpSytANcgNgBLCQ/WzAF/Rf+s1yCFqyylQRnJj3odai
+	Zig+7tz3PMzKBBDQO91JjoKurGvK7/yGmZK2jQ6/F15zjtHQ38WwE6rviFYvxjivbbvqdSTw5LUJ+
+	rw1Yu2bVpsY1aXvlN7hs23z+lmWzhIxayO2YidVxD5EMszCYYQC3XbVUtUdl0DHdF1BqnJX1F25B1
+	30LRazJcZ7hedp+AEeJkTzJ41p+TRHvuGt+ay4xYEQq6hjrScQ==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.100)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1xGCyn-00000003zM5-35uU; Mon, 12 Oct 2026 12:10:01 +0200
+Received: from p5b13a90a.dip0.t-ipconnect.de ([91.19.169.10] helo=[192.168.178.61])
+          by inpost2.zedat.fu-berlin.de (Exim 4.100)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1xGCyn-000000021Q6-295D; Mon, 12 Oct 2026 12:10:01 +0200
+Message-ID: <cada2221182674543d7c122325dc5326c5d0b449.camel@physik.fu-berlin.de>
+Subject: Re: Mount crashes with SIGILL on v240 on for-next
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Magnus Lindholm <linmag7@gmail.com>, Stian Halseth <stian@itx.no>
+Cc: sparclinux <sparclinux@vger.kernel.org>, Imre Kaloz <kaloz@kernel.org>, 
+ Andreas Larsson <andreas@gaisler.com>
+Date: Mon, 12 Oct 2026 12:10:00 +0200
+In-Reply-To: <CA+=Fv5Rx5_bbotG4hoZA4W=vZxEc+6Mqh0-Lus62gB1kqg3nPQ@mail.gmail.com>
+References: 
+	<b74cffe77f82562fae8cf611349e765f1f38af2c.camel@physik.fu-berlin.de>
+	 <14ae2aabb9e681a69818d3e02da8273cd12261b8.camel@itx.no>
+	 <69c1798a6409879a70474c10e3d653fdb37c7246.camel@physik.fu-berlin.de>
+	 <ef8e85c1fc00c999e74b2d43048bfa67997c13a2.camel@itx.no>
+	 <01bd740a7b5f2c5cd12b4ba025fb9a53573188bf.camel@itx.no>
+	 <ed3c37da1320ac19bd45dbfaa89957d9a8c05e0f.camel@physik.fu-berlin.de>
+	 <b85e047233f5b38cdbfbd7af852ce30055680b47.camel@itx.no>
+	 <c4fd9e838043b2b552ea9c33dfaf716a5e9d5b6a.camel@physik.fu-berlin.de>
+	 <6a37e24972e63cf3c6212644e7c3f18a8a9c06da.camel@itx.no>
+	 <CA+=Fv5TZYv53K=c9QFhwCSXJMVyCi5Kv6WjPKUcrPxEpU2BKUg@mail.gmail.com>
+	 <CA+=Fv5Rx5_bbotG4hoZA4W=vZxEc+6Mqh0-Lus62gB1kqg3nPQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.60.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <b74cffe77f82562fae8cf611349e765f1f38af2c.camel@physik.fu-berlin.de>
- <14ae2aabb9e681a69818d3e02da8273cd12261b8.camel@itx.no> <69c1798a6409879a70474c10e3d653fdb37c7246.camel@physik.fu-berlin.de>
- <ef8e85c1fc00c999e74b2d43048bfa67997c13a2.camel@itx.no> <01bd740a7b5f2c5cd12b4ba025fb9a53573188bf.camel@itx.no>
- <ed3c37da1320ac19bd45dbfaa89957d9a8c05e0f.camel@physik.fu-berlin.de>
- <b85e047233f5b38cdbfbd7af852ce30055680b47.camel@itx.no> <c4fd9e838043b2b552ea9c33dfaf716a5e9d5b6a.camel@physik.fu-berlin.de>
- <6a37e24972e63cf3c6212644e7c3f18a8a9c06da.camel@itx.no> <CA+=Fv5TZYv53K=c9QFhwCSXJMVyCi5Kv6WjPKUcrPxEpU2BKUg@mail.gmail.com>
-In-Reply-To: <CA+=Fv5TZYv53K=c9QFhwCSXJMVyCi5Kv6WjPKUcrPxEpU2BKUg@mail.gmail.com>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Mon, 12 Oct 2026 12:07:08 +0200
-X-Gm-Features: AclHuK_gp_8Oh17Rt6f79P2JKRz4Gzvy_i50NSJQ_BMTdv9qhTu_wH4lRoaaIKc
-Message-ID: <CA+=Fv5Rx5_bbotG4hoZA4W=vZxEc+6Mqh0-Lus62gB1kqg3nPQ@mail.gmail.com>
-Subject: Re: Mount crashes with SIGILL on v240 on for-next
-To: Stian Halseth <stian@itx.no>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, sparclinux <sparclinux@vger.kernel.org>, 
-	Imre Kaloz <kaloz@kernel.org>, Andreas Larsson <andreas@gaisler.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-Hi again,
+On Mon, 2026-10-12 at 12:07 +0200, Magnus Lindholm wrote:
+> Hi again,
+>=20
+> On Sun, Oct 11, 2026 at 9:28=E2=80=AFPM Magnus Lindholm <linmag7@gmail.co=
+m> wrote:
+> >=20
+> > The latest kernel has all of these enabled and boots successfully.
+> >=20
+> > So the failure appears to depend on some other part of Adrian's full
+> > configuration, or an interaction between several options. I will
+> > continue narrowing the config differences.
+> >=20
+>=20
+> I got a bit further, created a bug report here:
+>=20
+> https://github.com/sparclinux/issues/issues/113
 
-On Sun, Oct 11, 2026 at 9:28=E2=80=AFPM Magnus Lindholm <linmag7@gmail.com>=
- wrote:
->
-> The latest kernel has all of these enabled and boots successfully.
->
-> So the failure appears to depend on some other part of Adrian's full
-> configuration, or an interaction between several options. I will
-> continue narrowing the config differences.
->
+Thanks a lot for the report. Slightly modified the title and stripped
+off "[BUG]" as we use tags for that.
 
-I got a bit further, created a bug report here:
+Thanks,
+Adrian
 
-https://github.com/sparclinux/issues/issues/113
-
-Regards
-Magnus
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
