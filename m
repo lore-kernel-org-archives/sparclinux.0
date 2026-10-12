@@ -1,494 +1,215 @@
-Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 643E145C71D
-	for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 19:57:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A71A1DB95E;
+	Mon, 12 Oct 2026 06:46:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791748681; cv=none; b=U4vvG21+lnZm7LuP3v99vqSeXBO4E6elh3GjJ1rT3eUzM6Gw5yId8gjvCkEolEY1Pok+y2AQjI1c1Yw5o9lKphpocKR3s3MgUDWaMgv0XRkkQTx7X0PN8BrVUJ+Gl4DLGzi5qw6eGtWbskNDiP17iTvWPodMj69eO0BjSOGXczw=
+	t=1791787596; cv=none; b=W4/0mztSL8eE7c0UKyEXOryGcTnGXugPwImnTaCa+bISBYGKZDC132uipV/8RjpjPMNOFDZMDSCeKwBVtWwGJ0xPRoXVGsJJQsKyoSbOQtFhoI/KpH1taNQjS/KvbgQxWiFRGlQVRbbk10JGJ1+CtF7xJk74EYLZErFz5IjO1ds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791748681; c=relaxed/simple;
-	bh=q/kaqH0NJuwkt2lnyvmJXyH48rKP4gvCpd/rucX8egQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rtH+xa+gA9s+y+VTIdOBm9G4a1pec/luwSilNUIfE9qXrJ7cHJQiEBdDmDuo2YTzKgpxst3+LI2H/+jsB7ktLn3k03noZVgB4dKdn+ShhG07Ii55QJBsAkEFweCW5kpUAUmtinDjjo54WQKJ4QfoKlqCBCL6SFknUfj2OiICdGw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VXqMbqVK; arc=none smtp.client-ip=209.85.208.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791787596; c=relaxed/simple;
+	bh=U3KfXKdEMgL10QyENu9mAQCgxY51Iu08VIuskFAv1/o=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=naJVZ/FXhNsS6rhuE61OvkdeMB3S6qw5Joyzh7RixDRxA7/PhUBc/5EFhthyqMX+QhfXlzQ+vxSAqVRjZeL58+6mmoC5xsPsKRb1b7qVQ1V16ykoseKlOLlToAWEZd9U6+6nfn5OyGjInEQ5Uq18A9hpr5a8+xsl5KLSVjI3iKA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mP4GUgGY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VXqMbqVK"
-Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-6b1af232df4so463835a12.0
-        for <sparclinux@vger.kernel.org>; Sun, 11 Oct 2026 12:57:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791748676; x=1792353476; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=4gFicFhMFOiZdadPIml2IafLC2zhV61kmcuAZSomfBQ=;
-        b=VXqMbqVKZyDR3+b5q5/fxED3+YO43uf2cCWl0UlS8LAJ2mrADkALCeqv9Q1bCZODqG
-         WnrSV2SBtWJVZRwTsPx5xruJCNvS+nMgwOnvsS9ijIhupA3W+R6hCCxI+GruRLFmWjA/
-         OHLhdhYaH0eUGjcjkJ3L9oTi+tCnBRGKVCvb5sq7Jq0AGpQPcaLh6PuPF7kexDMGOb3J
-         cGQJBySMOTk8M5/dEsomgAiA72RrRoAB/iWUlGnTvJUC4NfT8C7ekps5GC9ULvvjWgtg
-         0S4zVhEuVURlCeA5JZ7M3ZtC9vMD52l4ZcUxV52utZSfonWiljt6yH2Lese0WcOxO+6y
-         /s8g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791748676; x=1792353476;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=4gFicFhMFOiZdadPIml2IafLC2zhV61kmcuAZSomfBQ=;
-        b=J4HBGcGCQfbEL3p56+V5VY1ULTw6GTqgbY/qO6SdrkDjmtdQMVBFyNrVOncUkYQ4mP
-         m+bDP4dwK7qfjW45hKuGRfKIsalFjfTHCHUaj8I7Vmvzle2f3iwBqjaQOhHc9cTqL5yi
-         i2llNrn1x6KkIbodaxRoDkdVyjsZgm0fslI3xLJZNBW7cC9tXUa1/AU4IDrReQKGRSwi
-         4vsoRe8LI+ZERGeXiXyUfp/LH4LaWpHpW5BpkSnS1NaEVnnyPC6Idh42JzqxpgbGf/SB
-         S46lPOp0C0aCvOZ+JskuPAVdBxpOJcTGvi5YEXk5W1Hja0nnU2521ZB11y4JR5HG/vBW
-         rQWA==
-X-Forwarded-Encrypted: i=1; AKwUvBxty/Pqi/qeASJ3gdhMiIXWTCMomsgFcSc2m/jNQ8YRNPqJkxY9LnUtzgaeaz0TaxAJf+j0azYh5DWa@vger.kernel.org
-X-Gm-Message-State: AFq9FYJFaLdkHE7+5M3kzLLtp898CXXaVdOLTt5btd2K8/KecCX2rtg4
-	87Cb/XMfds+WFZLGlRWO/cd5GEEGuhm871ZNLHcGzIDuUgaPdvbJLUOH
-X-Gm-Gg: AYBFou2OKx5z4Aoyq2SPytvTBpWBy+QwWZ7SdPNN2Zm7hkwGC/h2SGpHvQeYtmqQf32
-	vI/DoIl1TwwB+GYkNegiKaK8XFzTQ1rDAUWCQoowPHNqkVxKeRbFBf8gY9TEX8PN20qGSlrSBAw
-	vHsexgqd6LKR0hBY7rfPPzY7yLZDvNHIe0ELW/QYWWb11v2tsl5ivNXEvgJfjLAnQndfQRHnOUH
-	/nG1+M21U0QEfi9Pr0oRH0NRTKUBrqu+FrdNx/ulU9RvWw/CH/Ea0flJEYQ2R9SSdR1iLecAdGV
-	yyOvdHWGJc8LZgqnDux/lLu131boeB+wsCO3YCVe3gR5OtTrWNPC2LoMmlcl4eYfizeGoEBVsil
-	mcLWIwtyHEJO2yWSK2LJ0V8ySOSy0ZBIEqU3oMsKtMQZdzit33GrHwaoH2skvXV5xbFDW4jKfXR
-	U8p/9k2h+wnfXJuvNSHaCcRB8AgNtmxQ7VbxtafQNKaRlqQTv+ZPgzJ7ZfZczt9XAVpAG3dPsea
-	8XIJQXd4hSWmeepokL9Ze/fDv7q3gS3wswd/SO/fTjcLcaq/4c=
-X-Received: by 2002:a17:907:2d88:b0:c25:541:fd3a with SMTP id a640c23a62f3a-c31a9a07db1mr734461466b.7.1791748675559;
-        Sun, 11 Oct 2026 12:57:55 -0700 (PDT)
-Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c31a9a3ae9fsm381315566b.26.2026.10.11.12.57.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 11 Oct 2026 12:57:54 -0700 (PDT)
-From: Magnus Lindholm <linmag7@gmail.com>
-To: davem@davemloft.net,
-	andreas@gaisler.com,
-	sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	gregkh@linuxfoundation.org,
-	jirislaby@kernel.org,
-	linux-serial@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	krzk@kernel.org,
-	oleg@redhat.com,
-	linmag7@gmail.com
-Subject: [PATCH v2 5/6] sparc64: add M3000 Oberon PCIe support
-Date: Sun, 11 Oct 2026 21:55:57 +0200
-Message-ID: <20261011195729.981243-6-linmag7@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20261011195729.981243-1-linmag7@gmail.com>
-References: <20261011195729.981243-1-linmag7@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mP4GUgGY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E65741F008A1;
+	Mon, 12 Oct 2026 06:46:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791787595;
+	bh=1er6KN0USDluOlCwl7bI7udanJGh8XBrVh6eYmX9B2E=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=mP4GUgGYNCxnuPmvg1lujMqLPA7vMvng2SS0pBMHoCRbwwxluGZ1CHCAITsQFxIwd
+	 x7wKsblnmPblKZwTGS63Z/VPkeuzGjAUyGwhVXZx5K7K7unAzwoOLZVUFY+nkDURjW
+	 X0PNZL/iyeF9Cmy/UiMXAC9LcPt+sCJ2zDtDxDVofUzZDrWFH4BbiVCkN31UXOkwew
+	 7cFyBQv7+jpMiLRzknsZ4/q2Gv1tg6cM3zuY9oI8TvIJk3SVGG9xD3lPxaYZfAFa/o
+	 FSMhNavBKkxYI/LnLbQ/SDmexIWtlzK0PhS9vRqFDnFRDwv0wP34GrPxp+Iu/3/Ysz
+	 nTnGWliycn2uQ==
+Message-ID: <1f66c850-faa7-477f-9535-761074ccc077@kernel.org>
+Date: Mon, 12 Oct 2026 08:46:30 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 6/6] hvc: add an M3000 firmware console backend
+To: Magnus Lindholm <linmag7@gmail.com>, davem@davemloft.net,
+ andreas@gaisler.com, sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org,
+ linux-serial@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ krzk@kernel.org, oleg@redhat.com
+References: <20261011195729.981243-1-linmag7@gmail.com>
+ <20261011195729.981243-7-linmag7@gmail.com>
+Content-Language: en-US
+From: Jiri Slaby <jirislaby@kernel.org>
+Autocrypt: addr=jirislaby@kernel.org; keydata=
+ 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
+In-Reply-To: <20261011195729.981243-7-linmag7@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Recognize Oberon while preserving firmware link setup. Flush DVMA
-translations and changed noncoherent IOTSB cache lines, and route legacy
-interrupts using the bridge's ten-bit target ID.
+On 11. 10. 26, 21:55, Magnus Lindholm wrote:
+...
+> --- /dev/null
+> +++ b/drivers/tty/hvc/hvc_m3000.c
+> @@ -0,0 +1,205 @@
 
-Cache the bridge type and share target encoding. Leave MSI queues
-uninitialized so the existing architecture path uses legacy interrupts
-even with CONFIG_PCI_MSI=y; native bridge error handling is not provided.
+> +struct m3000_console {
+> +	int stdin;
+> +	bool ready;
+> +	u8 buffer[256];
+> +	raw_spinlock_t buffer_lock;
+> +	struct timer_list poll_timer;
+> +	struct mutex poll_mutex; /* Serialize open against synchronous close. */
+> +	spinlock_t poll_lock; /* Protect active state and timer rearming. */
+> +	bool poll_active;
 
-Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
----
- arch/sparc/Kconfig                | 10 +++++++
- arch/sparc/include/asm/iommu_64.h |  1 +
- arch/sparc/include/asm/irq_64.h   |  1 +
- arch/sparc/kernel/iommu.c         | 44 +++++++++++++++++++++++++++
- arch/sparc/kernel/irq_64.c        | 50 ++++++++++++++++++++++++-------
- arch/sparc/kernel/pci_fire.c      | 31 +++++++++++++++++--
- arch/sparc/kernel/pci_impl.h      |  1 +
- arch/sparc/kernel/prom_irqtrans.c |  7 +++++
- 8 files changed, 132 insertions(+), 13 deletions(-)
+Perhaps group these a bit better, so that there are not such holes?
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 1263150a5702..96aa140815fe 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -387,6 +387,16 @@ endif
- endmenu
- 
- menu "Bus options (PCI etc.)"
-+
-+config SPARC64_OBERON
-+	bool "Fujitsu M3000 Oberon PCIe bridge"
-+	depends on SPARC64_VII && PCI
-+	help
-+	  Support Oberon enumeration, translated DMA and legacy interrupts.
-+	  Firmware link configuration is preserved. MSI and native bridge
-+	  error interrupt handling are not supported on Oberon.
-+	  Enable this option for the M3000 on-board network and disk devices.
-+
- config SBUS
- 	bool
- 	default y
-diff --git a/arch/sparc/include/asm/iommu_64.h b/arch/sparc/include/asm/iommu_64.h
-index 0ef6dedf747e..abd7bb0fa615 100644
---- a/arch/sparc/include/asm/iommu_64.h
-+++ b/arch/sparc/include/asm/iommu_64.h
-@@ -62,6 +62,7 @@ struct iommu {
- 	unsigned long		iommu_tsbbase;
- 	unsigned long		iommu_flush;
- 	unsigned long		iommu_flushinv;
-+	unsigned long		iommu_cache_flush; /* Oberon IOTSB cache */
- 	unsigned long		iommu_tags;
- 	unsigned long		iommu_ctxflush;
- 	unsigned long		write_complete_reg;
-diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
-index 8c4c0c87f998..c3e88f2f8e80 100644
---- a/arch/sparc/include/asm/irq_64.h
-+++ b/arch/sparc/include/asm/irq_64.h
-@@ -45,6 +45,7 @@ void irq_install_pre_handler(int irq,
- 			     void *arg1, void *arg2);
- #define irq_canonicalize(irq)	(irq)
- unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap);
-+unsigned int oberon_build_irq(int inofixup, unsigned long iclr, unsigned long imap);
- unsigned int sun4v_build_irq(u32 devhandle, unsigned int devino);
- unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino);
- unsigned int sun4v_build_msi(u32 devhandle, unsigned int *irq_p,
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 7613ab0ffb89..9132f0535ce4 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -52,6 +52,8 @@ static void iommu_flushall(struct iommu_map_table *iommu_map_table)
- 	struct iommu *iommu = container_of(iommu_map_table, struct iommu, tbl);
- 	if (iommu->iommu_flushinv) {
- 		iommu_write(iommu->iommu_flushinv, ~(u64)0);
-+		if (iommu->iommu_cache_flush)
-+			(void)iommu_read(iommu->write_complete_reg);
- 	} else {
- 		unsigned long tag;
- 		int entry;
-@@ -67,6 +69,30 @@ static void iommu_flushall(struct iommu_map_table *iommu_map_table)
- 	}
- }
- 
-+/*
-+ * Oberon's noncoherent IOTSB needs each changed 64-byte cache line flushed
-+ * along with its DVMA translations. Call only for device-inactive mappings.
-+ */
-+static void iommu_sync_mapping(struct iommu *iommu, iopte_t *base,
-+			       unsigned long npages)
-+{
-+	unsigned long slot, i;
-+
-+	if (!iommu->iommu_cache_flush || !npages)
-+		return;
-+	slot = base - iommu->page_table;
-+	/* Publish IOPTE stores before invalidating the hardware caches. */
-+	wmb();
-+	for (i = 0; i < npages; i++, slot++) {
-+		iommu_write(iommu->iommu_flush,
-+			    iommu->tbl.table_map_base + (slot << IO_PAGE_SHIFT));
-+		if ((slot & 7) == 7 || i == npages - 1)
-+			iommu_write(iommu->iommu_cache_flush,
-+				    __pa(iommu->page_table + slot));
-+	}
-+	(void)iommu_read(iommu->write_complete_reg);
-+}
-+
- #define IOPTE_CONSISTENT(CTX) \
- 	(IOPTE_VALID | IOPTE_CACHE | \
- 	 (((CTX) << 47) & IOPTE_CONTEXT))
-@@ -240,6 +266,8 @@ static void *dma_4u_alloc_coherent(struct device *dev, size_t size,
- 		first_page += IO_PAGE_SIZE;
- 	}
- 
-+	iommu_sync_mapping(iommu, iopte - (size >> IO_PAGE_SHIFT),
-+			   size >> IO_PAGE_SHIFT);
- 	return ret;
- }
- 
-@@ -253,6 +281,15 @@ static void dma_4u_free_coherent(struct device *dev, size_t size,
- 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
- 	iommu = dev->archdata.iommu;
- 
-+	if (iommu->iommu_cache_flush) {
-+		iopte_t *base = iommu->page_table +
-+			((dvma - iommu->tbl.table_map_base) >> IO_PAGE_SHIFT);
-+		unsigned long i;
-+
-+		for (i = 0; i < npages; i++)
-+			iopte_make_dummy(iommu, base + i);
-+		iommu_sync_mapping(iommu, base, npages);
-+	}
- 	iommu_tbl_range_free(&iommu->tbl, dvma, npages, IOMMU_ERROR_CODE);
- 
- 	order = get_order(size);
-@@ -316,6 +353,7 @@ static dma_addr_t dma_4u_map_phys(struct device *dev, phys_addr_t phys,
- 
- 	for (i = 0; i < npages; i++, base++, phys += IO_PAGE_SIZE)
- 		iopte_val(*base) = iopte_protection | phys;
-+	iommu_sync_mapping(iommu, base - npages, npages);
- 
- 	return ret;
- 
-@@ -432,6 +470,7 @@ static void dma_4u_unmap_phys(struct device *dev, dma_addr_t bus_addr,
- 	/* Step 2: Clear out TSB entries. */
- 	for (i = 0; i < npages; i++)
- 		iopte_make_dummy(iommu, base + i);
-+	iommu_sync_mapping(iommu, base, npages);
- 
- 	iommu_free_ctx(iommu, ctx);
- 	spin_unlock_irqrestore(&iommu->lock, flags);
-@@ -523,6 +562,9 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 			paddr += IO_PAGE_SIZE;
- 		}
- 
-+		iommu_sync_mapping(iommu, iommu->page_table + entry,
-+				   base - (iommu->page_table + entry));
-+
- 		/* If we are in an open segment, try merging */
- 		if (segstart != s) {
- 			/* We cannot merge if:
-@@ -577,6 +619,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 
- 			for (j = 0; j < npages; j++)
- 				iopte_make_dummy(iommu, base + j);
-+			iommu_sync_mapping(iommu, base, npages);
- 
- 			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
- 					     IOMMU_ERROR_CODE);
-@@ -653,6 +696,7 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 
- 		for (i = 0; i < npages; i++)
- 			iopte_make_dummy(iommu, base + i);
-+		iommu_sync_mapping(iommu, base, npages);
- 
- 		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
- 				     IOMMU_ERROR_CODE);
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 3f55c69d5f3b..b0f3b26656d4 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -206,6 +206,7 @@ struct irq_handler_data {
- 	struct ino_bucket bucket;
- 	unsigned long	iclr;
- 	unsigned long	imap;
-+	bool		oberon;
- };
- 
- static inline unsigned int irq_data_to_handle(struct irq_data *data)
-@@ -364,6 +365,16 @@ static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
- 	real_hard_smp_processor_id()
- #endif
- 
-+/* Oberon IMAP destination is a ten-bit interrupt target ID. */
-+#define OBERON_IMAP_TID_SHIFT	21
-+#define OBERON_IMAP_TID_MASK	(0x3ffUL << OBERON_IMAP_TID_SHIFT)
-+
-+static unsigned long oberon_imap_target(unsigned long val, unsigned int cpuid)
-+{
-+	return (val & ~OBERON_IMAP_TID_MASK) |
-+		((cpuid << OBERON_IMAP_TID_SHIFT) & OBERON_IMAP_TID_MASK);
-+}
-+
- static void sun4u_irq_enable(struct irq_data *data)
- {
- 	struct irq_handler_data *handler_data;
-@@ -377,12 +388,16 @@ static void sun4u_irq_enable(struct irq_data *data)
- 				       irq_data_get_affinity_mask(data));
- 		imap = handler_data->imap;
- 
--		tid = sun4u_compute_tid(imap, cpuid);
--
- 		val = upa_readq(imap);
--		val &= ~(IMAP_TID_UPA | IMAP_TID_JBUS |
--			 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
--		val |= tid | IMAP_VALID;
-+		if (handler_data->oberon) {
-+			val = oberon_imap_target(val, cpuid);
-+		} else {
-+			tid = sun4u_compute_tid(imap, cpuid);
-+			val &= ~(IMAP_TID_UPA | IMAP_TID_JBUS |
-+				 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
-+			val |= tid;
-+		}
-+		val |= IMAP_VALID;
- 		upa_writeq(val, imap);
- 		upa_writeq(ICLR_IDLE, handler_data->iclr);
- 	}
-@@ -401,12 +416,16 @@ static int sun4u_set_affinity(struct irq_data *data,
- 		cpuid = irq_choose_cpu(data->irq, mask);
- 		imap = handler_data->imap;
- 
--		tid = sun4u_compute_tid(imap, cpuid);
--
- 		val = upa_readq(imap);
--		val &= ~(IMAP_TID_UPA | IMAP_TID_JBUS |
--			 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
--		val |= tid | IMAP_VALID;
-+		if (handler_data->oberon) {
-+			val = oberon_imap_target(val, cpuid);
-+		} else {
-+			tid = sun4u_compute_tid(imap, cpuid);
-+			val &= ~(IMAP_TID_UPA | IMAP_TID_JBUS |
-+				 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
-+			val |= tid;
-+		}
-+		val |= IMAP_VALID;
- 		upa_writeq(val, imap);
- 		upa_writeq(ICLR_IDLE, handler_data->iclr);
- 	}
-@@ -642,6 +661,17 @@ unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap)
- 	return irq;
- }
- 
-+unsigned int oberon_build_irq(int inofixup, unsigned long iclr,
-+			      unsigned long imap)
-+{
-+	unsigned int irq = build_irq(inofixup, iclr, imap);
-+	struct irq_handler_data *data = irq_get_handler_data(irq);
-+
-+	if (data)
-+		data->oberon = true;
-+	return irq;
-+}
-+
- static unsigned int sun4v_build_common(u32 devhandle, unsigned int devino,
- 		void (*handler_data_init)(struct irq_handler_data *data,
- 		u32 devhandle, unsigned int devino),
-diff --git a/arch/sparc/kernel/pci_fire.c b/arch/sparc/kernel/pci_fire.c
-index c35a8e3c1eae..1921996298af 100644
---- a/arch/sparc/kernel/pci_fire.c
-+++ b/arch/sparc/kernel/pci_fire.c
-@@ -46,11 +46,21 @@ static int pci_fire_pbm_iommu_init(struct pci_pbm_info *pbm)
- 	iommu->iommu_tsbbase  = pbm->pbm_regs + FIRE_IOMMU_TSBBASE;
- 	iommu->iommu_flush    = pbm->pbm_regs + FIRE_IOMMU_FLUSH;
- 	iommu->iommu_flushinv = pbm->pbm_regs + FIRE_IOMMU_FLUSHINV;
-+	if (pbm->is_oberon) {
-+		/*
-+		 * 0x40100 flushes an IOTSB cache line by physical address;
-+		 * 0x40010 flushes a translated DVMA page.
-+		 */
-+		iommu->iommu_flush = pbm->pbm_regs + 0x40010UL;
-+		iommu->iommu_cache_flush = pbm->pbm_regs + 0x40100UL;
-+		iommu->write_complete_reg = iommu->iommu_control;
-+	}
- 
- 	/* We use the main control/status register of FIRE as the write
- 	 * completion register.
- 	 */
--	iommu->write_complete_reg = pbm->controller_regs + 0x410000UL;
-+	if (!iommu->iommu_cache_flush)
-+		iommu->write_complete_reg = pbm->controller_regs + 0x410000UL;
- 
- 	/*
- 	 * Invalidate TLB Entries.
-@@ -62,6 +72,8 @@ static int pci_fire_pbm_iommu_init(struct pci_pbm_info *pbm)
- 	if (err)
- 		return err;
- 
-+	/* Make initialized IOPTEs visible before publishing the table base. */
-+	wmb();
- 	upa_writeq(__pa(iommu->page_table) | 0x7UL, iommu->iommu_tsbbase);
- 
- 	control = upa_readq(iommu->iommu_control);
-@@ -70,6 +82,10 @@ static int pci_fire_pbm_iommu_init(struct pci_pbm_info *pbm)
- 		    0x00000002 /* Bypass enable */		|
- 		    0x00000001 /* Translation enable */);
- 	upa_writeq(control, iommu->iommu_control);
-+	if (iommu->iommu_cache_flush) {
-+		upa_writeq(~(u64)0, iommu->iommu_flushinv);
-+		(void)upa_readq(iommu->iommu_control);
-+	}
- 
- 	return 0;
- }
-@@ -419,6 +435,7 @@ static int pci_fire_pbm_init(struct pci_pbm_info *pbm,
- 	int err;
- 
- 	pbm->numa_node = NUMA_NO_NODE;
-+	pbm->is_oberon = of_device_is_compatible(dp, "pciex108e,80f8");
- 
- 	pbm->pci_ops = &sun4u_pci_ops;
- 	pbm->config_space_reg_bits = 12;
-@@ -439,13 +456,18 @@ static int pci_fire_pbm_init(struct pci_pbm_info *pbm,
- 
- 	pci_get_pbm_props(pbm);
- 
--	pci_fire_hw_init(pbm);
-+	if (pbm->is_oberon)
-+		pr_info("%s: experimental Oberon; preserving firmware link setup\n",
-+			pbm->name);
-+	else
-+		pci_fire_hw_init(pbm);
- 
- 	err = pci_fire_pbm_iommu_init(pbm);
- 	if (err)
- 		return err;
- 
--	pci_fire_msi_init(pbm);
-+	if (!pbm->is_oberon)
-+		pci_fire_msi_init(pbm);
- 
- 	pbm->pci_bus = pci_scan_one_pbm(pbm, &op->dev);
- 
-@@ -505,6 +527,9 @@ static const struct of_device_id fire_match[] = {
- 		.name = "pci",
- 		.compatible = "pciex108e,80f0",
- 	},
-+#ifdef CONFIG_SPARC64_OBERON
-+	{ .name = "pci", .compatible = "pciex108e,80f8" },
-+#endif
- 	{},
- };
- 
-diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
-index 83718876f1d4..92505fcc3cf3 100644
---- a/arch/sparc/kernel/pci_impl.h
-+++ b/arch/sparc/kernel/pci_impl.h
-@@ -117,6 +117,7 @@ struct pci_pbm_info {
- 	/* State of 66MHz capabilities on this PBM. */
- 	int				is_66mhz_capable;
- 	int				all_devs_66mhz;
-+	bool				is_oberon;
- 
- #ifdef CONFIG_PCI_MSI
- 	/* MSI info.  */
-diff --git a/arch/sparc/kernel/prom_irqtrans.c b/arch/sparc/kernel/prom_irqtrans.c
-index 5752bfd73ac0..60fd6b0f47e1 100644
---- a/arch/sparc/kernel/prom_irqtrans.c
-+++ b/arch/sparc/kernel/prom_irqtrans.c
-@@ -481,6 +481,7 @@ static void __init pci_sun4v_irq_trans_init(struct device_node *dp)
- struct fire_irq_data {
- 	unsigned long pbm_regs;
- 	u32 portid;
-+	bool oberon;
- };
- 
- #define FIRE_IMAP_BASE	0x001000
-@@ -537,6 +538,8 @@ static unsigned int fire_irq_build(struct device_node *dp,
- 	 */
- 	ino |= (irq_data->portid << 6);
- 	ino -= int_ctrlr;
-+	if (irq_data->oberon)
-+		return oberon_build_irq(ino, iclr, imap);
- 	return build_irq(ino, iclr, imap);
- }
- 
-@@ -553,6 +556,7 @@ static void __init fire_irq_trans_init(struct device_node *dp)
- 	regs = of_get_property(dp, "reg", NULL);
- 	dp->irq_trans->data = irq_data;
- 
-+	irq_data->oberon = of_device_is_compatible(dp, "pciex108e,80f8");
- 	irq_data->pbm_regs = regs[0].phys_addr;
- 	irq_data->portid = of_getintprop_default(dp, "portid", 0);
- }
-@@ -778,6 +782,9 @@ static struct irq_trans __initdata pci_irq_trans_table[] = {
- 	{ "pci108e,a801", tomatillo_irq_trans_init },
- 	{ "SUNW,sun4v-pci", pci_sun4v_irq_trans_init },
- 	{ "pciex108e,80f0", fire_irq_trans_init },
-+#ifdef CONFIG_SPARC64_OBERON
-+	{ "pciex108e,80f8", fire_irq_trans_init },
-+#endif
- };
- #endif
- 
+> +};
+...
+> +/*
+> + * HVC's idle backoff can exceed the firmware input FIFO's capacity.
+> + * Wake its worker each tick while open; keep PROM calls out of the timer.
+> + */
+> +static void m3000_poll_tick(struct timer_list *timer)
+> +{
+> +	struct m3000_console *con = timer_container_of(con, timer, poll_timer);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&con->poll_lock, flags);
+
+Any reason not to use guard()s?
+
+> +	if (con->poll_active) {
+> +		hvc_kick();
+> +		mod_timer(&con->poll_timer, jiffies + 1);
+> +	}
+> +	spin_unlock_irqrestore(&con->poll_lock, flags);
+> +}
+> +
+> +static int m3000_open(struct hvc_struct *hp, int data)
+> +{
+> +	struct m3000_console *con = m3000_console(hp->vtermno);
+> +	unsigned long flags;
+> +
+> +	if (!con)
+> +		return -ENODEV;
+> +	mutex_lock(&con->poll_mutex);
+> +	spin_lock_irqsave(&con->poll_lock, flags);
+
+Same here.
+
+> +	con->poll_active = true;
+> +	mod_timer(&con->poll_timer, jiffies + 1);
+> +	spin_unlock_irqrestore(&con->poll_lock, flags);
+> +	mutex_unlock(&con->poll_mutex);
+> +	return 0;
+> +}
+> +
+> +static void m3000_close(struct hvc_struct *hp, int data)
+> +{
+> +	struct m3000_console *con = m3000_console(hp->vtermno);
+> +	unsigned long flags;
+> +
+> +	if (!con)
+> +		return;
+> +	mutex_lock(&con->poll_mutex);
+> +	spin_lock_irqsave(&con->poll_lock, flags);
+
+And here.
+
+> +	con->poll_active = false;
+> +	spin_unlock_irqrestore(&con->poll_lock, flags);
+> +	/* Block reopen until the callback has finished and cannot rearm. */
+> +	timer_delete_sync(&con->poll_timer);
+> +	mutex_unlock(&con->poll_mutex);
+> +}
+> +
+> +static ssize_t m3000_io(struct m3000_console *con, u8 *in,
+> +			const u8 *out, size_t count)
+> +{
+> +	unsigned long args[7], flags;
+> +	bool input = in;
+
+You can test "in" below directly, right?
+
+> +	int ret;
+> +
+> +	if (!count)
+> +		return 0;
+> +	count = min(count, input ? 1 : sizeof(con->buffer));
+> +	/* Console writes can run with interrupts disabled; this lock cannot sleep. */
+> +	raw_spin_lock_irqsave(&con->buffer_lock, flags);
+
+scoped_guard()
+
+> +	if (!input)
+> +		memcpy(con->buffer, out, count);
+> +	args[0] = (unsigned long)(input ? "read" : "write");
+> +	args[1] = 3;
+> +	args[2] = 1;
+> +	args[3] = (unsigned int)(input ? con->stdin : prom_stdout);
+> +	args[4] = (unsigned long)con->buffer;
+> +	args[5] = count;
+> +	args[6] = (unsigned long)-1;
+> +	p1275_cmd_direct(args);
+> +	ret = (int)args[6];
+> +	if (ret > 0 && ret <= count && input)
+> +		memcpy(in, con->buffer, ret);
+> +	raw_spin_unlock_irqrestore(&con->buffer_lock, flags);
+> +	if (ret == -2 || ret == 0)
+
+That's full of magic constants. Can we have defines for those?
+
+> +		return 0;
+> +	if (ret < 0 || ret > count)
+> +		return -EIO;
+> +	return ret;
+thanks,
 -- 
-2.43.0
-
+js
+suse labs
