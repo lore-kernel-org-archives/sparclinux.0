@@ -1,150 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49AEF4A8FC2;
-	Mon, 12 Oct 2026 15:56:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D6B34B7A40
+	for <sparclinux@vger.kernel.org>; Mon, 12 Oct 2026 17:01:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791820579; cv=none; b=XMlr4rjASxVMPlaek7kHdUETpFPm2InPWAGJSDWZJjoCgannqLrAUO66dVllJOFOwBaG1NpqFLWhDYIxmF1+5aYdS4dGxkrGh1mZXXG5UdgaSqt//VDblKS4+6NhFfKU930RFiGo6Q6pntQmhI/jbl3uUfN3XKk+9DOjOgMXLsA=
+	t=1791824513; cv=none; b=LAFD6V7fEdeZEVvqSJY6nxLA3nolXf0YcJys6rtT+o/UwaH79zf53sQoyDsPVloMiUrZjeJdmLthZpLGPEnoY2F0k+8wEYg6LG9Cq2ptarqRayPkTrIElXFy79t9x4QkNxJCYgrRuQClOboZ0Ir8z4e8uxpzo559U5tIHlbYwPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791820579; c=relaxed/simple;
-	bh=Msp9ikSwVnULK/6DWYXJFuVVmnxjiRI6tilrQPvf9sc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lEyy1SVc25ByWpuaeECuUF+HlptxiXy4lCjQl/1kVxqgv4MVTom9+kMwwetFq0UblXm3GmaH64oPn1kxosHdSyEMBMW8SoF1dybx8m3ePtqFTcqtDmjnfKODC/mC77Rm9d3qFpZmHtbwmIW0yWZe6dL6FDqhgwdZ+jcb77DB3rE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lcCuIdrm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791824513; c=relaxed/simple;
+	bh=mk8XDZoJLrnz28nCgNWfaXENJFPufAikspSQ2eN5odI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=HBnFUiqlWThvX/SxT7Xx+VtsSfMI+O8HeTzhsgCxHpdBFr/j20olmArtbz41iPw3409mJ8OspzcsKOPQEncG1RuzFI9oEiXV7ZuL5vssvL4gcrp06jOybyLsdm/TRCqUUZdAyQvqbVtkekdqbrfU5jc+bSx7MXxeu+tD2daZLk0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XxnZ/1hr; arc=none smtp.client-ip=209.85.208.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lcCuIdrm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFCE21F0089B;
-	Mon, 12 Oct 2026 15:55:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791820577;
-	bh=rFbms1O2vgiDwDr5XNy7hfOQCE1GiDGN4QD7DcgiMNU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=lcCuIdrmMQTUiPwLl5e5Z+CrC201P9TaW7VntAlAQ0wuTIeWArybWpskzP1Cw5dV6
-	 ylJBpTsnaVkD11Tx3RuJLQfK/a8MthDkbqh/N2Qo+NL+mbeJ3F+l2nHLzRgl2fwWrH
-	 B2VMH6xZ4mSRm44O1aVrnpq4KXOYj1KBkqJhj4Zhsip2ZHKhYDPIEZ9S25S3KUpDrh
-	 0/izKAMAcRM9eWvuTZfpYIL58pwYVIybump371ArBjzbMrNsvpmDwuL9EdnDMlpqUp
-	 x6n3EvLO70LPCbwLxz+x7mIQrXQvvZz8TgmnlRpMjxmuB8UzGsynS78NvOMo7KMLyg
-	 CQyvIZ4fN7eXw==
-Date: Mon, 12 Oct 2026 16:55:44 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
-	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
-	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
-	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
-	Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
-	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
-	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
-	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
-	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
-	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
-	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
-	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
-	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev, 
-	Ihor Solodrai <ihor.solodrai@linux.dev>, Bert Karwatzki <spasswolf@web.de>, 
-	Emil Tsalapatis <emil@etsalapatis.com>
-Subject: Re: [PATCH v5 13/38] bpf: arena: mark arena_map_mmap() mappings
- VM_MIXEDMAP
-Message-ID: <as0Buhi_-VCC7xLZ@gremlin>
-References: <20261009-b4-mmap-prepare-vma-flag-sanify-v5-0-923b70125b1e@kernel.org>
- <20261009-b4-mmap-prepare-vma-flag-sanify-v5-13-923b70125b1e@kernel.org>
- <5b8ef0ce-7429-4d74-b4da-a0561c59b1e2@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XxnZ/1hr"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-6b1afcd2d23so1660148a12.1
+        for <sparclinux@vger.kernel.org>; Mon, 12 Oct 2026 10:01:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791824505; x=1792429305; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=mk8XDZoJLrnz28nCgNWfaXENJFPufAikspSQ2eN5odI=;
+        b=XxnZ/1hrslvw2d5+up2S+1Kgq7Ul+LVtCS5ifOO5lXEDhBOIDITrmmkYigNNSC0sDA
+         SPZ+FYWiDa2u8FW9ptsZMZ+hduGBIsi1nN5XcvNQKx3N8xBZIHC2AQqcCgAk8FpWVPpe
+         PbhVEfjtGPLB+hMOVSOCYN125JmvTzC99UDOUWB4yBdW7kT5c/VCAgUd+/BzvKg8XPJG
+         rAL8TBv7EBF0a77YMQIOulgBKsOKt+clz8C92SkNK2FSFwWGMLcQFQ0lCpaRqDa843Qp
+         b7vV7QvCaddmcVhquGtiMc99EsLQb8r63FyTy663udcBmZPFVbp8dcFWgYQEUWCYhHXE
+         pE8w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791824505; x=1792429305;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=mk8XDZoJLrnz28nCgNWfaXENJFPufAikspSQ2eN5odI=;
+        b=enAutchppJmcOUom7mgURYKmWtf6PN2uY2TEA04vSEcF5TEjg6HBYfzSzUjcpskWAT
+         Nk61hpWFV5OTQvMFUJSbVd/nDk6dL/CwywQiB+i/JkHfSmby2bcobCbaH1aVO1VtlelN
+         zAKZcqF/WJThbhHgddRUbaVKXNsqQAneYoDrRSW1z1MDGdSdrK4/rv4vuj485H5fQKSE
+         LKLJS8WfsMJ8CQMzVaKfD0Fs4n/wT6NHsYFzvs47gBp8F/MpEfiXkZNX19x/jVV/wVpR
+         +H9doF7KJNlPc6rvmEXyiHsyA57jjlbBH1uVYaDczUDWJyUojqm2UP0/TXuc3kVnfRGN
+         iLVw==
+X-Forwarded-Encrypted: i=1; AKwUvBylgs4p/XjzNluY5/TN8z584eBXb4fUxiqU05SjDdZz0ltzg7sUB9nX4HKu3xhJ171GAxpAuddD+v/Z@vger.kernel.org
+X-Gm-Message-State: AFq9FYJ8pNLwCjUe3z5xDvkAr8lHYnZ+WG1/bmoc8dqaqbsmS1vgIT5X
+	d6o4TKY4TlyiKYvD+ATSFsblAyvHxvdDsnOmpBzjywRjchP9ABlwark/
+X-Gm-Gg: AYBFou2vmV565T8Tigb/zlC+fTUVFpopR+o6EIUoTskIjdkeRSxjgbNVknR2SpHLUYY
+	+5/NEtiVD1LudY+QE6sdgbOcjaMMtmu1us8V4KMOgNUEt+gTSbfZgaR2z3DFX/pupLe80Oeilse
+	6Vf32CVIw/ghU7i8NfZCwJY6xmxXaTC2r4c6O8gl+Fbc1F/tpVlO0Jsf/wlqDUMWv/f7ElvO67h
+	Wutfxxrwp60kPbr1ZOhzwizvpfTcXPG735c/Ggn+XPrJVr1WIBq/TmFNSd8sXMPrmjZhudBzIf2
+	0GSr7QR3dNk4whwDRm4zgHuYKBkQqQ32g4ZRPWYpUZ7cUP+XbLY6ZVw2GVOqkBmF3UjPoZUDoO3
+	0JjSAMmqvDrlriSsBOQx2nzA48daJtqb2FRfxpwpsPcTY+meYuVFLZKu8qOYVcW29RKdGq4mN50
+	/yzzjtRVtxNBv7tQxGqQu+0e7fGtz6Zsn/xQfi55GZdHt3TzjVkzlYHu9VCJAfUrQEhuqoJ04IC
+	is+vcL12CzPS+FmFZaNkZkVK2g+TJJVAY0qATjM
+X-Received: by 2002:a05:6402:218d:20b0:6b1:827c:af27 with SMTP id 4fb4d7f45d1cf-6b1827cb0ccmr6636473a12.14.1791824505098;
+        Mon, 12 Oct 2026 10:01:45 -0700 (PDT)
+Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b179dfff40sm5093730a12.34.2026.10.12.10.01.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 12 Oct 2026 10:01:44 -0700 (PDT)
+From: Magnus Lindholm <linmag7@gmail.com>
+To: Imre Kaloz <kaloz@kernel.org>
+Cc: bhelgaas@google.com,
+	linux-pci@vger.kernel.org,
+	andreas@gaisler.com,
+	sparclinux@vger.kernel.org,
+	davem@davemloft.net,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	Magnus Lindholm <linmag7@gmail.com>
+Subject: Re: [PATCH] PCI: Avoid D3 on PLX PEX 8532/8533/8548 downstream ports
+Date: Mon, 12 Oct 2026 19:00:57 +0200
+Message-ID: <20261012170113.985649-1-linmag7@gmail.com>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260927105609.8813-1-kaloz@kernel.org>
+References: <20260927105609.8813-1-kaloz@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5b8ef0ce-7429-4d74-b4da-a0561c59b1e2@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Oct 12, 2026 at 05:08:09PM +0200, David Hildenbrand (Arm) wrote:
-> On 10/9/26 20:04, Lorenzo Stoakes (ARM) wrote:
+Hi Imre,
 
-> > diff --git a/kernel/bpf/arena.c b/kernel/bpf/arena.c
-> > index 7b6847200b43..b69fe5e34339 100644
-> > --- a/kernel/bpf/arena.c
-> > +++ b/kernel/bpf/arena.c
-> > @@ -620,8 +620,9 @@ static int arena_map_mmap(struct bpf_map *map, struct vm_area_struct *vma)
-> >  	 * clears VM_MAYEXEC. Set VM_DONTEXPAND to avoid potential change
-> >  	 * of user_vm_start. Set VM_DONTCOPY to prevent arena VMA from
-> >  	 * being copied into the child process on fork.
-> > +	 * This is a kernel page so set VM_MIXEDMAP.
-> >  	 */
-> > -	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTCOPY);
-> > +	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTCOPY);
-> >  	vma->vm_ops = &arena_vm_ops;
-> >  	return 0;
-> >  }
-> >
->
-> Historically, VM_MIXEDMAP really just means: can contain refcounted and
-> non-refcounted things. Everything with a struct page is refcounted.
->
-> I think we are now changing the semantics to mean "maps kernel pages". I think
+Tested this on a Sun Ultra 45 with PLX PEX8532 downstream ports and an
+LSI SAS1064 controller.
 
-Yes.
+Without the patch, enabling CONFIG_PCIEPORTBUS reproducibly causes a
+Cheetah bus-error panic when mptbase probes the controller. The kernel
+boots with pcie_port_pm=off.
 
-It was sort of implicit before given insert_page() etc. but still really meaning
-that it _might_ be both.
+With this patch, the same kernel and config boot successfully without
+pcie_port_pm=off or pcie_ports=compat. The quirk is applied to all five
+PEX8532 downstream ports, the LSISAS1064 initializes, and the modular
+mptsas/ext4 setup boots through the initramfs normally.
 
-> this is fine, but we really have to update the documentation (and possibly
-> rename this thing to something more expressive?)
-
-Yeah I completely agree.
-
-I will rename it, but I think that's best for 7.5 obviously! :)
-
->
-> Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-
-Thanks!
-
---
-Cheers, Lorenzo
+Tested-by: Magnus Lindholm <linmag7@gmail.com>
