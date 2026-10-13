@@ -1,163 +1,212 @@
-Received: from mail-qk1-f227.google.com (mail-qk1-f227.google.com [209.85.222.227])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C68443AAF56
-	for <sparclinux@vger.kernel.org>; Mon, 12 Oct 2026 21:41:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.227
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3337B4DD3B4;
+	Tue, 13 Oct 2026 10:58:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791841305; cv=none; b=lQrMTKSKZifgnmzYFdP/0PQVHKei/FRbzegzz9NBizlEku3WjfIX4twuq/1bh/GsYDBkBfb8lHtufVjPAahQKWK6U7Zu+2umOMbVE4RbnU2nudFskHp31Zrf1jBWzyntCY7TFuaa6ze+D6KTV9QVGNWMxgE8CdsBkNEZwYC52QY=
+	t=1791889097; cv=none; b=PrNOwEauo6T8WvN1yUTMrs+ZMZOu3aZb8/eP9Hfwx9tm9vhKGWfDJ00e8h98EHLSNOuOW1BHa6zqGyhR2f525UKaQW+ZIbAmFszu1kNInF2xe+AUZxeh0KBsjiEidNKFxIgRR3DXVuXMqinHQag6bsQ87Ht2xoqM7jEZkZVaonU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791841305; c=relaxed/simple;
-	bh=WoNz3WCxDdKybjSCg5gY111bGEDmUMC63EojmiMxyn0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WgI9YV07whYFH78rbtVYBwtA55CDHR82wT29VNDm5dYkF/aLmKM1X5qUyIxLA7TY9UO4DE91fy/viZSgWF1K10yDrMU5WJtC+JX3n0YHj6lIiF+dQZUYOcmCZKVQCVALprJwckan/xt8RDEfN8rlnAX+Eri9UKIbzmJxyWpbFoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=QxeOyTzV; arc=none smtp.client-ip=209.85.222.227
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1791889097; c=relaxed/simple;
+	bh=6SnVVVmPYxF1OFQX0l7U7uiorQk9/Vabbq3+fH3CB0o=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iYZQvO3Qy81AhbOuGo/bupz+ZlMuOZkFuF380myyZCWnZ1maRrvwR2M1hoA/RV0Gp25nBklTyKFTNFCRxyr/SJeKEA2kN2xnbejJ6ZmvD/clfCHY5b+/25ranfNULQjkZMNE7jaRftfRNM/tk40Ho2Y9RYHLo6ph4rPgBJSlYQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aR/hDTCH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="QxeOyTzV"
-Received: by mail-qk1-f227.google.com with SMTP id af79cd13be357-93e441e14a1so162176685a.2
-        for <sparclinux@vger.kernel.org>; Mon, 12 Oct 2026 14:41:43 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791841303; x=1792446103;
-        h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:dkim-signature:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=7fRjyjPaygPyac6Q2934hJ/KUw5dbvEUBwLV/bpzblk=;
-        b=J+ZEjPoySqGGpboszuUdrQFkj64EeKkPkySZs3MRIayM1VFfxXE8VeA9ysVPilD3hG
-         S7hhWdybPt0nqaJItTDy2Jsw48odcqTWsHIOeRlirSk+KNElP03i6o7yXDUGdvQBkzFH
-         3D6TDdOa2Vw0+FWJJtfHnmR+yM3zOKAYSK4TIV1AC/P3qD2B/jSDvjWQmkrzLAo7XUkb
-         I0Osms1ihEZQeFAbnajwpL4vUP//en0Cf+kE7joAHG8j309xSzTVlt1AnmP2mUESdnfY
-         W/g0RaqE29fWKjxxAwgcKk+YFu5Ajj6iNFjtTEe0S1hwDvPfcHlzhdEen1c6Kvs5ul+h
-         HnWQ==
-X-Forwarded-Encrypted: i=1; AKwUvBy2L3LovhACLaoctvKdlxbFxUWRS6kEgzzkCZrov/WEhPT5+J7bEu+XPPNrrrG1X4qN4EMYY6pu+q/1@vger.kernel.org
-X-Gm-Message-State: AFq9FYKJRa/BdmnsjHY4dqm5TomYO/UU67nY1RHeYg//cTm498gnTCr/
-	GJfGjQoBkS61JDUegyYJOPKRifYZumGrC5Iveig2usRFByZ7gdHf6S0OEm/qu7yCJp+T/gJahkq
-	q1kSBIwlLCzSrmI1DX1CxXZBbEoRKNmmXnerX2UXnTN78/LbBXTbzMA0x4GT9ZL70Klefbj0JrG
-	dSguoYPOj9xgIIwlRMCkItDCeOttd33CIwAdhOx76UhGl1zBAT44Y+AoqRMQ4bYmYDqKUQQ9FWl
-	R+1w852zXGfA+TeJUPmJQ==
-X-Gm-Gg: AYBFou16HZdx3bsJChef2ZTSZCZ1IlqrqFehWrclZy6TevU/ZrOytDP4VLPVQ0WxaIr
-	v9YiXQWriM13X+sgu5FdT7TFLCG6tTmUOROVWbgpjjfVTMQe6MfVwEcAmH9ddB0ZuvfnLC29TqT
-	CM7rlGfrb7rhPMXvRXYHMbhAKGNYBeU/FxVy6giwrAa0VqHlTmNqieJR1zSHjxA+uSGVArF67an
-	zVyV0/EZ94vX6jl/GylOKk1lpg3OAshsdRMlj9hw06zKHooFod24zN6+1TOkneoIH1CidhWIu0h
-	1Qx9e1MoF4okHlWuAF91M3i0uD5/wJdcgD2+fADuFQoFtaMpLcO/5IDdzs2anAVoEVg0duldEh3
-	M04wSsMIL06fBh98lghx2noNVQhbWw+Apx/ygaL5YEQfqQ4hKqSjO9GamTb0fr6ljhBK3Wkqwn7
-	3plQfI+VMgb32HUbM8v/GQGb1tQrM4cetEiaTpN8KCm0M=
-X-Received: by 2002:a05:620a:4614:b0:93c:c7e6:3eb4 with SMTP id af79cd13be357-93ebd28ced8mr1758197385a.54.1791841302700;
-        Mon, 12 Oct 2026 14:41:42 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-120.dlp.protect.broadcom.com. [144.49.247.120])
-        by smtp-relay.gmail.com with ESMTPS id af79cd13be357-93ef4ff99c5sm20252485a.3.2026.10.12.14.41.41
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 12 Oct 2026 14:41:42 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-dy1-f197.google.com with SMTP id 5a478bee46e88-3515266f6eeso4379998eec.0
-        for <sparclinux@vger.kernel.org>; Mon, 12 Oct 2026 14:41:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1791841301; x=1792446101; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=7fRjyjPaygPyac6Q2934hJ/KUw5dbvEUBwLV/bpzblk=;
-        b=QxeOyTzVDZJ/1+vQKNsMOWgr3H/A2RrBunnSsoR4vdFbgG/F5b231KgB2bEfuSYmZ6
-         4CJ94CjB+R32Nl2qwZ0kGbj7YqxAvf2BBOz32ht3+PN2vlPkGJP7IEODpvDXCBMJdkLZ
-         6g8ScM47S4NZVRmh8VRWHlgvCHBJ1/ZGmnjsE=
-X-Forwarded-Encrypted: i=1; AKwUvBwE4o77JfoGkTG8Lok9u63BHHu9d01x+AUr4NKDUm92vTp8e8uhn4n3aZG3XgkjLb0/03pbnvBhhZio@vger.kernel.org
-X-Received: by 2002:a05:7301:618f:10b0:359:8492:20ff with SMTP id 5a478bee46e88-35984922299mr8367829eec.12.1791841300612;
-        Mon, 12 Oct 2026 14:41:40 -0700 (PDT)
-X-Received: by 2002:a05:7301:618f:10b0:359:8492:20ff with SMTP id 5a478bee46e88-35984922299mr8367798eec.12.1791841300003;
-        Mon, 12 Oct 2026 14:41:40 -0700 (PDT)
-Received: from [10.67.48.245] ([192.19.223.252])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-353814b556esm41603546eec.18.2026.10.12.14.41.38
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 12 Oct 2026 14:41:39 -0700 (PDT)
-Message-ID: <1e813008-1874-4164-a803-b1af26332d35@broadcom.com>
-Date: Mon, 12 Oct 2026 14:41:37 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aR/hDTCH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E60871F00893;
+	Tue, 13 Oct 2026 10:57:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791889087;
+	bh=XqYELHn1Fs10YGv478nR1wyW/4N+kLzgnDGLYZUvs88=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=aR/hDTCHkpRrD2Q85x6nhy7UfQ/CtL/ivKHNoP/7YmaOf2YtsXzMbVTewABYl+lH2
+	 E1ANeprkW0sDIPEXVwMMv8R0Alz/PxPWx9Tls6fHrc59XjGM4kE7oQbFPXbmtT1b26
+	 CgYaGJe2w4vRzH4o2iObzguPPcIgDQyWEM+zvsH5mKunbvoiuZazXqSsrrlF7EEQb1
+	 hxo4AG70naM9Mdv5S3OChc7VTcBA6PvNoZfqGhd1XdBHFqyWNU172VtIq4TfMG4wVp
+	 n2po+hi0bZLT+0+nGnJXrnkRwfPTxiBa+7wNgPjNRVRt5ql/bfPHJ7ItjHN+V6LamS
+	 WiV/sW1lCSqeQ==
+Date: Tue, 13 Oct 2026 11:57:34 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+To: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
+	Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
+	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
+	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
+	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
+	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
+	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev, 
+	Ihor Solodrai <ihor.solodrai@linux.dev>, Bert Karwatzki <spasswolf@web.de>
+Subject: Re: [PATCH v5 30/38] mm/vma: introduce vma[_flags]_is_mm_backed()
+Message-ID: <as4NZeHKJJ822E0L@gremlin>
+References: <20261009-b4-mmap-prepare-vma-flag-sanify-v5-0-923b70125b1e@kernel.org>
+ <20261009-b4-mmap-prepare-vma-flag-sanify-v5-30-923b70125b1e@kernel.org>
+ <c79d2d40-0f1c-43ec-bc25-b75ce975f27e@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] PCI: Avoid D3 on PLX PEX 8532/8533/8548 downstream ports
-To: Bjorn Helgaas <helgaas@kernel.org>, Imre Kaloz <kaloz@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org,
- Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
- "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org,
- Shivasharan S <shivasharan.srikanteshwara@broadcom.com>,
- Srinath Mannam <srinath.mannam@broadcom.com>,
- Michael Chan <michael.chan@broadcom.com>,
- Vikas Gupta <vikas.gupta@broadcom.com>
-References: <20261012213447.GA1392402@bhelgaas>
-Content-Language: en-US, fr-FR
-From: Florian Fainelli <florian.fainelli@broadcom.com>
-Autocrypt: addr=florian.fainelli@broadcom.com; keydata=
- xsBNBFPAG8ABCAC3EO02urEwipgbUNJ1r6oI2Vr/+uE389lSEShN2PmL3MVnzhViSAtrYxeT
- M0Txqn1tOWoIc4QUl6Ggqf5KP6FoRkCrgMMTnUAINsINYXK+3OLe7HjP10h2jDRX4Ajs4Ghs
- JrZOBru6rH0YrgAhr6O5gG7NE1jhly+EsOa2MpwOiXO4DE/YKZGuVe6Bh87WqmILs9KvnNrQ
- PcycQnYKTVpqE95d4M824M5cuRB6D1GrYovCsjA9uxo22kPdOoQRAu5gBBn3AdtALFyQj9DQ
- KQuc39/i/Kt6XLZ/RsBc6qLs+p+JnEuPJngTSfWvzGjpx0nkwCMi4yBb+xk7Hki4kEslABEB
- AAHNMEZsb3JpYW4gRmFpbmVsbGkgPGZsb3JpYW4uZmFpbmVsbGlAYnJvYWRjb20uY29tPsLB
- IQQQAQgAywUCZWl41AUJI+Jo+hcKAAG/SMv+fS3xUQWa0NryPuoRGjsA3SAUAAAAAAAWAAFr
- ZXktdXNhZ2UtbWFza0BwZ3AuY29tjDAUgAAAAAAgAAdwcmVmZXJyZWQtZW1haWwtZW5jb2Rp
- bmdAcGdwLmNvbXBncG1pbWUICwkIBwMCAQoFF4AAAAAZGGxkYXA6Ly9rZXlzLmJyb2FkY29t
- Lm5ldAUbAwAAAAMWAgEFHgEAAAAEFQgJChYhBNXZKpfnkVze1+R8aIExtcQpvGagAAoJEIEx
- tcQpvGagWPEH/2l0DNr9QkTwJUxOoP9wgHfmVhqc0ZlDsBFv91I3BbhGKI5UATbipKNqG13Z
- TsBrJHcrnCqnTRS+8n9/myOF0ng2A4YT0EJnayzHugXm+hrkO5O9UEPJ8a+0553VqyoFhHqA
- zjxj8fUu1px5cbb4R9G4UAySqyeLLeqnYLCKb4+GklGSBGsLMYvLmIDNYlkhMdnnzsSUAS61
- WJYW6jjnzMwuKJ0ZHv7xZvSHyhIsFRiYiEs44kiYjbUUMcXor/uLEuTIazGrE3MahuGdjpT2
- IOjoMiTsbMc0yfhHp6G/2E769oDXMVxCCbMVpA+LUtVIQEA+8Zr6mX0Yk4nDS7OiBlvOwE0E
- U8AbwQEIAKxr71oqe+0+MYCc7WafWEcpQHFUwvYLcdBoOnmJPxDwDRpvU5LhqSPvk/yJdh9k
- 4xUDQu3rm1qIW2I9Puk5n/Jz/lZsqGw8T13DKyu8eMcvaA/irm9lX9El27DPHy/0qsxmxVmU
- pu9y9S+BmaMb2CM9IuyxMWEl9ruWFS2jAWh/R8CrdnL6+zLk60R7XGzmSJqF09vYNlJ6Bdbs
- MWDXkYWWP5Ub1ZJGNJQ4qT7g8IN0qXxzLQsmz6tbgLMEHYBGx80bBF8AkdThd6SLhreCN7Uh
- IR/5NXGqotAZao2xlDpJLuOMQtoH9WVNuuxQQZHVd8if+yp6yRJ5DAmIUt5CCPcAEQEAAcLB
- gQQYAQIBKwUCU8AbwgUbDAAAAMBdIAQZAQgABgUCU8AbwQAKCRCTYAaomC8PVQ0VCACWk3n+
- obFABEp5Rg6Qvspi9kWXcwCcfZV41OIYWhXMoc57ssjCand5noZi8bKg0bxw4qsg+9cNgZ3P
- N/DFWcNKcAT3Z2/4fTnJqdJS//YcEhlr8uGs+ZWFcqAPbteFCM4dGDRruo69IrHfyyQGx16s
- CcFlrN8vD066RKevFepb/ml7eYEdN5SRALyEdQMKeCSf3mectdoECEqdF/MWpfWIYQ1hEfdm
- C2Kztm+h3Nkt9ZQLqc3wsPJZmbD9T0c9Rphfypgw/SfTf2/CHoYVkKqwUIzI59itl5Lze+R5
- wDByhWHx2Ud2R7SudmT9XK1e0x7W7a5z11Q6vrzuED5nQvkhAAoJEIExtcQpvGagugcIAJd5
- EYe6KM6Y6RvI6TvHp+QgbU5dxvjqSiSvam0Ms3QrLidCtantcGT2Wz/2PlbZqkoJxMQc40rb
- fXa4xQSvJYj0GWpadrDJUvUu3LEsunDCxdWrmbmwGRKqZraV2oG7YEddmDqOe0Xm/NxeSobc
- MIlnaE6V0U8f5zNHB7Y46yJjjYT/Ds1TJo3pvwevDWPvv6rdBeV07D9s43frUS6xYd1uFxHC
- 7dZYWJjZmyUf5evr1W1gCgwLXG0PEi9n3qmz1lelQ8lSocmvxBKtMbX/OKhAfuP/iIwnTsww
- 95A2SaPiQZA51NywV8OFgsN0ITl2PlZ4Tp9hHERDe6nQCsNI/Us=
-In-Reply-To: <20261012213447.GA1392402@bhelgaas>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c79d2d40-0f1c-43ec-bc25-b75ce975f27e@kernel.org>
 
-On 10/12/26 14:34, Bjorn Helgaas wrote:
-> [+cc several Broadcom folks, help with possible switch erratum]
-> 
-> On Sun, Sep 27, 2026 at 12:56:09PM +0200, Imre Kaloz wrote:
->> Runtime PM suspends an idle downstream port of a PLX/Broadcom PEX
->> 8532/8533/8548 switch to D3hot, but that takes the whole switch down
->> with it: any device behind another port of the same switch then
->> faults with a fatal bus error on its next access, e.g. mptsas probe
->> on a Sun Ultra 45.
->>
->> This surfaced on sparc64 once commit a5fb3ff63287 ("PCI: Allow PCI
->> bridges to go to D3Hot on all non-x86") let bridges enter D3hot. Keep
->> these downstream ports out of D3 by setting PCI_DEV_FLAGS_NO_D3.
-> 
-> I don't really have any objection to this, but I am concerned that
-> this quirk only applies to a few specific devices, but
-> https://admin.pci-ids.ucw.cz/read/PC/10b5 shows a TON of
-> similar-looking switches that I assume have the same behavior, so
-> this may be just the tip of the iceberg.
-> 
->> Fixes: a5fb3ff63287 ("PCI: Allow PCI bridges to go to D3Hot on all non-x86")
->> Cc: stable@vger.kernel.org
->> Signed-off-by: Imre Kaloz <kaloz@kernel.org>
+On Mon, Oct 12, 2026 at 08:45:17PM +0200, David Hildenbrand (Arm) wrote:
+> On 10/9/26 20:04, Lorenzo Stoakes (ARM) wrote:
+> > Introduce vma[_flags]_is_mm_backed() for the purposes of identifying
+> > mappings which are mm-managed and whose contents were placed there by core
+> > mm's own fault path - rather than a custom ->fault handler - and which core
+> > mm has not reserved the right to discard.
+> >
+> > Mappings not managed by core mm do not fall into this category, as they are
+> > populated by their owner, and nor of course does memory-mapped I/O.
+> >
+> > We exclude fixed mappings as these have a layout core mm cannot assume
+> > ordinary fault semantics over.
+> >
+> > hugetlb mappings are fixed mappings, but core mm owns them entirely, so
+> > they are explicitly carved out as mm-backed, as the MADV_DODUMP check
+> > already does.
+> >
+> > Droppable mappings are excluded as core mm has promised it may discard them
+> > at any time.
+> >
+> > Use this functionality to update the madvise MADV_DODUMP check to test for
+> > this rather than open-coding it.
+> >
+> > This replaces the VM_SPECIAL check which means it no longer checks for
+> > VMA_IO_BIT, however this is safe as we have established the invariant that
+> > mm-managed mappings may not set VMA_IO_BIT, so we implicitly include
+> > these.
+> >
+> > No functional change intended.
+> >
+> > Acked-by: Zi Yan <ziy@nvidia.com>
+> > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+> > ---
+> >  include/linux/mm.h | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+> >  mm/madvise.c       |  4 ++--
+> >  2 files changed, 52 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/include/linux/mm.h b/include/linux/mm.h
+> > index 2ce68713e4c3..55320cf2c525 100644
+> > --- a/include/linux/mm.h
+> > +++ b/include/linux/mm.h
+> > @@ -1738,6 +1738,56 @@ static inline bool vma_can_merge(const struct vm_area_struct *vma)
+> >  	return vma_flags_can_merge(&vma->flags);
+> >  }
+> >
+> > +/**
+> > + * vma_flags_is_mm_backed() - Do the specified VMA flags imply the mapping is
+> > + * backed by core mm?
+> > + * @flags: The VMA flags to test.
+> > + *
+> > + * An mm-backed mapping is one managed by core mm (see
+> > + * vma_flags_is_mm_managed()) for which two further things are true:
+> > + *
+> > + * 1. Everything mapped was placed there by core mm's fault path (no custom
+> > + *    ->fault).
+> > + * 2. What is mapped stays there until it is zapped or unmapped by the user.
+>
+> I still dislike squeezing the VMA_DROPPABLE check in here.
+>
+> It's just weird semantics to squeeze pages that are *managed* by core MM (#1)
+> but are simply always lazyfree into this check.
+>
+> In fact, core-mm manages (zaps) these pages, they are really just just
+> permanently lazyfree.
+>
+> Open-coding "this (DUMP, UFFD, MLOCK) does not make sense for droppable
+> mappings" is IMHO the right decision, because there you could say
+>
+> "dumping something that can get zapped every second does not make any sense"
+>
+> "placing pages through uffd does not make any sense if it can get zapped any second"
+>
+> "mlock'ing (and thereby allocating!) droppable mapping does not make any sense
+> and could actually break droppable semantics"
 
-Our internal portal does not have any document for the 8532/8533/8548 so 
-unfortunately I cannot help here with identifying an errata document.
--- 
-Florian
+Yeah, I am starting to come over to your point of view on this.
+
+It sucks that we have to manually do the droppable check, and I still worry
+callers will miss this as a result, but at least the flag has a specific,
+non-vague purpose.
+
+Rather than keep on trying to fit droppable into the definition, which should be
+as clear as possible, it does seem better to just drop the droppable check.
+
+It's nearly equivalent to the mergeable check, except that it allows hugetlb
+(the eternal exception), but that means we can now define mergeability in terms
+of mm-backing which is really nice.
+
+It also lets me avoid a case where I check mergeability in a non-merge situation
+(can just drop anything like that). As well as the cases you mention.
+
+>
+> Not a hill I will die on, but I much rather have the droppable mapping be
+> outside or  have it called something nasty like
+>
+> vma[_flags]_is_mm_backed_or_droppable()
+
+Yeah I think best not, the flag is clearly defined, so we can live with
+checking it manually.
+
+My concern was people forgetting to account for it, but I guess we just
+have to live with that in general (ugh).
+
+Maybe later we can think of a bright idea as to how to define some
+semantics that include it, but that's one for the future anyway.
+
+--
+Cheers, Lorenzo
