@@ -1,131 +1,218 @@
-Received: from mailout1.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24CD9528436
-	for <sparclinux@vger.kernel.org>; Tue, 13 Oct 2026 15:17:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 964455187E0;
+	Tue, 13 Oct 2026 15:18:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791904674; cv=none; b=sSwv4G94iHEXpP5i7MYYRGuiWQeuEUDWzbaTeFkYBcJwgd/C9kIRGM6G2Z4FN47EG+YBA9HCJA0l7OVMaDESDzVP077i06T0v1C0OIAKncyi5n+bRBVJDZtnGY3FkpirF/eKvlR1KR/n/yfGK879FL+fJetBMp2OYJz+1cmEmEg=
+	t=1791904687; cv=none; b=c56NsdAUX0BcRfkd1A8Ui2zhVdg6JY00OPhQiI8Vs+EczQgx4i7RxJbWiTq2FyyEvSYcvaW9kxIIBurmNDBIu5u7WdmSfSunzsFKigvLpADxP66MA5iVMNdQnseFWjUbsXbEi6hg+L/bmtnBg6E0RbXk7Cxc4eg1GK3ZiFKsSic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791904674; c=relaxed/simple;
-	bh=ANBMM5ephrnapb5OYmQbKJvZAthcMgVUq0Ua6nBD8RM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
-	 Content-Type:References; b=Mp2d/mOxj4m69HN/G2FhXoZ8o7G9ZCO9V7zSRdUfkni6q7LCqKn8pwph6ue6zKGp/eKkHrv6xzilSrstMnHK0NoRaWQq4rujcnMgY0TrILq7jrW2LIGGBeWcJW9rIA1y5COrTyLiJxIpHwUGMDfpSwAR7euEAC3zh73K+4QlopE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=A6elkmxv; arc=none smtp.client-ip=210.118.77.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1791904687; c=relaxed/simple;
+	bh=nPlKMcYR+T3IMNZ+qaC+TydVGS50UMS+5z8Z7jsltAA=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=ogu4aXdMpLOJHD1hgS4OKWf3NJHuU3yZ1EYUjGVyl+k/48c8MKNpM3XDtw6HTWoEodKAuoMB8W3piBSRKiM+8QSLqZMrGxofPXmlFQxEmJ72YQ//zl4dGm76NHFC+GugxBGyZ4y+mXTK5Qv+QwOYc7p5gJkAaTmXxvClOlUxOxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h4OnB56H; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="A6elkmxv"
-Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
-	by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20261013151749euoutp01223dfb4414a1033d0ffc84fe993037a7~eH82WB4js2065720657euoutp01N
-	for <sparclinux@vger.kernel.org>; Tue, 13 Oct 2026 15:17:49 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20261013151749euoutp01223dfb4414a1033d0ffc84fe993037a7~eH82WB4js2065720657euoutp01N
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1791904669;
-	bh=Vt9ECYRZaEE72jD/XAkrUXRFnR4nOeWo1TSAUIvqHPk=;
-	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
-	b=A6elkmxvHNZDwDcrgqs0Zs8+WogDiKmAUQouw0MWnRntm4XHyEpyUeT1qOKXy3kBq
-	 6GhWMaro3vwdQ7wS1CZaYkSbheWutPROq6a3FG5Uj+iDJzCHYQaEeNniUN6kvvXOKI
-	 yPIIl1DAcEDtGacyoe4pQKhD31ydhhRF0if4ltMw=
-Received: from eusmtip2.samsung.com (unknown [203.254.199.222]) by
-	eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
-	20261013151749eucas1p13e81f7b76814cf812749a88580315b1a~eH82IrTif1828418284eucas1p1C;
-	Tue, 13 Oct 2026 15:17:49 +0000 (GMT)
-Received: from [106.210.134.192] (unknown [106.210.134.192]) by
-	eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20261013151748eusmtip2f4370a403874628766669465e656de1e~eH81d-LDK0927309273eusmtip2X;
-	Tue, 13 Oct 2026 15:17:48 +0000 (GMT)
-Message-ID: <db165539-0203-40ae-b49f-883f002c231b@samsung.com>
-Date: Tue, 13 Oct 2026 17:17:48 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h4OnB56H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB2681F00893;
+	Tue, 13 Oct 2026 15:17:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791904685;
+	bh=pHENCFhMeiM35hbKa/gacUK4mkCc1cQaFugTZwzBT9A=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc;
+	b=h4OnB56HNjeqPiEOGE3rNlLUdEuZOAD+CtcGMRQAPmTJyATYJsOL1G7ptKcuCYpiq
+	 CpgHKGtq6CEcFGtPgneSlzABDdCg4Bg3Umhh2RyNv5IhvulgPcdL4E0gc7w/lwsd4J
+	 3ok73kC5oY5WBtHUwRiLfOVYbYL9SHUBU0FiaPnYYxZ3Ft4+OD+ZX8V0vRxZiMbA0e
+	 7mrjljzIeRWpoZEwnIfWWsSpm55O0FMF2MjO6qTGymfS0jQMAjbI9OveshwJqYlz4+
+	 6Oi8M73/28zKVP2Op5lc4WYCbc3NRmNQEDE9xnaQxhB1kNBr+EB4pIgYviUKddTNjT
+	 g/T0DZh39xgUQ==
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Date: Tue, 13 Oct 2026 16:05:03 +0100
+Subject: [PATCH v6 23/39] mm/mlock: clear VMA_LOCKED_MASK over mmap
+ callback
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Betterbird (Windows)
-Subject: Re: [PATCH] sparc64: Use relaxed ordering for DMA_FROM_DEVICE
- mappings on sun4v
-To: Stian Halseth <stian@itx.no>, Andreas Larsson <andreas@gaisler.com>,
-	"David S . Miller" <davem@davemloft.net>
-Cc: Leon Romanovsky <leon@kernel.org>, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Language: en-US
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-In-Reply-To: <20261013133731.1795299-1-stian@itx.no>
-Content-Transfer-Encoding: 7bit
-X-CMS-MailID: 20261013151749eucas1p13e81f7b76814cf812749a88580315b1a
-X-Msg-Generator: CA
 Content-Type: text/plain; charset="utf-8"
-X-RootMTR: 20261013133752eucas1p1ad5d155a4dd8316d7a3da5cb7772af3f
-X-EPHeader: CA
-X-CMS-RootMailID: 20261013133752eucas1p1ad5d155a4dd8316d7a3da5cb7772af3f
-References: <CGME20261013133752eucas1p1ad5d155a4dd8316d7a3da5cb7772af3f@eucas1p1.samsung.com>
-	<20261013133731.1795299-1-stian@itx.no>
+Content-Transfer-Encoding: 7bit
+Message-Id: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-23-1aa3c9b139f9@kernel.org>
+References: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-0-1aa3c9b139f9@kernel.org>
+In-Reply-To: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-0-1aa3c9b139f9@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+ David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
+ Jonathan Corbet <corbet@lwn.net>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+ Paul Moore <paul@paul-moore.com>, 
+ Stephen Smalley <stephen.smalley.work@gmail.com>, 
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+ Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+ Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+ Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+ Baolin Wang <baolin.wang@linux.alibaba.com>, 
+ Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, 
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+ Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+ Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ "Martin K. Petersen" <mkp@kernel.org>, Simona Vetter <simona@ffwll.ch>, 
+ Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
+ John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+ Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+ Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+ Arnaldo Carvalho de Melo <acme@kernel.org>, 
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+ Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
+ Juri Lelli <juri.lelli@redhat.com>, 
+ Vincent Guittot <vincent.guittot@linaro.org>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
+ Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+ "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+ Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
+ Catalin Marinas <catalin.marinas@arm.com>, 
+ Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, 
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Albert Ou <aou@eecs.berkeley.edu>, 
+ Christian Borntraeger <borntraeger@linux.ibm.com>, 
+ Janosch Frank <frankja@linux.ibm.com>, 
+ Claudio Imbrenda <imbrenda@linux.ibm.com>, 
+ Alexander Gordeev <agordeev@linux.ibm.com>, 
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Christian Brauner <brauner@kernel.org>, 
+ Matthew Brost <matthew.brost@intel.com>, 
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
+ Ying Huang <ying.huang@linux.alibaba.com>, 
+ Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, 
+ Kairui Song <kasong@tencent.com>, Kemeng Shi <shikemeng@huaweicloud.com>, 
+ Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+ Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+ Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+ Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, 
+ Wei Xu <weixugc@google.com>, Chengming Zhou <chengming.zhou@linux.dev>, 
+ Michal Hocko <mhocko@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
+ Xu Xin <xu.xin@linux.dev>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+ linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, selinux@vger.kernel.org, 
+ linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
+ linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+ dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+ linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
+ linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
+ kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
+ fuse-devel@lists.linux.dev, Ihor Solodrai <ihor.solodrai@linux.dev>, 
+ Bert Karwatzki <spasswolf@web.de>, "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2841; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=nPlKMcYR+T3IMNZ+qaC+TydVGS50UMS+5z8Z7jsltAA=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLLOeZx61nSk/PyGGTdNPBz2/bnzrll59w6V1g1HrhYs4
+ t62VJDPq6OUhUGMi0FWTJHl+Rfx/UEiYfM6L/i7wcxhZQIZwsDFKQAT6fJnZPiXFCuryeMhaBy9
+ c4KWXPbVGV8zMrbf+bInh/MmZ96u3GBGhn/spsc46t4UG23hPj5j5S6e59G3sjIuz7reef9SAJP
+ vDB4A
+X-Developer-Key: i=ljs@kernel.org; a=openpgp;
+ fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-On 13.10.2026 15:37, Stian Halseth wrote:
-> sun4v IOMMU and ATU mappings carry a relaxed ordering attribute, but
-> dma_4v_map_phys() and dma_4v_map_sg() set it only when the caller
-> passes DMA_ATTR_WEAK_ORDERING. Some network drivers do, storage drivers
-> do not. Without it every device write into memory is strictly ordered,
-> which on a T7-1 (M7) caps DMA reads at about 280 MiB/s per PCIe device
-> while writes run at full speed.
->
-> Set the attribute for every DMA_FROM_DEVICE streaming mapping. Devices
-> report completion through coherent memory or an interrupt, which stay
-> strictly ordered, and a strictly ordered write does not pass the writes
-> before it.
->
-> T7-1, fio 1M sequential read, QD32:
->
->                       before        after
->   NVMe (PM1725, x4)   281 MiB/s     3169 MiB/s
->   SATA SSD (mpt3sas)  278 MiB/s      502 MiB/s
->
-> Closes: https://protect2.fireeye.com/v1/url?k=e7e38a98-865a22d7-e7e201d7-000babe84d41-bac19a2569e412a9&q=1&e=ae0c8a5d-455c-422c-8bfa-d99f41e1f1b6&u=https%3A%2F%2Fgithub.com%2Fsparclinux%2Fissues%2Fissues%2F114
-> Signed-off-by: Stian Halseth <stian@itx.no>
-> ---
-> Tested on a T7-1 (M7) and a T4-1:
->
-> - T7: fresh RAID1 on two NVMe drives, 192 GB fio crc32c write+verify
->   and md check: no errors, mismatch_cnt 0.
-> - T7 and T4: file checksums on the SAS boot mirrors identical to a
->   strictly ordered kernel; no new messages in dmesg.
-> - 4k random read and sequential writes unchanged.
->
->  arch/sparc/kernel/pci_sun4v.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+Currently there's a confusing mess around VMA_LOCKED_BIT and
+VMA_LOCKONFAULT_BIT.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+It is permitted for drivers to set any flags they like, with the VMA
+already possessing lock flags.
 
-I assume this will go via sparc tree.
+This results in the absurd situation of a VMA possessing both
+VMA_SPECIAL_FLAGS and VMA_LOCKED_MASK flags, which is not permitted.
 
+This has resulted in mlock_vma_folio() having a very silly check for this
+scenario to work around it.
 
-> diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-> index 61f14b4c8f90d..4dd17b65dd6cc 100644
-> --- a/arch/sparc/kernel/pci_sun4v.c
-> +++ b/arch/sparc/kernel/pci_sun4v.c
-> @@ -403,7 +403,7 @@ static dma_addr_t dma_4v_map_phys(struct device *dev, phys_addr_t phys,
->  	if (direction != DMA_TO_DEVICE)
->  		prot |= HV_PCI_MAP_ATTR_WRITE;
->  
-> -	if (attrs & DMA_ATTR_WEAK_ORDERING)
-> +	if (direction == DMA_FROM_DEVICE || (attrs & DMA_ATTR_WEAK_ORDERING))
->  		prot |= HV_PCI_MAP_ATTR_RELAXED_ORDER;
->  
->  	local_irq_save(flags);
-> @@ -503,7 +503,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
->  	if (direction != DMA_TO_DEVICE)
->  		prot |= HV_PCI_MAP_ATTR_WRITE;
->  
-> -	if (attrs & DMA_ATTR_WEAK_ORDERING)
-> +	if (direction == DMA_FROM_DEVICE || (attrs & DMA_ATTR_WEAK_ORDERING))
->  		prot |= HV_PCI_MAP_ATTR_RELAXED_ORDER;
->  
->  	outs = s = segstart = &sglist[0];
+There is no need for this - just clear the flags before invoking the hook
+and reinstate them afterwards if they are required.
 
-Best regards
+Nothing relies upon this being set during the mmap operation.
+
+mmap_prepare is unaffected by this so requires no fix.
+
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+---
+ mm/internal.h |  9 +--------
+ mm/vma.c      | 15 +++++++++++++++
+ 2 files changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/mm/internal.h b/mm/internal.h
+index 557e629db8c5..4ae08fedffff 100644
+--- a/mm/internal.h
++++ b/mm/internal.h
+@@ -970,14 +970,7 @@ void mlock_folio(struct folio *folio);
+ static inline void mlock_vma_folio(struct folio *folio,
+ 				struct vm_area_struct *vma)
+ {
+-	/*
+-	 * The VM_SPECIAL check here serves two purposes.
+-	 * 1) VM_IO check prevents migration from double-counting during mlock.
+-	 * 2) Although mmap_region() and mlock_fixup() take care that VM_LOCKED
+-	 *    is never left set on a VM_SPECIAL vma, there is an interval while
+-	 *    file->f_op->mmap() is using vm_insert_page(s), when VM_LOCKED may
+-	 *    still be set while VM_SPECIAL bits are added: so ignore it then.
+-	 */
++	/* The VM_IO check prevents migration from double-counting during mlock. */
+ 	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_SPECIAL)) == VM_LOCKED))
+ 		mlock_folio(folio);
+ }
+diff --git a/mm/vma.c b/mm/vma.c
+index 39ceb03023e2..6cfda4575997 100644
+--- a/mm/vma.c
++++ b/mm/vma.c
+@@ -2607,6 +2607,11 @@ static int __mmap_new_file_vma(struct mmap_state *map,
+ 	if (!map->vm_file->f_op->mmap)
+ 		return 0;
+ 
++	/*
++	 * Driver-specified flags may make the lock flags invalid, so clear
++	 * VMA_LOCKED_MASK and reinstate it afterwards if appropriate.
++	 */
++	vma_clear_flags_mask(vma, VMA_LOCKED_MASK);
+ 	error = mmap_file(vma->vm_file, vma);
+ 	map->vm_file = vma->vm_file;
+ 
+@@ -2629,6 +2634,16 @@ static int __mmap_new_file_vma(struct mmap_state *map,
+ 		return error;
+ 	}
+ 
++	/*
++	 * If the VMA is still eligible for mlock(), reinstate any original
++	 * VMA_LOCKED_BIT and/or VMA_LOCKONFAULT_BIT flags.
++	 */
++	if (vma_supports_mlock(vma)) {
++		const vma_flags_t mask = vma_flags_and_mask(&map->vma_flags, VMA_LOCKED_MASK);
++
++		vma_set_flags_mask(vma, mask);
++	}
++
+ 	map->vma_flags = vma->flags;
+ 
+ 	return 0;
+
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+2.55.0
 
