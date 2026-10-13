@@ -1,87 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5B743CF21C;
-	Tue, 13 Oct 2026 13:57:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791899859; cv=none; b=e9WhXLlvVtAqtt8Vv1nrpYqQlJ1DAAl3xbrzLPKwvJe1Et68YxdwiNR20QyG/YWU5T0dvOqUU6iEs2oYRgAfQgH0y483pSLzF8IS8rzaa6lPm/W3qhH6PKaiXG4epXPU78Isgmqa0r2QqV8sV4t0hZl3f7N7IEpTq/aQnT6sWu0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791899859; c=relaxed/simple;
-	bh=Ztp60YRiqqxKSMkfCAEpijG260xYAeSzy+HEAPecqX0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ck1x40z4P79LF0tddPKIzJrfbXxq9Jo+j8QZAaPhyEwnKPoIrGI/q75zzMKSAJDaEDzWMaXv0Ux0wpjyv3cC8mawDSkzK+mIuqdWyjmWt2Ws5uKlaX2zSErUJ22G+n3trL/bnDwXTQi7nGBrRw3cAYtzJfs7i1PmlRyFYwYaYgs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ioz9pG7l; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BD943C10A3
+	for <sparclinux@vger.kernel.org>; Tue, 13 Oct 2026 14:10:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791900627; cv=pass; b=rPJQyTUeB6fL9yIsUZJg4CzauWbO4lGiLyP8KVMRIaTioJp46I+PLpLcGffaWI8fEob5xNKKpYnN6umk/VFcPlBWGn38fRk4STSHyGU9fDSWOjk0GNOVNioVEOtj+uLgN0bGEjYZ9QIu2xr0RWIAwP2O3ZMhCt5ztdhvgWb/Hds=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791900627; c=relaxed/simple;
+	bh=4CMVjLZ9yf45K7jKpjiX1QDRl6WTF88sgG9+iYuBnks=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=CVhIJcZmCpr14OeEuOxX7xzSMmLraVbTFdijtyAYrxGtetABGTKeM2Pju8IEpwfQrkQGXbxR+wcVIxBGPtWrvjoLQdRnBXNUvfOu8XNrsN5KdVVgRzXKfgxA1lVQ5bzshMnq+q9bAwTIZ4608Eu6atXlxbxzCOcNhjhFo/kLDak=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UMpIUIex; arc=pass smtp.client-ip=209.85.218.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ioz9pG7l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2FC81F0089A;
-	Tue, 13 Oct 2026 13:57:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791899858;
-	bh=H7KWRQK4hT/yqssG6blYbL1n9Ej/g4doszqPuBgzNq8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Ioz9pG7ltYQH/vAif7tO5sXfM+JGnFLMMGyIpeSElIWR83ntOm4MoK7Uc5jlVWFG0
-	 OVaOQguo61a77o5h9JYendnrxv31PHyx4oINhBAX8xi8cb1gTbnXyYiokDcvf7BxU1
-	 OEmYuYUtQIt+f5f8gs+r83amkFlzU3THcUBQOrVwFiU2Fvcg/Wi9MqZ/h3eJdlAwvM
-	 XpnAXYhJCSpVN8RTx+/xEAJL1bGWeIZG4KMiHGU+y4yyGrz/Db2jCZicZL1dKhB7sJ
-	 ib+AHTkW+s496S2IYl2jldOxiSMJOg9oDBn8JB1i1e8sgh/e8JPXhAgp30aZXV0FJG
-	 doTZBcMX47oeQ==
-Date: Tue, 13 Oct 2026 16:57:33 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Stian Halseth <stian@itx.no>
-Cc: Andreas Larsson <andreas@gaisler.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] sparc64: Use relaxed ordering for DMA_FROM_DEVICE
- mappings on sun4v
-Message-ID: <20261013135733.GO219304@unreal>
-References: <20261013133731.1795299-1-stian@itx.no>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UMpIUIex"
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c2e2007dd8bso508038366b.2
+        for <sparclinux@vger.kernel.org>; Tue, 13 Oct 2026 07:10:26 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791900624; cv=none;
+        d=google.com; s=arc-20260327;
+        b=UpNVtgwjcsrso9mkaviAues1LrRkQg/1S/azX7JFwsiV4zmFXcGjF4DxfCt19iOVXd
+         x7UC2lxsxaIW8Key6Yub7SvLSLHim18hhGAwg0XgEBFTC7T8NYYzQpctSFImomWoa3NQ
+         b867Td0OwwNRYvi1Tf4waEdYxltDFfTH2VenGE7kHWv2+27R0htfXgpQY9wMlss4KKja
+         zDFnNb4UbfID8nno9vbjNRxl5zCOBLXBAe+FW44p3IHCyJhjyKAoAFa3g8XENTshQqRt
+         BiZZVBsKPYIJFUe90SuIc2Vaz2eGuCBvWk2dD21A2oswCRQEk5iaSQctrPmTrLk9ux4d
+         US8g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=wNk93OG+CPbF+DX9A6OjxbQMBto1qmzwnWdWDYjiTu4=;
+        fh=WuqoJfN68pqO2Tlb4jkQTX6U0v3KOR/quF33zOYdZ4Y=;
+        b=oO4aZiBx6aicLVcifZKtE3ghr1w6d9Pqyi2dCaOOz452tXz0WZKBu5YVJs3iIXrkFx
+         S9a2wplBrQq1xpkBHRMV8WINJry+Gb3tVmzHU/UtcfaPTFIR8bW98dNA/7Sqv+BCdWxc
+         Xsr0x1m5/d+EFbLyhgUv0B2yE7bFyAkHAqGF0Q7sgyuyHKNdKUkW1YvHyLUj4ULeQ5qj
+         68iKdm03g3jwgiuhYkVoQMPE0UX7qVZQHGym59YonEokYhjrjjv3Lo8Ydzs9xgBvlbyR
+         rjrgn/zVvSVuXRKaxI/YGckOs/qpK1+n0AqEudVb+Fs7rIQ8KEHgIVhtpUXmYPq+AN5s
+         MbfA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791900624; x=1792505424; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=wNk93OG+CPbF+DX9A6OjxbQMBto1qmzwnWdWDYjiTu4=;
+        b=UMpIUIexKIlt+S/2qLmShKIqYL40su5fjH0vDa7JDYGsxP5Q+7s7mu0Lxyh7t5EvCQ
+         FVdDFFoN0HEc23lKh7foz7SLYxhVFyikQFI2WvCEow5pKr2ZxAJC6KhEjaqYiZ6Y9aTi
+         icmBTwWNHoxA+ou+vpB0rZefx15rweqBlu8OA4DH/wgVfwoFbqYtlB0zdwOgYmEz9wXp
+         +Taqe1lULoNNvmCSaIi+0q80s5+LwcP2mxbpLFImTlVik7umIT60QGJrVhRIPYO1DrmB
+         03thSI68NgFPaw0LpOo1YCEsV3kN5VWmzyfF3LLWh5VNJUJjugygiCv6ECa6StH7WoSV
+         Nr5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791900624; x=1792505424;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=wNk93OG+CPbF+DX9A6OjxbQMBto1qmzwnWdWDYjiTu4=;
+        b=gNrT3pPp6EA/U6O7opaxNXahHe5RzX3gueMUPOy7Lba9vx4TNBZnwNjKKs6yhGVsg+
+         +tT1CrRNaNt6D9M6tKuif7+us33vPNgIpKtnc26H337aVcUUWpUzKoSJgOoKhXwGWqhY
+         THTw9TX2cd8u6mIzAco0+ik0j20NBdpE9jbTaiNICAH694lLwjRFBIFsYHqbVHEhzB54
+         sl3m4OgOFnh/c7kzP7eVUY4gQpGMD36QeMErFLgSHYGYJNwjsKsFsQ//ECLNHg4Zy2pv
+         aZopsbfOfRnZ1JyfrAZjVy5DCTXbO0lSwD/4Coz7h2qD70xgxxU+pTGZ+fauMcbAcghc
+         nqSQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzkbqikDucm6vT0L5dRkizs3BfQL6fqpXoTMghrVpEzI7PGdEOhMk5QZ3VgNM3p3cjFKmutfftZ7Ew8@vger.kernel.org
+X-Gm-Message-State: AFq9FYJ09JJ7jP8Rt1Ch/AyWlmnQDvAHivKE275an6eWi4G0WZAKBll1
+	2aDdBJ0Ma+cxHtVQVZnf8IJ2UPFIsrEFhLc8XkpSEu22TY27kdd2ff+fNHxGE9tdCX9mnxpS9ug
+	9BVvX/Qo7o6B+79r/ekGR195BqoNDcMo=
+X-Gm-Gg: AYBFou0AUfTdpL4mDCSXjKSaTuweBFdIAsH1NSZXFRkoeWoHfhuuACASsfgv5TfybKg
+	P7xM06v9mCP9vgggnTcahz8pun7xpxhTO4MJlZT2k0yIa3HmLbwvDR6wXygJbsxAWHaEJITbU4J
+	YZtsOWgKxXsiDVM4nTehRC963L2RDzK3tJtVthQevLd4Km/US75CAyQNtSbccgrHAks8u09ygyR
+	0gugiexCjL13HskDRqMFcLaAhjc6+sju2StulbBOlcOf5spRa0CLcBUjb2qKXoTIkJx/Pi8lzR8
+	hHNjWEFVywKUWiJbktzhbX1nasA9KDJqOmFr9IJi40Y3rO1al41aH1r14Gjr/O3U9btg8EE08Ws
+	=
+X-Received: by 2002:a17:907:bb49:b0:c29:62d8:68af with SMTP id
+ a640c23a62f3a-c31a9ffda78mr1178768966b.47.1791900624306; Tue, 13 Oct 2026
+ 07:10:24 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261013133731.1795299-1-stian@itx.no>
+References: <8d81032ee582ede5ad2df981bb1646d096c9abe2.camel@physik.fu-berlin.de>
+In-Reply-To: <8d81032ee582ede5ad2df981bb1646d096c9abe2.camel@physik.fu-berlin.de>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Tue, 13 Oct 2026 16:10:12 +0200
+X-Gm-Features: AclHuK879vJpsNyRaragP9VDqqMLDElAXw0wlXC4x_C0JIajBk61YZ_sEcJAGjw
+Message-ID: <CA+=Fv5SuE2bgKyQCp-w+0GT=dduk3_yOSbTOzVJybC2pjLaPJw@mail.gmail.com>
+Subject: Re: SPARC Meetup at FOSDEM
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Stian Halseth <stian@itx.no>, Andreas Larsson <andreas@gaisler.com>, Imre Kaloz <kaloz@kernel.org>, 
+	Sam James <sam@gentoo.org>, sparclinux <sparclinux@vger.kernel.org>, 
+	"<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>, 
+	gentoo-sparc <gentoo-sparc@lists.gentoo.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 13, 2026 at 03:37:30PM +0200, Stian Halseth wrote:
-> sun4v IOMMU and ATU mappings carry a relaxed ordering attribute, but
-> dma_4v_map_phys() and dma_4v_map_sg() set it only when the caller
-> passes DMA_ATTR_WEAK_ORDERING. Some network drivers do, storage drivers
-> do not. Without it every device write into memory is strictly ordered,
-> which on a T7-1 (M7) caps DMA reads at about 280 MiB/s per PCIe device
-> while writes run at full speed.
-> 
-> Set the attribute for every DMA_FROM_DEVICE streaming mapping. Devices
-> report completion through coherent memory or an interrupt, which stay
-> strictly ordered, and a strictly ordered write does not pass the writes
-> before it.
-> 
-> T7-1, fio 1M sequential read, QD32:
-> 
->                       before        after
->   NVMe (PM1725, x4)   281 MiB/s     3169 MiB/s
->   SATA SSD (mpt3sas)  278 MiB/s      502 MiB/s
-> 
-> Closes: https://github.com/sparclinux/issues/issues/114
-> Signed-off-by: Stian Halseth <stian@itx.no>
-> ---
-> Tested on a T7-1 (M7) and a T4-1:
-> 
-> - T7: fresh RAID1 on two NVMe drives, 192 GB fio crc32c write+verify
->   and md check: no errors, mismatch_cnt 0.
-> - T7 and T4: file checksums on the SAS boot mirrors identical to a
->   strictly ordered kernel; no new messages in dmesg.
-> - 4k random read and sequential writes unchanged.
-> 
->  arch/sparc/kernel/pci_sun4v.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
+Hi everyone,
 
-Looks right to me.
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leon@kernel.org>
+Great initiative!
+
+On Tue, Oct 13, 2026 at 2:59=E2=80=AFPM John Paul Adrian Glaubitz
+<glaubitz@physik.fu-berlin.de> wrote:
+>
+> Hi,
+>
+> I was wondering whether people would be interested in a SPARC meetup at F=
+OSDEM?
+>
+
+This sounds very nice, I've never attended FOSDEM so maybe its about time
+
+> I will be around as usual and maybe we could arrange a meeting with some =
+hacking
+> and beer.
+>
+
+Absolutely. I'll start checking my calendar
+
+Magnus
+
+> Adria
+>
+> --
+>  .''`.  John Paul Adrian Glaubitz
+> : :' :  Debian Developer
+> `. `'   Physicist
+>   `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
