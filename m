@@ -1,180 +1,109 @@
-Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5479355C1B2
-	for <sparclinux@vger.kernel.org>; Wed, 14 Oct 2026 16:54:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.51
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791996846; cv=pass; b=icA+dQM3b6lsPHPAN3SDbSMHopF3nhAzZzavuCgL+SccspfVgCgkKDDj2jHQc6uip0eRcqWtqVaRNqo/yCzbqpMMlxzbbs+kWzrrHCGigo8umBQzPwBam4Z6/IfUTbnBjnQBcjCSPUtNSzfPxf/EBkhBs5TS5kg3T5Ii/5MROgM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791996846; c=relaxed/simple;
-	bh=I3Y0U9d+Nkll0pfd537lAkdCtWdZSZn60epcX76cqCo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=IJP/tkMTho/FpVxOp9EyA1Ds8V4XkTVkY7wBCdc/0SdlDLBqyH/kRC9ZSu6Zi4y7/z+8nb4z/qWJVGignB5RO6anm/tLie/pNXxvpacMUAwu61JAK9sdplzSX48HYKgKuzLfXndcGi5guyxVZJCQTSbCtqBd7Jg3OugmrjPZu9c=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NnkqZ8CP; arc=pass smtp.client-ip=209.85.208.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACF36563FCB;
+	Wed, 14 Oct 2026 17:13:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791998019; cv=none; b=TmR46xWc8hIJ4IvEGpk6as6AVWJeYOYg8cLJu8VpWsiY6Etwq55Di9brtxN1VNpPFgqVivu6gXaX2OGBDv/yeJZ59cyHa+Dk6pFUtsmyvcQfeR/3xXLZnHxEsXmhpdaEogDwa6wsjDnCONL1EVeYc9EP6d417+YYuK6uD9+NTSk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791998019; c=relaxed/simple;
+	bh=7+/A0LoacZHohjvN4wXEm3+Dk2UyCqNWrHEmAESILnU=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=FV/2GlRM7sZYcHnC3KZNhkcVFOBC45+2c/QKFvEpA/SiAqMMdEhhdeFIr8L+ifQC2u+qexWNqXRqp4R+Q2ImsIhp3NljRrPMUcPp3DZLFTejZuVRR7er9fdgKOIqsgo3rtwYweU4XELQXpO0gtO3eWOW+E5TCOOwK1SEHQCHXoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X3551b1+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NnkqZ8CP"
-Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-6af9a90e4bbso4667633a12.0
-        for <sparclinux@vger.kernel.org>; Wed, 14 Oct 2026 09:54:05 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791996843; cv=none;
-        d=google.com; s=arc-20260327;
-        b=BM4rXLO3Qs/QQI7jOPr+fHNymUh7lu0zXrvTdT65YjefB8NYWQ7pkFBOA3n4omNt7L
-         ML2jqULVUlxbzln/x/FXlW6i6HzrrDbcH5St5HkUpQU2TX8+YEfbnsbJ6LvbC3Xt2tWZ
-         jWdh1/Ibd/eQsUm7X/AymK9CkARNtv4Zx7vN48W/f1+/FsztFjADdLdHFbAkV7hHs5Mt
-         wYr9zRG1NkIzOzgbV6IuOsZsTzAvvw3jijXATu8Yrq5kMTNTKG6E9K6eSWndA5PQFe3B
-         YNeybfayS/9brhPJREtbrDUemeiG++iYIbLLIAH2reYUJmTvK9RK7qUYEtjJ/ZN8WBRi
-         wrCQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=+F9IeTlxRgN2/qbGE0mzkiygL5YNuqfvZdlqx/Or3SM=;
-        fh=t19MCIL1Lrh7yvy6wpXe7+cE75CwOfF3CHfORGIiqhc=;
-        b=UipzD0SyWJzs1XVtPBl5ZKaqbTgXaPE6pBxIKcjtbCZNqUHxOefGK5UG+j5/w6By3o
-         E/qNf2JtStJ2AbGwO2qBtj++8ZrVKFrp75k0SwqADydMJpeHD1uSWwDCQufKtiLw9WgN
-         QavPuFIduo27s2Bi29ZHFg3a51aJXXrDgQP0oR2biKzn7bTDdZdqp4SBGdQbW/9F1mg6
-         j9oZOA23S9ufni0Kr+qnjqxJVI6I0/s6m7Xl8AV4Z5GDFyhfBfC/iTUJPuTPb04BDwNn
-         28/E5V233VbD7xBFRxz6lpcIzK80EXZtbZw2SMMT+6ret83LmkBKOnI3cKCIzUvBMYIm
-         8jLw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791996843; x=1792601643; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=+F9IeTlxRgN2/qbGE0mzkiygL5YNuqfvZdlqx/Or3SM=;
-        b=NnkqZ8CPRKC/gCdLyimCqQ2LsXu0eiw4g1AZwN7w2ECrHGgJXgu88ZoxdzUAr+GP+j
-         ngza+ahxsJtMTd3Gsck8NqFaQMvbMVVr2HYLxiAFi7FeOkec0/KHhIRBhUp3XEyTjrhZ
-         XgfsXFzRxJkSmaM/KUFqumgZ+6gtrSBxEyLwijtypz9GEke2j63j6CyXQASOY8E/gOcU
-         P8Fk71t278565XIRCsfDkotxrf45EAvHGVbjI/gpKm0eFmjNggAHpbU5GFOyrmxfEznH
-         XKLX11CbNofwLJA0euKCGt79oNtTznYeKeF3ZVFM3Ep/iAUHHbtxoNRNX3RB91sRrMAD
-         Mq5w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791996843; x=1792601643;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=+F9IeTlxRgN2/qbGE0mzkiygL5YNuqfvZdlqx/Or3SM=;
-        b=AtTb0k5Q1W/pfMhIkla6S+IS0o82AOt7GjdOme8WeyR2yV7SmdCxBkv7nC/LUFI9HG
-         KbIKl7rjeXo0NMjxpEJTRvk1axYrIJCUe/f7WQZyPwdfJHdbB/uz2ppbeujy1klx1Zy4
-         d+5TlJNbZKDjZx2kEcRDt88unZhbSrDFLB8+V8fKGASLtcsRiw8xijawo7OV/xIyNCF+
-         KLirKFz6O09e5os87cmVa6YVqO+PXaKygkTueKcQv2wD37M4DqPnJ4PgOGUQ+8Pz87rY
-         NdZPd128Mjr/DiL2Kjn26IWlGirbthNd1vxoL0mqXmNTJ7pz0Fhert53PGhWR9H0iEua
-         0OmA==
-X-Forwarded-Encrypted: i=1; AKwUvBzREoLIGkFIc9ssmEgF+/nXP8tXyeWHsKkdOnbpybZluN1RB6RfI3r9zLHdB4pvYz4o11PsGBR6ShJH@vger.kernel.org
-X-Gm-Message-State: AFq9FYJcStPurAbtfJ8iY3ubQ7GWHvs8vVFzrIkfaSPFRIFIXYk5SBDj
-	v+avBCI8yQQmQRppBxuKAYEcBvGrNtRIz1nEzuuwqpqSIVeQJif+em+prP07TqSG8ODpjZMJVA+
-	hZnK3DXkukhX6zGZU1MyJIzfsHoXSsA8=
-X-Gm-Gg: AYBFou0y0up07FVB2tDXhxquLWcW8e3vTBRZIGfLQcE7zp3VsIXKt2kmjtRuF8zzMv8
-	Kc5M0CKbzT4O5QzEk3xdi1xQbaWf2qfD+p+DP/aAnsNk14EXn7A2tmj3CBwQf7ULAG+w3Hruxca
-	lQ+2EvzlNdGE//E4pmqCGW9HLc+utchyDDYVCxLsFH7pJwdy9mNDyJs8FgE+ALXsjJgSepHxyO+
-	LyzCDRwT7rZMqtKcHqjlBSGN9TVTqDtKESTDXIPgEdhKl5i1Zt/9M6b5zh8vzk4vjRyfxYY57/m
-	RGDR9pKxStKbxlm/c12m+m6iCZHjQR/t7jOCH9csfdqGUPVWXbmPpS3GtA6t5ROXCXG02DADH4Y
-	4MLngrygeStwUwfFRi/rtx1K2tL4sy3gu/sOyilyGtg==
-X-Received: by 2002:a05:6402:4486:b0:6aa:f630:f846 with SMTP id
- 4fb4d7f45d1cf-6b17c26a90fmr13938672a12.31.1791996843244; Wed, 14 Oct 2026
- 09:54:03 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X3551b1+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C0391F000C4;
+	Wed, 14 Oct 2026 17:13:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791998011;
+	bh=TIXKZ1EmqWU/VUc5XZWDJM5gBsBtYEI+Xauv3IN18ZA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To;
+	b=X3551b1+kerHLKkgoLyynluZRnT89nmMlG9rlmLWW8V9C4QCUneI15E6Pz3rcKqf9
+	 mHnyjzbkFavDjWlFHf3RQCcLasCJq9HAfrPjw3hWkHHxXB/PP60RQaugTlwBPfl59b
+	 pouU/CIq0JT/xXxfgqJ8zi10vGqVshJB/NPqD4ah7IwicwPdAhINXhJbu3uBmxBBWH
+	 0eoTAFzK4Rtfqjsqm1ipr19biNYZmoLMgRC76IWxb4YPVFWDAFGMFWxDgGABfGSWKF
+	 jUMX9Z2ufQqTXjt7hhXt2o9rt+9NtBSFpf0Cr2/CbUP18y1wdK41b5qjpg8KBgtQSP
+	 ipexh62I4hXbQ==
+Date: Wed, 14 Oct 2026 12:13:30 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Stian Halseth <stian@itx.no>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
+	Andreas Larsson <andreas@gaisler.com>, linux-pci@vger.kernel.org,
+	sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-kernel@vger.kernel.org,
+	Tony Rodriguez <unixpro1970@gmail.com>
+Subject: Re: [PATCH] PCI: Set supported_speeds in set_pcie_port_type()
+Message-ID: <20261014171330.GA1640628@bhelgaas>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261014133431.8003-1-ludwig.rydberg@gaisler.com>
-In-Reply-To: <20261014133431.8003-1-ludwig.rydberg@gaisler.com>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Wed, 14 Oct 2026 18:53:52 +0200
-X-Gm-Features: AclHuK9TLvgiu8pYEXVwGaLOF66o-uRXsc9jGTrvXgaMGrNaXMoKMLMJO_l4JHs
-Message-ID: <CA+=Fv5Q_xcnwq0jjJ1RMw8DniNG9jwAuhODTGSPcpaw7G9SSng@mail.gmail.com>
-Subject: Re: [PATCH] sparc32: Fix pgd lookup in vmalloc fault handling
-To: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
-Cc: Andreas Larsson <andreas@gaisler.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, 
-	Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261007131304.309511-1-stian@itx.no>
 
-Hi Ludwig,
+[+cc Tony]
 
-On Wed, Oct 14, 2026 at 3:40=E2=80=AFPM Ludwig Rydberg
-<ludwig.rydberg@gaisler.com> wrote:
->
-> Check and synchronize the level-1 entry with the PUD accessors instead
-> of the PGD ones. SPARC32 folds the P4D and PUD levels into the PGD and
-> pgd_present() always returns 1. The PGD accessors therefore skipped the
-> synchronization and the handler dereferenced a PMD pointer derived from
-> the missing entry (seen in this kernel panic running v5.10.194):
->
->   Unable to handle kernel paging request at virtual address ff780000
->   PC: <do_sparc_fault+0x20c/0x3c8>
->   Caller[f0007ed4]: srmmu_fault+0x60/0x70
->
->   do_sparc_fault+0x20c/0x3c8:
->     pmd_present at arch/sparc/include/asm/pgtable_32.h:193
->     (inlined by) do_sparc_fault at arch/sparc/mm/fault_32.c:358
->
-> Fixes: 7235db268a27 ("sparc32: use pgtable-nopud instead of 4level-fixup"=
-)
-> Signed-off-by: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
+On Wed, Oct 07, 2026 at 03:13:04PM +0200, Stian Halseth wrote:
+> sparc64 and powerpc create PCI devices from the device tree in
+> of_create_pci_dev(), which calls set_pcie_port_type() but not
+> pci_setup_device(). Since d2bd39c0456b, supported_speeds is only set in
+> pci_setup_device(), so it stays 0 for these devices.
+> pcie_get_speed_cap() then returns PCI_SPEED_UNKNOWN, max_link_speed
+> reads "Unknown", and the failed link retraining quirk passes
+> PCI_SPEED_UNKNOWN to pcie_set_target_speed(), which warns on a SPARC
+> T7-1:
+> 
+>   WARNING: drivers/pci/pcie/bwctrl.c:125 at pcie_set_target_speed+0x284/0x2e0
+> 
+> Set supported_speeds in set_pcie_port_type(), which all three paths
+> call.
+> 
+> Fixes: d2bd39c0456b ("PCI: Store all PCIe Supported Link Speeds")
+> Closes: https://github.com/sparclinux/issues/issues/109
+> Signed-off-by: Stian Halseth <stian@itx.no>
+
+Applied with Tony's Tested-by to pci/enumeration for v7.4, thanks!
+
+I added a stable tag since d2bd39c0456b appeared in v6.13.
+
 > ---
->  arch/sparc/mm/fault_32.c | 16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
->
-> diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
-> index 86a831ebd8c8..f9befdbb3e72 100644
-> --- a/arch/sparc/mm/fault_32.c
-> +++ b/arch/sparc/mm/fault_32.c
-> @@ -276,21 +276,21 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs=
-, int text_fault, int write,
->                 pmd_t *pmd, *pmd_k;
->
->                 pgd =3D tsk->active_mm->pgd + offset;
-> +               p4d =3D p4d_offset(pgd, address);
-> +               pud =3D pud_offset(p4d, address);
+> Tested on a SPARC T7-1: before, max_link_speed reads "Unknown" and the
+> warning above appears with CONFIG_PCIEPORTBUS; after, all 23 PCIe
+> devices report their real speed and the quirk lifts the 2.5GT/s
+> restriction without a warning. Not tested on powerpc.
+> 
+>  drivers/pci/probe.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 27008e2ea5afc..52a79b033b069 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -1651,6 +1651,8 @@ void set_pcie_port_type(struct pci_dev *pdev)
+>  		pdev->aspm_l1_support = 1;
+>  #endif
+>  
+> +	pdev->supported_speeds = pcie_get_supported_speeds(pdev);
 > +
->                 pgd_k =3D init_mm.pgd + offset;
-> +               p4d_k =3D p4d_offset(pgd_k, address);
-> +               pud_k =3D pud_offset(p4d_k, address);
->
-> -               if (!pgd_present(*pgd)) {
-> -                       if (!pgd_present(*pgd_k))
-> +               if (!pud_present(*pud)) {
-> +                       if (!pud_present(*pud_k))
->                                 goto bad_area_nosemaphore;
-> -                       pgd_val(*pgd) =3D pgd_val(*pgd_k);
-> +                       pud_val(*pud) =3D pud_val(*pud_k);
->                         return;
->                 }
->
-> -               p4d =3D p4d_offset(pgd, address);
-> -               pud =3D pud_offset(p4d, address);
->                 pmd =3D pmd_offset(pud, address);
+>  	parent = pci_upstream_bridge(pdev);
+>  	if (!parent)
+>  		return;
+> @@ -2074,9 +2076,6 @@ int pci_setup_device(struct pci_dev *dev)
+>  
+>  	set_pcie_untrusted(dev);
+>  
+> -	if (pci_is_pcie(dev))
+> -		dev->supported_speeds = pcie_get_supported_speeds(dev);
 > -
-> -               p4d_k =3D p4d_offset(pgd_k, address);
-> -               pud_k =3D pud_offset(p4d_k, address);
->                 pmd_k =3D pmd_offset(pud_k, address);
->
->                 if (pmd_present(*pmd) || !pmd_present(*pmd_k))
->
-> base-commit: cee9395acd8043be0644b25c34bfa86623f2b935
-> --
-> 2.35.3
->
->
-
-Hi Ludwig,
-
-Tested with one and two CPUs under QEMU: a test-only helper cleared
-a vmalloc level-1 entry in the calling process's page table, flushed
-the TLBs and accessed the allocation. With your fix, the mapping was
-restored correctly and data verification passed. Reverting only
-your patch caused a fatal trap in both configurations.
-
-A non-injecting regression test also passed on a dual-CPU HyperSPARC
-SPARCstation 20: four processes completed 128 vmalloc/fill/verify/free
-cycles in total, with no new kernel errors.
-
-Tested-by: Magnus Lindholm <linmag7@gmail.com>
+>  	/* "Unknown power state" */
+>  	dev->current_state = PCI_UNKNOWN;
+>  
+> -- 
+> 2.43.0
+> 
