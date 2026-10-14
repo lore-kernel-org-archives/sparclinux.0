@@ -1,46 +1,46 @@
-Received: from GVZP280CU018.outbound.protection.outlook.com (mail-swedencentralazon11022084.outbound.protection.outlook.com [52.101.82.84])
+Received: from GV3P280CU013.outbound.protection.outlook.com (mail-swedencentralazon11020138.outbound.protection.outlook.com [52.101.75.138])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2B1C46D555;
-	Wed, 14 Oct 2026 08:07:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.82.84
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0EBF49480B;
+	Wed, 14 Oct 2026 08:08:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.75.138
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791965278; cv=fail; b=en2QboJPrn/tEISRcWDUBhXbYeNK1GWXPWcY3BlQNE2kGtGWHA4uMxI0QwZnZUkDieHf9y0ICyK2keFg/if1SugOGoVWa0ImC1pHta3zf4FxSaY9Sx9hWWcBB04mgN+6J0SCyqdMTOta80tVnecNdo8t7RrNJgLW1C+I4zfP2jQ=
+	t=1791965285; cv=fail; b=eyjc6H+FybS+zliueFZqsfb748RL+Zo/iBqXGrEtGk6rDQZR9KkjEZb6sMxP6H54hHzGlOGgax39rl0qmfulexOrPLxmhK5qoqU5B9VH5tYawrTxg+inSxDcZ8xObR4wRQxvmF3AXjMYM5GvXxwGa6y6l1+XnMG6x0xevp0bhlw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791965278; c=relaxed/simple;
-	bh=BEUBvPm0NLLox2I+0/FHlGJacqDQxL3ZkwJ63SNmcug=;
+	s=arc-20240116; t=1791965285; c=relaxed/simple;
+	bh=M7kjKp2bp5q2ZbYIEw92tirgvHK9CqIrXOGM1QuSRg8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=onNjX1V+rx34L2bVaqq8jruV/djJDhNWD0eiTp5997YcA9F8u8UXJe809eHkj7c4qCmEpHWS5PyzxGiR1xRO+cLSJiHXcWBTfhtMT34O7iCXFfr6GbzgrtFlirRn+eUb8J0c1JhS8eWz8dKGK27Uro/p+q/dT32TEezTuRVIcEg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=Em8jnvwY; arc=fail smtp.client-ip=52.101.82.84
+	 Content-Type:MIME-Version; b=kc4N06H46WfnIuaSQBDK6naETlYhq7ITYth21jJGgYVMO+3YIQwacDXZOd5QEcrtUrbhVELCxSlzeb3SrRj+4fHm99UJ7CZwClOPzzPSJ6sEix8zP8MJmHbQO3e/IZgLVOdBvKVRFvPe+M1jLUW3zihGNIJgPssu/Q9vUcSRjuQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=aKBnXoft; arc=fail smtp.client-ip=52.101.75.138
 Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="Em8jnvwY"
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="aKBnXoft"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=n6OC/O8YBi79LMS2ASDzKZPOqEOn7HQGXaJHS95nqlV3+Lv3eEp/c3DCGZ03MU6froMCGws8DpHEOI+RAux2Wx3pzFr0+hJe195Uz2IsZjD29pz+iZU5sH7XCjXI9rs9JHv8/gqcuyR6XLAstNN2UsyenydOo9rWjBRKXAREpCjCskIfpFYBZQNzXTT8f/I5IhoFZDPsaf7pJbPzFCg1DMfeUhCxW0w+8qloy7Z9SYqMm7jem8VmQyD4e+m525+9gu71VyqDhQjh9jPwHHtQFRin/A97DMZL+ifPpiNnEybYshgfhmYdb7HRMeZTWfWEH9OI0HAwo7YBVF0pBTDI+A==
+ b=P9TGxNgPP0V1iFZ2k5zZhpPHXM0T/Cevw25XA4c68ZkI4NcU/UpSEoj7MX/JHlz/4BE5pUfItJzS8Q+ymnY0d5R6y5n0N6XyBAk/dVGALIa3lZJ30Xskzt9CMEabAzb1hdZjYCg5TzUlAeFj5ZiJTzRvT0Cv+ERnGT0ZGTEhmKmScjBBpIF8We/C0igx95gFt/Z4RCX7oxQkQBh7wdype4VUXCQl2PQ7rvaoqoY/9YLzJmtpp2dJnbvuZnoEM530/KXxuR9Ly10auZM5kozUbevwDo64frSiybnB3cX1lfMyX9MU3GPyCb5kNkKYshU8wkNGngj1E5KT93WaM8kIQQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NZqSS6QRIJxTubyRbeeSTVDyCU81vUWZ6DsxvLeCloQ=;
- b=ZoCghX6H1F1lLg2/4tIONAMF4qbFfXjOWRrRmOWcAw+absC7/1x+/P0OkTNatJGEzIKkn8UCJmsV26T96gvnN9KvIAzv/NfwgZjTP9M5419amdfkO9P6eQ1pNihZS7TFEGe9b5vB34I5Axz9kmRyfjdinZeGX7gQkyH5UwFReBItJs4RVndpG5+pYnSl9Pjir8y1HkSPzWI02lzVQd7bun9vpxq1SnPkk8Qzp/Ddc+9eWCHmMd9pYR/p75Vei0Rxpi8haZYPEg4c6Z5Pkw2FZx8aca8vHGou37oxLxSAjImq1BTNVfQ+bJvwU6CfbUtL2Y3tgXbVFM6v3lrJnh6JIQ==
+ bh=u4RW1ZWQ+EAy6wwhi1XVGC6L3vUgdx/vGhWWf8YCB3o=;
+ b=VK+rxY2noJ2kmsdW0cTirMh8ZIEBi3NV0xc5DUDV7CztxCJpLvZoINAjcttc0l2C7IttsXcmT+ekS6r66oHG/OGfJbFVUgCtV5/MUi6oQL3+dz8cbF3dyV/FiGaMPTxjYiulLWkHJsijYnSXO45fefoCIoqFdw5YH1GDvTfClsqlzkKn5OtcQYxkvdiZStrNPOLKe7+iQenzMFn4YhddwMTeGN0phgt+xgt84nJbBqqvmwdkXu7+Jh7G4JHlNVC2phi0AjTGKFTV9mcP1cxvNFeE/6Yq2XdPkve/vD4oN0Tmgna4Z94n3OiN92inEOlRIUzhSxalQAnXSyX3/dhSDA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
  dkim=pass header.d=gaisler.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=NZqSS6QRIJxTubyRbeeSTVDyCU81vUWZ6DsxvLeCloQ=;
- b=Em8jnvwY0lexqD0ym1vWnd671EykZ32kdH9I4NmvySgT4CfwM7kU9vukOOiBCiljMY6aA1+j6kfZeknQX6mn05Dmz9y6vCctlMftTQ0SXlVcG17XKEWLZq79VPvP7LbQlHZI8aZo+gtGw8idvY/DISUw90kaIUfWHzBcA1hjnDLtvQmjvZxemiAU5mJpryT07RGfJk2Ddnu/zH1B5Q934vjnholtHBqD5fxDeNYbFOLh9a0xGRlFidCuD213kKc9U0S2wsOQjTg9yr1/NjSQ9namhLFqejoN5GOTV7vxAmNcXwCq9btgL4V7B835A4m2OQaqUhL53Xb+4049vEVnTw==
+ bh=u4RW1ZWQ+EAy6wwhi1XVGC6L3vUgdx/vGhWWf8YCB3o=;
+ b=aKBnXoft1uoQrrgjytyDyDvSgPBIFe8nV7G7EnzIKm0fbLhcjOJDkb7Ffpi8xl923yvliPX/LwMbz4faE7CO0Qz2pCJiBN/tC72Rxag6JeZX1KtUtIfDa5Vs3uSZb52XvBmd1Na/u1S+3r09dLcuB9TxUILRnDG21/cFkX1+EGNwHYJBgFo3WYucFvC2ZzcvQXtWOsHwwfhUZ4e0g0iO9sXaYU4QI6jN/wvmLB6wmAoc6QF6uUtQVSd3W4wk1HP7F4vgcIIIM9WsKxdgqQ0R2YVK3WiANH4f06JtIlgbCvHFx9XF4wgYU8WGjTjVN+p1C3ML7xu+6Re/Y6/u3Tcaeg==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=gaisler.com;
 Received: from MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2::17) by
  GVYP280MB0208.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:1a::7) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.522.13; Wed, 14 Oct 2026 08:07:50 +0000
+ 15.21.522.13; Wed, 14 Oct 2026 08:07:59 +0000
 Received: from MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
  ([fe80::8e01:811a:7101:e192]) by MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
  ([fe80::8e01:811a:7101:e192%5]) with mapi id 15.21.0522.012; Wed, 14 Oct 2026
- 08:07:50 +0000
+ 08:07:59 +0000
 From: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
 To: Andreas Larsson <andreas@gaisler.com>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -55,16 +55,16 @@ Cc: Andy Lutomirski <luto@amacapital.net>,
 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
 	Stian Halseth <stian@itx.no>,
 	Ludwig Rydberg <ludwig.rydberg@gaisler.com>
-Subject: [PATCH 1/3] sparc32: Split common syscall_trace() to syscall_trace_{enter|leave}()
-Date: Wed, 14 Oct 2026 10:07:28 +0200
-Message-Id: <20261014080730.8817-2-ludwig.rydberg@gaisler.com>
+Subject: [PATCH 2/3] sparc32: add seccomp filter support
+Date: Wed, 14 Oct 2026 10:07:29 +0200
+Message-Id: <20261014080730.8817-3-ludwig.rydberg@gaisler.com>
 X-Mailer: git-send-email 2.35.3
 In-Reply-To: <20261014080730.8817-1-ludwig.rydberg@gaisler.com>
 References: <20261014080730.8817-1-ludwig.rydberg@gaisler.com>
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: GVZP280CA0055.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:150:271::12) To MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
+X-ClientProxiedBy: GVYP280CA0020.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:150:fa::16) To MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
  (2603:10a6:190:2::17)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -74,167 +74,169 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: MM0P280MB1058:EE_|GVYP280MB0208:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3244951f-d8b6-43b5-c814-08df29ca3d62
+X-MS-Office365-Filtering-Correlation-Id: acdaeeff-f6bd-47bc-be9e-08df29ca42c1
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|52116014|366016|23010399003|38350700014|56012099006|11063799006|261009223027099003|18002099003|22082099003|10067099003|6133799003;
+	BCL:0;ARA:13230040|1800799024|7416014|376014|52116014|366016|23010399003|38350700014|56012099006|11063799006|261009223027099003|18002099003|22082099003|10067099003;
 X-Microsoft-Antispam-Message-Info:
-	TqVACfLVG0rDdVvQKe4fgiMS72nG9Zs1E3pg+vxWMqOBKwHf3gIN2OhftuZBi7XnoOS2mJhMtflcZLChKZbPQaRmZYl7tIWaVzTU5vs7ydPEeaOgE5iGx3VKzNiz+Menwg4nuN3OrxZ41DgxvLtajW8twuWZ0w+XxbTy0eXxh7S5ONOtrGKH2CVmAADzP8BgyoZ6WAUaWY0GmJ8tn2p4217tGhiWfeWqNICn5MTtTdTnwQXe0LOC2F2k6BAggMS3HIKhdzhd/DM9OA4DzRs0hn6Ur03PSGE2xPvKeoWMviAteX++KsT4podAiAUcWATTSkcBsEh2vzL3hhKWJWT96QjllcqhTPlvh4pQ8JS/xMuyezqGM5vlN6RP2SWqKVQX8S1LdB/+OOP5/dMsPRD8IyQpMhGOzEJzzKlzBytbENVpfobgXKuQfX1klrhngGYKtilHZoiFe1FnQPVPFuNXP/o10RR3P4lcRwsWo+bEJCSTVF+0/DVL+ZoztfXF6C1djwZcdl1ooAMCEezbyRhBDsvXGjrFZK794HEZt7dGueRKo55RYukpOaR3pqpV9gcXy96N4W0rLWP/7XI5/3jowVxsSNkKTECFNOZ45+5PCvuV6v17c2SgVxOTu7rQr8NjcSxU4tPywMhPm3uHfn8ij1Ei+mPRG37bNR2HfU2IKjuc4bv3MHrujFG8uSpjRrAvVtN/b8zlHeRuMJ5FS50YvF12aJDVrv6xShXIYK8+C7A=
+	zDGvw1Wf1dYEe4j+Z2T0AmbFAtsRoIWWPrBw9O30vTBeVkUyQq+a/6f+s500jaMTiaAGvTE/JjKseZ++T1O9MiirIP8Rt6o9xzqv59obDHyXfRHz38Lt503cTNvgRIjYtYwiktlerkGyrXODNJoZRtdYEv5n05Cdng53sOBAqfQ/8ysf0F8w48KQCbJebyDRAEbaGxCLU13lsdnyUhsf04/qj4udRogZmUeRe53pc2xmcF9MjFWgUzEmvTb66Vt7gkqUvyPEJMsZXLsnIBcqb0dcKDHComqu7JyfJJeNr//UjrcKrnZ/b0V99FW4Rm/RqkjCAvbZn4+ZeVRII+nLIk2poTt32knSBV5JfyimbUynZo1iSh7YpOZMV2cuW68JVoObsQMaVI2ulszNxPiUt/aiLSzVPgT0PsYnkTSIYCH5VRTBNkGxDzW+osXQaY+9oBnnlBHtAod646K6jTqA7JAGwTGFPxUmAgfscMvwR5L/vjTtOyMjt0PLmSHH+FrdBb8kOdVBcKl6BaJdjT1PxMZCbiJFkLy4BryiMIY35qpN2sgGZ6Bwj5Reekr+bwD9vODh7y+pGyDmlMdYg7g7YsoxbYoZIsZ/qMzVGXMPS4sGcwVzOjO/L1/gNFDVR151O6jloqYhx1c3/m2if5N8Vwqa+NBQV8vAk2/92y+m+1tURLv1e2rxRf1koXGJozGd5u1yZgvvex/BHbXppQeJxj09JRlk2mlzEFcGo4cnzxA=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(52116014)(366016)(23010399003)(38350700014)(56012099006)(11063799006)(261009223027099003)(18002099003)(22082099003)(10067099003)(6133799003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(52116014)(366016)(23010399003)(38350700014)(56012099006)(11063799006)(261009223027099003)(18002099003)(22082099003)(10067099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?KwojXGAGVtsV8FeP1+Z40mB3b6XGjfyibwmgkHU+GGFtWp8mbvvXyKvve4mD?=
- =?us-ascii?Q?TZ35xLQeDRQxJFTKp81DIanLtBFJFT5loCzaGk39FLlXyYDDnyhb5NQOoaWy?=
- =?us-ascii?Q?nCz8bfvfdUla25G514DWv+/3zZmlRpuNVdWtdeJkL+X0OwBJNOgWsT4vtLXk?=
- =?us-ascii?Q?3jv06xo/VJA4F06aGAEVK833Qu429UCZ5HRfsU2X4Xop+qK5EKWaxEq0Xyrd?=
- =?us-ascii?Q?VsoDQAIWjY/VXjWSbDkwm+4h7MC3sqJLneGuWXFzCvzMKPS8fz480QKSyFMw?=
- =?us-ascii?Q?iVhZnMQB1Eqrm6wkHDco7Ogruuv0RqHbk+M53L3iZHpRmDIonTaPX7utEFfb?=
- =?us-ascii?Q?aRShyeEtRF7gbmTUs2gpN6o/+POL1D/UOlq2mFJyyWBl9PHW0UmJwmije7SW?=
- =?us-ascii?Q?Z6vG7/WpVXQC2CnftNHdojvqWu8sWiox9nydy63FQLU3L5vZKNoZuTj+mT/e?=
- =?us-ascii?Q?u3s8bzYHdf+gWcyaR3Vog5t+Z6qnsI1X+LT5MsY97zU7SpLSHVnd/pItQTju?=
- =?us-ascii?Q?oc5p3laJJDNN+RFOYnKzAs6IburDc+9nTxKBKV22CxkodDFjWBQ1dP0lDFI+?=
- =?us-ascii?Q?W7JaJ0UPrcp2zWrc+gFoCY1xtV/ayLkGuI2yVZ/uw0asWxG0qmTbBmFa5Rtc?=
- =?us-ascii?Q?e7kHFv/5hGcMjvI+Ur2biCndLaV9il8qg8aesCwKhW1XBF+HqeGk1ffif4wy?=
- =?us-ascii?Q?+8fIwgfbC7Ulzd7emWZabTNOrn0PlY7wJVwbC5xdlr5ENrVV3/qGKE2Zl4Nt?=
- =?us-ascii?Q?WEQ1Bll2gjhrtaUE1n6GRa4fjbxTNopsOxQzpb+fGm0MqzyxGM2cYgOOA5IL?=
- =?us-ascii?Q?VT7m/fC3mJ3wlqgc3sEJgYciZONEU22WbQm2+sC8kN6qWJhO3qnOsvp3QACx?=
- =?us-ascii?Q?27FhdYSPQry6RBRaFLb2RC+8e1NLFLF8wzyLWYhCbmlN/oydeh4I9wS0vSXv?=
- =?us-ascii?Q?D8yC7Lc/ecrY8dSC9gGkP9YAYtkwCw3T/pQlotiiwLwQ/GNFAvGsXBZNuw5W?=
- =?us-ascii?Q?J4nVb2RdSbkaGFYLu6Tre4aDtkGP+mpBse7/4abFPk50vDRseoUdcqYzECLL?=
- =?us-ascii?Q?xaZQURKRnIcmhKGmdgpxcXKhJFyIXxJbgS/+N9OzGmr5rY07/+hYd//8e8C3?=
- =?us-ascii?Q?E+y0x5sJi6ihLQb3szrteG1znXBT4YSu2oqhvdeFzB78a0LlX+JyjPtSUvJv?=
- =?us-ascii?Q?A2uE6ovE4ol6gvRXvERPjTUSpcAoJ60v2L9KQwb6cBKGxj/Qwe78NJggZR7v?=
- =?us-ascii?Q?98mUx2IdYXwcbOu/QU1725u5H/ZT4PBGjN7ve62cUA8Upc+2eM9fLHEvNdht?=
- =?us-ascii?Q?JlalZ8OC79WHJugBK9oD7cTiOyG79Y3XvSlgk1jJ9gerWiqwAY35UFngW+V8?=
- =?us-ascii?Q?dPhkAvt+Co4aDfNrqmYyjMJccQJfcc4IwWnQv8o6M3mFNjBrlRxR/jbKegG+?=
- =?us-ascii?Q?h5RqnZLnIghQw0sQCuMjLqzJLiiVD4bzMhTiO1Zug4RmeJu70jtFtAq2hAtW?=
- =?us-ascii?Q?geQpJNEan+KNGIHwa7fgrfh6vwt41IR8cTL1z6aw2yeEkjfFnc/2eY4/35/s?=
- =?us-ascii?Q?mymrqEEQzSfp3DL28Vsw8Tm2FhDVGATyH9LE5n5+PVyp/2YplFOwU9wAt5j4?=
- =?us-ascii?Q?mV/PFXn1f58yXG+DATnqqICeeYgwiVVdhcRQXLB0elxTXc8euNPRPSKm7ESS?=
- =?us-ascii?Q?KX/pyL5qgJrm3T8bt7tkONIwdegtCXO8KUJlSwWrFliXlTX6ivzzdGcj2WNH?=
- =?us-ascii?Q?CgM9UdYz2f08+g5w/7vvNj9hs2CI68E=3D?=
+	=?us-ascii?Q?WKDoNB5m4YS1GclRQrUqGcrwlAQ/iEIk3dCiBU9ezrmhskQ24FmukWj8Ofo1?=
+ =?us-ascii?Q?a2CJaaWzAQAMw49OgwZvwEfQ8v7PJsEbytxvBMy9ZDcrl5EwOU5Bpu8b20zo?=
+ =?us-ascii?Q?TFRtpJsnFtN4hIYqOwwQoGVO2yQietzMIKGWTjp07NXS9IjnrksOfdZA/Ggb?=
+ =?us-ascii?Q?2TVwVZAUOMX66QyGNKsXak7DoG59XBhR9Y4IXMv5p1xvwb+i6YIrCZZSGAUp?=
+ =?us-ascii?Q?tE2ebvpa+KtbPFnlHhbtn1MaMzHGfTEZGpoi16GnzQWoSX5pPFH17wN6BQ6o?=
+ =?us-ascii?Q?i48AxXXJBlvG3VpUhBAvk4JRUz63/rWKalkCKazUx3eD6giXB7j75dckDfoA?=
+ =?us-ascii?Q?d1tSp8MuZyfXMVSbkkUJvkUZZOy7+cjfOdgycvHWhSw0kiasFXFE4QyV5Epj?=
+ =?us-ascii?Q?Xp3gRt5d7RWpotbffLryRzI3iRZwzjvJ7Np4OOB3Xht+cPVZQaRRsz2x2Zlf?=
+ =?us-ascii?Q?lKfnvsyuD2pIE4zBji4GRRPoJFv3Jx1F/8BVcE47buBs5Mg04OKGjqHf1MMU?=
+ =?us-ascii?Q?JWXDtIU2kAMm+3p0YUDqqvQqxQwkhFhUAN1rff1WzpdLlYBFnPX82B2/PI68?=
+ =?us-ascii?Q?9PeYCjwFn4xI7uvWjce7uE8zuyrJ3Y2vZqkD7sILDsAmBqp0XmBqhxvk4cq2?=
+ =?us-ascii?Q?41YNPpkiwK4q+twuuIHrbDqWzb69Qd87pqHR+AxpMMoYrDsw0Le0my3sntMj?=
+ =?us-ascii?Q?kD9JOJ++oIQwD9QehMJQ3znzDIAiPX3hTn8Kc4tYFFx1m6c+RMVHdAhnk0rX?=
+ =?us-ascii?Q?635t+I1DkzREX3Nt+ls7BK4BciaXA+ivZD0xkj9fjXTZcGrKv2DG4abfVPjv?=
+ =?us-ascii?Q?H26LM28g0p0k0LL/plVGeMpklNfuxoTWos0nNWNCx5mKSJxTX5GEYajyIlk8?=
+ =?us-ascii?Q?KJ4gkuAWOmwnylDKpKzlj7gKQEodb+3zRXoii4JiNzcpDHnr0D4uSkTzpIl/?=
+ =?us-ascii?Q?ICueo8oRUK49OYb7zIflG0au1oiKFY8PdsRY1Y0zIB4ZFr0SwVNY7k/IjRaF?=
+ =?us-ascii?Q?39DvegTjdncLvvCFvInj9EB1DwkoFEToo9LgTvvv3BAeNHdyg4jAsIyRNA1m?=
+ =?us-ascii?Q?epUFi3bJCXRqighm+GRjONplUtQpctEtZBmwI7H/iX/thtbmkYSaW+FnaTaU?=
+ =?us-ascii?Q?3Gri1jks8vZfSr4hkyJZ56C1PsX8WukowazV9oamlOyBQiQa3fys2FH/khwZ?=
+ =?us-ascii?Q?48Z04vzZsahab3dfh8NQ9eo8vlGXHEs4GRyzs/co9V2CKPnLOc4iix0dswib?=
+ =?us-ascii?Q?CUB0/eWGWIJ3h+MeZo0cvbjpMCkZAbd/lu5ayUcmAxCRGlTaakF62l119Ytl?=
+ =?us-ascii?Q?WMNQmBgu30CBfX5oZFy/KNRtwhAVnNPQ6XLKINreyRFxlnUY/SgPGQ+DAFM2?=
+ =?us-ascii?Q?LPM256HNrL44AZJbBUkpqcU2WzZS+YcF2oGSR/XNo6wR8z4JPfWoIjniibhn?=
+ =?us-ascii?Q?E09wU1QtELrY6RuRQIDnnChMAx08cBE4AqXrysW03pS7Ls5XCOPGDgYWbXpC?=
+ =?us-ascii?Q?/0Q3qBrgL6zNteQAlcOQsuJ3ULgw6afO/OPymttXgqBFZmYDdHx1iPryKmjC?=
+ =?us-ascii?Q?vF7vJs7XhCv73zCfJ5W75eGf2iX1dr3oobC/bHIILg4HJzuZhgkwjN38nMUW?=
+ =?us-ascii?Q?gAwk0v1zGshMscRZZ7+NrvEz3lZFfP8RAKQPoY+F1fTAQRtveSEe3SrIS7vc?=
+ =?us-ascii?Q?O6ZnEZZw9nvlU4vdAxQzItsJur2xgqAqpZsPpnl5Nts1VcIoP7ioPLNiajyz?=
+ =?us-ascii?Q?EOlimBFS4/3Fva4+kn/ofWq0DAwzxu8=3D?=
 X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3244951f-d8b6-43b5-c814-08df29ca3d62
+X-MS-Exchange-CrossTenant-Network-Message-Id: acdaeeff-f6bd-47bc-be9e-08df29ca42c1
 X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Oct 2026 08:07:50.5528
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Oct 2026 08:07:59.2113
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: t4o8sX4tli9iIAnMt0+9z2p1IuwP7nwmtRLlUGXt8J+I2pmYfTSV2EIOaaItIbbVy8un6LnMOSKN6+o4MZx3NizzqyEv9VLPNskEqIC8ZkI=
+X-MS-Exchange-CrossTenant-UserPrincipalName: puEZCNYZbEjlRNPrkKN0Shex6ZKdDfpq6n8jmsWYRLiO+471Fd1Zsm6KWlVodEjhwaFdSUOewARuHf4JczMbrITB7vtYR8u3tsNp3Bpwioo=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVYP280MB0208
 
-Drop the common syscall_trace() function and follow the pattern
-that many other archs (including SPARC64) by having two explicit
-functions called syscall_trace_{enter|leave}() instead.
+Add handling of seccomp_permit_syscall() in syscall_trace_enter() to filter
+system calls. Make the syscall_trace_enter() return -1 (skipped syscall)
+and adapt callers to the new return value convention.
 
 Signed-off-by: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
 ---
- arch/sparc/kernel/entry.S     | 21 +++++++++------------
- arch/sparc/kernel/kernel.h    |  3 ++-
- arch/sparc/kernel/ptrace_32.c | 19 ++++++++++---------
- 3 files changed, 21 insertions(+), 22 deletions(-)
+ arch/sparc/Kconfig                      |  2 +-
+ arch/sparc/include/asm/thread_info_32.h |  2 ++
+ arch/sparc/kernel/entry.S               | 12 ++++++++----
+ arch/sparc/kernel/ptrace_32.c           | 11 +++++++++--
+ 4 files changed, 20 insertions(+), 7 deletions(-)
 
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 8dd15256edf6..56d5ac7b228a 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -23,7 +23,7 @@ config SPARC
+ 	select HAVE_ASM_MODVERSIONS
+ 	select HAVE_ARCH_KGDB if !SMP || SPARC64
+ 	select HAVE_ARCH_TRACEHOOK
+-	select HAVE_ARCH_SECCOMP_FILTER if SPARC64
++	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_EXIT_THREAD
+ 	select HAVE_PCI
+ 	select SYSCTL_EXCEPTION_TRACE
+diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include/asm/thread_info_32.h
+index fdaf7b171e0a..b51b080f1810 100644
+--- a/arch/sparc/include/asm/thread_info_32.h
++++ b/arch/sparc/include/asm/thread_info_32.h
+@@ -110,6 +110,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
+ #define TIF_POLLING_NRFLAG	9	/* true if poll_idle() is polling
+ 					 * TIF_NEED_RESCHED */
+ #define TIF_MEMDIE		10	/* is terminating due to OOM killer */
++#define TIF_SECCOMP		11	/* secure computing */
+ 
+ /* as above, but as bit values */
+ #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
+@@ -119,6 +120,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
+ #define _TIF_NOTIFY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
+ #define _TIF_USEDFPU		(1<<TIF_USEDFPU)
+ #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
++#define _TIF_SECCOMP		(1<<TIF_SECCOMP)
+ 
+ #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
+ 					 _TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL)
 diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index ea51ef52c952..7218208e0a65 100644
+index 7218208e0a65..db732395c048 100644
 --- a/arch/sparc/kernel/entry.S
 +++ b/arch/sparc/kernel/entry.S
-@@ -825,8 +825,8 @@ sys_sigreturn:
- 	be	1f
- 	 nop
- 
--	call	syscall_trace
--	 mov	1, %o1
-+	call	syscall_trace_leave
+@@ -930,9 +930,9 @@ linux_sparc_ni_syscall:
+ linux_syscall_trace:
+ 	call	syscall_trace_enter
+ 	 add	%sp, STACKFRAME_SZ, %o0
+-	cmp	%o0, 0
+-	bne	3f
+-	 mov	-ENOSYS, %o0
++	cmp	%o0, -1
++	be	linux_syscall_trace_exit
 +	 nop
  
- 1:
- 	/* We don't want to muck with user registers like a
-@@ -845,9 +845,8 @@ sys_rt_sigreturn:
- 	be	1f
- 	 nop
+ 	/* Syscall tracing can modify the registers.  */
+ 	ld	[%sp + STACKFRAME_SZ + PT_G1], %g1
+@@ -1004,7 +1004,7 @@ do_syscall:
  
--	add	%sp, STACKFRAME_SZ, %o0
--	call	syscall_trace
--	 mov	1, %o1
-+	call	syscall_trace_leave
-+	 add	%sp, STACKFRAME_SZ, %o0
- 
- 1:
- 	/* We are returning to a signal handler. */
-@@ -929,9 +928,8 @@ linux_sparc_ni_syscall:
- 	 or     %l7, %lo(sys_ni_syscall), %l7
- 
- linux_syscall_trace:
--	add	%sp, STACKFRAME_SZ, %o0
--	call	syscall_trace
--	 mov	0, %o1
-+	call	syscall_trace_enter
-+	 add	%sp, STACKFRAME_SZ, %o0
- 	cmp	%o0, 0
- 	bne	3f
- 	 mov	-ENOSYS, %o0
-@@ -1050,10 +1048,9 @@ ret_sys_call:
- 	 st	%l2, [%sp + STACKFRAME_SZ + PT_NPC]
- 
- linux_syscall_trace2:
--	add	%sp, STACKFRAME_SZ, %o0
--	mov	1, %o1
--	call	syscall_trace
--	 add	%l1, 0x4, %l2			/* npc = npc+4 */
-+	call	syscall_trace_leave
-+	 add	%sp, STACKFRAME_SZ, %o0
-+	add	%l1, 0x4, %l2			/* npc = npc+4 */
- 	st	%l1, [%sp + STACKFRAME_SZ + PT_PC]
+ 	ld	[%curptr + TI_FLAGS], %l5
+ 	mov	%i3, %o3
+-	andcc	%l5, _TIF_SYSCALL_TRACE, %g0
++	andcc	%l5, _TIF_SYSCALL_TRACE | _TIF_SECCOMP, %g0
+ 	mov	%i4, %o4
+ 	bne	linux_syscall_trace
+ 	 mov	%i0, %l6
+@@ -1047,6 +1047,10 @@ ret_sys_call:
  	b	ret_trap_entry
  	 st	%l2, [%sp + STACKFRAME_SZ + PT_NPC]
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 4ee85051521a..e215157d5120 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -172,7 +172,8 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
-                                unsigned long sp);
  
- /* ptrace_32.c */
--asmlinkage int syscall_trace(struct pt_regs *regs, int syscall_exit_p);
-+asmlinkage int syscall_trace_enter(struct pt_regs *regs);
-+asmlinkage void syscall_trace_leave(struct pt_regs *regs);
- 
- /* unaligned_32.c */
- asmlinkage void kernel_unaligned_trap(struct pt_regs *regs, unsigned int insn);
++linux_syscall_trace_exit:
++	/* The syscall was skipped - exit tracing */
++	ld	[%sp + STACKFRAME_SZ + PT_NPC], %l1
++
+ linux_syscall_trace2:
+ 	call	syscall_trace_leave
+ 	 add	%sp, STACKFRAME_SZ, %o0
 diff --git a/arch/sparc/kernel/ptrace_32.c b/arch/sparc/kernel/ptrace_32.c
-index 5991b1731fee..3cd3a31ce677 100644
+index 3cd3a31ce677..25d10c1b075f 100644
 --- a/arch/sparc/kernel/ptrace_32.c
 +++ b/arch/sparc/kernel/ptrace_32.c
-@@ -433,16 +433,17 @@ long arch_ptrace(struct task_struct *child, long request,
- 	return ret;
- }
+@@ -24,6 +24,7 @@
  
--asmlinkage int syscall_trace(struct pt_regs *regs, int syscall_exit_p)
-+asmlinkage int syscall_trace_enter(struct pt_regs *regs)
+ #include <linux/uaccess.h>
+ #include <asm/cacheflush.h>
++#include <asm/syscall.h>
+ 
+ #include "kernel.h"
+ 
+@@ -436,8 +437,14 @@ long arch_ptrace(struct task_struct *child, long request,
+ asmlinkage int syscall_trace_enter(struct pt_regs *regs)
  {
--	int ret = 0;
-+	if (test_thread_flag(TIF_SYSCALL_TRACE) &&
-+	    !ptrace_report_syscall_permit_entry(regs))
-+		return 1;
+ 	if (test_thread_flag(TIF_SYSCALL_TRACE) &&
+-	    !ptrace_report_syscall_permit_entry(regs))
+-		return 1;
++	    !ptrace_report_syscall_permit_entry(regs)) {
++		syscall_set_return_value(current, regs, -ENOSYS, 0);
++		return -1;
++	}
++
++	/* Do seccomp after ptrace; syscall may have changed. */
++	if (!seccomp_permit_syscall())
++		return -1;
  
--	if (test_thread_flag(TIF_SYSCALL_TRACE)) {
--		if (syscall_exit_p)
--			ptrace_report_syscall_exit(regs, 0);
--		else
--			ret = !ptrace_report_syscall_permit_entry(regs);
--	}
-+	return 0;
-+}
- 
--	return ret;
-+asmlinkage void syscall_trace_leave(struct pt_regs *regs)
-+{
-+	if (test_thread_flag(TIF_SYSCALL_TRACE))
-+		ptrace_report_syscall_exit(regs, 0);
+ 	return 0;
  }
 -- 
 2.35.3
