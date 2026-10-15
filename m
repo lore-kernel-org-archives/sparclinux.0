@@ -1,67 +1,94 @@
-Received: from GVZP280CU018.outbound.protection.outlook.com (mail-swedencentralazon11022088.outbound.protection.outlook.com [52.101.82.88])
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012039.outbound.protection.outlook.com [40.107.209.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FC1A3CA4B9;
-	Thu, 15 Oct 2026 14:46:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.82.88
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A18E156E04A;
+	Thu, 15 Oct 2026 18:13:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.39
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792075581; cv=fail; b=bjjF+aHC9Q06xMNk/LoXPk+5K2O9ixrRjRkVe2gu085lgaO5YlIGLB7BcQdet3NMBedJ4DU2Ne17OMkx9FRDFVHgnwJtw+u1umG5rhUe+5umcODv7CRHT1KpJ84zg3uz3CMy+pb09c49cypbqVn42uzZeU2J+LpDDkgCbD9286g=
+	t=1792088007; cv=fail; b=o2ZG+Cah5cA5MJyUePGMUF5PTA8p7+pw/qaNIT8xJmPatGW705LlcfcmeGJHiMZ5btAKS70wEueJ6/lwf6e99Fu2fMjQKfVhk7wUl+Lwt7YWrB9/1BExmXSwdUejWzuAx0tsCznd1/3Ev4Qe01Prcb5WzaPJYEJm6IaOQ7AAmEA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792075581; c=relaxed/simple;
-	bh=VhzkggN50sEY60Q77XzZ+yoLP7iBt4pmpRCB4Xim/iQ=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=rPjfI4AYtx09fxW47ieqnX+Njfojx24tQ1JK+KDWKYpaAL/LQAS0wpCeSW7LnbXXr7xhUzNOzKZpdwuM9EtQj5fzEA+UHxwv69NvbGZ74S87oiAY+CD1nHveclzvErGDJm/lbPkfC47KE6yXOlWBj8oa8FZM8xsSyC7X0x27Fuw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=T4iGG9F2; arc=fail smtp.client-ip=52.101.82.88
-Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1792088007; c=relaxed/simple;
+	bh=esADj9QUkCBBdWV4veiNyJlKXnT5mFxj4HwKkSI530I=;
+	h=From:Subject:Date:Message-Id:Content-Type:To:Cc:MIME-Version; b=bTaVzDv4Jb23Opu762yb9D/A8uv5U4iVVfrfDZgMlwdevNY71ylcIwZM/KLSYgWPdaJoGL15qQc41qPxXlGK8z1n5n//iZ9we+LsDMT84Y6L02x8eiqW64qPtWxMhv2KDooPP+tduQ8T/lSyG56EVH3ndFJFy6pGGpnAMUa+egs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ppVv/hww; arc=fail smtp.client-ip=40.107.209.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="T4iGG9F2"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ppVv/hww"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=kSlHpM+0mNs2Ab5Ldy2s7B0Eu/GuF+85Eu3yeZJw/Hv6Z4pfEL27aTNs+9repQ+MFbwXab0PhYkYdCj0NwVOqUhif2EYxH3sL4PA1e50bmn69vX3bjDJNwMF6kdv90fbfWHhY4vw5WiB12cqpirirdslo+FUlciWkBb8mhZRyi15M37ifY2jmwhzMLxEiWwF+aQeg7txKQlJNxmPTfgza8jdtXKpOkNFD3qNPEls1RHq+kP3CsLHw1+m5YQAWqxcUroIxp+dS8Van1ljr/KNBedzUst3cI1lfxg80cAy07wZ4RAvRgvblid+gERsptByx3/pz2pRlmVxEDvxCR/Qbw==
+ b=xdRq4ZnwxAHr1sytVPALh3vwbuu1OHbIIe4s8iC3hIPdoGtdIMiyB/SesB+DcqqftZwAIHfoOLaElrcTvFTKG7ZI6Z8NsikGpuPzNIXadR3prnfwKHXN24D9xJ3FMpBgPalULmmQ9X/20+QgWz1ZXp4/mYGJWhI6h/LFQf4Nq6Bcqy0LBE5CTHMV4CRIUXUF+e+eS4E+GOgUr6M6cl+Q+SymClZlrykEpVUP6Vo1EwDQ4oI/wumJelZRarcQpRj2VxIksJFAEwQ2nkLWNV/7cAzgzcafjOLq1wq4mPYu94OpxOLRaCztY8l63Jdx5v7g/chsuikYieRrpMwQZZtK1w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oHPCH9con3JlISppVqJT2qapW7Am0X8wW4Im+ECd1cs=;
- b=DsVfYcKiv7X1ioBhZU2gTu6AB5HaY+NGBXmLT0F5dUfiKbEF54mA0SKZ3dEHk6r+z4fFUMlG32LkTqK9pOKmXsWFSaAu/KSzYkUJZx+lnHRr9JRDb8JrpzY5hEQArdV1Wk70NpHvL8/ihMsEyH9eH8z2JzOHdiw3lWi+JO+LeFxR1GwHdaUYBGHatBNnnnYU87EJwm5Do5p7ilIg2oD06B7+aD4lDWRUiZQ02tm16x183RvC5V/18uSh7Qjg13MH95MlcqNJVna5QB4PLE8pD6eAGAJ6hlfcQxv7njJyVLMPADc9CpN+T8F0b7H+YJDdxBvFJ8BlOMRzqSTKv2zJmw==
+ bh=r62QDxJjs/bZ6HRi8QX1jsoxB9gTi5DuKimgnnCtrfg=;
+ b=uTQjX51uxUF50lcmFg38JhUX6ZzklYX/yfigTLa+Dyju8Kn2lSmj6/8LY4lrmA7YpwbvsNi+d/zdB/kYgQ3L9ZV4nrxdkYrGp12pcIczwGpqALjp0X+01nhrNCCTW7EWXO9eFcfSbM4OkWHnjhzCuCf+oJFOwXXq7nhSAGVDcr72M+Vo0dV4gaAF5YJjdAU8pPU68eDfLt/WWzwN20UuII1fvHffeJvQjALIZoDrwLj7cOkVk3OFoFd7W0YucK9jYC/20LFLRTdQ/zyGhKi/uFrZ+cDm0rMM9HL5702MiLwBS1GOc4Vb3u8bzWLUI8hodn71OSbFdyR1v432MBryFA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
- dkim=pass header.d=gaisler.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
- s=selector1;
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oHPCH9con3JlISppVqJT2qapW7Am0X8wW4Im+ECd1cs=;
- b=T4iGG9F2GWdG9LqyUM839lR59d7X1kLqOVS50GSPFpUWP01PNB1P2bZLH/CJCv0YYBQ49oplWJVkNUVd8aU8A3l9rC+8HHdypC6HcNjaEnCWdWRoY4RxWfTBrTqjkwbIkTk86An4D/Z4xE+6XzLFKlq85Faz70tPbjPhKO2buEU23Gvb2c3vk3XcX673iWrRCBLyt+tf8sqfSAmlPPPDvz6TjZwHzhdD8G3PYKVCnIK8V5BShoymYek4WpYAsDiBMVOZk1TkJ86VLNxnKwktkrMZhAOzMmF7kfPGFeIeQLOAxikaiYOVo/fs5DVY8wXe8kvCKCGQ2Xi8iK9zfa86eg==
+ bh=r62QDxJjs/bZ6HRi8QX1jsoxB9gTi5DuKimgnnCtrfg=;
+ b=ppVv/hwwnXK8/0uHhEpjoycrYUVu4SlV2AfZVYffJKkLIdP1iVNTW/Z+H4luPliTPb/vy4t2WwSxqVj2HF8f9dvXK3nAtGObQe0UJ6Q9BOmWhyOFv4eV0LOCOd0yiK3/GB09tWc+bskQogo/gpIPpS+NPl6L15F/1syPFnGg9NmCu3tEn+T4mdqs/H89amP7mKzJjfxtjlSFamfAeGUrgTKcCYQIt8yMngK2E3AjCIO/daId2malEhM/n5L/1bwPE9g1POPi6i9mQboO36OwNzpIi3XHuUW2XstpkMJMGS+5EWuHvZ+IreOm63Af7gw4zvrNtzYYanGttATCIftqnQ==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=gaisler.com;
-Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2f::5)
- by GV3P280MB0402.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:11::14) with
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from IA0PR12MB8374.namprd12.prod.outlook.com (2603:10b6:208:40e::7)
+ by DS0PR12MB9058.namprd12.prod.outlook.com (2603:10b6:8:c6::10) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.14; Thu, 15 Oct
- 2026 14:46:13 +0000
-Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
- ([fe80::1f13:f10:e16b:7939]) by MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
- ([fe80::1f13:f10:e16b:7939%4]) with mapi id 15.21.0472.016; Thu, 15 Oct 2026
- 14:46:13 +0000
-Message-ID: <61ab29d3-929f-49de-bb64-5a49318ede00@gaisler.com>
-Date: Thu, 15 Oct 2026 16:46:11 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/2] sparc64: flush only the aliased page, not its
- whole folio
-To: Imre Kaloz <kaloz@kernel.org>, "David S. Miller" <davem@davemloft.net>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
- "Mike Rapoport (IBM)" <rppt@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org
-References: <20260928132102.1707-1-kaloz@kernel.org>
- <20260928132102.1707-2-kaloz@kernel.org>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20260928132102.1707-2-kaloz@kernel.org>
-Content-Type: text/plain; charset=UTF-8
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.13; Thu, 15 Oct
+ 2026 18:13:09 +0000
+Received: from IA0PR12MB8374.namprd12.prod.outlook.com
+ ([fe80::d85f:4c87:ae84:3f16]) by IA0PR12MB8374.namprd12.prod.outlook.com
+ ([fe80::d85f:4c87:ae84:3f16%6]) with mapi id 15.21.0472.016; Thu, 15 Oct 2026
+ 18:13:09 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: [PATCH for 7.4-rc2+ 0/7] Re-enable discarding lazyfree THPs at PMD
+ level
+Date: Thu, 15 Oct 2026 14:13:00 -0400
+Message-Id: <20261015-anon_vma_uaf_fix-v1-0-7b977303b42b@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: OS6P279CA0008.NORP279.PROD.OUTLOOK.COM
- (2603:10a6:e10:30::9) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:190:2f::5)
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/y2N3QoCIRCFX0XmtgyVSOhVYpFJxzJIa1yXhWXfP
+ Wu7PH/fWaASJ6pwFgswTammkrvQewH+jvlGMoWuwShz0kpZiblkNz3RNYwuplmSRe+DDoZIQ5+
+ 9mLr9Q14gFhb2cJTszQ6GLa3t+iA/fqn/PtO79edxGw3r+gFYzlxJlwAAAA==
+X-Change-ID: 20261007-anon_vma_uaf_fix-e7accd1d2ee1
+To: David Hildenbrand <david@kernel.org>, 
+ Baolin Wang <baolin.wang@linux.alibaba.com>, 
+ "Liam R. Howlett" <liam@infradead.org>, Nico Pache <nico.pache@linux.dev>, 
+ Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+ Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
+ Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, 
+ Lorenzo Stoakes <ljs@kernel.org>, Rik van Riel <riel@surriel.com>, 
+ Vlastimil Babka <vbabka@kernel.org>, Harry Yoo <harry@kernel.org>, 
+ Jann Horn <jannh@google.com>, Kyle Zeng <kylebot@openai.com>, 
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+ Zi Yan <ziy@nvidia.com>, stable@vger.kernel.org, 
+ Madhavan Srinivasan <maddy@linux.ibm.com>, 
+ Andrew Donnellan <andrew+kernel@donnellan.id.au>, 
+ Rohan McLure <rmclure@linux.ibm.com>, 
+ Pasha Tatashin <pasha.tatashin@soleen.com>, 
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+ "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>, 
+ Shrikanth Hegde <sshegde@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, 
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+ John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+ linux-riscv@lists.infradead.org, Huacai Chen <chenhuacai@kernel.org>, 
+ WANG Xuerui <kernel@xen0n.name>, loongarch@lists.linux.dev, 
+ Alexander Gordeev <agordeev@linux.ibm.com>, 
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+ Christian Borntraeger <borntraeger@linux.ibm.com>, 
+ Sven Schnelle <svens@linux.ibm.com>, linux-s390@vger.kernel.org, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
+ Jason Gunthorpe <jgg@ziepe.ca>
+X-Mailer: b4 0.16.0
+X-ClientProxiedBy: YQBPR0101CA0080.CANPRD01.PROD.OUTLOOK.COM
+ (2603:10b6:c01:4::13) To IA0PR12MB8374.namprd12.prod.outlook.com
+ (2603:10b6:208:40e::7)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -69,275 +96,166 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|GV3P280MB0402:EE_
-X-MS-Office365-Filtering-Correlation-Id: 42bd6355-af38-4de0-579e-08df2acb0f27
+X-MS-TrafficTypeDiagnostic: IA0PR12MB8374:EE_|DS0PR12MB9058:EE_
+X-MS-Office365-Filtering-Correlation-Id: c99581a8-91b0-46ef-3379-08df2ae7f7c3
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|376014|23010399003|1800799024|6133799003|18002099003|22082099003|10067099003|4143699003|11063799006|261009223027099003|56012099006;
+	BCL:0;ARA:13230040|1800799024|376014|7416014|366016|23010399003|921020|56012099006|11063799006|261009223027099003|10067099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	uhxPIUbkyur4DIly43A+A3rvNVarG7wvB5BDACB9+UzhUqwtgIs9hkEVShAsKwK5nSgPeesErdvzF+/7h6vOVqY9lmp06ajWQqNJm67hUPYK145wDJPYpdx7+PLRGTCtvoW7tRgwCg8/cLOPtBe7rvW5AaNMiS0FCilQGBwMOj/pMDqHA7v2c4qW6Ibeo758jPZ1lEqOVFLY6M0DANYilaOKP+/R9MNirkHvLSjRaLnXmgliy2rSJ7Au5OZH/19TkliD/+Z85Ov9R9gAxB10xbOf7HaL/oDyFbxX3MmUnoOcJfEz8cd5v0rIjG7cBJqSWOqXkNh2gOGOmh+rF3JSWJN3/vCqpIuYR2q1edX5YIIfUQP7JBN1JG1wRcbP3F5CeOYDs/dUZX1ybBcsmbFtjFVOGzMWJsf8Rn1dqEmpCrGmD01h+833YzOvIrQiMxtAAL6fra1GpTHm7MzI8XzL+ebKA7IJdlFnBsYaCgvSwoTte0+bvPcdxzyBca4Vp764d36y6NLg/Jn59Od+x+oSrvuokdtykppyhyGCyBoUAEbvHZd0cK9yR3xLInwrimMgxybvZdIYNVTjcK+q/8lX2Q3rlCrEgnTriWa0SoSXM6C8VrmlslQD9rBbSxs1M+LJ8Kn1dNiomvF01yz23L27v46X1P7/aGtkGy+oe2eVZBE=
+	sR8jpc59mlpQ7HBJZQv6JaVxJHX+PXyfkTvtIETSzZelMVNxSVeAkS41diswnPgBRl1iFO7zFdtDesslk6HiTx7b61xnzob/qnxseD6J8k0SdmJZYrQOf2Sh2ERjMasGJ7GSIFhQS1Lk+pR07rm2C/DliResFcH2NLKrC5zbrTU6Nxl5PwW41XyuInmWi+ixVDTcGbz4s1jmf6bc6AkOmVuHiGnXYtbjhl+qgI9GvBUtbuH4TWpb850GZGSta4DUWPSao5jYi3N/8qGh9ClAFS+oJSrjSjcvPTnVPklvhrhE0T17UNPH3RHVaDrok1oA+3TmnNl/dBvWZAUFPMMOROgW7ouU720HgJlU1uYcEdZl0VLp4S9g3zGUJj258wxMYkL1HcJSu08iRxqE7sITirmJ5ugMr5DGhZvX2XcKviD1a1ZFQ7/AC2n7UMjDuCxsJk6FPHnJ7kFrk3Ley0HlM8zAsnSsDYBqmV0WqqknVP2KKCJxW2r5tgnCYJixyFZ8WmYSuOUDi1kRBGpHTDfCA0iQOSqNG3MoLdO5rB9GY+4NUmFawP5huCEvJPd/WkenchHoeGW4b9FOkWKStIMilSUS3ZnlhrJ7s6kXrOGw6B3mxKFZhD3POV6hTqftdEFoIu58Kylh2yPHYBv4mex9gyUCrh1s3gIkP6aKJEtrmmSVY2uyVPDol9bsi6CNOntSGFzJUvVU1ukz6yGn7SuJvw==
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(23010399003)(1800799024)(6133799003)(18002099003)(22082099003)(10067099003)(4143699003)(11063799006)(261009223027099003)(56012099006);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA0PR12MB8374.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(366016)(23010399003)(921020)(56012099006)(11063799006)(261009223027099003)(10067099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?L2g2T0dBY2xSaDRZb0NQUEtkbGNSblFBUzB4UUU4azdweUZkcE9jbWROUE5s?=
- =?utf-8?B?RG1RZEJsK2tGQUU3eEJ3REc0SGQyczAvVWlDS0xsT3F4djVCaFZld0lsVVcx?=
- =?utf-8?B?YmtObUdVbGtrbWIwcEV0aTdzVC9QMkRDSjFzWk9Wc1pYdkQxa2JmcUFTVmJq?=
- =?utf-8?B?QTJidVRNbG1FaEVQNVI2eldMTlhaNitSUGhiODNtZjhHUE8rZ0xRUzVnZytw?=
- =?utf-8?B?azhhRmd2N0I1N3hxdjRaYmE3cnE3bkVGTk00TWk0cUwwbm1tby9GSlJJcTI4?=
- =?utf-8?B?TTM0WGpwckRKdklUWVI0SXk4MEI5bGpxZmJ0UWtNdzZRRnlVbkxnUnBBTE4z?=
- =?utf-8?B?czBzSjF6YlFoVFdFRlZaZkx1ZmdiM0R1NnE5a0RJRXJib0NRWGlPNE5ic244?=
- =?utf-8?B?ZGg3QXhjcWdSKzUweXFqVjNRMEYvWkZvYlRocXBkNy9GbmpRZlZFelBpZnJW?=
- =?utf-8?B?UGpCYU5CcGtnKyswNjdvMkFXamFSZ04rNVFNNzdRb1FMMVFjYzV5TWRTN2R6?=
- =?utf-8?B?ekdSdlBDQXdiTkRiWHRHekhvTWFCMDhlTGl0NWkzUDl3ZlN1TnRLenJteXJy?=
- =?utf-8?B?SW9pTW8zUVhlYU5uVTg2dEI0Y08wc3JjMDlha3lwbTY4ays1WHJPRStlZGNH?=
- =?utf-8?B?YzdDaTQrWFVNRVlOQmhqK1FPM2JpTmlTdnlITDBtMkxUTE54TFdiTEd6OEdh?=
- =?utf-8?B?ZThJcENLalRBMHFoRVJJMXdjc3NJYVBTUmNhSUU3cndHOUd3ODB3VTc3ZlhP?=
- =?utf-8?B?QTJZOUZZNW9HSkhIaHduSUpLRW9QT3pMWUV3WDIrMU00VitXZFRvaVozWGdw?=
- =?utf-8?B?cXA2TjJpbFVTUUE4VzNuNitMekQyQUc0cVpST0MwdTY1R0dmMTdhVEowK2Yz?=
- =?utf-8?B?RktGODJENzFtNEwyY21aOE9tK0lCa2RZMGJHd1RHa2VnSXVwNlBhRkZ1Yy9W?=
- =?utf-8?B?YzdVaGMzNkVwLzkzMk9MNytxRng1aEZ3THgvOG82WUY0MGQ5MTJYOUt5SHdE?=
- =?utf-8?B?U2xsdjVFNzdnU0E4N1NwaUx1eUNsemFnbWc2OUUzOFFtMW81QkVpM3d5bjhr?=
- =?utf-8?B?U0xIVjZRcG84UHJQVmdSYUt5bG9VTnFHTkVqZk43K3FRZldqRmpjcjhHemx6?=
- =?utf-8?B?amI3RDBEUWpNZVdsMkVob2RRNVJhYk93WTZyQXcrczVJN3huU0JjRitpS2pl?=
- =?utf-8?B?aVJESlhTaGJhN1NlOHBRaDIwNUIwdFdlYWtEeVlYUkVNbGpuMFl2ek5jR2di?=
- =?utf-8?B?S0R1SHhVUFp1dHRNZ3FWZkFwRmsreEpJYlZIUFh5YWxwS3YwL3o5S2QxSDN4?=
- =?utf-8?B?ZFltRTFzdU1TUUpFNlJNZkJHdmhSSCtxWlJVV0Z1UmdpV2hHYlA3QkptUkMr?=
- =?utf-8?B?Ykt1TnNUSlBtNktlNDFvck9kNEcvVUFRZGhwbFVwd3F5UmtXeDQycWpDNldk?=
- =?utf-8?B?MzBnWjVCemFmSTFUMTRmdVZBTGhTWldPWk1YaDhBbitKYTFFMkc1cERwU1BW?=
- =?utf-8?B?QmoySFdLdms2clI2YThxdkVsb3JRTnpLNmtoVmx6Qi91QUxkc2Uxb1c3WXNi?=
- =?utf-8?B?d3lJYitEdTZXYU45TEx2RUx4ckh2Y3pFVWpGUnNUQW5FclJzZXhPbFF1RStC?=
- =?utf-8?B?MXo4QVlUUUtmTDZrdURUdEllQy9wVmEzc3RXeGFWc2o1dVFFUWVBUHFSODdP?=
- =?utf-8?B?TDlYZkhzaHJMNFltRVhDeVREUzVNd1VCdXdYVzhFbkVPV2Fyall5SXlvdEt4?=
- =?utf-8?B?Z29zbWZOdERJazJKMjdaUHhodnF1cFZDNStkV203Z0sxNTN5cE1GRHRVQWN3?=
- =?utf-8?B?YklmNFdob1FFWTJGSi92cUZmOXVDNVlFVXZwRjN3anpraUVTMXhVVzFyYkZO?=
- =?utf-8?B?L2ZJZ3YwaWhzZi9UMWRMRHlEM3pzUnd5REgzR3dOaWtERC9xS2xoV3hnQjlJ?=
- =?utf-8?B?TkVDWTVKN1hVTm5vT3RudFRXaFk3WElCdkVZL2tMenJOL0luZ2E1TlcwTUNx?=
- =?utf-8?B?b09yOWRUWjhZRmVMQ3A1VjQyT0hDdW9OQ0EyUHcxemRDOWM5bUtGN3Z2TDJS?=
- =?utf-8?B?YzZ3NGpPYzVuQjNkMzR4ZExMUnNsZEZKZXRmMkdHSFg0a0RSYnNMTmV2WXp1?=
- =?utf-8?B?dkgzY0hrNk1yb0pGTDVlSDdFREJZdjlSRjNXb2IyUWdJcXoxSCtlQjUxWHEr?=
- =?utf-8?B?Mjd4K1NJQ2VSaFdrVVBwVFJqSEd4RmMvdnB4WlVYSHNzcWd5eXlzWkRIUTh6?=
- =?utf-8?B?eWcwWjkwTkdFaldyMWpQbEQzOWo1QjlIb3JGUjBFcjNKd3ltb3QraHhyS3BQ?=
- =?utf-8?B?RHlvelJTUm1HNWRIMWd2UkMwanlJblBuYStwcUczZ1FQVHZBM1doZDRZeXJx?=
- =?utf-8?Q?2hhoU4j1FepiA5wI=3D?=
-X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 42bd6355-af38-4de0-579e-08df2acb0f27
-X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+	=?utf-8?B?YTcrTGxoK3Ric2t1NUJIcldreU55aEFhY0NWbnA1TUV5Z3hFcVpudThjMlBC?=
+ =?utf-8?B?ZjF3RmN1SmJ6UjNjNjlMNGQwdTdZUUg3UjJmQUxpa3gva3NDWkgzdlRxN1ZI?=
+ =?utf-8?B?RGRwbjlrY1dBWWM5bjJaUUdnK1M4WmtjbHBvbDZKUGpxT3FWS1piUmVncGpZ?=
+ =?utf-8?B?bWVVWC9nQWliZElUamVDWFkrVzNJTUJ2WXNXR3lzYkpWUkZaelhVWkhUWk9x?=
+ =?utf-8?B?eTRQYjEwVkVoTFQzeUdaaE9Qbm9NWTZwdnUvb244T1lndUNLVnZtaHFTakNu?=
+ =?utf-8?B?dFEvRDJpei96V1ZEMXZZUnN4dkxURXNSeHNLRXVSVjY1ZVA1Y2xqOFpMNE9P?=
+ =?utf-8?B?QlBuRytCcGtlUUdKV2JGSm9GZTFFQ3EwVkhpSkdzWVdpbHhyc1Y2WmNmaW8r?=
+ =?utf-8?B?MTZFSm5HSGFjSzRVdnd2eUVUckZHS3J1TkZTQjhIMHBBNW1VaEdvNHk5WU1H?=
+ =?utf-8?B?Z3h3QWhHVm1WVlRRcGhLbzl3RnFydU9VdjdFc05sRHM2ZTZQQUFhOHN3aEU0?=
+ =?utf-8?B?bTlPdzBGTTBtNEV3eFRBWTRKVUlZUXlQRnZzM3VEU0wwUmlIUHROUjJPLzMv?=
+ =?utf-8?B?YkE4SHRPSDgwTnVKT1M4dUg5endSbnhFbzFINk1aNklrcTBpblhVZW0zK25o?=
+ =?utf-8?B?MGVJUGZjNmFpYy9KWHo3UDBKbjJvUWFLRDhMZlJuUTJmWEFoU1RIWHhOSXhM?=
+ =?utf-8?B?dEtuTGttTGhjZzA2RWs4YVVTaWQ1Uy8rc3V6cVhhcWdPYlFpSmQxQ0NwRFlz?=
+ =?utf-8?B?QTM1WU93V1pGdEFaRktKMWVyVHl3V3NDZ0xCV2FQbE5ndVlCbit4Q015aURu?=
+ =?utf-8?B?YUFhTFRhQ1hWcnFqcGt5SXd1UWNzWEJEL3JYWkRnSDI4dlljNVZGUDBlTFhK?=
+ =?utf-8?B?aGVWSE5yZDVHZHdBL2MvcUlacnV0S1dEb1MwK3kxL2hXMnZrNHA1cDZ1Q252?=
+ =?utf-8?B?anVKSmFSVnVoUWg2SEJkY1l1ZGQ5T3JnenlONjhPc21vNktJY200akZXbFdW?=
+ =?utf-8?B?ZWQ3ZTVmRlBET3dRN3FLaGZUOXhPSHZQRVc5bFNUU1l4Q3VOZ3RlZGtMa0FY?=
+ =?utf-8?B?UC83MGpHMmtqOWVYNmNSQWVVQk5iWFpzWVYrQ2l0M21LL2pZekZHNGthSGRN?=
+ =?utf-8?B?cU5rUXYvK1k5T1RNRmRrOGpkMjhtVmxIVHRoZ1lES2t5NFI2alFrSlBENWRG?=
+ =?utf-8?B?dnhzMlZiNVRMZUU5ZHIzbEhJcUU1KzR3eVpTYkM4NkpNdTUybDdEdTZPUVZv?=
+ =?utf-8?B?elc3MHBpYUI5ZHhzRkd3UEhhNWJ3KzNYN3pSZWc1NUJ4NE5ieVBpWU9SWWV3?=
+ =?utf-8?B?MGpRRGdXVnFveGV1NE5Pd3ZQdzVmQ0QvR01KSmZhN05ZRTBFblFCOUVPOUZ5?=
+ =?utf-8?B?RWtTL0x3RVFqeXluQTNTSDVteU80SFBBMWZ6Y2tZRU1RTCtDTWdUWWJ0Q3Na?=
+ =?utf-8?B?R1d4bmNMMDRnS0U1V0xrSHZBV0JkeCtYczlhcTFJbnFCd0JxTnltVkFWRFdw?=
+ =?utf-8?B?cDdkOG9RTFJMdzlsOHFGN285ZDRZeVdmMnQzQ0xxZytZOEl6bFFYNHFVbHFS?=
+ =?utf-8?B?Nm1NL2oxWUp0MC9DaW9UVDJ6TGR5c09PRnVDSVpmbEp4bGxaOVBlbVNCUFdx?=
+ =?utf-8?B?dTZzT1hFZi9Yb3FXcmdtZy9jUGtNMGVKb1AwRUFoR2ZpSW5yZUZhUlc0cEx0?=
+ =?utf-8?B?VGZJRE03NkY2cWR3RGRQZGNwTTlaSGF5YVlRdTM1RStxeWpiVFZHSzlhemcv?=
+ =?utf-8?B?NWF5ZEhMdGpNcmY2M24rMVF4dUNFUkNXSXdPZWhCK2xDM003MWNoRXdEV21M?=
+ =?utf-8?B?cGU0d1pZTWMvSnhlbzBwWWV6MTZNbm1mTi9MNFZ6a3lBRW9CeW50MVRmUVRm?=
+ =?utf-8?B?Mk9UY0Z5Z0d4VmpTZnl0V2dpWktiWHJ0OWZKQ3p0Vm1lOHVJZkNpU0dtV1VP?=
+ =?utf-8?B?MElyN0k5RXdDQ21VTlYybm93bm01aFRXT3N1SlhXVWtIbGRFemxKc2RSWkFn?=
+ =?utf-8?B?alExays1LzEraCtpMjVxNTdzdWp3eitjRmlPL0RTcUF0VERIUTV0UjhwSjc4?=
+ =?utf-8?B?ZWlpL2V5d3lSTUdqNCs1ckVFd3czV2Y1ZDVwTTFFa1JqWGUyanhnZW1RR05K?=
+ =?utf-8?B?OHpZWG5yVmdZd3NEeitjVm9iajZXR3Jjcm9XbCtUVnF0ZFJFTGNRQmZZaENL?=
+ =?utf-8?B?bGxsTGJ3N2tQTU1TaWFQM0QyS01ieWJ6SVZJckw0a21rK2NMaWlUelVmWHUx?=
+ =?utf-8?B?am4yam9jY3hpdHh0RFNOMGx0Z3hSazVOV29mbHFnamgzTkJvZzZHek5sdmdm?=
+ =?utf-8?Q?yOh8WTaruGtsoUPWrU?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c99581a8-91b0-46ef-3379-08df2ae7f7c3
+X-MS-Exchange-CrossTenant-AuthSource: IA0PR12MB8374.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 14:46:13.1756
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 18:13:09.4216
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: VInNPNVLr/bESJiP7U7al2EGl019UHrAtNoymfae+UhrHd7WurBIRdbK4XyrcR4rj0DGBQhjhnEpA+Gzo/OK2MlD34/033nXxtsg7d96pH4=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV3P280MB0402
+X-MS-Exchange-CrossTenant-UserPrincipalName: edNPBf+zw3jPTo12oMtNTHcVz7b/51nIRidGdw9Sjnk3QhnO9J8wWD+dZFTWV44R
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB9058
 
-Hi Imre,
+For maintainers, Patch 6 requires first 5 patches to work correctly, so it
+might be better to get ack from arch maintainers for first 5 patches and
+merge the series via mm tree. The patch disabling lazyfree THP discard at
+PMD level has been picked up [2] and would take some time to test, so this
+patchset probably can be considered after the merge window closes. I am
+sending it out for early feedback.
 
-On 2026-09-28 15:21, Imre Kaloz wrote:
-> Since the conversion to folios, move_pte() and tlb_batch_add() flush the
-> D-cache of every page in the folio a single PTE maps.  Both run once per
-> PTE, so moving or unmapping a range backed by a large folio flushes each
-> of its pages once for every PTE of that folio, and each page flush is a
-> cross-call to all other online CPUs.
+Motivation
+===
 
-It would be good if the description of what the patch does uses present
-tense, but past tense for what was wrong before the patch, or was
-otherwise reworded to make it clear.
+A bug was found in the PMD-level discard of lazyfree THPs [1]. The
+proposed fix keeps the PMD invalidated with pmdp_invalidate() instead of
+clearing it, but that does not work on every architecture:
 
-The cross-call overhead is not true for all sparc64 machines and only
-for SMP configurations.
+1. riscv, LoongArch and s390 let GUP-fast follow an invalidated PMD;
+2. powerpc/book3s64 page table check counts an invalidated PMD as mapped;
+3. sparc64's thp_pte_count becomes unbalanced around pmdp_invalidate().
 
+So the PMD-level discard was disabled instead [2]. This series fixes the
+arch code and re-enables it.
 
-> Only the page the PTE maps can hold lines at the old colour, so flush
-> just that page, as before the conversion.  flush_dcache_folio_all() has
-> no other users and becomes flush_dcache_page_all() again.
+The discard decides from the folio refcount, so GUP-fast must not take a
+reference through an invalidated PMD, and arch accounting must stay
+balanced when an invalidated PMD is set again or cleared.
 
-This could perhaps be a bit misleading, as multiple PTEs in the range
-handled by the caller can hold the old colour, could it not? Rather it
-is the traversing of the whole range one by one in the caller that does
-the trick. What do you aim to add to the previous description with this
-paragraph?
+Details
+===
 
+Patches 1-5 fix the arch code, patch 6 from Kyle keeps the PMD invalidated
+instead of cleared until the discard is committed, and patch 7 enables the
+PMD-level discard again:
 
-> On SMP QEMU guests, apt rebuilding its caches through mremap() triggers
-> RCU stalls and soft lockups in move_pte().
+1. powerpc/book3s64: page table check counts an invalidated PMD as a live
+   mapping, so setting it again or clearing it decrements the map count a
+   second time and hits BUG_ON(). This is already reachable via MADV_COLD
+   and mprotect() with CONFIG_PAGE_TABLE_CHECK.
 
-Past tense or rewording here as well as this patch fixes this.
+2. riscv: an invalidated PMD still passes pmd_present() and the generic
+   pmd_access_permitted(), so GUP-fast follows it. Add a
+   pmd_access_permitted() that requires _PAGE_PRESENT.
 
-> 
-> Fixes: 1a10a44dfc1d ("sparc64: implement the new page table range API")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Imre Kaloz <kaloz@kernel.org>
-> ---
->  arch/sparc/include/asm/cacheflush_64.h |  3 +--
->  arch/sparc/include/asm/pgtable_64.h    |  7 +++++--
->  arch/sparc/kernel/smp_64.c             | 24 +++++++++++++-----------
->  arch/sparc/mm/init_64.c                | 22 ++++++++++++++++++++++
->  arch/sparc/mm/tlb.c                    |  2 +-
->  5 files changed, 42 insertions(+), 16 deletions(-)
-> 
-> diff --git a/arch/sparc/include/asm/cacheflush_64.h b/arch/sparc/include/asm/cacheflush_64.h
-> index 06092572c045..02c969417e7b 100644
-> --- a/arch/sparc/include/asm/cacheflush_64.h
-> +++ b/arch/sparc/include/asm/cacheflush_64.h
-> @@ -38,11 +38,10 @@ void __flush_dcache_page(void *addr, int flush_icache);
->  void flush_dcache_folio_impl(struct folio *folio);
->  #ifdef CONFIG_SMP
->  void smp_flush_dcache_folio_impl(struct folio *folio, int cpu);
-> -void flush_dcache_folio_all(struct mm_struct *mm, struct folio *folio);
->  #else
->  #define smp_flush_dcache_folio_impl(folio, cpu) flush_dcache_folio_impl(folio)
-> -#define flush_dcache_folio_all(mm, folio) flush_dcache_folio_impl(folio)
->  #endif
-> +void flush_dcache_page_all(struct mm_struct *mm, struct page *page);
->  
->  void __flush_dcache_range(unsigned long start, unsigned long end);
->  #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
-> diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-> index 0837ebbc5dce..6712eac4baf1 100644
-> --- a/arch/sparc/include/asm/pgtable_64.h
-> +++ b/arch/sparc/include/asm/pgtable_64.h
-> @@ -946,6 +946,9 @@ static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
->  	set_pte_at((mm), (addr), (ptep), __pte(0UL))
->  
->  #ifdef DCACHE_ALIASING_POSSIBLE
-> +/* Without pte_batch_hint(), move_ptes() calls this once per PTE, so
-> + * only the page this PTE maps can have lines at the old colour.
-> + */
+3. LoongArch: same problem and fix as riscv.
 
-I'm not ecstatic about implementing a function that in the general API
-can be called for multiple ptes, even though this never happens on
-sparc64 as things stands right now. The code paths that saves us, from
-commit 0b5be138ce00 ("mm/mremap: avoid expensive folio lookup on mremap
-folio pte batch"), was "only" added as a performance regression fix.
+4. s390: _SEGMENT_ENTRY_INVALID also marks an old PMD, so GUP-fast follows
+   an invalidated PMD. Always clear _SEGMENT_ENTRY_READ in
+   pmdp_invalidate(), which makes it pmd_protnone(), so GUP-fast rejects
+   it.
 
-Perhaps the best logical solution would be if move_pte() got an added nr
-argument just as get_and_clear_ptes() has.
+5. sparc64: pmdp_invalidate() decrements thp_pte_count assuming a THP
+   split follows, so setting the PMD again loses a count. Count only
+   valid huge PMDs in __set_pmd_acct() instead, which keeps invalidate,
+   restore, clear and split balanced.
 
-Barring that, the comment should not describe why the change is ok, but
-rather descrive the code as it stands after this patch, that it depends
-on only being called for single pte's, and that this is accomplished by
-using the default pte_batch_hint().
+6. mm/huge_memory: use pmdp_invalidate() in the discard, so munmap() and
+   mremap() wait on the PMD lock instead of skipping a none PMD.
 
-I would prefer the nr argument though, but that would go outside
-arch/sparc. Comments from mm people on this would be great.
+7. mm/rmap: discard lazyfree THPs at PMD level again.
 
->  #define __HAVE_ARCH_MOVE_PTE
->  #define move_pte(pte, old_addr, new_addr)				\
->  ({									\
-> @@ -955,8 +958,8 @@ static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
->  									\
->  		if (pfn_valid(this_pfn) &&				\
->  		    (((old_addr) ^ (new_addr)) & (1 << 13)))		\
-> -			flush_dcache_folio_all(current->mm,		\
-> -				page_folio(pfn_to_page(this_pfn)));	\
-> +			flush_dcache_page_all(current->mm,		\
-> +					      pfn_to_page(this_pfn));	\
->  	}								\
->  	newpte;								\
->  })
-> diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-> index 371460e34484..18b6145da591 100644
-> --- a/arch/sparc/kernel/smp_64.c
-> +++ b/arch/sparc/kernel/smp_64.c
-> @@ -982,8 +982,9 @@ void smp_flush_dcache_folio_impl(struct folio *folio, int cpu)
->  	put_cpu();
->  }
->  
-> -void flush_dcache_folio_all(struct mm_struct *mm, struct folio *folio)
-> +void flush_dcache_page_all(struct mm_struct *mm, struct page *page)
->  {
-> +	struct folio *folio = page_folio(page);
->  	void *pg_addr;
->  	u64 data0;
->  
-> @@ -996,7 +997,7 @@ void flush_dcache_folio_all(struct mm_struct *mm, struct folio *folio)
->  	atomic_inc(&dcpage_flushes);
->  #endif
->  	data0 = 0;
-> -	pg_addr = folio_address(folio);
-> +	pg_addr = page_address(page);
->  	if (tlb_type == spitfire) {
->  		data0 = ((u64)&xcall_flush_dcache_page_spitfire);
->  		if (folio_flush_mapping(folio) != NULL)
-> @@ -1007,18 +1008,19 @@ void flush_dcache_folio_all(struct mm_struct *mm, struct folio *folio)
->  #endif
->  	}
->  	if (data0) {
-> -		unsigned int i, nr = folio_nr_pages(folio);
-> -
-> -		for (i = 0; i < nr; i++) {
-> -			xcall_deliver(data0, __pa(pg_addr),
-> -				      (u64) pg_addr, cpu_online_mask);
-> +		xcall_deliver(data0, __pa(pg_addr),
-> +			      (u64)pg_addr, cpu_online_mask);
->  #ifdef CONFIG_DEBUG_DCFLUSH
-> -			atomic_inc(&dcpage_flushes_xcall);
-> +		atomic_inc(&dcpage_flushes_xcall);
->  #endif
-> -			pg_addr += PAGE_SIZE;
-> -		}
->  	}
-> -	__local_flush_dcache_folio(folio);
-> +#ifdef DCACHE_ALIASING_POSSIBLE
-> +	__flush_dcache_page(pg_addr,
-> +			    tlb_type == spitfire && folio_flush_mapping(folio));
-> +#else
-> +	if (tlb_type == spitfire && folio_flush_mapping(folio))
-> +		__flush_icache_page(__pa(pg_addr));
-> +#endif
->  
->  	preempt_enable();
->  }
-> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-> index 103db4683b16..8792e5d92517 100644
-> --- a/arch/sparc/mm/init_64.c
-> +++ b/arch/sparc/mm/init_64.c
-> @@ -214,6 +214,28 @@ inline void flush_dcache_folio_impl(struct folio *folio)
->  #endif
->  }
->  
-> +#ifndef CONFIG_SMP
-> +void flush_dcache_page_all(struct mm_struct *mm, struct page *page)
-> +{
-> +	struct folio *folio = page_folio(page);
-> +
-> +	if (tlb_type == hypervisor)
-> +		return;
-> +
-> +#ifdef CONFIG_DEBUG_DCFLUSH
-> +	atomic_inc(&dcpage_flushes);
-> +#endif
-> +
-> +#ifdef DCACHE_ALIASING_POSSIBLE
-> +	__flush_dcache_page(page_address(page),
-> +			    tlb_type == spitfire && folio_flush_mapping(folio));
-> +#else
-> +	if (tlb_type == spitfire && folio_flush_mapping(folio))
-> +		__flush_icache_page(page_to_phys(page));
-> +#endif
-> +}
-> +#endif
-> +
->  #define PG_dcache_dirty		PG_arch_1
->  #define PG_dcache_cpu_shift	32UL
->  #define PG_dcache_cpu_mask	\
-> diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-> index 6d9dd5eb1328..1221814ca0e1 100644
-> --- a/arch/sparc/mm/tlb.c
-> +++ b/arch/sparc/mm/tlb.c
-> @@ -144,7 +144,7 @@ void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
->  
->  		paddr = (unsigned long) page_address(page);
->  		if ((paddr ^ vaddr) & (1 << 13))
-> -			flush_dcache_folio_all(mm, folio);
-> +			flush_dcache_page_all(mm, page);
->  	}
->  
->  no_cache_flush:
+Note
+===
 
-Thanks,
-Andreas
+x86, arm64 and powerpc already make GUP-fast reject an invalidated PMD,
+and sparc64 has no GUP-fast. 32-bit MIPS would not reject it, but it
+cannot have THP: _PAGE_HUGE makes PFN_PTE_SHIFT exceed PAGE_SHIFT, so the
+BUILD_BUG_ON() in arch_mm_preinit() fires, which is why Ingenic dropped
+huge pages in commit 69b686ddd579 ("MIPS: ingenic: Remove
+CPU_SUPPORTS_HUGEPAGES").
+
+Link: https://lore.kernel.org/all/20261009165214.40212-2-kylebot@openai.com/ [1]
+Link: https://lore.kernel.org/all/20261012-lazyfree-stable-fix-v2-1-6387d6e30063@nvidia.com/ [2]
+
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+---
+Kyle Zeng (1):
+      mm/huge_memory: avoid transient none PMDs during lazyfree reclaim
+
+Zi Yan (6):
+      powerpc/book3s64/mm: don't count invalidated PMDs in page table check
+      riscv: mm: don't let GUP-fast follow invalidated THP PMDs
+      LoongArch: mm: don't let GUP-fast follow invalidated THP PMDs
+      s390/mm: always clear _SEGMENT_ENTRY_READ in pmdp_invalidate()
+      sparc64: mm: fix thp_pte_count accounting around pmdp_invalidate()
+      mm/rmap: re-enable discarding lazyfree THPs at PMD level
+
+ arch/loongarch/include/asm/pgtable.h         |  6 ++++++
+ arch/powerpc/include/asm/book3s/64/pgtable.h |  3 ++-
+ arch/riscv/include/asm/pgtable.h             |  6 ++++++
+ arch/s390/include/asm/pgtable.h              |  8 ++++++--
+ arch/sparc/mm/tlb.c                          | 26 ++++++++++++--------------
+ mm/huge_memory.c                             |  5 +++--
+ mm/rmap.c                                    | 11 +++++++++++
+ 7 files changed, 46 insertions(+), 19 deletions(-)
+---
+base-commit: 71a9b024444eba184335b67867897714e4da143c
+change-id: 20261007-anon_vma_uaf_fix-e7accd1d2ee1
+
+Best regards,
+--  
+Yan, Zi
 
