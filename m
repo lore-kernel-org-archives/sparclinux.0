@@ -1,43 +1,43 @@
-Received: from OSPPR02CU001.outbound.protection.outlook.com (mail-norwayeastazon11023081.outbound.protection.outlook.com [40.107.159.81])
+Received: from OSPPR02CU001.outbound.protection.outlook.com (mail-norwayeastazon11023117.outbound.protection.outlook.com [40.107.159.117])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126064E1C67;
-	Thu, 15 Oct 2026 08:55:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.159.81
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02A154E66CB;
+	Thu, 15 Oct 2026 08:55:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.159.117
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792054558; cv=fail; b=LBoJAmuVJhTQ+e/IpO35Ts9pxna6LLNNT+/zHg6URbDj4OhooSbBC73qOvo5QSqg6xRMlrvV9CS4uKqschOD3IjD2hWDX2Fxy7YFKUwgnx4epokLz3iHthuRxTnrksADxCBh/xa3ZVfP96HEmO4r/8RngglnClbw1rBPcBGWJSA=
+	t=1792054560; cv=fail; b=e/gRzkl+0ub8F8aoUIvuSxo2LfRNmw0xTjm8NnqSxfvwuo8OcC6Qi3RwMDHEHMLPSQoNkeb+kGoXJUVSmEn+pI2yRp6tUb9YFkhZ4Sge7rbI9liTVO8ZWUzHftGuOW5NQjf/QNWtSGoe1OVcI5NLi69HaKboxqDqCzfmJau63/Y=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792054558; c=relaxed/simple;
-	bh=tpJvjnpSsyfxEaOKjZztr7MZ4WnHbJIrTCkhe8mUaCY=;
+	s=arc-20240116; t=1792054560; c=relaxed/simple;
+	bh=SdByEZ2XFc+8c2mh4V2W3HogC9ts5H3Xiosxka7ms9M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=dZMwTyAbi1fYlhqNcqppy9g8ayRXNLSnHkiBjE9yOqLGg8An6hHaXAxB49xLjPm1fgd0PJZ0czTTSjNLK20PTn1975rBgIV2AZhElt2rrYkZ3y3SZlWFLjst36g05aT4+MUQ0WvfjsYDZd5kcoV8cN+PLo8ndhMZis15vWYp0AQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yacoub.de; spf=pass smtp.mailfrom=yacoub.de; dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b=YrwZm38v; arc=fail smtp.client-ip=40.107.159.81
+	 Content-Type:MIME-Version; b=ATQuY+iN0jGhsXm8GWVxC7GAN2x4OOPhpv2X78Xlku4vFHWKiG9blVIWAxgO2x2Wb8WOT5CFfWpQZsFFvha8e9uc5IXCUaohsVoC+qM9Eb2PNZwZpxVcx4qov71Mj8EvIo3ebgAm7AKI6zMYpg9s0J8j4gWVJpnDgts5ZHh/zzY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yacoub.de; spf=pass smtp.mailfrom=yacoub.de; dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b=BxTdd+IN; arc=fail smtp.client-ip=40.107.159.117
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yacoub.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yacoub.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b="YrwZm38v"
+	dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b="BxTdd+IN"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=kk7p1AeCjtbQ1/wt2UL7WM1Hc4Jdqp3Epf8G9fPAYaQH59iJePZvEe2g7wGyFvCsZuuwmL5nHcxA1IUpZmnsEcM8jkvoqGbLSr6r3uAgj5tmxceb2JbiMnsY0O3Npx7QqxMCcqu8sbjaMw8NHjXquz2TW9vS9yFVqmbJdah6uG6UJj7GIIxcT7parunsnN34voK4Tf5QxiBvaz8kcy+Cc4B4ofNAxhFcmIh9ejExyCEb0+dpzPZIeZ0aFhg85NleE+KYLqAsmLa8ww39pwHKhQRY8YukspsgGJyDAJMJfoLqHQh6HAmlG8sg46ow3/fBV2N9AFBvp/Ufqtz+4lkQaQ==
+ b=m1Q7R/1LpVqwzlm6ykdq1VD0cePviB2MFYU1eeHbnDGjnMOJ5Puw+b1yyk5vzQUNiSnq7ZJaNFdc63DaiXuIxDdtRU7kz5gW+LSw44gVtV2ENJ7N5LEAGDftBnEJ6AY1CxKXkv+tPyZlw/pVKwa0LageNqOUWfZaFBO7+RYELxOIECZMwhf89xxsqkoCcsThyuQ4WckQWwBfM70bt8adVNAs8MoskwSQ1NDsYWA5mQFdjgkIGhECWjLW71CiEzaeBvQqfhMe7Ncub8JYhGWYo27nlenL9aiBqWsQfCSrCdKlrjB0ZottiRbIBKP7/0K9FVTT9a2x6drZqODBqCqcOQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=hwosT6Q+ATzjcNZFT8+Li6EfQ8Rw6f8t2ms+npi/AaA=;
- b=ubrd/ZdSISwLyEoaip/Q1Xk/1ok+qfXrUsqkMGFo997tAj+yC8D//hDkoPCA/q3WPUKqrtx5X9RQnI1Iut4LJnSTumBtTCpTnk4CgT8mY3+hifEd+FUxOPFPh9nuhi1GWu3rP4HAUKVjS1v2f1g09PPulwvDUGMh0oTPv7uRYiDol2AUla/A7+0GsebTC0/pffYnNAaZcmfviby167qoW1oFSniG9ZlgPlHr9k/5PZr8Rq1bON0kN1J+hmdxjZPbHbaHVPQGjuiMObbA599np58t5VpLoAtNqqNElcGIFQEJvNmpRddt3srclVVPO4ZuKKXZ2eQYC2oH3et2FxJNRQ==
+ bh=NxFl50WzGtu8zsDikMm+ovXWraUwP7/KPw/aNpUU2B0=;
+ b=pFv+GIG9TqX2b9v0Fob5HYS9bLmFkMBHenbS5sMRnNmIZBt/5vDsltSCqBoTNikA8vrXimXiNhp5M++dC/uHpUAl+Iid0TaX51ZZwNeJzUu0GQWOI8MyH4mFFD1GutOvUXOCScxNMTgiXdHxGRmshemaEGKu0gfPSQ+N7MG+LXN/acobrIx9LlJ1qmgMKPdo14MsuPHE+HcG5Zfa0bARvENPWUpALNTmmVAu/oO2EmLciBG09A6EMVJ9Kj64SQJE13SOqh3O/qmsPy6pUqYLmUm4Od82OM+528MlsLKjBk4DQVIs9WkaAy5SknubQykwb+Qo848Kv2SpobWkfF1exA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=yacoub.de; dmarc=pass action=none header.from=yacoub.de;
  dkim=pass header.d=yacoub.de; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yacoub.de;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hwosT6Q+ATzjcNZFT8+Li6EfQ8Rw6f8t2ms+npi/AaA=;
- b=YrwZm38vBVSWbc5RgUGLySblo6TWT3m/H6KcSwgAuhhFQCB9sWhfqaCCtZ/9mXfI4x/f77wdP4LkUWyphBMJqyuUdMhXCA64SK4dwLQVNv+2tq00DY5+cjaEtt2u9+T8Ns89IvuoRl9H8YhQ1BckfesWwy41kMg8rWyHb5wT1c6KywOyy3pANuJ8LhFpb+t2XkriA/3dld4eXS55rbbTUgw0Fe74tcDApOZXeuDpPAbHatOitJWbvlcazr/0pMdoZcRLTaSjN0GjMIhbNa+rr3LHphPtZVXBXJpzncKD4z9SuycB0rTasu9aPRIhntFXBLoCIzWV5KBNtgKxxDdDSw==
+ bh=NxFl50WzGtu8zsDikMm+ovXWraUwP7/KPw/aNpUU2B0=;
+ b=BxTdd+INhDh3mJ3UHnnZDQZPwRKHPCx3v+9DaTMN5GznvB9f8IlJp8zjiIWSe+N5A3sF+nKlqEYXCvjdg5HBTUspkr58bpvcdmGP7hhTF2RvI9v4WjZz/6iLx6SWknXpMS/saOoNOgkO162Xf0wM+J6V8jdc9r1rbDoimFvlZUL/jRRinDGarNxPtgWvyVxaxXwAqYRtMoDpSdwFEv12DJ3EqnPSvMIDTw+5OzTZhhJMJSpUXufO3XwYoo9sAuTCHdZ129iS5RIeI/mHvnhc7JlC58PDvyzwkd4dVt5WonUpPUKf6deUPHptDu8qWdRf7RHExY1gyeXtkBC7FfXANQ==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=yacoub.de;
 Received: from MRWPR04MB12069.eurprd04.prod.outlook.com (2603:10a6:501:99::13)
- by AM0PR04MB430977.eurprd04.prod.outlook.com (2603:10a6:20b:7f5::11) with
+ by DB9PR04MB10035.eurprd04.prod.outlook.com (2603:10a6:10:4ed::19) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.14; Thu, 15 Oct
- 2026 08:55:52 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.13; Thu, 15 Oct
+ 2026 08:55:53 +0000
 Received: from MRWPR04MB12069.eurprd04.prod.outlook.com
  ([fe80::37b9:4b72:7864:5809]) by MRWPR04MB12069.eurprd04.prod.outlook.com
  ([fe80::37b9:4b72:7864:5809%3]) with mapi id 15.21.0522.013; Thu, 15 Oct 2026
@@ -51,9 +51,9 @@ Cc: Thomas Gleixner <tglx@kernel.org>,
 	Guenter Roeck <linux@roeck-us.net>,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/4] sparc32: keep PIL raised until the IRQ frame is gone
-Date: Thu, 15 Oct 2026 10:55:42 +0200
-Message-ID: <20261015085545.3246951-2-ramin.moussavi@yacoub.de>
+Subject: [PATCH 2/4] sparc32: wait for secondary CPUs by time, not by loop count
+Date: Thu, 15 Oct 2026 10:55:43 +0200
+Message-ID: <20261015085545.3246951-3-ramin.moussavi@yacoub.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261015085545.3246951-1-ramin.moussavi@yacoub.de>
 References: <20261015085545.3246951-1-ramin.moussavi@yacoub.de>
@@ -69,151 +69,187 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MRWPR04MB12069:EE_|AM0PR04MB430977:EE_
-X-MS-Office365-Filtering-Correlation-Id: c1d10403-6fa6-411d-2ae9-08df2a9a1d94
+X-MS-TrafficTypeDiagnostic: MRWPR04MB12069:EE_|DB9PR04MB10035:EE_
+X-MS-Office365-Filtering-Correlation-Id: f171f89b-765e-4c42-abf1-08df2a9a1deb
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|376014|1800799024|366016|56012099006|11063799006|261009223027099003|10067099003|18002099003|22082099003|3023799007;
+	BCL:0;ARA:13230040|376014|366016|1800799024|23010399003|56012099006|11063799006|261009223027099003|10067099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	DfKGQU9yw0Nxr59k2JHxmsKRDk/pGpwcDpqemmgHqKCrg6rGCWkoTMwg8rc1HMFfUhkSwcah7pttIxMqrGuZCflXSYYnvGSzaqgjwvvC44IHrrERuQQOy51HnTE3re36rB1qwYv2Witzxlvf1XNJzT6VnX/x4cYKaa6f1bm7QREwOQ59YPjopdCo7obR2683mbP7s5zVhxr4QgJqEG2uSLL9JXA86uy0WMp6BawWZa3EZwTjb9BdFas1ZMA9WfJCscFWQqIGDKYc//udUTByLVchudcYaNaUP0L8HEg7NGVx4vAZn+aLByFH63czLJ2zJIvQvwiSAnxZ4IKX8W2t9AYk7qKGsM+9P7Z6SkwNrRny4Ej+W5wXT2R/EvhWn+Br5OUCWAG2oi99bTvO5hKMlLZ09ggKmtqyNiQNaIMMMtgr9G0S3EnnqKGZArg6tg4gpU0BA3EseMU6B2wTmnAw7XS3y8TcpD3D9+IYLbcrwgvgTCTA0d2hbl2gHshezYsP1TiMdvCZT50543zQP44wumj7hye4vqqhgRKQkt3le9z2JYF6taJ+ciLG6KSDK7UKoyQE1yBvYzD643zwGjPkIsqqCkzK/g/vrZwS9Ma6KVoVMr62zcu8aDKm+LAU7JRC9FxVAR0dWjSkDDQouKGzrErhRKrxxrfTjMQBY9CuHfc=
+	F38rVSK+Xk3qXVe78Ly8EEFg/qee8nKo7wA/Yz3AJYV4FbyMDxPyGGnxQB2s1cZh/WB8WOy2j6TpSDqDNJnAyPm0pR1elWvSKb3d17/N5dFm/kNlRqSJ1Cw1mLwYAP/o4jY545+mcqE2xPz+YozhXAeZJ+cJJ7y4iIyjvaTRtP51SuhGgLWpAX7mPORZvBSwSFTEBT4xYf18H0ClgsbECCpEY2/uYwZI5zh3pTuDaTjOCkzxKRcEMFlbiqHWqO1274t+Vty+rx2lqaWMV4ztxQRSqgnfcAYDVshH+Prk1T0RgRSyu3mjtJdykPtOO8DpDYbHM38mFlRq1kwBhImO8fC2rvfCCj55UBk4gacR6bju70t+9WrzxoL+UnTM/UGaS3jFsHZCvrw+xwFTNVn7x3sJazO94SuQI1It9+xAxG+/u3qy2hdY3YU0f2fBCje/kMVlmL/+ph+Ex70nmcb7yoO8XX2uQmwdSWsUBEpaqOOSmjyUDE2p1Fbi9OM9AS81DV8ZZo0yKYa66b95brG+NpQi0fd6/1Ib9rcv21Kk3JF7x1M6XfkjWyKPu1PmRWTOPB2pQGhqUYnwv6YAeEwSIJ5XxarQ2Oujmt8m6ep9Vd7jxOLl99rM6Mgb1lHwGErXwbMU6YtGTpSwXGUzs2wc1S5My2dnym6inZ2exbz+xoo=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRWPR04MB12069.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(1800799024)(366016)(56012099006)(11063799006)(261009223027099003)(10067099003)(18002099003)(22082099003)(3023799007);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRWPR04MB12069.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024)(23010399003)(56012099006)(11063799006)(261009223027099003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?VbhPUVt4DGmRNoefCXlWDSkFGUnP749qnwgm5eBy2GyJoFQSj08dhEMrzPqn?=
- =?us-ascii?Q?3xLeRstusiO3rLJNjc2XKgvAn0N/rzARtGG4O+ryZWzZlj9DkLWOrMAZaRGS?=
- =?us-ascii?Q?gFI0Hxxcq6vxVUTa2+GdCnLskOIZnvr+PT3nwXpQKww1RGUcFxx5TWB8aXNx?=
- =?us-ascii?Q?BzVFAlAhyanOzi54fpXHCmFtqbCLEeyn+98PJL5busFMrKBm6VJFEs0YiD8t?=
- =?us-ascii?Q?klR6zZzGf7I/gxreGQhYrhb7DqHheGFmgC1AAcRVeIQIwUHiamGkDzkO8YCg?=
- =?us-ascii?Q?IeYW49BfhL0EMEalhQZXxpoeM0tas0s7sv1XItg8iJd9IKFchjSXP7g9Iff4?=
- =?us-ascii?Q?DqRyALd4Pf+y9ikmkmY3CkpbMn7E02IbkrA9aLwHxv7AIHIvntl56JTQdKB1?=
- =?us-ascii?Q?+HOEvhDQcBLCwt+URVqZAFlqBFrK3TI2493yLw/l2I8VhZbl2ufecsp2V0om?=
- =?us-ascii?Q?Mb+vaneEsnN0AE6dFW3hVgxTDYY87PAH8FM7DNX1Box9xI3hZVno/sM0J3Dt?=
- =?us-ascii?Q?wPZnhY+9e2CQ1/Vrj2J9P9Li+QZxR/b/BDyNMrrR78ODOozotZMm+cq8YS6/?=
- =?us-ascii?Q?OZ39pI9DyUBVg9ogwPRXxWiCxeRfIS4Uf7hnKtb7HdLgLAS3v5Jut2MqIaWm?=
- =?us-ascii?Q?HA1bK1qdphk5oxgvDYjsANGHJZGv89YQzLeQ0u3zzrKUf3hl49yPpZ1+I7uM?=
- =?us-ascii?Q?UAlxmAx5OFta0Ztp5PebQL8faaaNkgJlLfUmL5hc0GB+qc5PkXtewswbKooy?=
- =?us-ascii?Q?N9y1PplJHaz3yRwg2hl7VMkm1CCPYpyFLKVuc7/l0vF4W7fA94LoBXXODvID?=
- =?us-ascii?Q?gk6UwMeHfkg0JHSvHSdSMBrccCVlndKBJ/1clrMF55oCyAC6iw2v7p/l+4GS?=
- =?us-ascii?Q?MLVopeWYD14HX7B7YCM4xBOH/oHT1xZUP2yvoJrNCdrZiLKLY1zJ8svJ3b9h?=
- =?us-ascii?Q?3mgsEkr3CV5VT5KK6viqWwFFLWvonBtOg6W65BYNnweDvsZgvgksWQHpaXGF?=
- =?us-ascii?Q?gQtw5ynpgRKmXAcD7z8kiLfyU5p85oYLIaFTBGIPiNq4NH19z/KA7GaWXIUv?=
- =?us-ascii?Q?6KghjKwZzziudCU6uWbq4uAqN9GqQRLjoKU+DXDrfTuJARqjfLNrDDQIOgNl?=
- =?us-ascii?Q?p9v4AqvGsD4s0vk9apW6bvk/Fa3f81CKyiFlwz3sfOtpvyxs4PhBjJdnQBEx?=
- =?us-ascii?Q?kv6lS2hdMl85X9/a8Gd8sOmTcb0K9EF5AhYTn6neWsoPNXdAd+XD4bqXlCl+?=
- =?us-ascii?Q?FpJWw1VyI84RX7uT8ugR6U20p2kiP7m1CJ8MHilu6VKuf079vFRkbq2WCOmR?=
- =?us-ascii?Q?1GhcgCu4mkKFlIhB9G9uZkqn3xyz8dXaBtP1H8S9tCYGnzg7j3BtPBB9Vm8B?=
- =?us-ascii?Q?aueHS8oRE3gKUwojtle1OJJmyecrhorYE2j0wYgyDJ5lNXpRQdapBBMetCEQ?=
- =?us-ascii?Q?Yu2uuFuXSlZSGPt+k7HcNuLn1WIg5ihsGsuKesUAVlOMv74q0TgznpKRJNkJ?=
- =?us-ascii?Q?ROZkoEXj4sx67R2BJyynMvHpmGeMlOENt0pzRxWIEDOnoICdONTsevVWpfhr?=
- =?us-ascii?Q?yQWwqnYQx4bRXAMycOp76x+c8af6BtL+INuuTVyEsQre+osU16jAwUIWYCP7?=
- =?us-ascii?Q?/eAhQJC9eJLnxIwmIl9Hb0kz8OQZ6X9R32oKJvSj3o3TAG6XQf4pAY5uvwM6?=
- =?us-ascii?Q?ReR9Sj9Ine2GLsuF4/aYvOY2Ag29i0zIq0fyjgdjOlVovi+JB+FpzR37xyjL?=
- =?us-ascii?Q?0yyjvzWmpA=3D=3D?=
+	=?us-ascii?Q?7cHk5eAIEgTkaa2yPqSw5Y8vi6lQOtbPQjKvt9qcDnj0vk51gLQvlji59jlb?=
+ =?us-ascii?Q?qt01USJXD5MtZEFZUFCtn+8Qf8LHRcp4gAwda5Imw9sGs0+k60bSDwAXTFMy?=
+ =?us-ascii?Q?2iCUPUh0j5S4jliXgiL7YVNixoi+qSDdKFpfylqvliDSWgUEhY0/0nra8m6x?=
+ =?us-ascii?Q?jo/Wd7wA1nZN2KAnnzLlv3Da1tH/6S/9LRVRvEPsNgomqKTgL9AcqMHOIeNI?=
+ =?us-ascii?Q?MyAO6QrmlbfbMwBEZM6AvIHWiuKZFAwjwnYjk2O9QAHTkwHtTDsCbG0+Sqsj?=
+ =?us-ascii?Q?ovbQV3TJDAaJBxDbfsC1T6u37IEZflWiqoXfiDBAmVUCwqrjYNv0nYNQxdvl?=
+ =?us-ascii?Q?H/k+4kSx1l1Tc1lZrtfTTvPrd4Cfze6BCu1XGPVl9I3Ahs5Q44Ihpqu7piKH?=
+ =?us-ascii?Q?8/0HCGT+s4ho7173oCQgw9DIy4SVW/mdgmKyabi8LxrtMdtEhkjbed57oR64?=
+ =?us-ascii?Q?IRq9Ehw2/BuSbDkxLUIW/WzjZ45Ck/3pi353hG9J/m5PNLB7iatP2fBs4p39?=
+ =?us-ascii?Q?N986QlSMCIHkOxNhAi0AqAQ23eJXUnwJezNSJGyu/I7yhA+eeBOD0mSirhsW?=
+ =?us-ascii?Q?c8Yf5xD0TR7nBf92M50tT/8Zx/ti4RGugDYcbFeiIbF4yOCcBUGipqoVbfoS?=
+ =?us-ascii?Q?BmkPnKA9a8LgdZ4QNtPPar5N5VSV4/qCkxsQRxOmAoJSq0LQapxt4TEbotsM?=
+ =?us-ascii?Q?wIdSKjNk6ZNzsJYHuXeC02gHyJdx3OgxwooKHIkI0NP+L9ni/qh/KDaI9M5j?=
+ =?us-ascii?Q?2fDXtb8duN8AY/furkn21+6dOBb0uZlRIKSCvXb1S2Gn0PhdTgIs/8Tpw0UP?=
+ =?us-ascii?Q?7bUFHWDkYPOgSUORwaq5S4zs6M9VifGJgo3FC5qnRRRZat3iyGpqAFNFbhf3?=
+ =?us-ascii?Q?2wZbPfJDGmgmdOWU4aCa509j29avkiXsKSzLdU+LU9fUy5ozxCKqKbATx2lj?=
+ =?us-ascii?Q?qWj1HdCkhbt6jZ2p5cT99rT92TY1igsUaIksL/Fhzu2qb4pFNgL0SF+if44h?=
+ =?us-ascii?Q?Z05odHMQfoMOUzfC6RLLTUvwUNTgdK1VARub9PPsinPJkcAOCIuQEjWQCYR0?=
+ =?us-ascii?Q?L2y+RIlIdeuEPhOJkxw6gldJ0MpTix6S+apgrCEv1ABEmm3Qpx741ltvNntv?=
+ =?us-ascii?Q?QX1EahHRH07mBiCjBD4V9nYUgFbwbb60xhCVkzpTNZZsHX9Tsa26djKBY+ub?=
+ =?us-ascii?Q?2Skp780Y++cCCDVHmDYoXeH+gMAAJQ5UBzhnVfaKGTITyYzGuOVXOv7JXiEt?=
+ =?us-ascii?Q?ZE5rwEKs/ITTYj630HrJl5myzPYQwtVSYvLzOfdtbSpdbL5v7PEEDkA0zk1N?=
+ =?us-ascii?Q?a1eXM2uBR55VnT9g8rT462lseptNTMID7Lvej8rmTuqd+gaj5pGHBnvgtX9O?=
+ =?us-ascii?Q?pNBMjo5XP77ioyU84gb4C180FV6F7RWlRs7HdGm/1bPS6H9PRohX4oJ57DWB?=
+ =?us-ascii?Q?4mQtS0aVC/5ywTQKKBXfJCu/XSqt980u5tclHUbG8eBSDMgQkIEeGYYiWO5h?=
+ =?us-ascii?Q?NxLwafxMeR7acUwBvAOjf1SeWDJ1wcXEkFQ20edG3ERcTdO+dPGG2q1LFz9d?=
+ =?us-ascii?Q?m6BF5t0mvkoIQnCI8Ss4+6TfuSB05yH+mRn9gZwP/h9KPxMNU1rJ9095fG8b?=
+ =?us-ascii?Q?Y8Gdj27M4gfsnA8/+uUnPAREBLIYtEZPbbS7PidlbFrSqAG92Osb+94LVLB9?=
+ =?us-ascii?Q?Spvgei969bnMdcbOV3yuAq09PAgxcl2rZ28dWDGEfWHUvhXmCCZjsfhVoL0J?=
+ =?us-ascii?Q?9ytAC4FUCA=3D=3D?=
 X-OriginatorOrg: yacoub.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: c1d10403-6fa6-411d-2ae9-08df2a9a1d94
+X-MS-Exchange-CrossTenant-Network-Message-Id: f171f89b-765e-4c42-abf1-08df2a9a1deb
 X-MS-Exchange-CrossTenant-AuthSource: MRWPR04MB12069.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 08:55:52.0595
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 08:55:52.6025
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 2e96c4fa-c0f0-4eed-b0b5-8f85f5e8376c
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: uGh7s3lvB4Meawq8mp+dwW7kMvrFjmh1cEIoJei603cD/9MXsaVa0j2X8I+yMdVA7z5eiq+975YSTLtLJ5W/7XT/34ss+Ral3VwLnFOkYZY=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR04MB430977
+X-MS-Exchange-CrossTenant-UserPrincipalName: L6APz2rB+UB3yJweH7kxqJZDauskBNlUjUhurH3l95YCer53Nl+fT1llUthHaB0mvzsU4gh5Q4RVB8trdr/xJ+P4LiktW0jZ5yqdLsDb5Ow=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB9PR04MB10035
 
-The per-cpu timer interrupts on sun4m and sun4d SMP, and the LEON SMP
-IPI, leave their handler with
+smp4m_boot_one_cpu(), smp4d_boot_one_cpu() and leon_boot_one_cpu() give
+a starting CPU 10000 rounds of udelay(200) to show up in cpu_callin_map,
+which is meant to be two seconds. But udelay() is only as long as
+loops_per_jiffy says. Under qemu the delay loop calibration varies from
+boot to boot depending on host load -- on an emulated SPARCstation 20
+between 4 and 671 BogoMIPS for the same kernel and command line -- and
+with a low value the wait shrinks to a few milliseconds. The boot CPU
+then reports
 
-	wr	%l0, PSR_ET, %psr
-	WRITE_PAUSE
-	RESTORE_ALL
+  Processor 1 is stuck.
 
-%l0 is the PSR at trap time, so this turns traps back on at the PIL of
-the interrupted code, usually 0, while the trap frame is still on the
-stack. Any interrupt that is pending at that point is taken on top of
-the frame, and if it leaves through the same path it opens the same
-window one level deeper. A source that keeps firing makes the nesting
-unbounded: the kernel stack runs into its thread_info, w_saved and the
-task pointer get overwritten, and the next window trap stores through
-them with traps disabled. The CPU goes to error state.
+although CPU 1 is just about to call in.
 
-The generic path does not have this problem. real_irq_continue keeps
-PIL at 15 after handler_irq and lets ret_trap_entry restore the old PIL
-together with the rett. It was fixed that way in Linux 2.1.129
-(entry.S 1.153, November 1998):
+That is worse than losing a CPU. The late CPU still runs
+sparc_start_secondary(), calls notify_cpu_starting(), which makes it
+known to RCU, and then spins in its pre-online loop waiting for
+smp_commenced_mask, which is never set for it. As it never comes
+online, the grace period waits for it for good:
 
-	-	wr	%l0, PSR_ET, %psr
-	+	or	%l0, PSR_PIL, %g2	! restore PIL after handler_irq
-	+	wr	%g2, PSR_ET, %psr	! keep ET up
+  rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
+  rcu: Offline CPU 1 blocking current GP.
 
-smp_ticker had been added in 2.1.36 with a copy of the old exit, and
-kept it through the rename to smp4m_ticker and the addition of
-smp4d_ticker in 2.1.97. smpleon_ipi copied the pattern in 2011. Do the
-same as real_irq_continue in all three.
+and the boot hangs.
 
-On hardware the window is a few instructions long and no interrupt
-source refills it that fast. qemu does: its ESCC finishes a transmit
-instantly, and since 8.2 it takes a pending interrupt right after rett
-(930f1865cc65 "target/sparc: Clear may_lookup for npc == DYNAMIC_PC").
-A burst of console output on an SS-20 with -smp 4 is enough. A trap
-ring buffer in trap_setup showed the level 12 serial interrupt taken
-over and over at smp4m_ticker+0x34, timer ticks nesting further down,
-and the frames sinking below the thread_info.
+Wait two seconds by jiffies instead. The timer is already running at
+this point; calibrate_delay() has used it.
 
-Tested on qemu 11.1.0, SS-20, -smp 4, with a test that writes a few
-hundred lines to the serial console from a multithreaded process: the
-kernel went to error state in 4 of 4 boots before, and booted cleanly
-8 of 8 times after. Two full runs of the uClibc-ng test suite on top
-then completed without a crash. LEON SMP was tested on qemu's
-leon3_generic with -smp 4, where a full run of the suite completed
-without a crash as well. sun4d gets the same one line change but was
-not run; qemu has no sun4d machine.
+Booting with lpj=1000 forces the short wait. On qemu's SS-20 with
+-smp 4, the unpatched kernel declared all three secondary CPUs stuck
+within 4 ms of starting each and hung in 4 of 4 boots; patched, it
+brought up all four CPUs in 4 of 4. On leon3_generic, with two fixes
+to qemu's LEON SMP support that are yet to be sent to qemu-devel, it
+is the same: unpatched, all three secondary CPUs were declared stuck
+in the same millisecond they were started and the boot hung with the
+RCU stall above, in 2 of 2 boots; patched, all four CPUs came up in
+2 of 2. sun4d is build-tested only, qemu has no sun4d machine.
 
 Cc: stable@vger.kernel.org
 Assisted-by: Claude:claude-opus-5-5
 Signed-off-by: Ramin Moussavi <ramin.moussavi@yacoub.de>
 ---
- arch/sparc/kernel/entry.S | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/leon_smp.c  | 8 +++-----
+ arch/sparc/kernel/sun4d_smp.c | 8 +++-----
+ arch/sparc/kernel/sun4m_smp.c | 8 +++-----
+ 3 files changed, 9 insertions(+), 15 deletions(-)
 
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index ea51ef52c952..87d03a58446e 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -252,7 +252,8 @@ smp4m_ticker:
- 	WRITE_PAUSE
- 	call	smp4m_percpu_timer_interrupt
- 	 add	%sp, STACKFRAME_SZ, %o0
--	wr	%l0, PSR_ET, %psr
-+	or	%l0, PSR_PIL, %g2	! keep PIL up until the frame is gone
-+	wr	%g2, PSR_ET, %psr
- 	WRITE_PAUSE
- 	RESTORE_ALL
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index 1ee393abc463..21e7b91cb9ca 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -180,7 +180,7 @@ void __init leon_boot_cpus(void)
  
-@@ -353,7 +354,8 @@ smp4d_ticker:
- 	WRITE_PAUSE
- 	call	smp4d_percpu_timer_interrupt
- 	 add	%sp, STACKFRAME_SZ, %o0
--	wr	%l0, PSR_ET, %psr
-+	or	%l0, PSR_PIL, %g2	! keep PIL up until the frame is gone
-+	wr	%g2, PSR_ET, %psr
- 	WRITE_PAUSE
- 	RESTORE_ALL
+ int leon_boot_one_cpu(int i, struct task_struct *idle)
+ {
+-	int timeout;
++	unsigned long timeout;
  
-@@ -407,7 +409,8 @@ smpleon_ipi:
- 	WRITE_PAUSE
- 	call	leonsmp_ipi_interrupt
- 	 add	%sp, STACKFRAME_SZ, %o1 ! pt_regs
--	wr	%l0, PSR_ET, %psr
-+	or	%l0, PSR_PIL, %g2	! keep PIL up until the frame is gone
-+	wr	%g2, PSR_ET, %psr
- 	WRITE_PAUSE
- 	RESTORE_ALL
+ 	current_set[i] = task_thread_info(idle);
  
-
-base-commit: d419d682257d813f6cb7a28e42b35d0edf4ad038
+@@ -205,11 +205,9 @@ int leon_boot_one_cpu(int i, struct task_struct *idle)
+ 	LEON_BYPASS_STORE_PA(&(leon3_irqctrl_regs->mpstatus), 1 << i);
+ 
+ 	/* wheee... it's going... */
+-	for (timeout = 0; timeout < 10000; timeout++) {
+-		if (cpu_callin_map[i])
+-			break;
++	timeout = jiffies + 2 * HZ;
++	while (!cpu_callin_map[i] && time_before(jiffies, timeout))
+ 		udelay(200);
+-	}
+ 	printk(KERN_INFO "Started CPU %d\n", (unsigned int)i);
+ 
+ 	if (!(cpu_callin_map[i])) {
+diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
+index 9a62a5cf3337..9355171ff792 100644
+--- a/arch/sparc/kernel/sun4d_smp.c
++++ b/arch/sparc/kernel/sun4d_smp.c
+@@ -122,7 +122,7 @@ void __init smp4d_boot_cpus(void)
+ int smp4d_boot_one_cpu(int i, struct task_struct *idle)
+ {
+ 	unsigned long *entry = &sun4d_cpu_startup;
+-	int timeout;
++	unsigned long timeout;
+ 	int cpu_node;
+ 
+ 	cpu_find_by_instance(i, &cpu_node, NULL);
+@@ -145,11 +145,9 @@ int smp4d_boot_one_cpu(int i, struct task_struct *idle)
+ 	printk(KERN_INFO "prom_startcpu returned :)\n");
+ 
+ 	/* wheee... it's going... */
+-	for (timeout = 0; timeout < 10000; timeout++) {
+-		if (cpu_callin_map[i])
+-			break;
++	timeout = jiffies + 2 * HZ;
++	while (!cpu_callin_map[i] && time_before(jiffies, timeout))
+ 		udelay(200);
+-	}
+ 
+ 	if (!(cpu_callin_map[i])) {
+ 		printk(KERN_ERR "Processor %d is stuck.\n", i);
+diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
+index 056df034e79e..4b3fc081f103 100644
+--- a/arch/sparc/kernel/sun4m_smp.c
++++ b/arch/sparc/kernel/sun4m_smp.c
+@@ -79,7 +79,7 @@ void __init smp4m_boot_cpus(void)
+ int smp4m_boot_one_cpu(int i, struct task_struct *idle)
+ {
+ 	unsigned long *entry = &sun4m_cpu_startup;
+-	int timeout;
++	unsigned long timeout;
+ 	int cpu_node;
+ 
+ 	cpu_find_by_mid(i, &cpu_node);
+@@ -103,11 +103,9 @@ int smp4m_boot_one_cpu(int i, struct task_struct *idle)
+ 	prom_startcpu(cpu_node, &smp_penguin_ctable, 0, (char *)entry);
+ 
+ 	/* wheee... it's going... */
+-	for (timeout = 0; timeout < 10000; timeout++) {
+-		if (cpu_callin_map[i])
+-			break;
++	timeout = jiffies + 2 * HZ;
++	while (!cpu_callin_map[i] && time_before(jiffies, timeout))
+ 		udelay(200);
+-	}
+ 
+ 	if (!(cpu_callin_map[i])) {
+ 		printk(KERN_ERR "Processor %d is stuck.\n", i);
 -- 
 2.53.0
 
