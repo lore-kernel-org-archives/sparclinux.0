@@ -1,46 +1,47 @@
-Received: from MRWPR03CU001.outbound.protection.outlook.com (mail-francesouthazon11021076.outbound.protection.outlook.com [40.107.130.76])
+Received: from OSPPR02CU001.outbound.protection.outlook.com (mail-norwayeastazon11023081.outbound.protection.outlook.com [40.107.159.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57B854A4EE3;
-	Thu, 15 Oct 2026 08:55:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.130.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126064E1C67;
+	Thu, 15 Oct 2026 08:55:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.159.81
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792054557; cv=fail; b=oCOlsuwoa3KEh4/hvhXLXnuYPm3aFc/vwdNvT2P6NweXX8EHeDucugCNLTXO6pLp+pkVGUEyR+jDdC6tk1BM1LQy1y5c4GG43gEwqE0jMHzr8M85z6XX0HOfcBfmVsKWXrpn9shpF7UgucilD/OUqJP8PW/nMlrudticinxMvfk=
+	t=1792054558; cv=fail; b=LBoJAmuVJhTQ+e/IpO35Ts9pxna6LLNNT+/zHg6URbDj4OhooSbBC73qOvo5QSqg6xRMlrvV9CS4uKqschOD3IjD2hWDX2Fxy7YFKUwgnx4epokLz3iHthuRxTnrksADxCBh/xa3ZVfP96HEmO4r/8RngglnClbw1rBPcBGWJSA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792054557; c=relaxed/simple;
-	bh=IubG3/h9ejeXCJMHjMPIS/2ND1VXEFjbWVffOnxQVFA=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=RYF+5K2XH9FrnItSNY//+9BbFgr5RVG17lQkGP4kr8LJbkiVtdWg8CwxdJ3/oFv98A35Wc/TCPNjPEi8JPU2zvWwVyXXY3L5m1RTlQp1/YMXxgcAXMnJI2e23CwzAnjviUSKeTgwgVy79Eimg7vZvZIaXdIv9h/f+Q2MWbPkiDY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yacoub.de; spf=pass smtp.mailfrom=yacoub.de; dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b=aMFXoDLx; arc=fail smtp.client-ip=40.107.130.76
+	s=arc-20240116; t=1792054558; c=relaxed/simple;
+	bh=tpJvjnpSsyfxEaOKjZztr7MZ4WnHbJIrTCkhe8mUaCY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=dZMwTyAbi1fYlhqNcqppy9g8ayRXNLSnHkiBjE9yOqLGg8An6hHaXAxB49xLjPm1fgd0PJZ0czTTSjNLK20PTn1975rBgIV2AZhElt2rrYkZ3y3SZlWFLjst36g05aT4+MUQ0WvfjsYDZd5kcoV8cN+PLo8ndhMZis15vWYp0AQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yacoub.de; spf=pass smtp.mailfrom=yacoub.de; dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b=YrwZm38v; arc=fail smtp.client-ip=40.107.159.81
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yacoub.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yacoub.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b="aMFXoDLx"
+	dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b="YrwZm38v"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=f1NO2D59aonek4SL1uGMN1oAGwr0g1DwPC1MR/rQUqA47BV2LdtCgs8nhlKwunodgvSRXWYIq5ExBHXQLQ6+utj6qCVeVtWSLwiKN5VaeDMxMg7CDXp+g5pn+sSIzUx0X7s7Yc1IulhPbdVs/0jS5uGCq8/X4UzlZ13eEn6zDbcNHyJhaQ0h95vc08WsGnVbE9biYyl+h9fpZhyKRDb4Ynjtde9CNxaynfbosOHNlZiIH1pVl9J0x/5SbHXn7wdvYo4RK3np5N+5g2A973hzl1uR6ZJiCdhTH+oR3ZmRe8Ca2zRat5s6rVfCUjKCxIkSIZpc8n6sAUPx/++AAy3nTQ==
+ b=kk7p1AeCjtbQ1/wt2UL7WM1Hc4Jdqp3Epf8G9fPAYaQH59iJePZvEe2g7wGyFvCsZuuwmL5nHcxA1IUpZmnsEcM8jkvoqGbLSr6r3uAgj5tmxceb2JbiMnsY0O3Npx7QqxMCcqu8sbjaMw8NHjXquz2TW9vS9yFVqmbJdah6uG6UJj7GIIxcT7parunsnN34voK4Tf5QxiBvaz8kcy+Cc4B4ofNAxhFcmIh9ejExyCEb0+dpzPZIeZ0aFhg85NleE+KYLqAsmLa8ww39pwHKhQRY8YukspsgGJyDAJMJfoLqHQh6HAmlG8sg46ow3/fBV2N9AFBvp/Ufqtz+4lkQaQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=jYxqQmnvwiHYMie/OnY6oLweSf11UFuT2n8WcijJRe4=;
- b=pGfmrwwTsevwOXlzV0AjZzMG8J3olVbpelHKTCeoalTkSumfMtLGGfPpcJURluOAEv5u1tfjho1YDByvbl7ItWP60zG1Inp2Zpw0FBu9AiXHRTdw6guixM0N+YfiFP6CfU7z49MAtrpobaChe9xROxbskUFrnRbrKXtFvUwstRbPfNWqGcLC6Sg6GfmUifWVVzQ/Ws5W5sZGNxEj0Rp7aUVrYNVXW79KqyLPmkUaTewgzlvxPVf624/0U9KNA7slkg4Y0/QGbZ7n4RpUSu/MP6nWA4kTpkayoqZ0rByhzMvdEBwHpC0T+lFtVnhzA8iFHd39TqbgRnjly96MLrtvRA==
+ bh=hwosT6Q+ATzjcNZFT8+Li6EfQ8Rw6f8t2ms+npi/AaA=;
+ b=ubrd/ZdSISwLyEoaip/Q1Xk/1ok+qfXrUsqkMGFo997tAj+yC8D//hDkoPCA/q3WPUKqrtx5X9RQnI1Iut4LJnSTumBtTCpTnk4CgT8mY3+hifEd+FUxOPFPh9nuhi1GWu3rP4HAUKVjS1v2f1g09PPulwvDUGMh0oTPv7uRYiDol2AUla/A7+0GsebTC0/pffYnNAaZcmfviby167qoW1oFSniG9ZlgPlHr9k/5PZr8Rq1bON0kN1J+hmdxjZPbHbaHVPQGjuiMObbA599np58t5VpLoAtNqqNElcGIFQEJvNmpRddt3srclVVPO4ZuKKXZ2eQYC2oH3et2FxJNRQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=yacoub.de; dmarc=pass action=none header.from=yacoub.de;
  dkim=pass header.d=yacoub.de; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yacoub.de;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=jYxqQmnvwiHYMie/OnY6oLweSf11UFuT2n8WcijJRe4=;
- b=aMFXoDLxxU9kvJsXAnEHJnOJSyM7xQyMU/qQTHEV7+2OQ24rMcc2aeKLM4ZiiTrZEmmDA1yIs83e2a5jIIQK2BsVJmm57KsdQnEj//JaPUcAQAuBJ/5HtHcdL4DCMYbe1rABXxJKHSXi3NDyCXirdCTcA2Eh4sTPszQ3BtLJEDJF+nc31S1ClOQK4hr48fddq7PrIoZ6kQfgfMCZzVrLusQgc7sdBhcN/QFO3UCSaGkfsfxLz1aH1j5eYsf02uzOrgslp5+kAtvQAehQIrBkHikZdmLfPTFHdiCjUOR46qejjclDlDAMPPMBKVTb9qaU4I9Vt/P+UZInpGHkH/y8RQ==
+ bh=hwosT6Q+ATzjcNZFT8+Li6EfQ8Rw6f8t2ms+npi/AaA=;
+ b=YrwZm38vBVSWbc5RgUGLySblo6TWT3m/H6KcSwgAuhhFQCB9sWhfqaCCtZ/9mXfI4x/f77wdP4LkUWyphBMJqyuUdMhXCA64SK4dwLQVNv+2tq00DY5+cjaEtt2u9+T8Ns89IvuoRl9H8YhQ1BckfesWwy41kMg8rWyHb5wT1c6KywOyy3pANuJ8LhFpb+t2XkriA/3dld4eXS55rbbTUgw0Fe74tcDApOZXeuDpPAbHatOitJWbvlcazr/0pMdoZcRLTaSjN0GjMIhbNa+rr3LHphPtZVXBXJpzncKD4z9SuycB0rTasu9aPRIhntFXBLoCIzWV5KBNtgKxxDdDSw==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=yacoub.de;
 Received: from MRWPR04MB12069.eurprd04.prod.outlook.com (2603:10a6:501:99::13)
- by PAXPR04MB8605.eurprd04.prod.outlook.com (2603:10a6:102:218::5) with
+ by AM0PR04MB430977.eurprd04.prod.outlook.com (2603:10a6:20b:7f5::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.13; Thu, 15 Oct
- 2026 08:55:51 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.14; Thu, 15 Oct
+ 2026 08:55:52 +0000
 Received: from MRWPR04MB12069.eurprd04.prod.outlook.com
  ([fe80::37b9:4b72:7864:5809]) by MRWPR04MB12069.eurprd04.prod.outlook.com
  ([fe80::37b9:4b72:7864:5809%3]) with mapi id 15.21.0522.013; Thu, 15 Oct 2026
- 08:55:51 +0000
+ 08:55:52 +0000
 From: Ramin Moussavi <ramin.moussavi@yacoub.de>
 To: Andreas Larsson <andreas@gaisler.com>,
 	"David S. Miller" <davem@davemloft.net>
@@ -50,10 +51,12 @@ Cc: Thomas Gleixner <tglx@kernel.org>,
 	Guenter Roeck <linux@roeck-us.net>,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 0/4] sparc32: SMP fixes, futexes on SMP, and a cmpxchg system call
-Date: Thu, 15 Oct 2026 10:55:41 +0200
-Message-ID: <20261015085545.3246951-1-ramin.moussavi@yacoub.de>
+Subject: [PATCH 1/4] sparc32: keep PIL raised until the IRQ frame is gone
+Date: Thu, 15 Oct 2026 10:55:42 +0200
+Message-ID: <20261015085545.3246951-2-ramin.moussavi@yacoub.de>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20261015085545.3246951-1-ramin.moussavi@yacoub.de>
+References: <20261015085545.3246951-1-ramin.moussavi@yacoub.de>
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-ClientProxiedBy: FR3P281CA0041.DEUP281.PROD.OUTLOOK.COM
@@ -66,153 +69,149 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MRWPR04MB12069:EE_|PAXPR04MB8605:EE_
-X-MS-Office365-Filtering-Correlation-Id: efee1457-0b3e-4466-c395-08df2a9a1d1e
+X-MS-TrafficTypeDiagnostic: MRWPR04MB12069:EE_|AM0PR04MB430977:EE_
+X-MS-Office365-Filtering-Correlation-Id: c1d10403-6fa6-411d-2ae9-08df2a9a1d94
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|1800799024|376014|366016|18002099003|10067099003|11063799006|261009223027099003|56012099006;
+	BCL:0;ARA:13230040|23010399003|376014|1800799024|366016|56012099006|11063799006|261009223027099003|10067099003|18002099003|22082099003|3023799007;
 X-Microsoft-Antispam-Message-Info:
-	/asbjvTbBaaCzz/VLL4SUdM/twnBLQoqqx2viSJMgNjh+WuUibUxGgYQB53/cE6PtStZGhq6UYjejcR/vYP9/wU4AIkVe0rC7aQaSuaWeGIKye8svFLMlR1OWSv3qnwGeNCcFGSBX9Z3smLtFW7oCH6IZHiCpiJQhhstc6q1KcnAnQpbpRNr7udDXpfe98RzBnLWyztE/OyPbKsOHIfYkfKUnFNqoDawvyONs61aHL0qLrhpLttsm8l6XllyXznT1k8zYE7fMAUhZpxPywRzKLV0CEGOMv97lNmbM7N+lTh+JhGNfCm5Ix5D93s63QO6Jinil7UEB53WVCyRFKdP8byHZuwTFzf12L/H5G9m660vnJSY6tqxeHHQirrbiPqShivM6XxtTVL5tgUzmo6576he5d+TQglNqTyrvKH7oGW6KwWyzwR/Ls/jdsIErW84o0Axo06H7e5ceCK5JepqiglQo+86s4giLMc3P8k7X2k5QamH4hYUGlr4x2P4CXTYb5sZG5QA68MiSgyWOuZqV8PZF01+uY7/IC+oQRT+LKLRS1x5iWUMHFXm3ptGIImp/NNSjZKeGErvCexPplzLtJOKSb3CFIwVS+Net3OlAxhLWpe7KE4voQhCsDCLUCcrz8cSbnsYleThwvF2zP83IYL4Kmhgt2MFOOjIRpGsB1A=
+	DfKGQU9yw0Nxr59k2JHxmsKRDk/pGpwcDpqemmgHqKCrg6rGCWkoTMwg8rc1HMFfUhkSwcah7pttIxMqrGuZCflXSYYnvGSzaqgjwvvC44IHrrERuQQOy51HnTE3re36rB1qwYv2Witzxlvf1XNJzT6VnX/x4cYKaa6f1bm7QREwOQ59YPjopdCo7obR2683mbP7s5zVhxr4QgJqEG2uSLL9JXA86uy0WMp6BawWZa3EZwTjb9BdFas1ZMA9WfJCscFWQqIGDKYc//udUTByLVchudcYaNaUP0L8HEg7NGVx4vAZn+aLByFH63czLJ2zJIvQvwiSAnxZ4IKX8W2t9AYk7qKGsM+9P7Z6SkwNrRny4Ej+W5wXT2R/EvhWn+Br5OUCWAG2oi99bTvO5hKMlLZ09ggKmtqyNiQNaIMMMtgr9G0S3EnnqKGZArg6tg4gpU0BA3EseMU6B2wTmnAw7XS3y8TcpD3D9+IYLbcrwgvgTCTA0d2hbl2gHshezYsP1TiMdvCZT50543zQP44wumj7hye4vqqhgRKQkt3le9z2JYF6taJ+ciLG6KSDK7UKoyQE1yBvYzD643zwGjPkIsqqCkzK/g/vrZwS9Ma6KVoVMr62zcu8aDKm+LAU7JRC9FxVAR0dWjSkDDQouKGzrErhRKrxxrfTjMQBY9CuHfc=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRWPR04MB12069.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(376014)(366016)(18002099003)(10067099003)(11063799006)(261009223027099003)(56012099006);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRWPR04MB12069.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(1800799024)(366016)(56012099006)(11063799006)(261009223027099003)(10067099003)(18002099003)(22082099003)(3023799007);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?TV/1EaLyCXQ+THdg1GvuBbM/tiNCnYoRPKjURE6MHZhMQqlso2Hs3yojcCFw?=
- =?us-ascii?Q?QBLyLCF9JPJ+E5c3vFHwdrYT7MIHC3BPTohANjBtPTDgyeD22y6CPRoad+cv?=
- =?us-ascii?Q?cjY0Bnn0DjpXJUtNlS6tzAiawFDh8yzWlUCu0Z28BUbB2+ZuSNTzQ6R3Ssf0?=
- =?us-ascii?Q?2r8nEG4eDhjyrjME0SQmdowkOVkXwWbwaq3DHrZEiDw+f8fM7Ricq9zNo/D7?=
- =?us-ascii?Q?EAZiOGvBQsXopj+dq83d5A8/WmBKQOYd7vg2oTGBLfUv4RUI+NnIzLu1Gn5T?=
- =?us-ascii?Q?AiWt1Q38+OJL1lIrQPTZ2wczDhYbRr4SXtRYsRbpiUFbXGi+SpwiD0dKUj1k?=
- =?us-ascii?Q?JeCkrUD6+4/p9e2bx3D53+IIEQ12wal8dBXRil6tQe7QhceX4eLXWZ0unuJJ?=
- =?us-ascii?Q?lIaNebIcuxd1guVUxw8ad0AWPvH3yD7OoMqBExjjXXddP0KY8nkc9YUkAyvg?=
- =?us-ascii?Q?8euta4aoTVyrvWVGFZSz9Z4dbr+aq+/SohZGolXnfWCrvE8qaQWsCb+QqgWN?=
- =?us-ascii?Q?jdjP3ev4mI+pITN5eMhkdrmfgc2bTmaQhqngvQFw60muAy3wvL29PjkLuLzs?=
- =?us-ascii?Q?8I+fNcwFLGai2r5+4TwTCT7kZ1vDxl14l+PQN8F0329PmaBsbb8l3aYsiiuy?=
- =?us-ascii?Q?U1PqSCNmkdYECEYiQjKmZwLV+IZjq4s47WlehSs1RHDgrb/bGZPPvie7Gwr4?=
- =?us-ascii?Q?hQ5Gy4H67+TwHawKa5eec+pfOaxccIRWRwQKt44KzBtKt4OHwHPWuHK6LGQu?=
- =?us-ascii?Q?bwtSLWjS7HPV2S0yB7yVBgyxJN/PJ6f36pT6MYP3av4TeshTZYT5aEmO3tI0?=
- =?us-ascii?Q?gM6IjQqga+FrPdsLGWTLZOHknSEDx6jEKKapl1ypQXgjR6qg9x5yoPdeSFZu?=
- =?us-ascii?Q?2aicyk0Nvb3OAnkJUm7e9bMOqtM/9abt5ezng8Nl/T314LyNzHhXFttO+mos?=
- =?us-ascii?Q?rIbzip+LXKm3AyuBwB/rl+Dzao5dGFyoBPuB8epmvx6oe41cgm9wwhQp2LkU?=
- =?us-ascii?Q?EeB08gEsA0OMejRrryR0hOtnL1ueIzabX5s8YibD7tOUCd636sA/Gk4k4iqL?=
- =?us-ascii?Q?ELb7VA/SCuh3vN6XRfO2DZTFvhVhWXsRp03OXwXwmCV/U0mFeaifbSdVOBd1?=
- =?us-ascii?Q?btYWSxn+66MX3D12ph1DsycnPg1SIXhqVNPADEgOhrinNcKDj648XfFzN/K9?=
- =?us-ascii?Q?prZwTJykX8DOc50EXeA1KrCrT7wF1ArVqxe4qwrTZkHMPZ4pVVILPZcTAFSg?=
- =?us-ascii?Q?NPrWAXqvlvueUMP1ud4SPK2K5Z5uhIbP6BbLsE+JP1MQm3ClWYlWvwy/k979?=
- =?us-ascii?Q?EyT1GxhVVmJfujkyqAUmUgvnoZzLMdHmgWExQlgZETEdvJmMoqVroGXX3YIB?=
- =?us-ascii?Q?x0flmIcqLEoFwV6S7nCEiqSlH1xk6zQ/bly3qCFsY2miaS6CSLpyHjUsbv0U?=
- =?us-ascii?Q?ljfsdjsjB0dYqw31oKscComEFvWme16wCvAGIRfUS47k9RVaD/y58gxP1XqC?=
- =?us-ascii?Q?AY/A5v2pFzgk5K3D2XzlsZOWPM8IGUKyZ8vk/2ybtixknnpGGxhThSCCVn9D?=
- =?us-ascii?Q?FCSa7TC8Onh5BwfFl7H5jh35Hjcxt0CbVdaihDhnI3yHQgiXuyTYu+OEaUZJ?=
- =?us-ascii?Q?ImPDzzxF7xnWbwr0Gf9GRxHUCPOwhmC89Hs7TrbLBeGvfySH0yyGfmWT6Cdz?=
- =?us-ascii?Q?4szqIIujuGDT7AnKBxTAL+uFRpcqP5F9BACwEy0zIOosho4v1sP6+3cXx4h1?=
- =?us-ascii?Q?giaAG0jG84oQgAjFd3DwckMSh7MO39c=3D?=
+	=?us-ascii?Q?VbhPUVt4DGmRNoefCXlWDSkFGUnP749qnwgm5eBy2GyJoFQSj08dhEMrzPqn?=
+ =?us-ascii?Q?3xLeRstusiO3rLJNjc2XKgvAn0N/rzARtGG4O+ryZWzZlj9DkLWOrMAZaRGS?=
+ =?us-ascii?Q?gFI0Hxxcq6vxVUTa2+GdCnLskOIZnvr+PT3nwXpQKww1RGUcFxx5TWB8aXNx?=
+ =?us-ascii?Q?BzVFAlAhyanOzi54fpXHCmFtqbCLEeyn+98PJL5busFMrKBm6VJFEs0YiD8t?=
+ =?us-ascii?Q?klR6zZzGf7I/gxreGQhYrhb7DqHheGFmgC1AAcRVeIQIwUHiamGkDzkO8YCg?=
+ =?us-ascii?Q?IeYW49BfhL0EMEalhQZXxpoeM0tas0s7sv1XItg8iJd9IKFchjSXP7g9Iff4?=
+ =?us-ascii?Q?DqRyALd4Pf+y9ikmkmY3CkpbMn7E02IbkrA9aLwHxv7AIHIvntl56JTQdKB1?=
+ =?us-ascii?Q?+HOEvhDQcBLCwt+URVqZAFlqBFrK3TI2493yLw/l2I8VhZbl2ufecsp2V0om?=
+ =?us-ascii?Q?Mb+vaneEsnN0AE6dFW3hVgxTDYY87PAH8FM7DNX1Box9xI3hZVno/sM0J3Dt?=
+ =?us-ascii?Q?wPZnhY+9e2CQ1/Vrj2J9P9Li+QZxR/b/BDyNMrrR78ODOozotZMm+cq8YS6/?=
+ =?us-ascii?Q?OZ39pI9DyUBVg9ogwPRXxWiCxeRfIS4Uf7hnKtb7HdLgLAS3v5Jut2MqIaWm?=
+ =?us-ascii?Q?HA1bK1qdphk5oxgvDYjsANGHJZGv89YQzLeQ0u3zzrKUf3hl49yPpZ1+I7uM?=
+ =?us-ascii?Q?UAlxmAx5OFta0Ztp5PebQL8faaaNkgJlLfUmL5hc0GB+qc5PkXtewswbKooy?=
+ =?us-ascii?Q?N9y1PplJHaz3yRwg2hl7VMkm1CCPYpyFLKVuc7/l0vF4W7fA94LoBXXODvID?=
+ =?us-ascii?Q?gk6UwMeHfkg0JHSvHSdSMBrccCVlndKBJ/1clrMF55oCyAC6iw2v7p/l+4GS?=
+ =?us-ascii?Q?MLVopeWYD14HX7B7YCM4xBOH/oHT1xZUP2yvoJrNCdrZiLKLY1zJ8svJ3b9h?=
+ =?us-ascii?Q?3mgsEkr3CV5VT5KK6viqWwFFLWvonBtOg6W65BYNnweDvsZgvgksWQHpaXGF?=
+ =?us-ascii?Q?gQtw5ynpgRKmXAcD7z8kiLfyU5p85oYLIaFTBGIPiNq4NH19z/KA7GaWXIUv?=
+ =?us-ascii?Q?6KghjKwZzziudCU6uWbq4uAqN9GqQRLjoKU+DXDrfTuJARqjfLNrDDQIOgNl?=
+ =?us-ascii?Q?p9v4AqvGsD4s0vk9apW6bvk/Fa3f81CKyiFlwz3sfOtpvyxs4PhBjJdnQBEx?=
+ =?us-ascii?Q?kv6lS2hdMl85X9/a8Gd8sOmTcb0K9EF5AhYTn6neWsoPNXdAd+XD4bqXlCl+?=
+ =?us-ascii?Q?FpJWw1VyI84RX7uT8ugR6U20p2kiP7m1CJ8MHilu6VKuf079vFRkbq2WCOmR?=
+ =?us-ascii?Q?1GhcgCu4mkKFlIhB9G9uZkqn3xyz8dXaBtP1H8S9tCYGnzg7j3BtPBB9Vm8B?=
+ =?us-ascii?Q?aueHS8oRE3gKUwojtle1OJJmyecrhorYE2j0wYgyDJ5lNXpRQdapBBMetCEQ?=
+ =?us-ascii?Q?Yu2uuFuXSlZSGPt+k7HcNuLn1WIg5ihsGsuKesUAVlOMv74q0TgznpKRJNkJ?=
+ =?us-ascii?Q?ROZkoEXj4sx67R2BJyynMvHpmGeMlOENt0pzRxWIEDOnoICdONTsevVWpfhr?=
+ =?us-ascii?Q?yQWwqnYQx4bRXAMycOp76x+c8af6BtL+INuuTVyEsQre+osU16jAwUIWYCP7?=
+ =?us-ascii?Q?/eAhQJC9eJLnxIwmIl9Hb0kz8OQZ6X9R32oKJvSj3o3TAG6XQf4pAY5uvwM6?=
+ =?us-ascii?Q?ReR9Sj9Ine2GLsuF4/aYvOY2Ag29i0zIq0fyjgdjOlVovi+JB+FpzR37xyjL?=
+ =?us-ascii?Q?0yyjvzWmpA=3D=3D?=
 X-OriginatorOrg: yacoub.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: efee1457-0b3e-4466-c395-08df2a9a1d1e
+X-MS-Exchange-CrossTenant-Network-Message-Id: c1d10403-6fa6-411d-2ae9-08df2a9a1d94
 X-MS-Exchange-CrossTenant-AuthSource: MRWPR04MB12069.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 08:55:51.2763
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 08:55:52.0595
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 2e96c4fa-c0f0-4eed-b0b5-8f85f5e8376c
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: L47JIDeHlHWrL0DSPucY/jvCPB+wCpB366pPI23XYYiKcOLdxRrPau/IwOtwJynferd1IKzeTNhkK5AstlX25pz3WO4MD7KJzUWGeQdQ7UM=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAXPR04MB8605
+X-MS-Exchange-CrossTenant-UserPrincipalName: uGh7s3lvB4Meawq8mp+dwW7kMvrFjmh1cEIoJei603cD/9MXsaVa0j2X8I+yMdVA7z5eiq+975YSTLtLJ5W/7XT/34ss+Ral3VwLnFOkYZY=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR04MB430977
 
-This series makes NPTL usable on sparc32 SMP kernels. It started with
-the uClibc-ng test suite on qemu's SS-20 with -smp 4: the kernel went to
-error state under console load, sometimes hung at boot, and had no
-futexes at all.
+The per-cpu timer interrupts on sun4m and sun4d SMP, and the LEON SMP
+IPI, leave their handler with
 
-Patches 1 and 2 are fixes and do not depend on the rest:
+	wr	%l0, PSR_ET, %psr
+	WRITE_PAUSE
+	RESTORE_ALL
 
-  1. The per-cpu timer interrupts on sun4m/sun4d and the LEON IPI leave
-     their handler with traps enabled at the PIL of the interrupted
-     code while the trap frame is still on the stack, so interrupts can
-     nest without bound until the CPU goes to error state. The generic
-     path was fixed in 2.1.129; these three exits never got the change.
+%l0 is the PSR at trap time, so this turns traps back on at the PIL of
+the interrupted code, usually 0, while the trap frame is still on the
+stack. Any interrupt that is pending at that point is taken on top of
+the frame, and if it leaves through the same path it opens the same
+window one level deeper. A source that keeps firing makes the nesting
+unbounded: the kernel stack runs into its thread_info, w_saved and the
+task pointer get overwritten, and the next window trap stores through
+them with traps disabled. The CPU goes to error state.
 
-  2. A secondary CPU gets 10000 rounds of udelay(200) to call in. Under
-     qemu the delay loop calibration depends on host load, the wait can
-     shrink to a few milliseconds, and a CPU that calls in late blocks
-     RCU and hangs the boot. Wait by jiffies instead.
+The generic path does not have this problem. real_irq_continue keeps
+PIL at 15 after handler_irq and lets ret_trap_entry restore the old PIL
+together with the rett. It was fixed that way in Linux 2.1.129
+(entry.S 1.153, November 1998):
 
-Both are marked for stable but have no Fixes: tag. The sun4m and sun4d
-code they change is already in 2.6.12-rc2, the start of the git history;
-the LEON variants were copied from it in 2011.
+	-	wr	%l0, PSR_ET, %psr
+	+	or	%l0, PSR_PIL, %g2	! restore PIL after handler_irq
+	+	wr	%g2, PSR_ET, %psr	! keep ET up
 
-Patches 3 and 4 add what user space needs on SMP:
+smp_ticker had been added in 2.1.36 with a copy of the old exit, and
+kept it through the rename to smp4m_ticker and the addition of
+smp4d_ticker in 2.1.97. smpleon_ipi copied the pattern in 2011. Do the
+same as real_irq_continue in all three.
 
-  3. Futex atomics for sparc32, so FUTEX no longer depends on !SMP.
-     casa is probed at boot (LEON); without it the word is updated
-     under the hashed spinlock the kernel already uses for its atomics.
+On hardware the window is a few instructions long and no interrupt
+source refills it that fast. qemu does: its ESCC finishes a transmit
+instantly, and since 8.2 it takes a pending interrupt right after rett
+(930f1865cc65 "target/sparc: Clear may_lookup for npc == DYNAMIC_PC").
+A burst of console output on an SS-20 with -smp 4 is enough. A trap
+ring buffer in trap_setup showed the level 12 serial interrupt taken
+over and over at smp4m_ticker+0x34, timer ticks nesting further down,
+and the frames sinking below the thread_info.
 
-  4. sparc_atomic_cmpxchg_32, a compare-and-exchange system call for
-     user space built for v8, which has no CAS of its own. The ldstub
-     emulation C libraries use instead is not async-signal-safe and is
-     invisible to the futex code. It takes the same path as the futex
-     atomics, like atomic_cmpxchg_32 does on m68k. The uClibc-ng side
-     that uses it is ready and waits for this.
+Tested on qemu 11.1.0, SS-20, -smp 4, with a test that writes a few
+hundred lines to the serial console from a multithreaded process: the
+kernel went to error state in 4 of 4 boots before, and booted cleanly
+8 of 8 times after. Two full runs of the uClibc-ng test suite on top
+then completed without a crash. LEON SMP was tested on qemu's
+leon3_generic with -smp 4, where a full run of the suite completed
+without a crash as well. sun4d gets the same one line change but was
+not run; qemu has no sun4d machine.
 
-Tested on next-20261014 under qemu 11.1.0: the uClibc-ng suite on SS-20
-with -smp 4 and UP and on leon3_generic with -smp 4, plus a test
-program for the system call; the details are in each patch. sun4d was
-only built, qemu has no sun4d machine.
+Cc: stable@vger.kernel.org
+Assisted-by: Claude:claude-opus-5-5
+Signed-off-by: Ramin Moussavi <ramin.moussavi@yacoub.de>
+---
+ arch/sparc/kernel/entry.S | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Testing under qemu
-------------------
-
-Three qemu problems get in the way of reproducing this, none of them
-caused by the series:
-
-- leon3_generic does not boot an image passed with -kernel since qemu
-  9.0: the synthetic bootloader no longer sets %sp (92688a91c358 took
-  it out of the reset handler). Gaisler's own prebuilt images fail the
-  same way.
-
-- leon3_generic does not bring up a second CPU under Linux. The IRQMP
-  model never sets the broadcast-available bit, and Linux stops with a
-  BUG in leon_smp.c; with that bit set, the secondary CPU dies on the
-  swapa with ASI 0x01 (forced cache miss) in leon_cpu_pre_online(),
-  which qemu does not decode.
-
-- On sun4m, qemu's ESCC drives only the interrupt line of the channel
-  it was called for; the board ORs both lines, and a stale line keeps
-  level 12 asserted. Boots then hang at random with an RCU stall about
-  20 seconds in (4 of 40 boots with -smp 4 here). That looks like a
-  problem with this series but is not.
-
-The LEON SMP results were taken with these fixed in qemu; the fixes are
-going to be reported to qemu.
-
-These patches were developed with the help of Claude (Anthropic), as
-the Assisted-by tags say. I have reviewed them and tested them as
-described.
-
-Ramin Moussavi (4):
-  sparc32: keep PIL raised until the IRQ frame is gone
-  sparc32: wait for secondary CPUs by time, not by loop count
-  sparc32: implement futex atomics, with casa detected at run time
-  sparc32: add the sparc_atomic_cmpxchg_32 system call
-
- arch/sparc/include/asm/cmpxchg_32.h    |  4 ++
- arch/sparc/include/asm/futex_32.h      | 72 +++++++++++++++++++++++++-
- arch/sparc/kernel/entry.S              |  9 ++--
- arch/sparc/kernel/leon_smp.c           |  8 ++-
- arch/sparc/kernel/sun4d_smp.c          |  8 ++-
- arch/sparc/kernel/sun4m_smp.c          |  8 ++-
- arch/sparc/kernel/sys_sparc_32.c       | 35 +++++++++++++
- arch/sparc/kernel/syscalls/syscall.tbl |  1 +
- arch/sparc/kernel/systbls.h            |  1 +
- arch/sparc/kernel/traps_32.c           | 13 ++++-
- arch/sparc/lib/Makefile                |  3 +-
- arch/sparc/lib/atomic32.c              | 53 +++++++++++++++++++
- arch/sparc/lib/casa_32.S               | 30 +++++++++++
- init/Kconfig                           |  1 -
- 14 files changed, 224 insertions(+), 22 deletions(-)
- create mode 100644 arch/sparc/lib/casa_32.S
-
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index ea51ef52c952..87d03a58446e 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -252,7 +252,8 @@ smp4m_ticker:
+ 	WRITE_PAUSE
+ 	call	smp4m_percpu_timer_interrupt
+ 	 add	%sp, STACKFRAME_SZ, %o0
+-	wr	%l0, PSR_ET, %psr
++	or	%l0, PSR_PIL, %g2	! keep PIL up until the frame is gone
++	wr	%g2, PSR_ET, %psr
+ 	WRITE_PAUSE
+ 	RESTORE_ALL
+ 
+@@ -353,7 +354,8 @@ smp4d_ticker:
+ 	WRITE_PAUSE
+ 	call	smp4d_percpu_timer_interrupt
+ 	 add	%sp, STACKFRAME_SZ, %o0
+-	wr	%l0, PSR_ET, %psr
++	or	%l0, PSR_PIL, %g2	! keep PIL up until the frame is gone
++	wr	%g2, PSR_ET, %psr
+ 	WRITE_PAUSE
+ 	RESTORE_ALL
+ 
+@@ -407,7 +409,8 @@ smpleon_ipi:
+ 	WRITE_PAUSE
+ 	call	leonsmp_ipi_interrupt
+ 	 add	%sp, STACKFRAME_SZ, %o1 ! pt_regs
+-	wr	%l0, PSR_ET, %psr
++	or	%l0, PSR_PIL, %g2	! keep PIL up until the frame is gone
++	wr	%g2, PSR_ET, %psr
+ 	WRITE_PAUSE
+ 	RESTORE_ALL
+ 
 
 base-commit: d419d682257d813f6cb7a28e42b35d0edf4ad038
 -- 
