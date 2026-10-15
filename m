@@ -1,63 +1,63 @@
-Received: from MM0P280CU010.outbound.protection.outlook.com (mail-swedensouthazon11022102.outbound.protection.outlook.com [52.101.77.102])
+Received: from AM0PR02CU008.outbound.protection.outlook.com (mail-westeuropeazon11023082.outbound.protection.outlook.com [52.101.72.82])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76D543E8684;
-	Thu, 15 Oct 2026 12:29:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.77.102
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D5FE51D525
+	for <sparclinux@vger.kernel.org>; Thu, 15 Oct 2026 13:29:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.72.82
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792067380; cv=fail; b=BNo9ZCYr3/Pm7bGtGu6WKDMx5tVDQe5mBKQBPtQ9UuIlIM8UYvQKKyuQu/7aRfKnVkdBBF1rYqV6tsxMod35MbgjWVka66glOIJCisUHYH9cKHRBM125kQz1Vjvk4/tWK+3xG6SMCPtVmniPn6OXzVz0mzi1Vd3bV/tw7N67dJ4=
+	t=1792070988; cv=fail; b=JqH0qEhdbd7ZaCUBFXP+IPKfdKyZDUOA2ntU6g0lYEUVownyvCsZrBA+kjECO8SUVSgOm2Gj9s5CUuVdYLMU0aamIfx3DxvxnjLmQIzdwtaWeNY1TrZtrwynzCeHrViFgqYBSihq6prdLsJkeoFbzIVEapPknmXI8/Wy1KvhMXk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792067380; c=relaxed/simple;
-	bh=N/3XLVXJ2Z+sW6qvkqmDYj9ZoePL53euU4g7WE2inbg=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=YJ8N5QgagP99BJYvpGZlZQVDwUc7eN/tqO+MAwGh2aV/UXI2hSi+VaetgWsBBSGz0ZE9/GhqoFnyuHWIzfOnA7v55T7vBtNhbfWfLMMp3GMFiJpSYq4s74YBOBxzE9bWLNBHHaSruFJqFBAJXTENOzAkt9Gd+vipk+E3CGdlt/8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=lFThCZdG; arc=fail smtp.client-ip=52.101.77.102
-Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1792070988; c=relaxed/simple;
+	bh=Gk3TD+iAv1hEqDTKbZ4p5kgSNPnVuWHPOpTIBNo1w/0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=CeLUbcpnDSPSdb72dQj7keeV/PUuL8ih5mMX2Q9WrDihMdWn5qcYRkcCRfAIRLzuyItBMJYu1n6yao1d0Etmny3S0tTWFxJO0B5QM7e4XOqbOoRkKwjGaHV+XM9HfXe3/Jw7avljAeivW9EmjvALyG2ORWO+sI38a5EOYJwOJHw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yacoub.de; spf=pass smtp.mailfrom=yacoub.de; dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b=Jag4Mtzv; arc=fail smtp.client-ip=52.101.72.82
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yacoub.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yacoub.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="lFThCZdG"
+	dkim=pass (2048-bit key) header.d=yacoub.de header.i=@yacoub.de header.b="Jag4Mtzv"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=n6yBHRexKj8hMq40IobYu67+zc+TO6Awcolt8Hg96ro5iOlvO3Ij+XsvUkJNGdzO4lsImk6yOdkPh2/Oos05vZ2ifFeQZQbN1Ke+n/IK7TlnoWQ0wWyXxuZRxaxHkklPE4SYvtRCoJFUkwQ6Tr8vITT3RnrjbBTSIxRhkarDIzwAs7AkXadOm5ALKC/xR/i9CiUNxwdiAvOxVgXS8i+w4tXrF/eRqk/J6Q+ddpPDOEpAL0NTn4zEwDV95mkYA4ZKYaYuhTlwmL+TcMod+f1sj1jzhLm/L3F5mfEplV9YUx4l227U44TT1EcyXQ7+1lwyLiaDfiIFc80qwrbhyRgH8w==
+ b=d/vMRrKY4bSQ4XO/Q0jqr3C1KLQWY1MqkWq5e87VCeTZm67HElqMLHzfft6C+9q7df3LyQzzfi5SmmzHHAU6SW8PmGjdTbphJSm5eH1Tx4crL9UJWmdTs5SpFZqbhpwACqU6FlT0smdHkNiEqB4ca/CJtxclrIwkS6SiA36m4DeNoH0t02rP9RWpz/r9Kz/4Czycq8eNxK1vxyyZm5jba4Uqmy/COGy+AVMLitDGqB/9DO/1qFneKFp0BfN1XBWdykJARpNXJbwbcoeafr9yrLN6CIN/vsmVuwYotDIeWfsTJTWaNEYxMfrF4oijnd9x0vFUosmvRUqMWm7vhElVNw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=L4PLtd0IkZsy11Ne0kIDVK3fgsHEn+uMBVSsLwsAZ44=;
- b=g4NdB+IEyTEAInpAcCf4wThSTg9DVSnaK0uAvz+YWWF9/qdYjDmWDIpiJVAurHazp2Af/a4VH1hAkg0Xvc3rtBf63LKJe/n/ea0mUAN+BECos9c8VrXRA/nZea94kWz7f7kfpivNvLwEGVjbjjQ1u9ooTqSnantl2xA0abnNXRdTFDz8jUNKt1KnhzaHFXntKfpR6111onH/rZ8SJ0S3ZbBsaCm6BqUY+BhpgP45Q2bxpegx/hR70F1Emjp+JyZCvtCyIRRvmmtzQXIEajPiUfNhM17kXqs66TXVumW1EYTYaQuoBSK3wDwfNxeA/m9ZCewjC8gLoj6OJ2G3PBo6tg==
+ bh=Gk3TD+iAv1hEqDTKbZ4p5kgSNPnVuWHPOpTIBNo1w/0=;
+ b=aKOEEzcDbuharxghBvQSqK3TiTnaLfjQyzHLaDrYQaBaHqZ1YQ9xSyrX+nrr2JWHuf4Y/xATryD0hBMG5CT4SHvW5RfHeUG8Ieap73BUHtlgRlDiUVGiahlgHdKlSI4CQLNPITznniC98vQSYXWm8B/YcoXPpacZJVgJpDEStVztcWSbd2WpmchwzMHXofWZ7kU4/BOBOaAHCjJDJCmMX7r/BmiinJVIC6Wkpb8eO9bIKgAMKmkrvmOSBUzesPRfWsiBWS6tfCYEX1/PbfvPy/0S5h1xV/pIiQZMIgM/XVKT53UhBVjSfBQjtuF9M8h/GBdwVPQQH6LtWLSQ7g9psw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
- dkim=pass header.d=gaisler.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+ smtp.mailfrom=yacoub.de; dmarc=pass action=none header.from=yacoub.de;
+ dkim=pass header.d=yacoub.de; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yacoub.de;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=L4PLtd0IkZsy11Ne0kIDVK3fgsHEn+uMBVSsLwsAZ44=;
- b=lFThCZdG1VIij+iX1KLAuGgGOMcBFCOT19b0tcn3QGf1AoqnK/g2GsfymI/vfG6Ev7r9MvBO0EjpKbrGxeSxpcU3V2CBgBMTmCbMJIfELiQA8SSCLd9LFPNLUg79HwOWJvef9BowUEo6rN656BPP3BARc/2eGbf74aDRKL2ZZA6apFe3m1XSABcWYOYLTkXZ/LUiRkJBK5yDSGKP22IfIKGhMxXiXBw05IFyEBaDl6EL2KfzS/DrO+waXbalG8gshWzi7XEUCQ5EcJwQtDsMFB5P4Ni6NFnl+ol4rOBN5hgx3wgkPRrqCBRtPcs9iz/wP/tvxVeFIAxB23UiVdZbsw==
+ bh=Gk3TD+iAv1hEqDTKbZ4p5kgSNPnVuWHPOpTIBNo1w/0=;
+ b=Jag4Mtzvblia56/zZNsi5QaDpGsPJOoSDiUZnBG1F/+vLckjNWPrIUF8IpE1KKtR90XFwKzwnogCSD9dt4U31MfGSi8qcv8dbIg4LdazMB9gz9KMlE4x1yWsvy97OuM+/Q/PtY89meo21JsEbFPb082eaud8TXastb8rR9ODwZzkcslLw2+aEi0ifPHLBXdnJejSPyyX4kerxLo6paPmjXVvSma+JzP32CKzLmuetLe8TzeTCKsxelWnadntzUVAdpYyyoSAa+RiC259J/crNaZMKLn+TDFJWHHKF103UX/92kddQXEkc4lB3Gl4RDvubTMa5koLrjbqOMQzJZF2DQ==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=gaisler.com;
-Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2f::5)
- by GVYP280MB0414.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:31::15) with
+ header.d=none;dmarc=none action=none header.from=yacoub.de;
+Received: from MRWPR04MB12069.eurprd04.prod.outlook.com (2603:10a6:501:99::13)
+ by GV1PR04MB10332.eurprd04.prod.outlook.com (2603:10a6:150:1ca::19) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.14; Thu, 15 Oct
- 2026 12:29:32 +0000
-Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
- ([fe80::1f13:f10:e16b:7939]) by MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
- ([fe80::1f13:f10:e16b:7939%4]) with mapi id 15.21.0472.016; Thu, 15 Oct 2026
- 12:29:32 +0000
-Message-ID: <4046ba01-d11d-473c-a5ce-f952dad64483@gaisler.com>
-Date: Thu, 15 Oct 2026 14:29:31 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] sparc32: keep PIL raised on the SMP ticker and LEON IPI
- exit paths
-To: Imre Kaloz <kaloz@kernel.org>, sparclinux@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, stable@vger.kernel.org
-References: <20260927005658.8242-1-kaloz@kernel.org>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.13; Thu, 15 Oct
+ 2026 13:29:41 +0000
+Received: from MRWPR04MB12069.eurprd04.prod.outlook.com
+ ([fe80::37b9:4b72:7864:5809]) by MRWPR04MB12069.eurprd04.prod.outlook.com
+ ([fe80::37b9:4b72:7864:5809%3]) with mapi id 15.21.0522.013; Thu, 15 Oct 2026
+ 13:29:41 +0000
+From: Ramin Moussavi <ramin.moussavi@yacoub.de>
+To: Imre Kaloz <kaloz@kernel.org>
+Cc: Andreas Larsson <andreas@gaisler.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org
+Subject: Re: [PATCH] sparc32: keep PIL raised on the SMP ticker and LEON IPI exit paths
+Date: Thu, 15 Oct 2026 15:29:34 +0200
+Message-ID: <20261015132934.3327814-1-ramin.moussavi@yacoub.de>
+X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260927005658.8242-1-kaloz@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BE1P281CA0184.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:b10:8d::11) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:190:2f::5)
+References: <20260927005658.8242-1-kaloz@kernel.org>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: FR3P281CA0065.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:4b::20) To MRWPR04MB12069.eurprd04.prod.outlook.com
+ (2603:10a6:501:99::13)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -65,139 +65,73 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|GVYP280MB0414:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3b8ac596-49f7-4bf0-e2e6-08df2ab7f721
+X-MS-TrafficTypeDiagnostic: MRWPR04MB12069:EE_|GV1PR04MB10332:EE_
+X-MS-Office365-Filtering-Correlation-Id: f7673261-b076-4476-fa43-08df2ac05db7
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|376014|1800799024|366016|56012099006|11063799006|261009223027099003|10067099003|22082099003|18002099003;
+	BCL:0;ARA:13230040|1800799024|23010399003|376014|366016|56012099006|11063799006|261009223027099003|10067099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	ZAy/w33yBxT8kOQUlX1Tt85Ies7Kp5POrA59NcJyAyRpbpeLdYbr3zDnfxdPrNPCEyZmPXPihcE7L2a3Z4+r7cTatFaA8IMdsNpEASNHD1ZUc/qm+Nj2OLc1kNa41rLX4IxJWA3cT/qTEGK7Ik3SIIr5BpO2E6mgn9aNOYRKrZ/3VBKnjGTTBtf6O1D0GdMMN8SVZ/XWFexokYaqqlZo+MTAxmN6kQ/o5PIQDBR3SxejJ4evSkIWmh2xTvzJVYzAzXWQf/2C1iFz2iagZXCIfLgiHH5xbfl6PU9u0kRmEzTQ9QQK9ndx6EUz38gDESQ8ce5Qh8AOSIO6slk6CjGUGiMRJEMpyLErhbyhhLB91SOv4UymgMtBwYGTa7SWXwjjIbkQw7WDYYpP9QtTW7FPP2ldDqLtGxbYxAJBhc77VrdbeqrgawY9KlQSgnQLRB5pZQ7v4jqhGeLInvsXQH863Xb9QJKnNK0qlTeDEwDReuCQ9ubf62X/3ikwzMKe8QmtiFD0vELT1eIsEEFlLJLXMEaXt+E5J37p6H72UMo8I/o9273MCGpPWkeCJjiYTs2C5Q5lBhXu58ahUMkeMkudHQ5PIcjMYHRG0xazdMhEdWtU3wLtQqxwKlMRJ7K7kAyXHjQLZaQb4f8u3mnwL2k9hfAvy3jkReexmjcJE48PNoY=
+	BROmelxO41LhBr3zX8i7e8usfUinqQnsmKkIrgSKsT2zKhXB+DvGHfymxkNwlTAPaOfVmFYPzMbzU6C2wQ0Zuy9rW7c9rye0YdUZquzcUOt4v6q31H/5BQHnlilZ2b9DevmRpEJ+DS5okD1jXVxQ+BlgRvouXVVvMl1+PKZbMinT+mZqq0xF1YcUs68ePjVOQP0kKjT6C4RCI9L8nyB2AO/2uEf7/SLK8NmShnjlT3ID+2/K8rmRSrMaTJyAcvkgtkTifn8NRDrQX2be7btXlzWgm4BKsQMr4rl3eGun0yXfmvSzNjCawgShu8wDYUV6joTgzR+4pDWfOuNc2exUFpb+FTHvpEx+UJi5W63Zw2osZN9HmeTy8qhhEGEy9V8wAr1z3NVSDofg8WIae7DXNHcEBJPZn1TX+NosYDGrxZnictkBuFWXX8jnLjMgIIpk8b5IHpWwgi4JTEm+q5E6XSmN0eBemoirzF7aTZak7pzoFB7++caHmxFSNYtV998W758d6WTLZ0EbXH8ZZrDwd7AFe/aZyEIOfQxrSUUqUs+493TtnzPxbYmsuuUtKgknTNAACltWsSUd0saOU/3Fu5154NwlutBSDZT0yRSekVgvjTURxKL7R1pboyS5Ob1c
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(1800799024)(366016)(56012099006)(11063799006)(261009223027099003)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRWPR04MB12069.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(376014)(366016)(56012099006)(11063799006)(261009223027099003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RUdPaU5hRHE0QW5iYnZmQVo2cUsxdzJJMkg3cHJxYVAvTHdpc1VQQWRpUlZx?=
- =?utf-8?B?d2JkL0dhRGFhOFNQVWFUMnBCdzRPQ0xZUURYaGxhWmdhN1BiWjgzM1l3UWxw?=
- =?utf-8?B?OHdqZnhSaS96Q3lBS3RGOUFBZUVZb21xU1VtaEtXWm94cnZ0WnBFWjFHcXFn?=
- =?utf-8?B?aWR0VkRHcnBoR2ZQckhBWkxXQ1g1YUZGNSthWjloaGU2RWduWk5XaEtpSDlH?=
- =?utf-8?B?eFRESk90VnNlRVVFYzhQR213ZHZjYzBucTRWSWhhYi8vSWRGWHA4eDlUcFBG?=
- =?utf-8?B?NTlDUU8rRFBDWFVUeGE4MDFwSEZPelBSVVd2djByUm5YK0xwdWxkS3FHVk9w?=
- =?utf-8?B?dHhVYjFJc09GZHg3bUgzQkY1SXYwUC9SU1hYVWVBa0JYSm1qdUVvTlIvNUpk?=
- =?utf-8?B?SlZuL3FDN2RVa1dOY1pZcVZpeG8xSFZaZ1czbjVxRi9SRmpoOXBCSkdXdWpN?=
- =?utf-8?B?K3BVM3JHdlZaaDJwVG9xYzR5dzdUbDRqZmhVOUdSVGM1UW1kN3crY1VIUytX?=
- =?utf-8?B?dDhCbUlRem84U1lvem9CUGhBY1hITDJmbDlnNktZTjVCUkdNZEFPRUpBekw3?=
- =?utf-8?B?SC9UTUJyYzhYOHdlZXpOeHUrSUNXYmx6YndqZi9xWmFHUDBJQXlYaU0rVWNJ?=
- =?utf-8?B?R0R5Sy9vMmZVVTNML2tkT0l3aUkxRlBqZmM3WFRBakY4NjQzUTRDdjhPbVR3?=
- =?utf-8?B?OG45L0czVkN2TmxZWVpnc20yOFRUUVlXajM0eE1Vek1VKzA4WlE0bkV6cWxn?=
- =?utf-8?B?UWRPc1oyUzYwRGd4aWlkMEluTDJlRTZtaDdJcVdZaVlYR2tSdUJBb1BDcVlp?=
- =?utf-8?B?d0VBdlRyUGRwVk9pcnlDRzV3OWlnTWpvbXMwdFZuVnU2WHdhblFRS2xWZmhU?=
- =?utf-8?B?L0oyckhYb3hhUmVOMmY5QnFiMkRCYXdDbm84emNoTUJHM3RrM05UT1ZoVjJC?=
- =?utf-8?B?SjNoRVhmYlNTM1JydjhBekNMdUM1OGNNQTlnSlRuaU9uZGYybURsK0ZyU3V2?=
- =?utf-8?B?S240K2hKMHJWWmRvOTBibDJ0M1FGN0E4bFFJNGE2T3BCZzhnTEJMZWQ5YXRI?=
- =?utf-8?B?T2pJb1E1enRCeUhKWm5GNHNmcUZxYm5hSnFuQ2lIQTkwUktBMkdYaStpZ0w2?=
- =?utf-8?B?T0F3cENGZldLRFhHYUhBcjh4K01zWXdYdWdDY1hhZ3ZnY0NTU2VqanhYT3Qw?=
- =?utf-8?B?SVF2Y2VuRzFhWWRzN3RqMmQrbnUvM2xnY1Q4YlRlK2RTUDhnRHBTL21lV2xm?=
- =?utf-8?B?VnZpcXpBN2R3VmtqQXRXV3FmWGVqbzY1Z0duWk1adkk0azVYOGllMlE4RnNG?=
- =?utf-8?B?MnQrQVdmR0xWbEpQdXB1YVV0Vkp2RkdyU3ZnVXpyanNGNExabFF2STBVMDg3?=
- =?utf-8?B?aXlxc05FWW9QT01vSjFQcnhUSzVxWVJGdzk2VlV2NnpURUp6eUZKVVh5dy9K?=
- =?utf-8?B?Um9TRTI0alY5a2NiaDN3R2hkamQ1NitpTFlYYnEwM3V0VHQ0SjFDVENvRHFN?=
- =?utf-8?B?WVhzbXFuS2VtYW8rTU14L2pRaDR4TDZ0VnZSZUdhemZSSlJrOGZjRldWSjBn?=
- =?utf-8?B?MGttcmd1dkhwZ00rQmRZVXhrTzdOREYyR2dMZ2NIQWpGSzVvSlUxbXJHWVFp?=
- =?utf-8?B?VitaLzZOdjN1cTV1U0pVMUZLK1NDMWhtTjJTb1dBM2F1aEJ4ZTBBSXN6MWhh?=
- =?utf-8?B?K0R0YmNCL0FRY0p6bTV3K3Y3UWxPVUplOXc3TjJ2NGRpbFQydTZxRlJmL2o1?=
- =?utf-8?B?SkxWeURObWpyQlJrTCtOMjJOR3ExaituSHpWZTRLWTR5Smdvb2dvUjdyT0wv?=
- =?utf-8?B?Y1UvSUJaTzhZK0kyR2lrYmZmV01wRHhzYSs3WnNGcENLMVdmK2ljL250eWU3?=
- =?utf-8?B?M203TFJITWJJWkxtZXJpWEYyMDZXZVhZVmI5ZlMrN1dGcjZNUWcxUnczTk9u?=
- =?utf-8?B?QlVZbWxGU2lVTXRFSUxXM2dUMURSZUhucGNYZXk3ZG9VT09qb1RCTU5iVGRp?=
- =?utf-8?B?Rm9nZ05sd3pvQm9CVkVrc3RJdmdSV21UOXNsTFpUMFVxeWNvcnJrSjNzcmFX?=
- =?utf-8?B?bTJRb0pnMVlTRDA4TmxPR2crTmJMdEtZUVJGQVNEWG13Qng1MGpCK0FjR0pr?=
- =?utf-8?B?Vjl5SlJVK3NxNlN4cVB5c2g4elArUlVQblhaZTZVZ2pSUjlRUUhwRkpETWdw?=
- =?utf-8?B?VnJaYVdvbytUM2h5VXJDTUdobTZLTjM3L0pEWldkQUZucTloTldWS1FVT1lY?=
- =?utf-8?B?QlU4NnplblFVSnpJOHJKa1ZXUHVjN1NRcXk3T2JYNEc5TThXNVl6cnJTRU9O?=
- =?utf-8?B?Y0VRTWphWGhRUUVORlpmR2Y1RVpmZE9KcklKemVEaEova0tGeW5TdlFoaVZx?=
- =?utf-8?Q?5eMPXahsf3r0gjUw=3D?=
-X-OriginatorOrg: gaisler.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3b8ac596-49f7-4bf0-e2e6-08df2ab7f721
-X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+	=?us-ascii?Q?qJ02ZOmsJSjd2q8n/X73Np5Uj4nYDQyvAQX0VcHfrJKY1dLbplZxC0Upqzfl?=
+ =?us-ascii?Q?IMW1+TdQs7KD5sdfa8Abhbwr53bj+mXQHIGDDLLoNzX6AY9C0VCqusZ/Pcc+?=
+ =?us-ascii?Q?aQwGsMhsIrg5gOOvNpmjYCTKvL8Ffd2qp75kst4evsjPBy4UlHdVAQrz0Kib?=
+ =?us-ascii?Q?fMbM428F0Erw3vFSqPPrMiuV9E282kAa2ZrvSthtx8D2+EUctm08e6LYNPni?=
+ =?us-ascii?Q?9AmJJy1t18fyWo4LQrKy/xM25KR1ca5kEoj+WDwaLmpiEwXpNGnHvy5dLoPr?=
+ =?us-ascii?Q?qvidTgO2bV2McF+6nDXNwnopPdBftsKMVvhTiUATBnKdRar1ctRY7bqy9IoH?=
+ =?us-ascii?Q?ClRp+6Uw4iKjAMkaVBr+2W8Gmo+2vj1OAAi0snZYgKrkHfoa2zDjLh2OPw9E?=
+ =?us-ascii?Q?Ra8Tb/hquoLR3NeO4OGgNl5xArCHS3asV9qJs0VK5cyqxHomnSHAuC90bvMj?=
+ =?us-ascii?Q?Q3Egc3ewi3EWkLxl5dMqyjIUcGp5dFEt0w5NBKj2aqh3bYZJcjvYWZADknr7?=
+ =?us-ascii?Q?rQ6UFpwLJdy/kEjjJ4jsaMeZmwnHwLc66OPMZLIbzAqhiIPE1tS02k/pJ2jN?=
+ =?us-ascii?Q?58S9JaUWRY1YlinThScM3/6NmXgTIWleiNRKVoVf6DlwOLfcOy2rsPD7/Ycf?=
+ =?us-ascii?Q?31eXgVHThQla4enavSf6kPi5Kr72CMS9HyKFbgiGBrXixIWKReLltVa+CVri?=
+ =?us-ascii?Q?ZmIW1ZoTwl0S5DRf7g1GLgguSMQcsHPBW4lKjxlRD8WniIMRbxiWzDQtrtMB?=
+ =?us-ascii?Q?TIgLH8TzykyFGoW05qG2nMQ9MdhoCsZgnHClECRsc8qDWTk9sl6qzcGF5vug?=
+ =?us-ascii?Q?YrDRe/hM4OA0j44AcIWvJadanBG4mPoemNiyDbXDsuReaml1KKfrG9zJyqbI?=
+ =?us-ascii?Q?nVP2Ga5OQsIiNPNksGX4XOBckAykcT/IljSPs2VZLadxnLOZ1PeynmN2s4qx?=
+ =?us-ascii?Q?PpT0diI4TewDPApAQO40AjBBUuauUVBUMkLqul2LLwD7deTwErXkGSbajhWU?=
+ =?us-ascii?Q?UhvGKGkbJxe+VUV0JnxZv027ll103AXmJ6C7Jz3kZgiHMmCdLn0qL84BnK2u?=
+ =?us-ascii?Q?dLSnZ2MpVzGy3jWe7p2d+zZm5cgG6j4+7SN5Ka84d2J8qNCiLJcfRTJhHzEi?=
+ =?us-ascii?Q?hC9pqVoNy2ZMBggIzr09TifZr9r+mnVoYExFrAxQeNbthgrrZOpEkMIr2syD?=
+ =?us-ascii?Q?keEB7MZH8DCdz5QxN6kh/KUayS//YCcSOQfk+EWyrX0CsjBk863JsKRp2P82?=
+ =?us-ascii?Q?LqxKmeZr7j+Nt3Jsrc45cr3a+qbnBEz/tj2V5YDvujDz0y+KB6Q/QBAQ0GU9?=
+ =?us-ascii?Q?Jp9BbwTf+hFCjfOJfOJMciElURVniC90BkyETZ9ZItCjuC6hWDDpLvUbg1Pw?=
+ =?us-ascii?Q?XbaZQDMYW0TgGgyO94ebszg+8/E4AoZ8sBPDMs6YNYdgVZiaIvW+IC1BtBaH?=
+ =?us-ascii?Q?BHZ6npu+K8kHK8U2DXp0vLTfoz9wpO8tXHqWDqirxkmfeml0oTgS8UuwndDT?=
+ =?us-ascii?Q?YRrl/kPssVKXqFYC8KQuj441bwgw+wm1kV3c0ESL1YKEYFVSgDV0Q9LoAqPM?=
+ =?us-ascii?Q?vaflVZSRN8hC6pXCg1qeiBcXI6VQHGcawvudign5FKyvIInks6sI6DR2Vw6o?=
+ =?us-ascii?Q?ihrmB+es+m7Mk706wShmHvAg93GizUu757dtEoZeO9X4Jj74II5k0AdzA1Y7?=
+ =?us-ascii?Q?+l3hqIbaB1s3T6NRn7zCedqgG9ApgjyBoS0Qv0bptSfbfY4EaItg09ZXV+x3?=
+ =?us-ascii?Q?S1Dwdfb9Ew=3D=3D?=
+X-OriginatorOrg: yacoub.de
+X-MS-Exchange-CrossTenant-Network-Message-Id: f7673261-b076-4476-fa43-08df2ac05db7
+X-MS-Exchange-CrossTenant-AuthSource: MRWPR04MB12069.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 12:29:32.4657
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 13:29:40.9219
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
+X-MS-Exchange-CrossTenant-Id: 2e96c4fa-c0f0-4eed-b0b5-8f85f5e8376c
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Sg0N2jh3g2L7zxvLB04nGF88dQvmqngOfm7pjQ/7osRcfCdlxM1sfP+7OpYI78a9JTX4nIEyiO8rFS/Su4ylo6y3pKTugZKAOX6CdJb2bEk=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: GVYP280MB0414
+X-MS-Exchange-CrossTenant-UserPrincipalName: L0MwASDWO0p36765cn62JO5b1rXqQtNfbLIjxuSmuvxr+DZpLZ++j+4zYQrrjX8nMlreGkAG50oyyrulG66FRbm7+fZ9p4ElBwG05EzN8N4=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV1PR04MB10332
 
-Hi Imre,
-
-On 2026-09-27 02:56, Imre Kaloz wrote:
+On Sun, Sep 27, 2026 at 02:56 AM Imre Kaloz wrote:
 > smp4m_ticker returns from smp4m_percpu_timer_interrupt() by writing the
 > interrupted %psr back with traps enabled, which drops PIL before
-> RESTORE_ALL. A level 14 tick pending again at that point is taken on
-> top of the current trap frame, so back-to-back ticks nest one frame per
-> tick until the 8K kernel stack runs into thread_info. Keep PIL at 15
-> until rett restores the interrupted %psr, as real_irq_continue does.
-> 
-> smp4d_ticker and smpleon_ipi exit the same way and get the same change.
-> 
-> Broken since 2.1.36 (sun4m), 2.1.97 (sun4d) and 2.6.33 (LEON).
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Imre Kaloz <kaloz@kernel.org>
-> ---
-> 
-> Notes:
->     No Fixes: tag: this has been broken since 2.1.36 on sun4m (as
->     smp_ticker) and since 2.1.97 on sun4d, before the git history. The
->     LEON exit came with smpleon_ticker in 8401707ff645 ("sparc,leon:
->     Sparc-Leon SMP support") in 2.6.33 and moved to smpleon_ipi in 3.0; a
->     Fixes: tag naming one commit would date all three sites to it.
-> 
->  arch/sparc/kernel/entry.S | 9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-> index ea51ef52c952..7288da5f6727 100644
-> --- a/arch/sparc/kernel/entry.S
-> +++ b/arch/sparc/kernel/entry.S
-> @@ -252,7 +252,8 @@ smp4m_ticker:
->  	WRITE_PAUSE
->  	call	smp4m_percpu_timer_interrupt
->  	 add	%sp, STACKFRAME_SZ, %o0
-> -	wr	%l0, PSR_ET, %psr
-> +	or	%l0, PSR_PIL, %g2	! keep PIL raised until rett, or a
-> +	wr	%g2, PSR_ET, %psr	! re-asserted tick nests on this frame
+> RESTORE_ALL.
 
-The nesting is just something that could happen. Please change language
-of these comments to reflect that or keep them shorter.
+I ran into the same problem independently and sent the same change as
+patch 1 of my series, with a description of how it shows up under qemu:
+https://lore.kernel.org/sparclinux/20261015085545.3246951-1-ramin.moussavi@yacoub.de/
 
->  	WRITE_PAUSE
->  	RESTORE_ALL
->  
-> @@ -353,7 +354,8 @@ smp4d_ticker:
->  	WRITE_PAUSE
->  	call	smp4d_percpu_timer_interrupt
->  	 add	%sp, STACKFRAME_SZ, %o0
-> -	wr	%l0, PSR_ET, %psr
-> +	or	%l0, PSR_PIL, %g2	! keep PIL raised until rett, or a
-> +	wr	%g2, PSR_ET, %psr	! re-asserted tick nests on this frame
->  	WRITE_PAUSE
->  	RESTORE_ALL
->  
-> @@ -407,7 +409,8 @@ smpleon_ipi:
->  	WRITE_PAUSE
->  	call	leonsmp_ipi_interrupt
->  	 add	%sp, STACKFRAME_SZ, %o1 ! pt_regs
-> -	wr	%l0, PSR_ET, %psr
-> +	or	%l0, PSR_PIL, %g2	! keep PIL raised until rett, or a
-> +	wr	%g2, PSR_ET, %psr	! re-asserted IPI nests on this frame
->  	WRITE_PAUSE
->  	RESTORE_ALL
->  
-> 
-> base-commit: 62f4c998b297cf233997a2b4cd6fc2d2df0319c9
+Tested under qemu 11.1.0, SS-20 with -smp 4: a multithreaded process
+writing a few hundred lines to the serial console sent the kernel to
+error state in 4 of 4 boots without the change and in 0 of 8 with it;
+two full runs of the uClibc-ng test suite on top completed without a
+crash.
 
-Thanks,
-Andreas
-
+Tested-by: Ramin Moussavi <ramin.moussavi@yacoub.de>
