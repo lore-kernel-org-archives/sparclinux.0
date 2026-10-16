@@ -1,466 +1,210 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from MM0P280CU009.outbound.protection.outlook.com (mail-swedensouthazon11021127.outbound.protection.outlook.com [52.101.76.127])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3535B450917;
-	Fri, 16 Oct 2026 09:59:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792144802; cv=none; b=cbNn+Pncp6uO0CwHllYQU0f75ZulaQ/h7BSFItn4pQh/BIm0cb1vgtKDCwTeptV5CUhwMao9XVhmdcbJ/EMT9Glz3dgkxGBeQnfyZT/q5evuVCnaE6rrcCdptxjbfpQpzhf0w4xCYbJ7nUjNRS62XtAIsXzdqgdXuJFcVMx/H2Q=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792144802; c=relaxed/simple;
-	bh=CKj8pg5pD0CV12I761oL5c+eI8DxTIQfvceplwjqP8g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=On3o0BIbh9xZmbkpti0WaMuAB4Lh4vqI9UGaTAVp8n/wk/Oll7b66VBHseFoaSDb2VZZE6TeHLisMJo4pbpr64MZt9nM+Bike//PMSOgv1qYhvqKafDTX2iIbW68/RAhE+GBg83Xqpr7WgTmURy/wNb+3lQ6j5TPsmq+byOi0D4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=GYXjmrv3; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B672F0673;
+	Fri, 16 Oct 2026 14:23:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.76.127
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792160618; cv=fail; b=rfGUBrXeWxZ7Q+UE0TUEMQ7wMHb6Kha+aAQHdcIah81HIwVYxfKChXHnxshwi29kMdwaiLndSL/woUKWk1MQjzLzPPGBCaV2sa6zWugRi1Cp1a+6TL6fOyBDho65V8IgrT1Fze1x48DUX643dOJZaJtXs8pbAeVDPhVWhDreLoA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792160618; c=relaxed/simple;
+	bh=weJRJXU8mlmZH3LA+STFqNpVNZ8Rx8sss21o4UPckic=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=KKpLvvfTHUa7uJcd9oCGGAdsqp2woQhb9UpvmulUlNPYdHnyT7te+QZrgDnT1TtuRnLngeRDhHJ0JLkcHbx5c8OZzLKRnh+EbtDTFU87f0gHh49xRa28ATMrVEw5KNrr7d2UBkuNitnJYx70cp4aJxyXxEk6vrwjCacHAo56wps=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=qKlTocfS; arc=fail smtp.client-ip=52.101.76.127
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="GYXjmrv3"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69G9Z4WQ3000591;
-	Fri, 16 Oct 2026 09:58:44 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=pp1; bh=xvJwv3pA4begPR69A5CKA7e8Cvo9Y09czqcNKQRYg
-	44=; b=GYXjmrv35nJ8QNbSpG1xFT94WLiXppQqeo6r9qCkipZVfCdwSNZrN6x2Z
-	ik3Oa6JvOZtZYy6q7NzK+z83JjoXEYvwMdoT62iilGTs+bYAJv7Zrqm7Pip11qAF
-	/JvxdLFx/+ksm6LLW2dx5Z4Q5RVkUmu2n7KJtFQI83oCXd5wVYg8A6WxWkO/sYup
-	aLChYKAZOXsXN0v9X01kqN0L+/g1GaJCNfNsaRPlmHHe3A3b+0xtloOtuZrrCYeT
-	oyqb9GXh7ZZMRMLnEay/vG6F4geTy1Aygzld/+CgxMv6h7jUcC8640pvdGaRb1HH
-	jad3W4SXRKmGLVRnD0UF3IphiWbBg==
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4h7dwhxnfq-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Fri, 16 Oct 2026 09:58:43 +0000 (GMT)
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 69G61OW92057774;
-	Fri, 16 Oct 2026 09:58:41 GMT
-Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4hawqwva24-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 16 Oct 2026 09:58:41 +0000 (GMT)
-Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
-	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 69G9wbec44564932
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 16 Oct 2026 09:58:37 GMT
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8506C20040;
-	Fri, 16 Oct 2026 09:58:37 +0000 (GMT)
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6BCA22004D;
-	Fri, 16 Oct 2026 09:58:26 +0000 (GMT)
-Received: from sapthagiri.in.ibm.com (unknown [9.123.124.175])
-	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 16 Oct 2026 09:58:26 +0000 (GMT)
-From: Srikar Dronamraju <srikar@linux.ibm.com>
-To: Ingo Molnar <mingo@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Florian Fainelli <florian.fainelli@broadcom.com>,
-        Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>, Scott Wood <oss@buserror.net>,
-        Madhavan Srinivasan <maddy@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-        Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andreas Larsson <andreas@gaisler.com>,
-        Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        Srikar Dronamraju <srikar@linux.vnet.ibm.com>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Srikar Dronamraju <srikar@linux.ibm.com>, Kees Cook <kees@kernel.org>,
-        Jinjie Ruan <ruanjinjie@huawei.com>,
-        mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Pengjie Zhang <zhangpengjie2@huawei.com>,
-        Thierry Reding <treding@nvidia.com>, Xi Ruoyao <xry111@xry111.site>,
-        "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
-        Tiezhu Yang <yangtiezhu@loongson.cn>, Rong Bao <rong.bao@csmantle.top>,
-        Hui Wang <hui.wang@canonical.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Thorsten Blum <thorsten.blum@linux.dev>,
-        Josh Poimboeuf <jpoimboe@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: [PATCH] sched/hotplug: Remove unused idle_task_exit
-Date: Fri, 16 Oct 2026 15:26:40 +0530
-Message-ID: <20261016095711.1364609-1-srikar@linux.ibm.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="qKlTocfS"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=QuiTP5UPRtahLdnU59iqWZSjzgchWDxCAtnMKvosH4aTdb1YCGoZ8ZTOJYn/13Lw1aBXZOGAy/nNhevZH+CCjarzd7Nb+87XgJdbCibJc1XhFEJ23YZ5QstgKLixdXjVXa9zQUgPFL2+9pxGWXDHhJG4Ri+fPJtBC3SxtBBgx39Mi5lqSsJ4wzutEdJAZx1Qk4EBN5rZxkKOWC3UMfWfHlE/l6dGF7v6Xt2MsLBUYT2NOghYn5BMizotJfkce3MXG5kiS45nlWuhjNzFQ0KTIOGoya7KzeqxfM/ID52XphQn6q5Kk9rkjLUVSYw3r3PupCclxqiWvE2LukWo0JZt/g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=5x9VJ4gQ9HmoOAFhTE6njOEkjAhDMlkmCkUoR8QddnA=;
+ b=Yc338N4AIhZXgIrlKoDcy3tm4K2T93TLzYwHpooly+NfYRaKlOYOf/bJ5k2gbUm2wFdzren1bHsLOvuOyuPcmt1pGNcdlkMr0SbhJtbq5Dr9kwIZJZH1kAQxsiEKbHrf6NUhgE8y2oGMdNQuW3VLIRFpIP2ZHS2faLwHQcmWgK1aow+MApZ15NQhfv6Tyj47ZIsSdJxgOtixPBwgzNzwnaef9OnduS17xgCrMK8vhKenPnWku41e1iltISDTneznQx0U8G0gITb0NTMEkPI0IVItJziGNI10NLYthuHaok7KIIHYpBQPV9lcNFIAF/ClvP6OWwFX1yiY+nmB/79tow==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
+ dkim=pass header.d=gaisler.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5x9VJ4gQ9HmoOAFhTE6njOEkjAhDMlkmCkUoR8QddnA=;
+ b=qKlTocfSMhaoD8632tBTAVf92nZ6yRjmYdkli3zWzSCiiepq8i+PucquhgOdj0U6wxnraBzemz+JJ6589ZjEsEYpfcNP8RrWyWJ0KlVmtJelmDf2UPnLpIPtGKgmE6KRu2wWJi1J61lsmFXM0y4IaSljs/785WUy1qvHdi/+WLf3lXODUCKcAyhAOkybegl6rUUOhzYa029S1z38Fz+XtQ1j/nlK7vDSVJlLZcuxKWcBFVlsEV+vYILIsl7HzD+aVGIebkvvgY5AvPXbbreq02fhrBrifSXqt8BRiOOBc4IArgpbVBIuEqhOsZFcmOj6Z9RhVKubUTZxpk9FdqXwaw==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=gaisler.com;
+Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2f::5)
+ by MM0P280MB1980.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:1f::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.14; Fri, 16 Oct
+ 2026 14:23:30 +0000
+Received: from MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::1f13:f10:e16b:7939]) by MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::1f13:f10:e16b:7939%4]) with mapi id 15.21.0472.016; Fri, 16 Oct 2026
+ 14:23:30 +0000
+Message-ID: <f641bf79-d831-4dda-a27c-731ee1741594@gaisler.com>
+Date: Fri, 16 Oct 2026 16:23:29 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] sparc32: keep PIL raised on the SMP ticker and LEON
+ IPI exit paths
+To: Imre Kaloz <kaloz@kernel.org>, sparclinux@vger.kernel.org
+Cc: "David S . Miller" <davem@davemloft.net>, stable@vger.kernel.org,
+ Ramin Moussavi <ramin.moussavi@yacoub.de>,
+ Ludwig Rydberg <ludwig.rydberg@gaisler.com>
+References: <20261016080942.13167-1-kaloz@kernel.org>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20261016080942.13167-1-kaloz@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: GVZP280CA0026.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:150:276::17) To MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:190:2f::5)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDE2MDAzOCBTYWx0ZWRfX2LzCHajlMKu+
- WDtTDJv54Iv9QPqy8eXThgjll9cI6vk98Xia7sNQNzLz0iA9UQMxo9T4JDrtlaySjak8f2UjSEd
- Man6OOgM5+Hl7tROJSddQ5/YcpqKA64=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDE2MDAzOCBTYWx0ZWRfXxPVaXQpsBLnv
- 6z+C5BHGYHI7dsBwmDBM7/aw3OFa9cQce3YujqdLd85f16xLKUYwqaqmo2cRYCGuXDO87Uz+20s
- GFOYucFhskUW1bJQ/nml9hw87uMMdArZSMfkYs86RYMSw1rLxdVMX0Mgdl4ak2LTC/HEEpiYHeM
- W3LSMj/37aDwUPliZ6l0P+Ho7epMe8j60+Ajf4lhXY88Ms3n/d+UfVRhl7AuEDr1/IvaX4Bkfv0
- TU+z2Sy1Ym1uEeHEJWE/P0MkRy1KTtClq0VEw7vbH1fcxyuc1BuJlTFMi99tofcDkT9ByaV23/f
- +2uo34MZtiBitJu9YAuYqmyPjZIfG2eKw6EKwgjdU4OIxbEoE7jOJuOHIcalYMXqxSGF5hf4z6N
- /b2aspsLLa+QAnBGfDztKC2GwvGrPFe/+wibZU4+n/NSICd48Vpplx1tsG/nMJYbetSXxa/HwUB
- L0I90BLIf9qGK21rN0A==
-X-Proofpoint-GUID: IL0R-bRx5Zo-CVHUKEE0Opykcs2lTHKR
-X-Authority-Analysis: v=2.4 cv=RoFQvymK c=1 sm=1 tr=0 ts=6ad1f553 cx=c_pps
- a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
- a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
- a=uAbxVGIbfxUO_5tXvNgY:22 a=VnNF1IyMAAAA:8 a=jggbHb6qoK4FGpBOhhEA:9
-X-Proofpoint-ORIG-GUID: 2M4W7yLkiR76qY99sAmf4huQ0PRMzNDt
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-10-14_01,2026-10-14_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 spamscore=0 phishscore=0 adultscore=0 bulkscore=0
- impostorscore=0 suspectscore=0 malwarescore=0 clxscore=1011
- lowpriorityscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610080000
- definitions=main-2610160038
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MM0P280MB495062:EE_|MM0P280MB1980:EE_
+X-MS-Office365-Filtering-Correlation-Id: 94ae26de-e884-4741-b060-08df2b910d67
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|366016|1800799024|23010399003|56012099006|11063799006|261009223027099003|10067099003|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	fOIJA58QxquUAGiRIYlVdcqvbATLsuxx7WZafDLRSRI+SLKqSl5qVgWsvnBiXwGV8F9SJdBTOA6cuU5+/T4Pt07GeT212olsKSBY4HxsYJdTvk0bxg8mjXMXQYvRxcKfZ+xoP4x8e7iJ0EqSEDxBE0F8dszmMWdWl5nlD3RaQ5AWskM4Xsx3HkN7oKFpasxiNDPH1GTKwKhmJ0aXWkhLkO6zBcRzq8Pi6UZr5kfgzDzLfB8tepK0QDOC1HcLP0FWIJnaygQFNUjI1IXbrI3JpWRMY4b2b1U68uU+1pfi3LVeWTYzbnlUUplf3RouLzMgNkUaplU49fvsSFGin0arpBkFaSDG92qNna0uPmBYgHO3HeuSo76kdCxqq2hWPJ1NUMxtDvYYmeKbLRqspdebjBL0Ro/LCNNM+TqYtX16BJk20hVfIIpndD+Zw66Qwm1VSWAc2y56EgjOqWZuTbItR1+DebL+/88tX/YM8cisoC/LXLeZjIdBwOYeuPfJqyq2Fg0fnYhQe/1OzM6c3km5AVllsX3OeBzTByx/ap8GJ2It9lQCbSmpJsa3ji+QhCCOpfyPMpOn2PM7cmqKuo4EjgaMfh2kwq2+Fix+mgLFmKjkdsJGamsu9rjwqYiWM9Ia
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024)(23010399003)(56012099006)(11063799006)(261009223027099003)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?VDY2eC85elRCUlBNVmFjTmRCZk1OL2FnVzQ2bG9RZmw0b09MVlIvaktnR2xn?=
+ =?utf-8?B?c2VsZzRraWs3bHBmeC9JQzNrbUVQYjU2aSticDZmbDgwb1I2d3hnb3didHhu?=
+ =?utf-8?B?Rm84WHZ3eWJaUmZ0TWdYY2FqL1FMNXBMblRCVFFaeUpPcWV4clA0bnk5NXp3?=
+ =?utf-8?B?UGt3eUZwU2ZYM2w0WVBPc2JwaWJtaWxudmFtd2FjdHU5RTZoYXVXdFlsSDRm?=
+ =?utf-8?B?S2VMUEprcWJEa044TzRTMi85QWVZd3ZyV2RBOEVzMmllRXlwaWgrNlhhWWtT?=
+ =?utf-8?B?RGJxV2NJUXc4SXgyM0gvNnI3ZVhpZ3JVWnhkbkw0REpvRGw4dmZmSVllRExa?=
+ =?utf-8?B?bEttSDB1cmtkeUVvWFpzN0dpb2NsUktqQXo2aGNpdmZocVB1bE1lZi9Fd3lR?=
+ =?utf-8?B?ZFRsaCtKZVZ0YlVReGJoUHFIWDZISmsrejlSdTQ4WVhuSDJUUkpsWndoOHZV?=
+ =?utf-8?B?TWVFcjBZdlF0VHhKaktBNmVweG0xdXZ6b05iTEVxemJJSTF3Q2s4ODN0aUpT?=
+ =?utf-8?B?STZYaGcyRlFPc1lUeU51d2Q4Y3F6OGxpY2VaN0dpUVFtWVEyN0syT1dyMkln?=
+ =?utf-8?B?MXdoQXlGN0tudlN3TUlVaU5pRHNGZmJ1TGcxWlptanNsMFFPcFNtd0VZZFU3?=
+ =?utf-8?B?ckV1dkt0a3BwQkkvdXdtdnA2aGlhQnFNVUEybmRrcEJjVFFLbnpDbWZSSkZ1?=
+ =?utf-8?B?TEc3YUF2R3c5RS9tb1V6WnVrUTZ0MW5LUno2S1daNklqdjFXZS81cUpmN092?=
+ =?utf-8?B?eDRxbnFKU1hvbXU0cUtDNCs1TkI1WklIYVA1UzgvOUZrelg5akFEMjNEY0Iz?=
+ =?utf-8?B?cGtJbEE2WS9DbzJJcU1rc2hJQVFxVnRLS3FOZTkyeUFlVmEvMHNtbmUrYnE4?=
+ =?utf-8?B?V0IzZ0Mxd2ZCT0tZZzFpbDdhTUtscnhmdktYWUQ1OEpkVThjZ3dxZ3BqZENL?=
+ =?utf-8?B?S0lBTS9zQzBESmJyNlpHdUF5MGlGRFlmOEJIMDVtTW8rU1pFbCtwMEtrd1kv?=
+ =?utf-8?B?RG9hV2RpUVVkMW5pQlpPdEdBY2h3ZjVFeXBUQkt6aU1zYVIreDJ1ekpKc3ZP?=
+ =?utf-8?B?aEU4MjllbmQzaUYvODAwUUhDSnNIR21OU0VWZUU5bVlaZEQ4blpFY2htN3da?=
+ =?utf-8?B?YUpzb2NRTDErV3pEcU5zY1k0QXBRYTAxa2xmNitZQnNqeVpFUlZoOUowajk2?=
+ =?utf-8?B?OU9yeDZxRVdhbFBHbFBkK0tCMHNpUEhOQzVtb0F0THl3Y1MwVm8rNlJwdlZj?=
+ =?utf-8?B?Q3Qwc0ZOMmx5aFpCTGczMi81UGtXUWRJY2V1RG8vOE1DclV2eUZLZDVXRmg5?=
+ =?utf-8?B?UXZxdGRXNi90TDNWTjdubEx3blF0RFRNSUFCTUlCcVpFbWsrRUViMnNXaWhK?=
+ =?utf-8?B?dDlJZlp5aml3aTZmR0RVZHV6dThUbHMvKzUwSUsvbzA5UU9mUG9maHIzOGsx?=
+ =?utf-8?B?SlEzdjJMMC9FdjF6MEt0L0ZtM0JhNEZQemJ5SVMySjA3MjBJOHA2Q0VKODVD?=
+ =?utf-8?B?MHdwL3c2dTBoWHMzUXVia1RrcXJ1ZVRad251OW9tZHFsWTZvYXVhNWE4MjN4?=
+ =?utf-8?B?SkVTajdyZkduR3hOVFNtOS9PQnlGYlA1Z09PbGJ1azgvMTgrVFNlTFVpRWFV?=
+ =?utf-8?B?QlMyVmpBNzhDYVN4QlI4OHM5OGlITmpWeXZzM3Axb3R4SW90T3Vmczk4N0FT?=
+ =?utf-8?B?WGhJUFYrWllwS2JWZHJtWHUyNHgrTENka0l5L2dKRjNSbS9rdWU2WW50aXVq?=
+ =?utf-8?B?Vzh5WDhENlF2c3VLc0l5OFVjMkZCWTJqR09id1BOSmlLajV5MTlTcld5TkhE?=
+ =?utf-8?B?RlN2bjdaaUMwQjc0emQzOGcrK0xWdm5DcmhIK2tVTDUwVDkxOThFVzhZK20z?=
+ =?utf-8?B?MVNSL3N3dlJFNFBVZERnVVNjOTJ0dTBGR3VobDNJSE1Ca0ZkQzVpK2RoSEtv?=
+ =?utf-8?B?TVI4bjZlb0tWdzhqOEZzNUxXNitvYThEK1F5aEVVRE51R2lTdHV3YkVLRldX?=
+ =?utf-8?B?cnU1SlZNVlREY3FoVk1Fd21kK1RzRkZEUTdIYm1oTG9BeUEwLzlQUTFSVkZh?=
+ =?utf-8?B?NzFNYUdsMDVhTFFGVWVZWkh4UVZOMUlqdFAzOHdZTHhOYWZETnRrUFV5cm1U?=
+ =?utf-8?B?TThPQzIvQjFMaXl5TThrWllUc3ROVFNwekllZGRCdnRMVjNwVldwcmRURERP?=
+ =?utf-8?B?Zm1idERXbThiRExGWFg4S2FzMm40Nm5EaE5RMy94OHhJNys4c2w0NkRFaHVR?=
+ =?utf-8?B?VkFLSnhuZXFSRmxTcnRDUkRZTnZtRllEdW5rL2VpSU56dXhFT1RNQis2UzNH?=
+ =?utf-8?B?Yy9pbGdCclVIYTg5aEUvaG45MHlQUUQxRys0c01jbk1hTFBBS3cvb093bExj?=
+ =?utf-8?Q?4x7i7jAMOwM3Vjkg=3D?=
+X-OriginatorOrg: gaisler.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 94ae26de-e884-4741-b060-08df2b910d67
+X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB495062.SWEP280.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Oct 2026 14:23:30.6085
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: S4HwQe69Pxw1L593y7TeiA6t2gdaw4U2vXc4ZJwk5/QvFeEzGRcf3maIm+pdUPFP/p+ccZsFehXA6iqvNwH9dwf81h1U9e05uJ1et+KXbP0=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MM0P280MB1980
 
-Commit 21641bd9a7a7 ("lazy tlb: fix hotplug exit race with
-MMU_LAZY_TLB_SHOOTDOWN") moved the handling previously performed by
-idle_task_exit() into the scheduler CPU hotplug path using
-sched_force_init_mm().
+On 2026-10-16 10:09, Imre Kaloz wrote:
+> smp4m_ticker returns from smp4m_percpu_timer_interrupt() by writing the
+> interrupted %psr back with traps enabled, which drops PIL before
+> RESTORE_ALL. A level 14 tick pending again at that point can be taken
+> on top of the current trap frame, and back-to-back ticks can nest until
+> the 8K kernel stack runs into thread_info. Keep PIL at 15 until rett
+> restores the interrupted %psr, as real_irq_continue does.
+> 
+> smp4d_ticker and smpleon_ipi exit the same way and get the same change.
+> 
+> Broken since 2.1.36 (sun4m), 2.1.97 (sun4d) and 2.6.33 (LEON).
+> 
+> Cc: stable@vger.kernel.org
+> Tested-by: Ramin Moussavi <ramin.moussavi@yacoub.de>
+> Tested-by: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
+> Signed-off-by: Imre Kaloz <kaloz@kernel.org>
+> ---
+> 
+> Notes:
+>     No Fixes: tag: this has been broken since 2.1.36 on sun4m (as
+>     smp_ticker) and since 2.1.97 on sun4d, before the git history. The
+>     LEON exit came with smpleon_ticker in 8401707ff645 ("sparc,leon:
+>     Sparc-Leon SMP support") in 2.6.33 and moved to smpleon_ipi in 3.0; a
+>     Fixes: tag naming one commit would date all three sites to it.
+> 
+> Changes in v2:
+> - Shorten the exit-path comments (Andreas Larsson)
+> 
+> v1: https://lore.kernel.org/r/20260927005658.8242-1-kaloz@kernel.org
+> 
+>  arch/sparc/kernel/entry.S | 9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+> index ea51ef52c952..7ceaa328a9e3 100644
+> --- a/arch/sparc/kernel/entry.S
+> +++ b/arch/sparc/kernel/entry.S
+> @@ -252,7 +252,8 @@ smp4m_ticker:
+>  	WRITE_PAUSE
+>  	call	smp4m_percpu_timer_interrupt
+>  	 add	%sp, STACKFRAME_SZ, %o0
+> -	wr	%l0, PSR_ET, %psr
+> +	or	%l0, PSR_PIL, %g2	! keep PIL raised until rett
+> +	wr	%g2, PSR_ET, %psr
+>  	WRITE_PAUSE
+>  	RESTORE_ALL
+>  
+> @@ -353,7 +354,8 @@ smp4d_ticker:
+>  	WRITE_PAUSE
+>  	call	smp4d_percpu_timer_interrupt
+>  	 add	%sp, STACKFRAME_SZ, %o0
+> -	wr	%l0, PSR_ET, %psr
+> +	or	%l0, PSR_PIL, %g2	! keep PIL raised until rett
+> +	wr	%g2, PSR_ET, %psr
+>  	WRITE_PAUSE
+>  	RESTORE_ALL
+>  
+> @@ -407,7 +409,8 @@ smpleon_ipi:
+>  	WRITE_PAUSE
+>  	call	leonsmp_ipi_interrupt
+>  	 add	%sp, STACKFRAME_SZ, %o1 ! pt_regs
+> -	wr	%l0, PSR_ET, %psr
+> +	or	%l0, PSR_PIL, %g2	! keep PIL raised until rett
+> +	wr	%g2, PSR_ET, %psr
+>  	WRITE_PAUSE
+>  	RESTORE_ALL
+>  
+> 
+> base-commit: 24a19b953e2a3d0ea5a8c4951a0ab8f32720c907
 
-As a result, idle_task_exit() is now an empty stub and the remaining
-architecture call sites have no effect.
+Reviewed-by: Andreas Larsson <andreas@gaisler.com>
 
-Remove the calls to idle_task_exit() and the now unused stub.
+Picking this up to my for-next.
 
-Signed-off-by: Srikar Dronamraju <srikar@linux.ibm.com>
----
- arch/arm/kernel/smp.c                        | 2 --
- arch/arm64/kernel/smp.c                      | 2 --
- arch/csky/kernel/smp.c                       | 2 --
- arch/loongarch/kernel/smp.c                  | 2 --
- arch/mips/cavium-octeon/smp.c                | 1 -
- arch/mips/kernel/smp-bmips.c                 | 1 -
- arch/mips/kernel/smp-cps.c                   | 1 -
- arch/mips/loongson64/smp.c                   | 1 -
- arch/parisc/kernel/process.c                 | 2 --
- arch/powerpc/platforms/85xx/smp.c            | 2 --
- arch/powerpc/platforms/powermac/smp.c        | 2 --
- arch/powerpc/platforms/powernv/smp.c         | 1 -
- arch/powerpc/platforms/pseries/hotplug-cpu.c | 2 --
- arch/powerpc/platforms/pseries/pmem.c        | 1 -
- arch/riscv/kernel/cpu-hotplug.c              | 2 --
- arch/s390/kernel/smp.c                       | 1 -
- arch/sh/kernel/smp.c                         | 1 -
- arch/sparc/kernel/smp_64.c                   | 2 --
- arch/x86/kernel/smpboot.c                    | 2 --
- arch/xtensa/kernel/smp.c                     | 1 -
- include/linux/sched/hotplug.h                | 2 --
- 21 files changed, 33 deletions(-)
-
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index b5fb4697bc3f..bbfbbe728b7a 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -319,8 +319,6 @@ void __noreturn arch_cpu_idle_dead(void)
- {
- 	unsigned int cpu = smp_processor_id();
- 
--	idle_task_exit();
--
- 	local_irq_disable();
- 
- 	/*
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index a61dc3016a11..afb5aa65d737 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -370,8 +370,6 @@ void __noreturn cpu_die(void)
- 	unsigned int cpu = smp_processor_id();
- 	const struct cpu_operations *ops = get_cpu_ops(cpu);
- 
--	idle_task_exit();
--
- 	local_daif_mask();
- 
- 	/* Tell cpuhp_bp_sync_dead() that this CPU is now safe to dispose of */
-diff --git a/arch/csky/kernel/smp.c b/arch/csky/kernel/smp.c
-index 92dbbf3e0205..e6333ccc335a 100644
---- a/arch/csky/kernel/smp.c
-+++ b/arch/csky/kernel/smp.c
-@@ -294,8 +294,6 @@ void arch_cpuhp_cleanup_dead_cpu(unsigned int cpu)
- 
- void __noreturn arch_cpu_idle_dead(void)
- {
--	idle_task_exit();
--
- 	cpuhp_ap_report_dead();
- 
- 	while (!secondary_stack)
-diff --git a/arch/loongarch/kernel/smp.c b/arch/loongarch/kernel/smp.c
-index 11f54837f56c..6b21af1c25e0 100644
---- a/arch/loongarch/kernel/smp.c
-+++ b/arch/loongarch/kernel/smp.c
-@@ -478,7 +478,6 @@ static void __noreturn idle_play_dead(void)
- 	register uint64_t addr;
- 	register void (*init_fn)(void);
- 
--	idle_task_exit();
- 	local_irq_enable();
- 	set_csr_ecfg(ECFGF_IPI);
- 	__this_cpu_write(cpu_state, CPU_DEAD);
-@@ -503,7 +502,6 @@ static void __noreturn poll_play_dead(void)
- 	register uint64_t addr;
- 	register void (*init_fn)(void);
- 
--	idle_task_exit();
- 	__this_cpu_write(cpu_state, CPU_DEAD);
- 
- 	__smp_mb();
-diff --git a/arch/mips/cavium-octeon/smp.c b/arch/mips/cavium-octeon/smp.c
-index 054e331b3202..0e557e76d616 100644
---- a/arch/mips/cavium-octeon/smp.c
-+++ b/arch/mips/cavium-octeon/smp.c
-@@ -344,7 +344,6 @@ void play_dead(void)
- {
- 	int cpu = cpu_number_map(cvmx_get_core_num());
- 
--	idle_task_exit();
- 	cpuhp_ap_report_dead();
- 	octeon_processor_boot = 0xff;
- 	per_cpu(cpu_state, cpu) = CPU_DEAD;
-diff --git a/arch/mips/kernel/smp-bmips.c b/arch/mips/kernel/smp-bmips.c
-index 35b8d810833c..e4a523b7c988 100644
---- a/arch/mips/kernel/smp-bmips.c
-+++ b/arch/mips/kernel/smp-bmips.c
-@@ -391,7 +391,6 @@ static void bmips_cpu_die(unsigned int cpu)
- 
- void __ref play_dead(void)
- {
--	idle_task_exit();
- 	cpuhp_ap_report_dead();
- 
- 	/* flush data cache */
-diff --git a/arch/mips/kernel/smp-cps.c b/arch/mips/kernel/smp-cps.c
-index b01ebaace48e..51e68a42bcc8 100644
---- a/arch/mips/kernel/smp-cps.c
-+++ b/arch/mips/kernel/smp-cps.c
-@@ -804,7 +804,6 @@ void play_dead(void)
- 	unsigned int cpu;
- 
- 	local_irq_disable();
--	idle_task_exit();
- 	cpu = smp_processor_id();
- 	cpu_death = CPU_DEATH_POWER;
- 
-diff --git a/arch/mips/loongson64/smp.c b/arch/mips/loongson64/smp.c
-index e584299d0fde..73eca9c44b04 100644
---- a/arch/mips/loongson64/smp.c
-+++ b/arch/mips/loongson64/smp.c
-@@ -766,7 +766,6 @@ void play_dead(void)
- 	unsigned int cpu = smp_processor_id();
- 	void (*play_dead_at_ckseg1)(int *);
- 
--	idle_task_exit();
- 	cpuhp_ap_report_dead();
- 
- 	prid_imp = read_c0_prid() & PRID_IMP_MASK;
-diff --git a/arch/parisc/kernel/process.c b/arch/parisc/kernel/process.c
-index 703644e5bfc4..8606ecde4c30 100644
---- a/arch/parisc/kernel/process.c
-+++ b/arch/parisc/kernel/process.c
-@@ -164,8 +164,6 @@ EXPORT_SYMBOL(running_on_qemu);
- void __noreturn arch_cpu_idle_dead(void)
- {
- #ifdef CONFIG_HOTPLUG_CPU
--	idle_task_exit();
--
- 	local_irq_disable();
- 
- 	/* Tell the core that this CPU is now safe to dispose of. */
-diff --git a/arch/powerpc/platforms/85xx/smp.c b/arch/powerpc/platforms/85xx/smp.c
-index 32fa5fb557c0..9dc81e4226f0 100644
---- a/arch/powerpc/platforms/85xx/smp.c
-+++ b/arch/powerpc/platforms/85xx/smp.c
-@@ -121,8 +121,6 @@ static void smp_85xx_cpu_offline_self(void)
- 	/* mask all irqs to prevent cpu wakeup */
- 	qoriq_pm_ops->irq_mask(cpu);
- 
--	idle_task_exit();
--
- 	mtspr(SPRN_TCR, 0);
- 	mtspr(SPRN_TSR, mfspr(SPRN_TSR));
- 
-diff --git a/arch/powerpc/platforms/powermac/smp.c b/arch/powerpc/platforms/powermac/smp.c
-index 88e92af8acf9..f8e674cfcdd7 100644
---- a/arch/powerpc/platforms/powermac/smp.c
-+++ b/arch/powerpc/platforms/powermac/smp.c
-@@ -925,7 +925,6 @@ static void pmac_cpu_offline_self(void)
- 	int cpu = smp_processor_id();
- 
- 	local_irq_disable();
--	idle_task_exit();
- 	pr_debug("CPU%d offline\n", cpu);
- 	generic_set_cpu_dead(cpu);
- 	smp_wmb();
-@@ -940,7 +939,6 @@ static void pmac_cpu_offline_self(void)
- 	int cpu = smp_processor_id();
- 
- 	local_irq_disable();
--	idle_task_exit();
- 
- 	/*
- 	 * turn off as much as possible, we'll be
-diff --git a/arch/powerpc/platforms/powernv/smp.c b/arch/powerpc/platforms/powernv/smp.c
-index b1201dbafcaf..9a480c924020 100644
---- a/arch/powerpc/platforms/powernv/smp.c
-+++ b/arch/powerpc/platforms/powernv/smp.c
-@@ -172,7 +172,6 @@ static void pnv_cpu_offline_self(void)
- 
- 	/* Standard hot unplug procedure */
- 
--	idle_task_exit();
- 	cpu = smp_processor_id();
- 	DBG("CPU%d offline\n", cpu);
- 	generic_set_cpu_dead(cpu);
-diff --git a/arch/powerpc/platforms/pseries/hotplug-cpu.c b/arch/powerpc/platforms/pseries/hotplug-cpu.c
-index bc6926dbf148..1ade9a811157 100644
---- a/arch/powerpc/platforms/pseries/hotplug-cpu.c
-+++ b/arch/powerpc/platforms/pseries/hotplug-cpu.c
-@@ -19,7 +19,6 @@
- #include <linux/kernel.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
--#include <linux/sched.h>	/* for idle_task_exit */
- #include <linux/sched/hotplug.h>
- #include <linux/cpu.h>
- #include <linux/of.h>
-@@ -64,7 +63,6 @@ static void pseries_cpu_offline_self(void)
- 	unsigned int hwcpu = hard_smp_processor_id();
- 
- 	local_irq_disable();
--	idle_task_exit();
- 	if (xive_enabled())
- 		xive_teardown_cpu();
- 	else
-diff --git a/arch/powerpc/platforms/pseries/pmem.c b/arch/powerpc/platforms/pseries/pmem.c
-index 0f1d45f32e4a..af48dfebb640 100644
---- a/arch/powerpc/platforms/pseries/pmem.c
-+++ b/arch/powerpc/platforms/pseries/pmem.c
-@@ -9,7 +9,6 @@
- #include <linux/kernel.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
--#include <linux/sched.h>	/* for idle_task_exit */
- #include <linux/sched/hotplug.h>
- #include <linux/cpu.h>
- #include <linux/of.h>
-diff --git a/arch/riscv/kernel/cpu-hotplug.c b/arch/riscv/kernel/cpu-hotplug.c
-index 0bc56d8381b6..348043122593 100644
---- a/arch/riscv/kernel/cpu-hotplug.c
-+++ b/arch/riscv/kernel/cpu-hotplug.c
-@@ -66,8 +66,6 @@ void arch_cpuhp_cleanup_dead_cpu(unsigned int cpu)
-  */
- void __noreturn arch_cpu_idle_dead(void)
- {
--	idle_task_exit();
--
- 	cpuhp_ap_report_dead();
- 
- 	cpu_ops->cpu_stop();
-diff --git a/arch/s390/kernel/smp.c b/arch/s390/kernel/smp.c
-index 32499cad86f0..dd1d40ec5440 100644
---- a/arch/s390/kernel/smp.c
-+++ b/arch/s390/kernel/smp.c
-@@ -918,7 +918,6 @@ void __cpu_die(unsigned int cpu)
- 
- void __noreturn cpu_die(void)
- {
--	idle_task_exit();
- 	pcpu_sigp_retry(this_cpu_ptr(&pcpu_devices), SIGP_STOP, 0);
- 	for (;;) ;
- }
-diff --git a/arch/sh/kernel/smp.c b/arch/sh/kernel/smp.c
-index 108d808767fa..afd57bdce04e 100644
---- a/arch/sh/kernel/smp.c
-+++ b/arch/sh/kernel/smp.c
-@@ -108,7 +108,6 @@ int native_cpu_disable(unsigned int cpu)
- 
- void play_dead_common(void)
- {
--	idle_task_exit();
- 	irq_ctx_exit(raw_smp_processor_id());
- 	mb();
- 
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 371460e34484..e98b5ddebc9e 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1290,8 +1290,6 @@ void cpu_play_dead(void)
- 	int cpu = smp_processor_id();
- 	unsigned long pstate;
- 
--	idle_task_exit();
--
- 	if (tlb_type == hypervisor) {
- 		struct trap_per_cpu *tb = &trap_block[cpu];
- 
-diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
-index ba01a9e919b7..dcbaf3f27862 100644
---- a/arch/x86/kernel/smpboot.c
-+++ b/arch/x86/kernel/smpboot.c
-@@ -1407,8 +1407,6 @@ int native_cpu_disable(void)
- 
- void play_dead_common(void)
- {
--	idle_task_exit();
--
- 	cpuhp_ap_report_dead();
- 
- 	local_irq_disable();
-diff --git a/arch/xtensa/kernel/smp.c b/arch/xtensa/kernel/smp.c
-index e4c25d0c2158..094e1da933a6 100644
---- a/arch/xtensa/kernel/smp.c
-+++ b/arch/xtensa/kernel/smp.c
-@@ -336,7 +336,6 @@ void __noreturn arch_cpu_idle_dead(void)
-  */
- void __ref cpu_die(void)
- {
--	idle_task_exit();
- 	local_irq_disable();
- 	__asm__ __volatile__(
- 			"	movi	a2, cpu_restart\n"
-diff --git a/include/linux/sched/hotplug.h b/include/linux/sched/hotplug.h
-index 17e04859b9a4..18fa3e63123e 100644
---- a/include/linux/sched/hotplug.h
-+++ b/include/linux/sched/hotplug.h
-@@ -18,6 +18,4 @@ extern int sched_cpu_dying(unsigned int cpu);
- # define sched_cpu_dying	NULL
- #endif
- 
--static inline void idle_task_exit(void) {}
--
- #endif /* _LINUX_SCHED_HOTPLUG_H */
--- 
-2.52.0
+Thanks,
+Andreas
 
