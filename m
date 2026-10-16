@@ -1,154 +1,148 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
+Received: from MM0P280CU009.outbound.protection.outlook.com (mail-swedensouthazon11021137.outbound.protection.outlook.com [52.101.76.137])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1C3D25B091;
-	Fri, 16 Oct 2026 05:15:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.2
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792127728; cv=none; b=fg2QoMQB0UFSga04u95D210n7S1CmFZtLsiBI38bFaBvStr2PHrT0/sGAYSwotftpgMOuJb3UtSATXb9gCAzz15TR2CFxFsgA+h5kKsSKiqJIs/mK/sMwMGQ1EyBoRGXscVp8huEO5LZkkh0vRQTWSzSWMP3MeSX/wQiuvbqDr0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792127728; c=relaxed/simple;
-	bh=3Lkcc8H7OSsvw4QKrxbjbmw/ALTLOqKIBxNk7g3as+c=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bbceWbbZuNq7MYuwwszQD07MLSMo/QBTmIxmgt9BKLvdnNCk8goFHcXUvAN8plJX+P0vgsTJOsyQ+LX/CtlDFOwi9E8sLwz8y48Eq+V5Kah1krGJ9V9Twy17KIUGbRgVmWr8yUO2l8J7XeFtqRa7VbBxVbeQ5PKV0BncQZ5mRS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=ZzK8QWhR; arc=none smtp.client-ip=117.135.210.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 871A81E98EF;
+	Fri, 16 Oct 2026 06:06:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.76.137
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792130800; cv=fail; b=jFtmds+tMkpQ1P8gmHloj5An1ztYklhCAxnwGUHe4ETrXZgdF8BqBqR4H2LMMfy65Jcb1Z43FZE8EIL+OkdAQRli78gez4ObweMtfJowPHSD3uBUHpt26+WdGT3OGZuOQcCk904kKxHhK2h18u5vsTioSIvP3D8wvG2UMovRdUk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792130800; c=relaxed/simple;
+	bh=lyPIWBzS0Ew8wdtWSDeW8dvKlFREmqY648nGyrX9HoU=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=a3uwfgPRcDoq3eSBEzHNkrkaG5pELGi71JKOM+jfkEM7zKf3sNJo0T89r0i35cs9yOGO63uvwv4ENVCPDK1G+SbGOjsXj7oGkHSqnPAwcZM9svm6bGt0WgSkWdF8Jztdqzdk2VGHqdFnbZ7uQ82TZCj37NZirbm8n7FCFvRqo+s=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=bo7Gcbmk; arc=fail smtp.client-ip=52.101.76.137
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="ZzK8QWhR"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=X9
-	zZtpBTNtwIeKmOEiZ6v6fbm/DBfQrHDFlivSmpwJY=; b=ZzK8QWhROGbPnUlSzK
-	0HpaHL9VnvPcZJ42FUcD75LTQ85bjk6mItOo0X4dZJtkYGNxAr74L3grMtwIJ2Rt
-	ZFMzr7MmKF9Ob+ssnrixR9slN7gwWko5o6bGnbaHhs5NduHUdFI+HbYulFswTbGu
-	RI6mY4DyEsnmKvGIwnYGYWvhE=
-Received: from ubuntu.. (unknown [])
-	by gzga-smtp-mtada-g0-4 (Coremail) with SMTP id _____wDnL761stFq5CnUAQ--.19128S4;
-	Fri, 16 Oct 2026 13:14:35 +0800 (CST)
-From: Ma Ke <make_ruc2021@163.com>
-To: davem@davemloft.net,
-	andreas@gaisler.com,
-	o-takashi@sakamocchi.jp,
-	bhelgaas@google.com,
-	dakr@kernel.org,
-	u.kleine-koenig@baylibre.com,
-	make_ruc2021@163.com
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	akpm@linux-foundation.org,
-	stable@vger.kernel.org
-Subject: [PATCH v2] sparc: Fix leaked platform_device references from of_find_device_by_node()
-Date: Fri, 16 Oct 2026 13:14:26 +0800
-Message-ID: <20261016051426.2317433-1-make_ruc2021@163.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="bo7Gcbmk"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=SFk9KEoL2/ADNeAU8SKDoGEr1s7XzDuJG3Jc2i2t5AyJLUPyAx2HfbzjJoGTJYMLA+vuU+SO4S5syHnrhvrHcsw9c7Hp+7tSkxxEZNERVWyQP1eyDfXSPphCLWKITCS36w5FbKIIZKmfx6rzAsE/CaOBB0tGZRzK1BNsMARiX+jDq0DIYnCcHEGjl0pON44WJbrQNbDR8bvCfR/tG22q12ukwgdNHE2Pxy1D6jffvUmPRfZYNirG0tkx6nIoNuLb2C7LybYnuFSx2d7P+sL58ziFBT4ivDHH6yWke7r4LLTyqxWT8Xcou2tnYu9Eup8d/jiOd2RUQ6vkveIDoC53cw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=bSBRYFsk1upOoiJsqJxb+rHxgO9fBr9PG6+1KhRZx7w=;
+ b=Dn2kYRbz0xqB3ngwp5bIvgZFUArk54CFcufY/coCQg3HEvGAdBGAz9Z+Tb9uDGBXwYlo5uwAFZUhS+bbULLSmR3dV5jdsFA5iqggEwZEOmzpIhfii8M49A1naeRXZ6BhDZsKyF7Igix8PGIqkdY60HhWW/deX/EkV/rvVgigV18NKLmkWs3alltnlKoez5Pn7itgx9/t/saJHqrWIvrIWu+12ED+fFXFWGESNbaHWoXiIgmv4ujqnD1k1MvcoPMwN80N/SxhQb1ZTkEMrnTWNDy7O/paJzFtSmwVTshgbThpl1m/rWbPjh7j+bZHOcbJnGb4blfwmi7WQV+tSyqhTg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=gaisler.com; dmarc=pass action=none header.from=gaisler.com;
+ dkim=pass header.d=gaisler.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=bSBRYFsk1upOoiJsqJxb+rHxgO9fBr9PG6+1KhRZx7w=;
+ b=bo7GcbmkC709hY9jjpcgMBtfpJHlLi5KQQZmxQ+E2tQWYweEkNHmAfgvQwUwcxiioyYNwMo0O6+2Iru3+hLDmkwlQiY51RlM+H01PqflRQh0p6NH24thZ5N+VTm59vmJgIDty/+BDlH+cUBM1zWpLPGic3SiKTcLsCqQrHW43IqmhwS39X8dpkWu0yYr8rtaXYOHk32G4sUcFb3Y3i2s4QV5l31LJ2Bf3t9G9FAhrNkXzC8SneFodxuJWyWodXKddHno4fSNn/5xZGINr4AbieklS30eRybxesb4FfbrxAL5+WkKAzXrNxbcaU/+fpGu0w5K5jJbsQKF32nVrlpw1w==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=gaisler.com;
+Received: from MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:2::17) by
+ GV3P280MB1105.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:18a::16) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.496.23; Fri, 16 Oct 2026 06:06:31 +0000
+Received: from MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::8e01:811a:7101:e192]) by MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
+ ([fe80::8e01:811a:7101:e192%5]) with mapi id 15.21.0522.013; Fri, 16 Oct 2026
+ 06:06:30 +0000
+Message-ID: <bdea5f12-e00d-4a78-bb88-19bee4c0f929@gaisler.com>
+Date: Fri, 16 Oct 2026 08:06:28 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] sparc32: keep PIL raised on the SMP ticker and LEON IPI
+ exit paths
+To: Imre Kaloz <kaloz@kernel.org>, Andreas Larsson <andreas@gaisler.com>,
+ sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, stable@vger.kernel.org
+References: <20260927005658.8242-1-kaloz@kernel.org>
+Content-Language: en-US
+From: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
+In-Reply-To: <20260927005658.8242-1-kaloz@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: GV3P280CA0064.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:150:a::16) To MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:190:2::17)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wDnL761stFq5CnUAQ--.19128S4
-X-Coremail-Antispam: 1Uf129KBjvJXoWxZw1kGw47CFy5WFW5Ww1xXwb_yoW5urWUpr
-	ZrAay3GrW8Wr109r4kXr1kZF4F9r1Iyws3Wr13KF9Ygwn8JryYvr1Fqas2gFW5trWjka1j
-	yFs8tFW8J3yqvrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0piGjg7UUUUU=
-X-CM-SenderInfo: 5pdnvshuxfjiisr6il2tof0z/xtbC1Bvp9GrRsrs+yQAA3X
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MM0P280MB1058:EE_|GV3P280MB1105:EE_
+X-MS-Office365-Filtering-Correlation-Id: cb9b6ff0-f7b3-4a84-d1f9-08df2b4b9f45
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|376014|366016|23010399003|56012099006|11063799006|18002099003|22082099003|10067099003;
+X-Microsoft-Antispam-Message-Info:
+	VO+S+tbie+Tswtr1Waxb1vsagsYa8l4tWAkvicT95w6DB8RohnV7JoCivyl8f/AW2+hcPtSSY9Jr2mQt7o+BjGDGGIqO6vu0iiEv3YoZmeKnjblaYsNpn64xMHIjGptL95pY2WXFZ92XG1S9Vhx8AjhYvcSfZxkvguZhwa5wvKjNWjdOP3Twbb18uaCo3GhiuDez6/wUx4ZQa9tzU7zG4nMN8yOuL4jsjMzFwa+pjMp1ylrGT6rlxUkm4PRCLz9uC7uQFjX98TVXnwZrSIqaPWprI/DA0fvAN1RmyU/1EnNfrWA0V24WdcM0E6KqXyZncPM5LKWCjCxVuDuIQCJYA85YlGkO1wOvT4QmbJdRdmNaxf5chP6nIBqVb4pOjSxqqR8FDIEL0iE9HRaOKtTDOb2KyPDCf1WCp1fkHtbFWDEP58FzmKJFl6EFdunlcsEj8rcCV0T8ZvrKDnH7/eQ43B0izovssCRzW/eIituWOoobW8N8J3ItW566gz6V+9yxmGoyNpTAE1XxKeu0M7MlaqDeBTwQLiNt2y1GSugNYEZsLtZn+mTg8QRzQB9+rPMcAYPhLTQCnYk3ql/mOMu6vois7+Z5IgbWsAXYPRScqwwq2ZEkF+xpI1diOR60qXiUx1hPQuMJ6120+19gQcVuMV15CGVJRHb7IKpxrjUeP8c=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(23010399003)(56012099006)(11063799006)(18002099003)(22082099003)(10067099003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?NFJ4dHR3b2R6NUN5am5xZy9CNW52TkdPZGFOQ2ZKNy8ySW1YNUpKSnZaSVRh?=
+ =?utf-8?B?SUdrNFVrNzJwc09XSFBmRTIxcTlXMGprdjNZRXZ2TnEvQXBORlRUdnZjTnp5?=
+ =?utf-8?B?NEUzQjVlQWpYNTNSR3hVT2t0U0RJWktXUjc2NEVKK0wxeVliVlQxMlhzS000?=
+ =?utf-8?B?WTJrTFNVRG9hVUw1dS9zWFlYUFBGM0NrVVBFeWswZXd5eWhJcWtMV3JwZ1ps?=
+ =?utf-8?B?bEgxajJBSy93UEw5UkIvYnRBbEdmT0IybHBQRDBJY1pLQjBBZFpRK2hRYStj?=
+ =?utf-8?B?OVFuK0lUb2s4QjloZTEyRytONnBoQzBtU3lMajhvWGVyZjlSSHpmR0lwNTFU?=
+ =?utf-8?B?SWl4MkN4N3dxTllEMWVDTkJaejNhaTNLcWdVQ1JWUlN0ZGluOTk2NHF0SUtV?=
+ =?utf-8?B?bjFTZlBUSUc3Q3ZGa05jaWVGV3dFNTk2RlRDQmt1ZytITVFDdVdsRzJOU0Uw?=
+ =?utf-8?B?NmtmYTdDaVozdmRybGRpSG9LMzZsRHloU0ZxNmtvN0t1ZlpQSnZKMVJLdzFT?=
+ =?utf-8?B?bW5sZlFOYnM2bTFuZ1pjMVp0V2lpdmJwczVjMGJLUGRIaU1zcVZudWhRSlh3?=
+ =?utf-8?B?VXRPL2t4ck9iUVIyRmFhSDUzWWdidmRsZU41ZUFTeWsvSTRoMnBVNVc2bEFh?=
+ =?utf-8?B?R2hoUThIL2N6K25hVlBYNXdpdlZPY2R0cE9FM1U2cng3dzhaS2ZCTHMxRVl6?=
+ =?utf-8?B?d1krRDgxbUV4SjBSdlNLcTZRcWs1dGk1T3huK1JKRk1rVnord1lRakZseFln?=
+ =?utf-8?B?WXBRU0dlejcrSDhhb2ExeVY0VFFjVkduaE5Dazc3Tis0Uk5RSXhkSnd5QS8v?=
+ =?utf-8?B?QTJyM2xjSmpYMG9iVFdnMXIzdE0xNEFHUGt6M1l3ZlVCcm1DcGZibklFYjN3?=
+ =?utf-8?B?UEN4VGZoWVZtOXFXc2JwZ2FsbHZGblRKQ1JoSjJOb2xZYXJMV05oRVdhNFh0?=
+ =?utf-8?B?dEtlZWM3VExRV3RBQllScnhzc1FPdTFnbVhOcGxiM2hWRG9SeHREM3g0UEtT?=
+ =?utf-8?B?a1dkRXoyMnRpcklRQUlmYUhnem1LaUtyVDhSczZ3dzM1SGIvZHAvQ0dkOXNw?=
+ =?utf-8?B?b3ZqZ09XZ0dKaS9pRzJnZCt5UzBMUVpId1dSdzdxTEdERkxQc2ZQRmRlQmQ0?=
+ =?utf-8?B?SUYxdGFTUTdvRVFoMnM0emxsbDQrK1ZnZ283YUNYUFBXSHhnMkg4QjB3ZDNZ?=
+ =?utf-8?B?VEs2MzQ0cUNLNkQ1b01ORGZBYUZlVUZkRTd0YXQyYzNRN3U4WHJpOEoxL3Bi?=
+ =?utf-8?B?TmRvcGxINTZWYTZRQyszdzlrZ3lGM1VYRXdLZ28yNERtcXh1akhEcnFTYy8z?=
+ =?utf-8?B?NWZ2TGtGa0NLUXd0bmZxOGZxT211Z2dPTTlWTGhYcW5BSExOQXhEV2h2a2py?=
+ =?utf-8?B?MHZSczk5OHY5cGRxWXEyRVh5dXpRdmlLRHJqVUZoNGhScm5zdG12dXFFNDM1?=
+ =?utf-8?B?YURQbEp3b3o0byswWXNqM0E0L0xXaWVFWTkyM1lmcTFWRjA4R0l4MVlkVzNO?=
+ =?utf-8?B?dnNBSGxnQkpaVXh2ZjRWZklIMGFxazVCaGtsY3NuM0tsMjlkMHpzMHpvVGR3?=
+ =?utf-8?B?MG9RVzgwUlVZdkFJeHZMZ3lRSWdLbk1keHQxR3hsL05lSUM5S29PREZwS1pw?=
+ =?utf-8?B?Q3FlWWdXNW50WVl5dHVjcWdSV01KejFHbWUzM0hwalNmUElnNnpKVkd1NmNG?=
+ =?utf-8?B?VHk0ZndyWmFPZndrVmY3NEF3MjZyTC9LRTRpUlExOU9WU1pKb0ROL3VtNm5R?=
+ =?utf-8?B?MVVDWnYrVCszTkdmaWZqRUtxTllMbzJKdmxsckRpNEkwTURrU0JSRW1razVt?=
+ =?utf-8?B?K1IyVE96THovMkd1MzdkSCtFbVFIS21iWnRjbkNaL05IcnlacXdQRVE1WHE4?=
+ =?utf-8?B?UVpFUkpMMUtlbEJuVU9EZWlBSlh1WmxBNG9ES29PS253VHF0QWZlaXJQZWtY?=
+ =?utf-8?B?alRrVmgyckpKazVNbjVBYy9OOFF3TTJjTGFEZnBsaUVBTlFTZ0lkbUt4ZVhn?=
+ =?utf-8?B?K256QysxdVExY2N0MDc0RkU1QVk3MXRGRkJYQ1pNT0NHNmh4WVJsdEgwYURS?=
+ =?utf-8?B?V2QxVjR5b3E2bGZHVmtnRVZCWlNOQzc0M3FNMHA3K1hCTlF3a2c5Y2NhSFBv?=
+ =?utf-8?B?SjNNczZUSE5TalROYWh2Sk1DZklCSEhxa0toQ2tMd1RCN0VzdTdQUi8waEtp?=
+ =?utf-8?B?eitYaEJYZHcxdnM0dDVHRVFhUitjbEcwUHhGQXJ1MlZDQzU1K1h2bEE5Q1Nz?=
+ =?utf-8?B?OHRhWlk0ZEx0UnBlYnhUWlFYSWNkRjRqSTE3UkN3ZGVNbDFmZS9YZzBXSmlp?=
+ =?utf-8?B?cDY4SndpbHVvRFNLTlBSYWNjMVcvQ25ZNHUzSXdFeWZTOW1pbG1nVGtTNG5S?=
+ =?utf-8?Q?QZbwzs6A9OOYJ0lk=3D?=
+X-OriginatorOrg: gaisler.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: cb9b6ff0-f7b3-4a84-d1f9-08df2b4b9f45
+X-MS-Exchange-CrossTenant-AuthSource: MM0P280MB1058.SWEP280.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Oct 2026 06:06:30.6286
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 91fa4a59-2167-458a-8318-e45d80469d7e
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: mabSPEPGeJj5qc+0kmnPyRApETAXVHqo/Og1StvaCDzfudDP0jXVBcUvmD7gl0+a5B+3EsEcBCaOK/hnF3D6yRIK5l06P4jVacjgT6swEtg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV3P280MB1105
 
-of_find_device_by_node() is documented in drivers/of/platform.c:
+On 9/27/26 02:56, Imre Kaloz wrote:
 
- * Takes a reference to the embedded struct device which needs to be
- * dropped after use.
+> @@ -407,7 +409,8 @@ smpleon_ipi:
+>  	WRITE_PAUSE
+>  	call	leonsmp_ipi_interrupt
+>  	 add	%sp, STACKFRAME_SZ, %o1 ! pt_regs
+> -	wr	%l0, PSR_ET, %psr
+> +	or	%l0, PSR_PIL, %g2	! keep PIL raised until rett, or a
+> +	wr	%g2, PSR_ET, %psr	! re-asserted IPI nests on this frame
+>  	WRITE_PAUSE
+>  	RESTORE_ALL
+>  
+Tested on a GR-CPCI-GR740 board (LEON4).
 
-Several functions in arch/sparc/kernel/of_device_common.c look a
-device up that way and never drop the reference:
-irq_of_parse_and_map(), of_address_to_resource(), of_iomap() and
-of_propagate_archdata(). On sparc these are the arch overrides of the
-generic OF helpers, so a reference leaks on every interrupt mapping,
-address translation and ioremap, and of_propagate_archdata()
-additionally leaks one per child node because it recurses.
+Tested-by: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
 
-Release the reference once the value has been read out of the device.
-
-Found by code review.
-
-Fixes: 44266215e3c8 ("sparc: Implement irq_of_parse_and_map() and irq_dispose_mapping().")
-Fixes: 930952af15f8 ("sparc: Implement of_address_to_resource().")
-Fixes: 9889376ab91f ("sparc: Implement of_iomap().")
-Fixes: 5059625ed886 ("sparc: Add OF archdata propagation helper.")
-Cc: stable@vger.kernel.org
-Signed-off-by: Ma Ke <make_ruc2021@163.com>
----
-Changes in v2:
-- Cover irq_of_parse_and_map(), of_address_to_resource() and 
-  of_iomap() as well. They are in the same file and leaked the 
-  reference in the same way, so the subject was widened from "in 
-  archdata propagation" to match, and the Fixes tags are now one per 
-  function.
-- of_create_pci_dev() in arch/sparc/kernel/pci.c looks similar but is 
-  not. It hands the device to pci_init_dev_archdata(), which stores it
-  in sd->op, and keeps using it afterwards, so the reference is 
-  deliberately held there.
----
- arch/sparc/kernel/of_device_common.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/of_device_common.c b/arch/sparc/kernel/of_device_common.c
-index 7f2f9972b59b..e2e1c1e97f90 100644
---- a/arch/sparc/kernel/of_device_common.c
-+++ b/arch/sparc/kernel/of_device_common.c
-@@ -15,11 +15,15 @@
- unsigned int irq_of_parse_and_map(struct device_node *node, int index)
- {
- 	struct platform_device *op = of_find_device_by_node(node);
-+	unsigned int irq;
- 
- 	if (!op || index >= op->archdata.num_irqs)
- 		return 0;
- 
--	return op->archdata.irqs[index];
-+	irq = op->archdata.irqs[index];
-+	platform_device_put(op);
-+
-+	return irq;
- }
- EXPORT_SYMBOL(irq_of_parse_and_map);
- 
-@@ -32,6 +36,8 @@ int of_address_to_resource(struct device_node *node, int index,
- 		return -EINVAL;
- 
- 	memcpy(r, &op->archdata.resource[index], sizeof(*r));
-+	platform_device_put(op);
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(of_address_to_resource);
-@@ -40,13 +46,16 @@ void __iomem *of_iomap(struct device_node *node, int index)
- {
- 	struct platform_device *op = of_find_device_by_node(node);
- 	struct resource *r;
-+	void __iomem *ret;
- 
- 	if (!op || index >= op->num_resources)
- 		return NULL;
- 
- 	r = &op->archdata.resource[index];
-+	ret = of_ioremap(r, 0, resource_size(r), (char *) r->name);
-+	platform_device_put(op);
- 
--	return of_ioremap(r, 0, resource_size(r), (char *) r->name);
-+	return ret;
- }
- EXPORT_SYMBOL(of_iomap);
- 
-@@ -70,6 +79,8 @@ void of_propagate_archdata(struct platform_device *bus)
- 
- 		if (dp->child)
- 			of_propagate_archdata(op);
-+
-+		platform_device_put(op);
- 	}
- }
- 
--- 
-2.43.0
-
+// Ludwig
