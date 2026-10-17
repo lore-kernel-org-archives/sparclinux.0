@@ -1,92 +1,53 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from a3.inai.de (a3.inai.de [144.76.212.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DE482E719B;
-	Sat, 17 Oct 2026 10:34:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30DF348FF9C;
+	Sat, 17 Oct 2026 14:47:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792233251; cv=none; b=kK/j/btUaQT/9wEjRDoNo2JUngRCtfNqB9KbAVzJ5UewPBHYv6SgCVsXaGISjap8pCDuafpPF9OKJ6gNToonQei8SzHh37As/r7nJD1/R6ggXEaa+R670N0Rt+EXZZZCF/JEMWrxN/Dezua3rdxJNrzH1Q5yGHc4/L/qRqTGXgI=
+	t=1792248462; cv=none; b=TC2QZGFzqQ16Biz1PAmvEgtS/DiPoYQV1Xr5iViIeUVvch/I1pFrmqAS5OH7rik5+m/87n0NZeOHvAOz3oy2anLszLgjqe4m5nIDeZ8d7qIxNNYNxY8J4JAXcrdI7EOUKXuo5eS+8N/8s8Q7SyAOCzY+H9AlKbc3j/5d/q/Huw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792233251; c=relaxed/simple;
-	bh=qBONbEIboh2MlAgrG1UFsbiiLfsszbTEih8wpPe671A=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=IMnvFgnfEuVy+xwFiYSR7127n188pdU/X/pLgJmlfi1Rr6IAPlmdgypqDKFltAQzYizfzgrYqDVoXgEiEm1aU4b0j1VDDStbz2f/UCB95QXYCyeReDQXr1z0kIqnCqtgEivflehPq4kRL8V+zbQdFFeBsI0RyBpBtQNBo3a6seU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=FqybWiE+; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="FqybWiE+"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=sZzWUcIAA2c0Q37uYzsYIsOQf1QMgb2uNEy/L4s1hKI=; t=1792233248;
-	x=1792838048; b=FqybWiE+NOhFYF6DNvpqj5n2NTodYXMJAGAfWBR/sToRTwvpEWlqnVZywQXqj
-	zudtivYiK988XOBlzySNtvlOcyT+/VH/3rY73EOfC73cjtbD7mlBmx8cVBPAsRQDNr7JkJbe0hjIF
-	o3h5UkmxEC2T3YlYvPv+cbFkkkyE0zsgpKMZluEx+h2D3FLoD7x8B/Rk50gTr+2XYJc6uePdDFa+s
-	bzK1En8ADA2MzgYEmgLdrtMF2h1JxRnMjahmd/2qHy8LeyoiliGdF+pVf3KIsUWjVE9gqcVIBVmGb
-	fR4FBYhk5l3l59TD6hP57dBiV8QWy8OPbhoR1tsKs3zfiFz9RQ==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.100)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1xI1jn-00000001t7p-23Zx; Sat, 17 Oct 2026 12:34:03 +0200
-Received: from dynamic-002-242-066-005.2.242.pool.telefonica.de ([2.242.66.5] helo=suse-laptop.fritz.box)
-          by inpost2.zedat.fu-berlin.de (Exim 4.100)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1xI1jn-00000002z6y-0gKZ; Sat, 17 Oct 2026 12:34:03 +0200
-Message-ID: <cf92126e6c10883ace50789869a45dada32e4859.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v2 1/2] sparc64: flush only the aliased page, not its
- whole folio
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Imre Kaloz <kaloz@kernel.org>, Andreas Larsson <andreas@gaisler.com>
-Cc: "David S. Miller" <davem@davemloft.net>, "Matthew Wilcox (Oracle)"	
- <willy@infradead.org>, "Mike Rapoport (IBM)" <rppt@kernel.org>, Andrew
- Morton	 <akpm@linux-foundation.org>, sparclinux@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org
-Date: Sat, 17 Oct 2026 12:34:02 +0200
-In-Reply-To: <c74a2d45-2267-b380-c7fe-b6a2d3f8251b@kernel.org>
-References: <20260928132102.1707-1-kaloz@kernel.org>
-	 <20260928132102.1707-2-kaloz@kernel.org>
-	 <61ab29d3-929f-49de-bb64-5a49318ede00@gaisler.com>
-	 <c74a2d45-2267-b380-c7fe-b6a2d3f8251b@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.60.2 
+	s=arc-20240116; t=1792248462; c=relaxed/simple;
+	bh=r3X3z1z3iN1lFp9psrcamRpBzgWWdRLRwtFsKGYbwF4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=J5bNhL+x8gdHUBU3iJNz0YsMS+f41bdKdXFY4+LjqnFvYwxueRpjdbPFjyLnFb5RGn8VKLc+G6APtYDdpWTSOJeEovWPsrAtiuARtE4D6R9g+KmIMyPvUir1Vx8KYSVxNCNXwX0GrAFSJsqI6KvKZXDgxS1fySrM4B9eDX8e3LI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=permerror header.from=inai.de; spf=pass smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=inai.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inai.de
+Received: by a3.inai.de (Postfix, from userid 25121)
+	id 2C0D8100383D4C; Sat, 17 Oct 2026 16:40:26 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by a3.inai.de (Postfix) with ESMTP id 29DB91100CD75B;
+	Sat, 17 Oct 2026 16:40:26 +0200 (CEST)
+Date: Sat, 17 Oct 2026 16:40:26 +0200 (CEST)
+From: Jan Engelhardt <ej@inai.de>
+To: Stian Halseth <stian@itx.no>
+cc: Andreas Larsson <andreas@gaisler.com>, 
+    "David S . Miller" <davem@davemloft.net>, Kees Cook <kees@kernel.org>, 
+    Michel Lespinasse <michel@lespinasse.org>, sparclinux@vger.kernel.org, 
+    linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/2] sparc64: Randomize mmap base and PIE executables
+In-Reply-To: <20261017100451.2266781-1-stian@itx.no>
+Message-ID: <s4s6or92-27s9-73ns-ns7q-7821or0o6o20@vanv.qr>
+References: <20261017100451.2266781-1-stian@itx.no>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=US-ASCII
 
-Hi,
 
-On Thu, 2026-10-15 at 21:26 +0200, Imre Kaloz wrote:
-> I like the nr idea. Since sparc64 is the only user of move_pte(), it
-> would be a small change: move_ptes() would pass nr_ptes, the generic
-> version would ignore it, and sparc64 would flush every aliased page in
-> the batch. I=E2=80=99d still keep it as a separate patch on top of this o=
-ne,
-> though, so the fix can go to stable as a plain sparc64 backport.
->=20
-> Matthew, Mike, Andrew, would you be fine with move_pte() taking nr?
+On Saturday 2026-10-17 12:04, Stian Halseth wrote:
 
-With the merge window for v7.4 likely opening on Monday, I hope we can
-still get these two patches squeezed in as my latest tests showed that
-the kernel would crash very early on my V240 test server without these
-two patches applied.
+>On sparc64 a 64-bit process gets little address space randomization:
+>the stack moves, but shared libraries, anonymous mappings, PIE
+>executables and the brk heap land at the same address on every run.
+>Tested on a T4-1 and a T7-1 (sun4v) and a V240 (sun4u), with 64-bit and
 
-Adrian
+I too gave this a spin, on T5240 with a Linux 7.2.11 base and
+Debian's LP64 userland.
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Tested-by: Jan Engelhardt <jengelh@inai.de>
