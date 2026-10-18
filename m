@@ -1,64 +1,64 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B241249F133
-	for <sparclinux@vger.kernel.org>; Sun, 18 Oct 2026 13:49:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 979A94A2A4A
+	for <sparclinux@vger.kernel.org>; Sun, 18 Oct 2026 13:49:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792331388; cv=none; b=Z2/aAXj06pGmRijmYIO7lMmCs9KSPW7qTD8xF7b27YRHduClU7wKmVe13KQIeXRVC9UsiPu5uUUnf2/IC1R8dQ0nwuxxMdfw/Z8Kj6JExkuZfYL5KcjmSoplVsVbVZn6ow7CPyYWBM22k/85tUp9soOLBR1JllgePlSNjwJkiRw=
+	t=1792331388; cv=none; b=Tmm91b4t2G25O392KvQwuoWT+wnkmZUTJz1pwuBTAtNhPzN950pSWszmrvls6RvEFzEXts9zG2uq1tLmQpKuJHSFpUMuFCdLptU9HHjqZIgZe16BepITUG8YpGIT/LJgUZ1uQ2RCbPa/NC/oyZiglJR/B1e3K2YMw49LMrqx8dw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1792331388; c=relaxed/simple;
-	bh=/+Poo0M9ncZe9skH4jhSK0fTm72bMU8o70A587Vm6v4=;
+	bh=MI5rNeMwhZ43wprmCG+DEgAxLuM2IMPTCnPCyH9xbeQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fyPbFc7eEPKJ0fU0xH9j0yoAkTvv9Kq5tpCIHG9MN/UWnuGDIYsSiulKwWX+76I9L8/ZrBtcSPfJHVgyul1YJ0EzY52JnL9ZdiK6GrFd3QJqI/AIM9CM3f9dtCywyP5g4BZ+quqfVBThintHDgpUr63iajmkPXVd+/heH573eiw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HwpGYGDx; arc=none smtp.client-ip=209.85.218.48
+	 MIME-Version; b=CqgMatEo4NKf0sNJzzAeWw8j8d33gPltsNh7LZ57dfKpdlWOkd6R3qyOCWBounomEfLnaICE8Wyhv0bd87zqlg8Lu1H/jt5fq/rGhy3UZUBCQLijH3RXhgCkGAJBu95SNB/sK/Cu8ilIUwN5NRAkYU32gCyf9pazeJn7BW93JpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EqzmN5Zg; arc=none smtp.client-ip=209.85.218.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HwpGYGDx"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-c2055573c8cso147210166b.3
-        for <sparclinux@vger.kernel.org>; Sun, 18 Oct 2026 06:49:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EqzmN5Zg"
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c40447e25e6so141808066b.1
+        for <sparclinux@vger.kernel.org>; Sun, 18 Oct 2026 06:49:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792331381; x=1792936181; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1792331383; x=1792936183; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=vELiqmiLg0My2qE0CYP1TlLdsSmoEcWN2hANkQsUo3o=;
-        b=HwpGYGDxVBtMBKrEp1vOa0g5GC1VTfh5EnLGLev19uvIg6UBilumMUdjxbJ4QshSfI
-         N6MN++Uia0odSx8+lSKQo9cemzLgf3yzvaMJOwAo4UtRQ4CiIP053pAeHk7+YIhhufKk
-         ck2tql3rKC7OcFUwwVFaFiUJJ9tBch219tdMfIRkXDV56RqcqFUdj6iOkx6uV0YL/uwZ
-         EblnRIq4LgLzgWd6IHFxFghdaphP2Fc2uN5oAYZHu22jzxXLeZOLnZkfWdRP4IS5sbYI
-         KaKk6BtvoVVI+n+Cgoq1K9H1GB0pTlvi7IvppR8Zngi3f3vgyT5nSkknW42j+0Wvjpiq
-         j/xw==
+        bh=j0iP+m3EX5ucikvDp402dsq76Smx73BsFN2IxwK6/bU=;
+        b=EqzmN5ZguXXrxRgfMiQuvwrgNp3aYl+s7JPYNRhp2TEmQvuz6/5VSkk5ZRmeRO3gFw
+         ErsDvtsdDTrunOsyotzqPXmQSJRiFqbUIS+vHISuVi0DUQlNvx0SkEbdqlmuptYGU9K1
+         LOY+8wRkHo9x0g0azzBrWqOyaJvHRkz58vGvihPYW8ne8cTmGmDclJQYmGBbXJS32MmR
+         mubntJ+S6eIsd7EID55y8+1j2XLedAbYmbzbpG2Gc0lGcLXQ4R71f0l/6yiUBpc6HUCC
+         Y+2YgsDKxAbTnJbhjvlaZMaaPInTn7g82H6OjosOV1Kf9tSSgfDtS48FIzsyKKRlXUfZ
+         wu0w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792331381; x=1792936181;
+        d=1e100.net; s=20260707; t=1792331383; x=1792936183;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=vELiqmiLg0My2qE0CYP1TlLdsSmoEcWN2hANkQsUo3o=;
-        b=RigRmWjPjiOZYyEe4xDmhmzqmU9hQgaFAP5XJkko9P8VQkNxbrDQIeGiH/Gh7OYuEw
-         of5bMo6OeyZvMLOxTdEUrnhwjagJ4SLB6vlMDOlO2+oHwaviJ6lCM1MrToZ91ZjOhK+T
-         RoN6Ax2xZ/UE1qqL7xKsoQCDOU9EN9ZT315l0bEbw1TR0sQvFqiZ/DJYkMgDGdE5qMpC
-         wJPG+fA+OixoS21dJdJGjtEl3pFZu6we8MiLvyGFPPmA5XQVvbGqnCFCm/s5TpCVem7c
-         pcfP9As7rQsLIR8izbkThnQ48ZGt8tx65W6zjnnKDwmt/sKKA12JAohRzcf4DzmbqQte
-         7cZA==
-X-Forwarded-Encrypted: i=1; AKwUvByg68mTKeM//pSi6QYQsntf5XO6WeJA+GLmpiNOf2PekOj8fzqh9I4JzFjdrWx4yvapb0gqzK0VY5we@vger.kernel.org
-X-Gm-Message-State: AFq9FYKjkkwd3u3fWHQSvV+I6hcb9JtoUEVbOvjbcl0Dp5wwKYVaNA3i
-	wqFlGEGslVha1WsrDfhzUSVrzVBAeWXihT8YzqnYp5/P0CYz1Ot3DfF1
-X-Gm-Gg: AYBFou0lFqGgVuGaU0b68lK7JL1/eCfATgmX67iYJIYzBpyGL3e0uQUWe5/EQ2N0DZc
-	+WNQcT/4YmeeI8YZGa8CDfM05r0i5yVl2xLfqkEvm7VLtXivOvK2PbHgG0WJEtM8QqEGkVYjg17
-	Wt/F+F5xNpJqXjUKna70iMe5cUI/VnEjj9lzff6AqNh+fSHqAb+14ePRg2T6RJ9Z0w7NqZv6A9B
-	OcmCmBfADqZwDFmSs0CKdOsk6fm8kO4lgI78hwNAOPS3CcGK52mY5hC/EFDqWFkOhEi6i84Cjf+
-	mv86rZhrEfHJ/xYnIWWYq4/0UjLAw2pBEX28DvDEG6gXXcP9sWZrOV5g53Nq1mukGQ47PjqUvEX
-	qPHXuqy+kksmWlU1rmr1WzAFFnPHz/0hJdlmbarv7EJ7TvTlaq/jJs6qn167VKKnAdbrVMIeDCd
-	SOizrHLXoT6DimYP8VBGMMV9t9oNr14LbNLx/3lURX6ZagjbbNO3O4WZ1vJPAQMvGJKcb6IITZU
-	SozCwTM0T6F4bWr7y2hs9ce1+3dAh5O7uTxFyMy
-X-Received: by 2002:a17:907:3fa0:b0:c40:c6c8:6bd8 with SMTP id a640c23a62f3a-c419e838694mr368578466b.20.1792331380945;
-        Sun, 18 Oct 2026 06:49:40 -0700 (PDT)
+        bh=j0iP+m3EX5ucikvDp402dsq76Smx73BsFN2IxwK6/bU=;
+        b=f7cX2hdPNd44Sh5rIrhRmNTiQZ6jE4VIoW/Ktmd9oSDuwSsgAXh9EogIJx9VFJxBHt
+         uyajanyCV1qJSU2j5j11gEfOAhEMqEE/xCJtCwdbNtXfgU02by7jGy4eAnoVvD+msppW
+         9WukQN5Ga9QIxNRz/YizBQRL9VRBoq2mmYLjPZL5mOyNPZpqZQEo01jN4KQU+EmoQMs7
+         RVDx4yw/A4avDGY9BlKggxrQmNxSUcJSm/o+oyZ1OZ5sbsCahKg1hUMp5SNSSjp3ah5U
+         N5qytBwEvgB8ABofTHnZJNAPNkJtkkBX5MnEf0AaQbEpmiITcjS7bJ7FKhpeMRROnV9x
+         AfeA==
+X-Forwarded-Encrypted: i=1; AKwUvBxMKjkHWH49andNj7f/EyJWksq5Yb4eqnGX0MqSCuExcoI+2uq1BTK6XCfgXjYDDsEgsLdrm67/RJIV@vger.kernel.org
+X-Gm-Message-State: AFq9FYKHDemdF5wb0KxJWhhFp12faBGOBkAwcXYHSqdZo/ErlmEnWBk+
+	CXYGnpAoH5EZRPILdbPeoi/ZqRgGbw+FdeuTzQcRw4YtT9Fs6wlKtP0m
+X-Gm-Gg: AYBFou3ckLklJbEQ1g09Iqww5x0h3czoG6MqVXWsgQWGk9AexoLTvGsqGYz70L+qcN3
+	J57voCscgcCZw3QS9Lpl3U2wDOzPyQHEa2Dqn9q2Y/bd0sgPGWE0fDRGc7fCw6fJK5YXHm4Bg+A
+	yjyDOgVIy49b21KRHOMA3A0Y5W9PYZZ0l02k/HctJQWthWTQSd0bnQlspMqX0qpEm3IzjikQNpB
+	PmY17QGH2TjLNsFQ8w7AHmglN5+wYsV4QrH6I7qCR2YsxTV07/RrxGzuFFSkhJrqyXEuTi30dmV
+	U0Z3efSAXtuxctArOqOI2q0m2CVXeV26YOyQJv8YMg+O0C0DnxMSE+kKUktEoA773qXffWKnijI
+	5ly3jCbkfHdcTHikQFFzizmfousOfGFw5HzsIifGgZoLkiGfmbdTM5nf7i1yD3VjHAPGKdhLB0g
+	hmS5QdQlOxOwyWBYkDRPlWPyrgZpH9oE1OfcFtEos+T1bxV+eXoGcSDaYZFt+Xrh3iGjYtzj+QM
+	/1fO3TNQ6jF3bM60IGY+OpN59pvTGT341uyuEca
+X-Received: by 2002:a17:907:c22:b0:c41:1e13:8891 with SMTP id a640c23a62f3a-c419df3e64emr310042766b.9.1792331382777;
+        Sun, 18 Oct 2026 06:49:42 -0700 (PDT)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c40919c0402sm267678266b.61.2026.10.18.06.49.38
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c40919c0402sm267678266b.61.2026.10.18.06.49.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 18 Oct 2026 06:49:40 -0700 (PDT)
+        Sun, 18 Oct 2026 06:49:41 -0700 (PDT)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com,
@@ -71,9 +71,9 @@ Cc: linux-kernel@vger.kernel.org,
 	krzk@kernel.org,
 	oleg@redhat.com,
 	linmag7@gmail.com
-Subject: [PATCH v4 06/10] sparc64: retain the DMA segment start across SG entries
-Date: Sun, 18 Oct 2026 15:45:08 +0200
-Message-ID: <20261018134738.1016106-7-linmag7@gmail.com>
+Subject: [PATCH v4 07/10] sparc64: zero newly allocated IOMMU page tables
+Date: Sun, 18 Oct 2026 15:45:09 +0200
+Message-ID: <20261018134738.1016106-8-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261018134738.1016106-1-linmag7@gmail.com>
 References: <20261018134738.1016106-1-linmag7@gmail.com>
@@ -85,65 +85,35 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The SG mapping loops reset out_entry to zero for each input entry.
-When extending an output segment, the boundary check therefore tests
-entry zero instead of the segment's actual starting IOMMU entry.
-Adjacent allocations can be merged across a device segment boundary.
+iopte_make_dummy() replaces only the physical page field, preserving
+all attributes. Applying it to an uninitialized table leaves validity,
+permissions, context and reserved bits dependent on prior page contents.
 
-Keep out_entry for the lifetime of the mapping loop and update it only
-when starting an output segment, in both sun4u and sun4v.
+Zero the table allocation before installing dummy page addresses. Keep
+iopte_make_dummy() unchanged for unmap callers that preserve attributes.
 
-Fixes: f08802572965 ("sparc64: add the segment boundary checking to IOMMUs while merging SG entries")
+This initialization pattern is already present in the initial Git
+import; the Fixes tag identifies its earliest recorded version.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
- arch/sparc/kernel/iommu.c     | 4 ++--
- arch/sparc/kernel/pci_sun4v.c | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/iommu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 7613ab0ffb89..a23105b64fb9 100644
+index a23105b64fb9..66aaafbf1621 100644
 --- a/arch/sparc/kernel/iommu.c
 +++ b/arch/sparc/kernel/iommu.c
-@@ -451,7 +451,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 	int outcount, incount, i;
- 	struct strbuf *strbuf;
- 	struct iommu *iommu;
--	unsigned long base_shift;
-+	unsigned long base_shift, out_entry = 0;
+@@ -130,7 +130,7 @@ int iommu_table_init(struct iommu *iommu, int tsbsize,
  
- 	BUG_ON(direction == DMA_NONE);
- 
-@@ -485,7 +485,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 	seg_boundary_size = dma_get_seg_boundary_nr_pages(dev, IO_PAGE_SHIFT);
- 	base_shift = iommu->tbl.table_map_base >> IO_PAGE_SHIFT;
- 	for_each_sg(sglist, s, nelems, i) {
--		unsigned long paddr, npages, entry, out_entry = 0, slen;
-+		unsigned long paddr, npages, entry, slen;
- 		iopte_t *base;
- 
- 		slen = s->length;
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 61f14b4c8f90..22584c4de973 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -489,7 +489,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 	struct atu *atu;
- 	struct iommu_map_table *tbl;
- 	u64 mask;
--	unsigned long base_shift;
-+	unsigned long base_shift, out_entry = 0;
- 	long err;
- 
- 	BUG_ON(direction == DMA_NONE);
-@@ -530,7 +530,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 	base_shift = tbl->table_map_base >> IO_PAGE_SHIFT;
- 
- 	for_each_sg(sglist, s, nelems, i) {
--		unsigned long paddr, npages, entry, out_entry = 0, slen;
-+		unsigned long paddr, npages, entry, slen;
- 
- 		slen = s->length;
- 		/* Sanity check */
+ 	/* Now allocate and setup the IOMMU page table itself.  */
+ 	order = get_order(tsbsize);
+-	page = alloc_pages_node(numa_node, GFP_KERNEL, order);
++	page = alloc_pages_node(numa_node, GFP_KERNEL | __GFP_ZERO, order);
+ 	if (!page) {
+ 		printk(KERN_ERR "IOMMU: Error, gfp(tsb) failed.\n");
+ 		goto out_free_dummy_page;
 -- 
 2.43.0
 
