@@ -1,85 +1,84 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.179
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792532832;
-	b=n5IFDZaTD537L38tUc9fvi0/J1/YOL07iZrVduwV/0O4zIjMaN9q0Ww6Qovw7PA38e7i
-	 qUIL1cO4UQiTMSAH5cRF6w+syAZQwKE6AOEu9ZJamCvxLqy/aptKJCzrbpq5X5n8wVt1N
-	 wRV7DbeM2V6bC7g6BS8tbRVxo20CM4/vt9j6NLYH29jlkpDWGQfAPXQ+vyh+4EFbrtzrC
-	 WuUZCMd4dPxUWpcBIJniNRshgo0dJ0ZryU7w9zH8rYfupHYhitUpoUPrr1FNwcTXVui4T
-	 sYZdPw6ayB1YRxhQIMQtHNjYwPXZKwMmcLn8PjqCe4iXix+j+AJE8D5DY7cKwhoniOg==
+	t=1792532922;
+	b=B4ggF6YfOt84OIQCIOC3f9MZt2pCmNpySBDZ9fDB6OLxjmB0nKo1WbHBM0THrN0tw904
+	 jd+qOED30SbADa4w83UUEQh+Z/Izh01TTMpf8tekEc7+Pf+8aFofBpMJdtaoAdOCIbWym
+	 8zso9m7suhAO3y1StdOydAy8B4GobRnI7IS8MjUYyg1hIkgsMVfoPrwWYnDsIhfArRo0X
+	 ++1n2uOaVMI4jbmNdHhc8oKuelvjnCUOlgBfbap+NbzK9KF8mtbcTo5HG56Qb3L5Jo/f+
+	 wwLQv3vtWZC77Z/dzMWjfFJceymh2PkkkPGksx0g9V01w/cXGNRG1uSO1EXraT/7y2w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792532832;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792532922;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 MIME-Version:Content-Type:Content-Transfer-Encoding:Subject:From:To:
 	 Cc:In-Reply-To:References:Date:Message-Id:X-Mailer;
-	bh=PvIPEfkdtZUqofHUAuuyqlxSRMhwpGZiFkVH0+y5Y1c=;
-	b=gdGIS95KAkR3kz5ZW5M54Vmcv/gzlmIA2tHsMP+IZAd2AGSbuFMBM9zMe2VAKMyIkmar
-	 f3maRquoVu4/MJR4/gbEgZUzDRlrYAKTkbPmqOL63WR8D5jCxFgEX86HDFfgu1jcJJ1Wa
-	 pr3/tydbczoQDmql0d/zwvIIKRVxp5AAHzXMsbwmsOoLyPmXWpYDt8zFB1jW7ZxkKnwV+
-	 X/T7axdiEZdN8vqEjnvoVPA0DjHMnotjVFlc/Gy2yRD0wavgYVk2Q/kLuq/xwPflmSJ2y
-	 5hLUt57tS7bFfesRr6gUQ2aibEmUD9NwGUc8bZszdOkVXjOT48eQEP5uv0LOCjiRPKQ==
+	bh=lwH5lbGW7Jp7v2pgahH/8u5d5Q1US/ZAJYtMLpAtA4s=;
+	b=OiydQlAFVWSWiCxjfWW8xUEIa21eYtpJRl1+OqHDAKgEyrSkh6NCVhxyMswUH5hpi82o
+	 +53tbM2wdd++JZVFeVYxhforNpE1bno6IR0ZjSMESwO4uglRf4hLkBxQGz835CzeOwl3E
+	 C/SAT/IzybEVsvC/YdDRfdooalCLSLMWGXxcUAeoSTJPnbftLwr+/u6fWU9tRW6RYiFli
+	 Z5SExxUEDPUBnXnJq1gpKI/AjYmn9Dh02uopgoB7KGBKXbDXmoH2CSEw2G+lzvz1U8zPN
+	 ZypE+4Vpg9oOWm5nj8gWdIjEKFIB3z8ehyJdx7TKDVgkqClWP7FcSK13JubcBBLM+YQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=gourry.net;
 	spf=pass smtp.mailfrom=gourry.net;
-	dkim=pass header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b="bzGQBu/X";
-	arc=none smtp.remote-ip=209.85.222.179
-Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
+	dkim=pass header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=Vnm419Qa;
+	arc=none smtp.remote-ip=209.85.219.43
+Received: from mail-qv1-f43.google.com (mail-qv1-f43.google.com [209.85.219.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E640606A31B
-	for <sparclinux@vger.kernel.org>; Tue, 20 Oct 2026 21:47:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9E640606A31B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D209606A31F
+	for <sparclinux@vger.kernel.org>; Tue, 20 Oct 2026 21:48:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D209606A31F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=bzGQBu/X
-Received: by mail-qk1-f179.google.com with SMTP id af79cd13be357-93e7ad9f78dso10486185a.1
-        for <sparclinux@vger.kernel.org>; Tue, 20 Oct 2026 14:47:11 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=Vnm419Qa
+Received: by mail-qv1-f43.google.com with SMTP id 6a1803df08f44-91791ec1b83so1124316d6.1
+        for <sparclinux@vger.kernel.org>; Tue, 20 Oct 2026 14:48:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1792532830; x=1793137630; darn=vger.kernel.org;
+        d=gourry.net; s=google; t=1792532920; x=1793137720; darn=vger.kernel.org;
         h=message-id:date:references:in-reply-to:cc:to:from:subject
          :content-transfer-encoding:content-type:mime-version:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=PvIPEfkdtZUqofHUAuuyqlxSRMhwpGZiFkVH0+y5Y1c=;
-        b=bzGQBu/XirkovwO4btF+4VRDEbukUzB2MyeqAryrgq6z0Ot9GRluHKAdWmd5fgqg9t
-         ZDu1Ktz+4UNXtHT8IC+siP6Ocf6rz6GRd7VEDVjyYhhc80gWFNNErqfCtS122HNP5Gc8
-         Yal0So4C7N3M1J8V/qhZvVZ7b5BLxhon839NHBSmWkHKQIyfact/MXyN/ZAEema4adzb
-         SUU7/h8oZ0u1JgSGeXJ16nYCwQszRCgzO90AGkiTqyvJUiA3mP2bmXCGhJM9w9d1CxQS
-         8sB/rsSzNPtvRBIrbTgNFANrxD88h9a5euiEsg+ea243W67K/SX1bgUo9i0UjEZc4A10
-         XlGQ==
+        bh=lwH5lbGW7Jp7v2pgahH/8u5d5Q1US/ZAJYtMLpAtA4s=;
+        b=Vnm419Qa/kjE27NqFknpFQG1AEpyq49ddgDDuGG4m4PuK8jB4BIucxesyWwSf4SEa0
+         uSz2H8eWQ3QAQVj6mvZloHz1ezWLtzmCORiSuo4nvX/Y89/2PHrTr2TW0P6Tm5o1c13y
+         kFggrh0Im+PIpGTSB7fqkFQNt8NQtpgWN8Og3tQl5MkWnwnj8MF/yt/hQt64q5Q4ESGC
+         hfbLwpJB1hqraCnMet5mFnXiToBilJJr7Z42YzL3pjg2EM6cMOlxUZWGIUnaMwpSxLeW
+         e0X1EurcmLyvexnjMFYKgO/omwKsQow1isD1OoopS7BI9x0SWOD2yG9zXJviPhqLpw95
+         dF7A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792532830; x=1793137630;
+        d=1e100.net; s=20260707; t=1792532920; x=1793137720;
         h=message-id:date:references:in-reply-to:cc:to:from:subject
          :content-transfer-encoding:content-type:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=PvIPEfkdtZUqofHUAuuyqlxSRMhwpGZiFkVH0+y5Y1c=;
-        b=OCMa6k9HEwDhF3ucCMu+rl6CwwsSfXVqp07ymnHjQ7ObyOA74Y4enBz/1Xt/ntylvG
-         A3FFMnSwXHL0oZ7k5858b/ZmNa8myxL2g4wdtky1ZguYarkne9Kq5zA2tuoP7t0qBUe0
-         +3oPN0fOe2VKOzOh23bNH/62QDTB7AntQJ6NTUeggC/LVZoxwOlI3owcYMyitynY0VFu
-         83ygUzKHZX6rozzrJHpUT3E4F3pAhR/JeaPvCzn1whNC9tsGNpc2Kx4CZiRJ7jz1gJdX
-         clhL333z8mEu4SsDNwjlYAK0Utl0rh8oGYIHUAlw8aHJ0VzpjYzwW0dn3lpaXO094xJn
-         nxgQ==
-X-Forwarded-Encrypted: i=1; AKwUvBy//ydfxGoU78gt48LPUTYFEV/alhGCHNecy2JRLDUa0gwk8EfcQjEsz+zdJrUuNR54+FJyI7jI28tU@vger.kernel.org
-X-Gm-Message-State: AFq9FYLwqBQKp+yq2DEDW9IfAPuhM+8gpwz94WLeHuclQ+AMwSr4ntvg
-	2jB3Pe81GmPYMWt3+7XrCcYJ4vVThr8IK6+G6O24U3xGhrWXnK7T/wBvHo0/P1hZRmiaxoi3A1R
-	gtA42
-X-Gm-Gg: AYBFou1t7h/eTxRp2lxjT5uIvN8DUbfmd8p9oFgHEMnNzKymbGkdEslwC/DhemYtE2u
-	bDTRG9EyuTIq1IKB4KeBmejNnH+/A/8D65gG1LhXrRdi+zzchwqiiG5capA3Q+j951CPQsyJt4h
-	U66Q3cDk8cYlr9fAAaqmhA+BaDSQ/tmNjPZP6WfnfmiuTPCjggI2ngZkHFwAnb4PfQeUXQFHreO
-	Fa2nOgggCwgc/M9E/H3+l45OImjeIxzXDfT2lHOu4S59BuPxo0BIWy8NuFL1/zt2NR5z1vMrhxK
-	gjt+mOCAZemflTmf+CkLoHux/m2/EIeyg+ZfvGLeEK1LznRLltJv+Jl5sGSfvrnyWbgRWF1BxWD
-	iS3ewKceINVpDfbiXiYL5r4X6dWFnyat9BydWqp+0v1xVXot//RS1Q5owE2hCOFd5QEkNmYkCtN
-	mR1A05sgirsG16mrtbplFb9rLSf9ZzPwO7/b3nc77YrFJMWPJQZPqxxdLjrsTcS9XWZKIuijJ6S
-	2LXiO2yXm6U+fsThZCk+2KunOIkS/52p2I97SaOARLhZmQ8XRx+9RCdbiZSWzGi8ota4VG2r3Vo
-	QsbQbrZ7CwI/S+XHok0AnZhmnFU=
-X-Received: by 2002:a05:620a:198a:b0:93f:3391:d5a1 with SMTP id af79cd13be357-93f57f65930mr93498685a.75.1792532830268;
-        Tue, 20 Oct 2026 14:47:10 -0700 (PDT)
+        bh=lwH5lbGW7Jp7v2pgahH/8u5d5Q1US/ZAJYtMLpAtA4s=;
+        b=Mlfc+LbGDyoPnpKVc4yabdTmoA1LyBM9Fx8fPhZ66Cal+oiaN/io3rDQUx+aD+qJEm
+         M8YKF+OnDr0fKRj1pk29Q9nDsSgrnO4/DTSU100i0FZYVsjWYrUXm59PfSRqMb8PCkEa
+         HF7S6Jmtrrmlvcv498hQVd2hOg3+08J2lipwL10Pex88/TTuCrZu9zzwDQ4vF0jPrVYE
+         qYTuCCrZceBzaMEDT9xMTuGh/BUjxdvHymwu0/QV3qlkrbB9JKexGAPfQLJzgGhyLN9c
+         sSQjAkUUZLNSLgTjER7vGCsybkJl/HRFdSneJG38j9mCNQ89oP5OzudZrEyCZfT1IwdR
+         xjBQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzXXi3i4/lKcWwLAN5O74ChVDPK0su5Xbfz0pqCmQVITDIYcRpeyXseWSn/BqQYsR9h7gbe7BI5vHsQ@vger.kernel.org
+X-Gm-Message-State: AFq9FYKoIe7LbiJo9xZxPjBSnHMZTc7hJNkJxEzfBDLj9dekM50QXnUB
+	7fJ//EvdYO+drPdDMpp4Soj8wuhH9yIRiGJf+6VA+Lhv9hVgJGBc2iACX0KqWAu7nZsOXFG4ldX
+	WAlOR
+X-Gm-Gg: AYBFou0K+8+zk1GLCZl04ekWwH/0MjyWVGfjDQAKtOu0q5daVifggh/abN/b1ydqUsR
+	12vSJnhk4qt2YE0KVithzrAeiwBl7UDVI83zjW8a0yO5XSOYQ3mT4yrwGK2LZMvUPnNqh2nJQo7
+	Sck5yUffG/7zVU1ufevY6l2RoFuef425vLhP4OQb9/qFUEXinmzMFSpfD0FKWoin4gA6KJrTz8+
+	OQTv4KJgddpU1Vkidoj/UMduK479Os4LwCeGeYQCcwLQW9aMG7V1nDKf6nZoPoZpG9lMf1cTUR9
+	BAXpoms8ZkhejCD39ZLXNp9ESG4CwmzQZrkY6jELwLPigKzvHunavYkaQ4CJRYtLGip+97VneZx
+	MIbcqS5MoA59iURwB+h/+nKETEN3muvtVA7fIhzQs26fQ110Z0QsytoDxuQZKII/21FVODugD6/
+	qhPxsW2Oe5KoYyF9a2r2Uajl4mlf1CikwQYbECgXCc7rUHmkt7vlJWZ2/A0K3j4vqb8G/+NTauF
+	sDGe+SaQoJkWdRhAmIihAg6oonZ35VkW54K39FXvnIBow==
+X-Received: by 2002:a05:6214:3c86:b0:91b:5d3a:5105 with SMTP id 6a1803df08f44-91c12f580cemr1790346d6.51.1792532920531;
+        Tue, 20 Oct 2026 14:48:40 -0700 (PDT)
 Received: from [192.168.86.58] (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-93f56d98978sm86912785a.10.2026.10.20.14.47.06
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91c10bc99a7sm8625276d6.22.2026.10.20.14.48.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Oct 2026 14:47:09 -0700 (PDT)
+        Tue, 20 Oct 2026 14:48:37 -0700 (PDT)
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -91,8 +90,8 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v6 01/39] mm/vma: fix mmap_prepare file handling,
- remove file_doesnt_need_get
+Subject: Re: [PATCH v6 07/39] mm: assert mmap lock held, use new flags API
+ in vm_insert_page[s]
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -175,42 +174,26 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
  linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
  fuse-devel@lists.linux.dev, Ihor Solodrai <ihor.solodrai@linux.dev>, 
  Bert Karwatzki <spasswolf@web.de>
-In-Reply-To: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-1-1aa3c9b139f9@kernel.org>
+In-Reply-To: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-7-1aa3c9b139f9@kernel.org>
 References: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-0-1aa3c9b139f9@kernel.org>
- <20261013-b4-mmap-prepare-vma-flag-sanify-v6-1-1aa3c9b139f9@kernel.org>
-Date: Tue, 20 Oct 2026 17:47:04 -0400
-Message-Id: <179253282492.1207257.6426479952081115792.b4-reply@b4>
+ <20261013-b4-mmap-prepare-vma-flag-sanify-v6-7-1aa3c9b139f9@kernel.org>
+Date: Tue, 20 Oct 2026 17:48:32 -0400
+Message-Id: <179253291264.1207257.80392040365771672.b4-reply@b4>
 X-Mailer: b4 0.17-dev
 
 On 2026-10-13 16:04 +0100, Lorenzo Stoakes (ARM) wrote:
-> The map->file_doesnt_need_get flag is confusing and the existing
-> implementation has holes.
+> The existing logic asserts that an mmap write lock is held, bizarrely, by
+> asserting that an mmap_read_trylock() fails (which is not the same thing).
 > 
-> Drivers are permitted to change the owning file of a mapping. If they do
-> so, they are required to take a reference on that file.
+> Assert the mmap write lock here and switch to using the new VMA flags API
+> while here.
 > 
-> The mmap() operation which ultimately invokes __mmap_region() is guaranteed
-> to drop the refcount for the original file the mapping was made under, but
-> this is not true for the replaced file.
+> Note that the vma_start_write() is explicitly broken out from
+> vm_flags_set() here in order to use vma_set_flags() safely.
 > 
-...
-> 
-> Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 
-Have a nit below, but otherwise
-
 Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-
-> +static bool map_same_file(struct mmap_state *map)
-> +{
-> +	return map->vm_file == map->file;
-> +}
->  
-
-Terrible function name :]
-
-~Gregory
 
 -- 
 Gregory Price (Meta) <gourry@gourry.net>
