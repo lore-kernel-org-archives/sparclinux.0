@@ -1,116 +1,189 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.5
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792462069;
+	b=a6k84N6KKRpqusjU/iLS/ySouNUOFitvRCTih8E3Cxs4L9Czjc4jr+6H+LDNkzMJnkyV
+	 qg1ECChwZDLdLbkt2AziIBLOwDCZeDABEKXjT8dVUx0PH+DviMkYy6jR+Ihh1GNcCQ6wQ
+	 59NL+wEnIeXMrZZHH9wfmgY/4u03smr/EjqS56/mcI9wm2J8JcPSGIgbq3EKwXYXAEIUc
+	 gh2UtxpeLmHaNeSvMAZiB1dfhXvR7YmhRQrVG0B4LcxfMyeuduSLJdHCeb6zUSe1R3mhx
+	 tudK/pn1ZCjj2ZnLY/9RMzpU1eJn9/rd1xbb1QpO19eNOCMwiWZ55nr0Yr2/onoccDg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792462069;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
+	bh=qBHdoagkk+A0fsy76vSc4FnpSrSPag0oJul/CgFFiEQ=;
+	b=4TljuNo+6OV76S7/dzeoqooqf8Og0dxzH605Id7RTLRk8VSMN+DWHhylFbuKbUixkIcO
+	 DVV1q794hW0wrn55RXPY/P7UulvWhioTf33DsjXarlsfCKwHMMNYFbX8eNSeMbBuqjtFS
+	 uzXA7bQ5mQnpdC1SC4favh/UFEhlRNbd8N6u5glxF2t5XiTjH5ChoDV1nn2HG40p13IoK
+	 4utrspsSx/Ndvu/K4SgO0hPIX8Ui+C356t6um47Qit1YyqTuedU5CpNUlESRB7Ps8IHoC
+	 P/9yJwWZxsKlT2nb0clre/oDylegIiJPEJFaZvroqxrs/I23Xpc1l457AFmpMl7t+hg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=163.com;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=eJA84BHH;
+	arc=none smtp.remote-ip=117.135.210.5
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6502F4B8276;
-	Mon, 19 Oct 2026 09:49:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792403397; cv=none; b=h/11z8Pm6CAuy/G6tDLmtFE+gBhg4rqj9ND3p0DxMfHyAzRv42HM2mN/g+2gZoeQAJhu1+dvylZmn8/pnaQlfRGjNMLZ0BYILxNjbOmBq41OhnxlOzkZEGT2oKItBy0+XLzMX5jH0Hzs0e+WNV8Kk5H4arIHFcyU13rSH4AT5FE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792403397; c=relaxed/simple;
-	bh=tNwh0NgMwC2NxmyZzoBmi8wtLFpnWDZrPMg2XzlB5WI=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=kUyJJ7QO0Ct/rPFVcagfMYCDwp6hhCJuDvLTQS8RJL9/jLzvqnL6nJ29pMyGMSbYuSiwUr/nAyRmRMGvB5Osvfy4Tasn8Um7HY5FHePMK+EuBdvEdo7FcOmuUkGDT7qPl1AcG66MVZ4Yj1jvFDlI+Imnaa4HL0aVN2C85G3+kNY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=FmiHeiqw; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE214606A31B;
+	Tue, 20 Oct 2026 02:07:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BE214606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="FmiHeiqw"
-Message-ID: <156ed58445e869ffb783bfee0c07bc784f6178ad.camel@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1792403390;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Bn4aGHXHs3sa40Ens1ww3bFvwndhquiAPhSKtFdOVUw=;
-	b=FmiHeiqwpE9q8wlbdZYTJ2H6clE3pAQHuI/kAbL7irNE581hmsL20y2aaEAqDKahaFt27N
-	nqURCj7esDaGWoCwW4cs5WngqyLh/R9D/gIZVl3GtUA8/AQPI7l0nsNWKHuQmxZ9fovFxS
-	zbwcS7tgF+Oh20fAz91Zvm9pkh4fCtE=
-Subject: Re: [PATCH] sparc: populate sysfs cache topology information on
- sun4v
-From: Stian Halseth <stian@itx.no>
-To: Jan Engelhardt <jengelh@inai.de>, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, John Paul
- Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Mon, 19 Oct 2026 11:49:49 +0200
-In-Reply-To: <20261018222723.43442-1-jengelh@inai.de>
-References: <20261018222723.43442-1-jengelh@inai.de>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-MkgeK9/okFuKXT4SCUx/"
-Precedence: bulk
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=eJA84BHH
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=qB
+	Hdoagkk+A0fsy76vSc4FnpSrSPag0oJul/CgFFiEQ=; b=eJA84BHHY56Ct69Zp0
+	Px7Uq1uTPQpAs/7fATq7M5w02ixhfRufPlVtu9vuD+SrN9lpka45e1G/nVr6LpBb
+	Z9JSoLHNwfl4gIV0voEp/RIv16H70H8p0cZQO4NSjiTeTXK9Il8MT11eXTjVRRQ4
+	1ngpjhVmEBAtLzVwKXaJnQVtg=
+Received: from colol4bi5.localdomain (unknown [])
+	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wD3Rx7jzNZqk7V_BA--.64549S2;
+	Tue, 20 Oct 2026 10:07:33 +0800 (CST)
+From: Binbin Deng <18983559317@163.com>
+To: davem@davemloft.net,
+	andreas@gaisler.com
+Cc: sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Binbin Deng <18983559317@163.com>
+Subject: [PATCH v1] sparc: ldc: Protect the global channel list
+Date: Tue, 20 Oct 2026 10:07:23 +0800
+Message-ID: <20261020020723.513529-1-18983559317@163.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
+List-Post: <mailto:sparclinux@vger.kernel.org>
+List-Help: <mailto:sparclinux+help@vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
+List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
+Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wD3Rx7jzNZqk7V_BA--.64549S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxCr13XFW8ZFyfXw15Zw4DXFb_yoWrWw1UpF
+	Z09rW5XrWUWF98u3Z7J3WUuFyruw4kW3yUG3sIga4xZ3y7trn2vr98t3WDKr15ArWxJFWY
+	qrZxJF4Duw45A3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pirOzxUUUUU=
+X-CM-SenderInfo: jprymmytvvmjmrxbiqqrwthudrp/xtbC-AW8oGrWzOUUeQAA3d
 
+The global LDC channel list is traversed by the duplicate-ID check in
+ldc_alloc(), updated by ldc_alloc(), and modified by ldc_free() without
+any common lock.  Consequently, two concurrent allocations can both
+observe that an ID is absent, and allocation can race removal of another
+channel.
 
---=-MkgeK9/okFuKXT4SCUx/
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: quoted-printable
+The race is reachable from process context when LDOM virtual-device
+channels are configured concurrently, for example while different channel
+consumers probe or remove their devices.  A racing insert and delete can
+corrupt the hlist or leave a stale node for a channel that is being
+freed, leading to a use-after-free during a later ID check.  The
+duplicate-ID check is also ineffective because another thread can insert
+the same ID between the check and publication.
 
-Hi Jan, thanks for looking into this!
+The allocation path also publishes the channel before request_irq() has
+succeeded.  Its current IRQ failure cleanup frees the object without
+unhashing it, so keep the node uninitialized until both IRQ handlers are
+registered successfully.
 
-On Mon, 2026-10-19 at 00:27 +0200, Jan Engelhardt wrote:
-> +int init_cache_level(unsigned int cpu)
-> +{
-> +	struct cpu_cacheinfo *i =3D get_cpu_cacheinfo(cpu);
-> +	i->num_levels =3D 2;
-> +	i->num_leaves =3D 3;
+Protect the check/publication and removal paths with a mutex, and publish
+the node only after both IRQ registrations have succeeded.  Allocation and
+free are sleeping, process-context interfaces, so a mutex is appropriate.
 
-Using the MD node as the cache id with CACHE_ID set looks to me like
-the right way to do it. I tried it on my T4-1 and V240 and have a few
-comments.
+Found during a static-analysis-assisted audit: candidate sites were
+surfaced by a Coccinelle rule, and the reader/writer paths were
+confirmed by LLM-assisted (GLM-5.3) code inspection.  The issue was
+not observed at runtime; it is identified by code inspection only.
 
-mdesc.c is also built for sun4u and there the new *_id fields are never
-filled in and stay 0, so both CPUs end up sharing every cache. On my
-V240 lscpu goes from 128K L1d in 2 instances to 64K in 1, and the same
-for L1i and L2. A tlb_type =3D=3D hypervisor check here, like the one in
-setup_per_cpu_areas(), and -ENOENT otherwise puts it back to how it is
-today. I tested that too.
+Fixes: e53e97ce3c71 ("[SPARC64]: Add LDOM virtual channel driver and VIO device layer.")
+Assisted-by: GLM-5.3 coccinelle
+Signed-off-by: Binbin Deng <18983559317@163.com>
+---
+ arch/sparc/kernel/ldc.c | 26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-The fixed 2 levels / 3 leaves also only fits T1-T3. On the T4-1 L1 and
-L2 come out right now (16K and 128K per core, 8 instances), but the
-4M L3 shared by all strands is missing. I dumped the cache nodes from
-/dev/mdesc on my T4-1 and T7-1:
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 826fe8ed0289..fbb3021158bd 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -7,6 +7,7 @@
+ #include <linux/kernel.h>
+ #include <linux/export.h>
+ #include <linux/slab.h>
++#include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ #include <linux/delay.h>
+ #include <linux/errno.h>
+@@ -952,13 +953,8 @@ static irqreturn_t ldc_tx(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-/* XXX ldc_alloc() and ldc_free() needs to run under a mutex so
+- * XXX that addition and removal from the ldc_channel_list has
+- * XXX atomicity, otherwise the __ldc_channel_exists() check is
+- * XXX totally pointless as another thread can slip into ldc_alloc()
+- * XXX and add a channel with the same ID.  There also needs to be
+- * XXX a spinlock for ldc_channel_list.
+- */
++/* Serializes ldc_channel_list and the channel-ID uniqueness check. */
++static DEFINE_MUTEX(ldc_channel_lock);
+ static HLIST_HEAD(ldc_channel_list);
+ 
+ static int __ldc_channel_exists(unsigned long id)
+@@ -1165,16 +1161,17 @@ struct ldc_channel *ldc_alloc(unsigned long id,
+ 	if (hv_err == HV_ECHANNEL)
+ 		goto out_err;
+ 
++	mutex_lock(&ldc_channel_lock);
+ 	err = -EEXIST;
+ 	if (__ldc_channel_exists(id))
+-		goto out_err;
++		goto out_err_locked;
+ 
+ 	mssbuf = NULL;
+ 
+ 	lp = kzalloc_obj(*lp);
+ 	err = -ENOMEM;
+ 	if (!lp)
+-		goto out_err;
++		goto out_err_locked;
+ 
+ 	spin_lock_init(&lp->lock);
+ 
+@@ -1223,9 +1220,6 @@ struct ldc_channel *ldc_alloc(unsigned long id,
+ 	lp->hs_state = LDC_HS_CLOSED;
+ 	ldc_set_state(lp, LDC_STATE_INIT);
+ 
+-	INIT_HLIST_NODE(&lp->list);
+-	hlist_add_head(&lp->list, &ldc_channel_list);
+-
+ 	INIT_HLIST_HEAD(&lp->mh_list);
+ 
+ 	snprintf(lp->rx_irq_name, LDC_IRQ_NAME_MAX, "%s RX", name);
+@@ -1243,6 +1237,11 @@ struct ldc_channel *ldc_alloc(unsigned long id,
+ 		goto out_free_txq;
+ 	}
+ 
++	INIT_HLIST_NODE(&lp->list);
++	hlist_add_head(&lp->list, &ldc_channel_list);
++
++	mutex_unlock(&ldc_channel_lock);
++
+ 	return lp;
+ 
+ out_free_txq:
+@@ -1257,6 +1256,9 @@ struct ldc_channel *ldc_alloc(unsigned long id,
+ out_free_ldc:
+ 	kfree(lp);
+ 
++out_err_locked:
++	mutex_unlock(&ldc_channel_lock);
++
+ out_err:
+ 	return ERR_PTR(err);
+ }
+-- 
+2.43.0
 
-  T4:  L1i/L1d per core, L2 128K per core, L3 4M shared by all
-  M7:  L1i/L1d per core, L2 data per 2 cores + L2 instn per 4 cores
-       (both level 2), L3 8M per 4 cores
-
-On M7 the L2 you get is whichever level 2 node fill_in_one_cache()
-hits last (data here), labelled Unified. That's what Tony saw on his
-S7 too. The missing L3 isn't just cosmetic either. The scheduler,
-sched_ext and the page allocator use the last leaf as the LLC, so the
-T4 would end up with a per-core 128K L2 as its LLC.
-
-Maybe it's simpler to just walk the MD directly in init_cache_level()
-and populate_cache_leaves(), following the same arcs as
-fill_in_one_cpu(), and add one leaf per cache node? Then you get the
-split L2 and the L3 for free, and cpuinfo_sparc doesn't have to grow.
-
-Tony, about your first list: CACHE_ID is right, it's the flag that
-tells the generic code leaf->id is valid. I built the T4 kernel without
-it as well, and then nothing shows up at all, cacheinfo just says
-"Failed to find cpu0 device node" and gives up. The functions override
-the __weak ones in drivers/base/cacheinfo.c, so they have to stay
-non-static. The L2 split and the L3 you found on the S7 are real
-though.
-
-/Stian
-
-
-
---=-MkgeK9/okFuKXT4SCUx/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTK1ph9OaYoND1R57zoeAEuJe36VgUCatXnvQAKCRDoeAEuJe36
-VhcHAQD8KumrLMH1zPG9vdglrfCbvFsITFLJDqpPhVwdaunJRgEA3RJ5VWUjeMIc
-x47qVdMf0mzY37f0nHfOEpQvt3GXcgQ=
-=O+JQ
------END PGP SIGNATURE-----
-
---=-MkgeK9/okFuKXT4SCUx/--
