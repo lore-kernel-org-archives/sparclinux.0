@@ -1,57 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.5
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792462069;
-	b=a6k84N6KKRpqusjU/iLS/ySouNUOFitvRCTih8E3Cxs4L9Czjc4jr+6H+LDNkzMJnkyV
-	 qg1ECChwZDLdLbkt2AziIBLOwDCZeDABEKXjT8dVUx0PH+DviMkYy6jR+Ihh1GNcCQ6wQ
-	 59NL+wEnIeXMrZZHH9wfmgY/4u03smr/EjqS56/mcI9wm2J8JcPSGIgbq3EKwXYXAEIUc
-	 gh2UtxpeLmHaNeSvMAZiB1dfhXvR7YmhRQrVG0B4LcxfMyeuduSLJdHCeb6zUSe1R3mhx
-	 tudK/pn1ZCjj2ZnLY/9RMzpU1eJn9/rd1xbb1QpO19eNOCMwiWZ55nr0Yr2/onoccDg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792462069;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
-	bh=qBHdoagkk+A0fsy76vSc4FnpSrSPag0oJul/CgFFiEQ=;
-	b=4TljuNo+6OV76S7/dzeoqooqf8Og0dxzH605Id7RTLRk8VSMN+DWHhylFbuKbUixkIcO
-	 DVV1q794hW0wrn55RXPY/P7UulvWhioTf33DsjXarlsfCKwHMMNYFbX8eNSeMbBuqjtFS
-	 uzXA7bQ5mQnpdC1SC4favh/UFEhlRNbd8N6u5glxF2t5XiTjH5ChoDV1nn2HG40p13IoK
-	 4utrspsSx/Ndvu/K4SgO0hPIX8Ui+C356t6um47Qit1YyqTuedU5CpNUlESRB7Ps8IHoC
-	 P/9yJwWZxsKlT2nb0clre/oDylegIiJPEJFaZvroqxrs/I23Xpc1l457AFmpMl7t+hg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=163.com;
-	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=eJA84BHH;
-	arc=none smtp.remote-ip=117.135.210.5
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.214.169
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792514342;
+	b=4LxRjN65oEG+97VDW9PPJ9ILhi2JExc1qvj9OLRIQrPqZ8rkiBQL+ZnSepXC9Oz8g4Dq
+	 SFahLvwNuQyzr40crpefu2D/FCxVHy7spRx9Z/f+0HclCkzZrlrojh35gUC6X6NyxgZsj
+	 7KRRGfpD6Nj4iQ20hmKiTitcCaWkM2oSYZcsJyHbXD8YqeUCqz01IpmVB7fAl8cJk8lov
+	 fnALup98zin+qyWOMMYRd2kfNNeYosZ3ZMC/Nz4k/LSZoWX6KJ9FK18HdCv7ydcT6ZGWm
+	 ckRdDlWrOYkpIWhvFlrhgrBUWEKQFR676DSycaKVt9PXbr+DZMUSSkbAY1nTbESkVRw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792514342;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=5h6v8PMV52XAIibb0bLKm7PVGjK4muo/m4wCC4Oc5nw=;
+	b=Fq3xLNiHDwgFKp2P+0DP2dEvEG45P29f6hwc+D8bYhR/S7hgDdGaUsIc6NmQ+MuhGxzA
+	 I1oTB5s7/8+V/lItvhCV5kDKgQ2SOHE+oLKIYrFsyySTAcxlu+ZKPIvpEeeKMievEy8Sk
+	 p+H39SiwXOAYkz5OEZcfskZuhzQlHfM7uyiSzwmONVw99aGVSL2oxQgg8EnaNzAe6JYog
+	 /jKsZQXDSfW4AU5VuNTPUbPf2NWYe0tVRhLm/7Dd1qNjqqbR7Af2e1guwbnd7IWiLfcd6
+	 CO3dslI4/e+lj3adsCItuuz7j4qCx4g5Q81EGQF6rLHhqejk6a6PaEVaKxU5DhlZ6wA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=paul-moore.com;
+	spf=pass smtp.mailfrom=paul-moore.com;
+	dkim=pass header.d=paul-moore.com header.i=@paul-moore.com header.a=rsa-sha256 header.s=google header.b=GwYGVURA;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.214.169
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE214606A31B;
-	Tue, 20 Oct 2026 02:07:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BE214606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F291360A2608
+	for <sparclinux@vger.kernel.org>; Tue, 20 Oct 2026 16:38:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F291360A2608
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=eJA84BHH
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=qB
-	Hdoagkk+A0fsy76vSc4FnpSrSPag0oJul/CgFFiEQ=; b=eJA84BHHY56Ct69Zp0
-	Px7Uq1uTPQpAs/7fATq7M5w02ixhfRufPlVtu9vuD+SrN9lpka45e1G/nVr6LpBb
-	Z9JSoLHNwfl4gIV0voEp/RIv16H70H8p0cZQO4NSjiTeTXK9Il8MT11eXTjVRRQ4
-	1ngpjhVmEBAtLzVwKXaJnQVtg=
-Received: from colol4bi5.localdomain (unknown [])
-	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wD3Rx7jzNZqk7V_BA--.64549S2;
-	Tue, 20 Oct 2026 10:07:33 +0800 (CST)
-From: Binbin Deng <18983559317@163.com>
-To: davem@davemloft.net,
-	andreas@gaisler.com
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Binbin Deng <18983559317@163.com>
-Subject: [PATCH v1] sparc: ldc: Protect the global channel list
-Date: Tue, 20 Oct 2026 10:07:23 +0800
-Message-ID: <20261020020723.513529-1-18983559317@163.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key, unprotected) header.d=paul-moore.com header.i=@paul-moore.com header.a=rsa-sha256 header.s=google header.b=GwYGVURA
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2e901e114fdso17356255ad.2
+        for <sparclinux@vger.kernel.org>; Tue, 20 Oct 2026 09:38:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792514336; cv=none;
+        d=google.com; s=arc-20260327;
+        b=fCR5e9iHB2qQiW1amRl4w54xdsGI++svY+VbtB2Dxmiej14ABIgWAF12vjKu4ZYoYt
+         uvTl4F044j6+7Qfd75vVyP3Icb0HzCKD57KHrgdUxGVVcUAYCr9apjQ+neWpcktnuui/
+         1INniDZgLruTRApzSpyZx2Zjuq435Rpzmpiub5Jk7bksjzBy9Xs2xfwBZ23XdHaZz3GD
+         swzi8nZ9IB6OrJoH+c2IdSFPctqk1zKEV8ZXG0L8hjJUAOO/zRdG7sS8wx5c7oMtEydQ
+         1r0Rf8j/tGJB8EeRyJQHsfJQEiIhHJzJeBK+Q+12RdNRpqrHHDOvxjmll1Gvi8cqwyFU
+         rx1w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=5h6v8PMV52XAIibb0bLKm7PVGjK4muo/m4wCC4Oc5nw=;
+        fh=MMBqcJamUGBABkUkjSV4i4uVYcsZagLQjRLJUMChSXo=;
+        b=OCOu7QG/L4Fzq6XgNkhtcWY5sd9PSsy/fCl1l5fC9PwdnXP787zlICRiYLdeih0s+x
+         my6PNjBzyTQ9bhbO9XhsFy+2KlXO+tdyqs4WoeoWr7d5hLuExMeciv82Ao+Ybpv1NR8b
+         azCGArEvIkMKtX5aSDeDFmo48b/smyU+ujYBiFYiRFsvqmJSwVNnH/Ae9oNTdwXkb3gc
+         +e74wx32FJMOztId6MpTdS1nrGvnXyZ981yhcf0CANMBxD7qyNsVk96ZQEf0g6mbjox6
+         F1rVzfF21QJmPOj3rFf0myYMg7p0nLE8aWxUqWVIToZxyKqllv/uplGcU+fFrvR2KH+g
+         h+WQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore.com; s=google; t=1792514336; x=1793119136; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=5h6v8PMV52XAIibb0bLKm7PVGjK4muo/m4wCC4Oc5nw=;
+        b=GwYGVURAL7E3Gqp1mE6IbppA5fK/M6QVj3T4+Mu1VqNJAQWSHTCgIBs7lXAHx7VP4b
+         X7Ol6JtjEVwHUVW/UUWijctAKk0S3FIF6sAkL2D0z4+yun1CiPIG05jQakKiuYArY+di
+         qKUZ2JssWHS9PY4Rrbam2j+K8HSVipMYAjJhVwlz0qlw5vC30c9m2oPlM5nOac4bwKsb
+         0iIOeo41vgbotndmbkqO3IW2nEL8EcaGXBwYuALkuaiWKHExqpmpd78k/kVF659++rVb
+         16kcHMvBo17gh+L06xflahlYQXJ+NMSTGDwKIeHcy9Z1IKqewLhKEpxT50Ywi1EBHbtT
+         Ya6Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792514336; x=1793119136;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=5h6v8PMV52XAIibb0bLKm7PVGjK4muo/m4wCC4Oc5nw=;
+        b=TheAJRsDki8J+0AqHJLy1I/A2bDjwL+sD2fpXs6rHvY7B833V6PWqZDT14GKR2FGo3
+         R5HakAjLF8EkLgJIq2RTqDL+qchqv1mVUguasvpv0OO3LIl4gH7un6thocTFC1HhECVW
+         T9vndv8UE91SwUjZwo8WaGGqrkebe6KJPtX/duJAgW1nqEfemixC+J4QjhucfuEImSxs
+         32HicCoup1/MZItPQA3DbHYMMGfMWztdbCHJoRnsSCrj4BKy3p3Q3xM2guBoQSqfQSms
+         5mdBWcrUOzedPuZMxU62L1/Zwj4UU9eo222volS95t8xz4hwPIw+MocyhCr1CHZwAzyU
+         W5DQ==
+X-Forwarded-Encrypted: i=1; AKwUvByZLkoV9h6P49Sg+h29PqAma9FL4zg+m4wFhx75ZAoJQxRRs0mDivO0VaIfW69NXFfaw+O9+KowVC+z@vger.kernel.org
+X-Gm-Message-State: AFq9FYLzTDwGDuDduuFIglOYJPf5+Qkjl0P95hoTUJbbkN7wp0QOHKam
+	KFztF7VDrQCT6panMFX5qD4DeuUfiHrLBZkBqhuCWpNB0dGbHfwivGnWSCBtSCqLv05PND9ABv7
+	bXliJKCsuc7CQAq6VfUGkFRj5b1jexKXH8Mcsj9K/
+X-Gm-Gg: AYBFou3+8gbb7MeTE0yFm4WZ/wllfXunh9oIzdVYCJjSy0qNxs48Pg1IJJbgsTMTiH5
+	wOqkQWitKDRcz22R0md9wR/3Xw1ydUeueagSKRettw5nbLk3+iEaG1q4+UNl91tRzhA/i6EtkDD
+	HL6sgEK4CedEh0Q+bNOlZs6+cs2rB9hQg/T9PgkCS7gMDSEKh6CTS/LQvcwc+2fOZAXQedHX/Rd
+	JHdBqM3CE+VNbOYWZ0+ZiyEkmqIQoJLxOzowSrs3omPaE9rQxSQkAa4Ik5L2wN/RcIaiX/M4z4F
+	rYvWJGrLG4Pjy7pJNnJxpkGJ5AutP3iGaUjeodjysgT9SnN9+NeiLyuR5d+hIYSbA6aw76inLd7
+	xt5ukuVSpLw8=
+X-Received: by 2002:a17:903:1111:b0:2e6:dcce:8227 with SMTP id
+ d9443c01a7336-2e9a6c1a30dmr99034965ad.37.1792514336247; Tue, 20 Oct 2026
+ 09:38:56 -0700 (PDT)
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -61,129 +104,59 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wD3Rx7jzNZqk7V_BA--.64549S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxCr13XFW8ZFyfXw15Zw4DXFb_yoWrWw1UpF
-	Z09rW5XrWUWF98u3Z7J3WUuFyruw4kW3yUG3sIga4xZ3y7trn2vr98t3WDKr15ArWxJFWY
-	qrZxJF4Duw45A3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pirOzxUUUUU=
-X-CM-SenderInfo: jprymmytvvmjmrxbiqqrwthudrp/xtbC-AW8oGrWzOUUeQAA3d
+References: <cover.1790088067.git.rrobaina@redhat.com> <CAHC9VhQ=FFYVNmQdiMsqg+5KDDrSC3SZS+H2=r_GkhfwQox8tg@mail.gmail.com>
+ <CAABTaaBL=TScs8Qqu3b8F6KZPGMyvwy6cBC3teDaBL6MGMucNg@mail.gmail.com>
+In-Reply-To: <CAABTaaBL=TScs8Qqu3b8F6KZPGMyvwy6cBC3teDaBL6MGMucNg@mail.gmail.com>
+From: Paul Moore <paul@paul-moore.com>
+Date: Tue, 20 Oct 2026 12:38:41 -0400
+X-Gm-Features: AclHuK9ZakV6IFm9eD67kaqUic0iU1MgVPLS7VN6RgjPgTRZmZP6_X_XOYOX9ZU
+Message-ID: <CAHC9VhROsmzbm+AP63Sm7mqCokgEy6Zu0AVMY0gxp8qY75Pqiw@mail.gmail.com>
+Subject: Re: [PATCH v3 00/14] audit: log all six syscall arguments in the
+ SYSCALL record
+To: Ricardo Robaina <rrobaina@redhat.com>
+Cc: audit@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, linux-mips@vger.kernel.org, 
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-um@lists.infradead.org, bpf@vger.kernel.org, eparis@redhat.com, 
+	sgrubb@redhat.com, oleg@redhat.com, richard.henderson@linaro.org, 
+	mattst88@gmail.com, linmag7@gmail.com, linux@armlinux.org.uk, 
+	catalin.marinas@arm.com, will@kernel.org, guoren@kernel.org, monstr@monstr.eu, 
+	tsbogend@alpha.franken.de, jonas@southpole.se, 
+	stefan.kristiansson@saunalahti.fi, shorne@gmail.com, 
+	James.Bottomley@hansenpartnership.com, deller@gmx.de, 
+	ysato@users.sourceforge.jp, dalias@libc.org, glaubitz@physik.fu-berlin.de, 
+	davem@davemloft.net, andreas@gaisler.com, richard@nod.at, 
+	anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net, chris@zankel.net, 
+	jcmvbkbc@gmail.com, tglx@kernel.org, peterz@infradead.org, luto@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The global LDC channel list is traversed by the duplicate-ID check in
-ldc_alloc(), updated by ldc_alloc(), and modified by ldc_free() without
-any common lock.  Consequently, two concurrent allocations can both
-observe that an ID is absent, and allocation can race removal of another
-channel.
+On Tue, Oct 13, 2026 at 8:36=E2=80=AFAM Ricardo Robaina <rrobaina@redhat.co=
+m> wrote:
+> On Thu, Oct 1, 2026 at 6:06=E2=80=AFPM Paul Moore <paul@paul-moore.com> w=
+rote:
+> > On Tue, Sep 22, 2026 at 3:21=E2=80=AFPM Ricardo Robaina <rrobaina@redha=
+t.com> wrote:
 
-The race is reachable from process context when LDOM virtual-device
-channels are configured concurrently, for example while different channel
-consumers probe or remove their devices.  A racing insert and delete can
-corrupt the hlist or leave a stale node for a channel that is being
-freed, leading to a use-after-free during a later ID check.  The
-duplicate-ID check is also ineffective because another thread can insert
-the same ID between the check and publication.
+...
 
-The allocation path also publishes the channel before request_irq() has
-succeeded.  Its current IRQ failure cleanup frees the object without
-unhashing it, so keep the node uninitialized until both IRQ handlers are
-registered successfully.
+> > * As pointed out by Sashiko, when you were converting all of the
+> > arches, it looks like you missed alpha.  I took a quick look and it
+> > appears that it should be a pretty straightforward conversion like
+> > most of the others.
+>
+> I've actually dropped the alpha patch as per Magnus's request [1].
+>
+> [1] https://lore.kernel.org/audit/CA+=3DFv5T4826T2sd0Gbh-nfZsqcWK_phdBKy4=
+BLWOvDTt92t5Eg@mail.gmail.com/
 
-Protect the check/publication and removal paths with a mutex, and publish
-the node only after both IRQ registrations have succeeded.  Allocation and
-free are sleeping, process-context interfaces, so a mutex is appropriate.
+The problem is that as things stand, this patchset breaks the build on
+Alpha.  Perhaps this gets resolved during the current merge window,
+but as you know we can't break the kernel build ...
 
-Found during a static-analysis-assisted audit: candidate sites were
-surfaced by a Coccinelle rule, and the reader/writer paths were
-confirmed by LLM-assisted (GLM-5.3) code inspection.  The issue was
-not observed at runtime; it is identified by code inspection only.
+https://lore.kernel.org/oe-kbuild-all/202610041836.6TatRQSm-lkp@intel.com
 
-Fixes: e53e97ce3c71 ("[SPARC64]: Add LDOM virtual channel driver and VIO device layer.")
-Assisted-by: GLM-5.3 coccinelle
-Signed-off-by: Binbin Deng <18983559317@163.com>
----
- arch/sparc/kernel/ldc.c | 26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
-
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 826fe8ed0289..fbb3021158bd 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -7,6 +7,7 @@
- #include <linux/kernel.h>
- #include <linux/export.h>
- #include <linux/slab.h>
-+#include <linux/mutex.h>
- #include <linux/spinlock.h>
- #include <linux/delay.h>
- #include <linux/errno.h>
-@@ -952,13 +953,8 @@ static irqreturn_t ldc_tx(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--/* XXX ldc_alloc() and ldc_free() needs to run under a mutex so
-- * XXX that addition and removal from the ldc_channel_list has
-- * XXX atomicity, otherwise the __ldc_channel_exists() check is
-- * XXX totally pointless as another thread can slip into ldc_alloc()
-- * XXX and add a channel with the same ID.  There also needs to be
-- * XXX a spinlock for ldc_channel_list.
-- */
-+/* Serializes ldc_channel_list and the channel-ID uniqueness check. */
-+static DEFINE_MUTEX(ldc_channel_lock);
- static HLIST_HEAD(ldc_channel_list);
- 
- static int __ldc_channel_exists(unsigned long id)
-@@ -1165,16 +1161,17 @@ struct ldc_channel *ldc_alloc(unsigned long id,
- 	if (hv_err == HV_ECHANNEL)
- 		goto out_err;
- 
-+	mutex_lock(&ldc_channel_lock);
- 	err = -EEXIST;
- 	if (__ldc_channel_exists(id))
--		goto out_err;
-+		goto out_err_locked;
- 
- 	mssbuf = NULL;
- 
- 	lp = kzalloc_obj(*lp);
- 	err = -ENOMEM;
- 	if (!lp)
--		goto out_err;
-+		goto out_err_locked;
- 
- 	spin_lock_init(&lp->lock);
- 
-@@ -1223,9 +1220,6 @@ struct ldc_channel *ldc_alloc(unsigned long id,
- 	lp->hs_state = LDC_HS_CLOSED;
- 	ldc_set_state(lp, LDC_STATE_INIT);
- 
--	INIT_HLIST_NODE(&lp->list);
--	hlist_add_head(&lp->list, &ldc_channel_list);
--
- 	INIT_HLIST_HEAD(&lp->mh_list);
- 
- 	snprintf(lp->rx_irq_name, LDC_IRQ_NAME_MAX, "%s RX", name);
-@@ -1243,6 +1237,11 @@ struct ldc_channel *ldc_alloc(unsigned long id,
- 		goto out_free_txq;
- 	}
- 
-+	INIT_HLIST_NODE(&lp->list);
-+	hlist_add_head(&lp->list, &ldc_channel_list);
-+
-+	mutex_unlock(&ldc_channel_lock);
-+
- 	return lp;
- 
- out_free_txq:
-@@ -1257,6 +1256,9 @@ struct ldc_channel *ldc_alloc(unsigned long id,
- out_free_ldc:
- 	kfree(lp);
- 
-+out_err_locked:
-+	mutex_unlock(&ldc_channel_lock);
-+
- out_err:
- 	return ERR_PTR(err);
- }
--- 
-2.43.0
-
+--=20
+paul-moore.com
