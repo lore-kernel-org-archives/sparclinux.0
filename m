@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792625695;
-	b=GBP7Y252mUoraV6xGe4Hc3QwcIJibt5G8+gSjG1b3jGKKp/fNtmd28sFeiEhQI8Bkzev
-	 zvMkj0Ij3MAHN2CiPnhAKRaKDQ2XlgxQq+CVvEotPCXjVWV9PI9E0eAMSuEL/WrwnqFrn
-	 tHoIitci3QGZtGB0+yptana6F56UPxeGlAlr4nN9ohHqCXFVjoV4l87n5u+WvNzu+Yvb9
-	 uGIILPsp68hekWPtRYeMSz6riLXIVRowjMABNA3F7+VW1DE58ZMAHot5RWoV9k1QD3nl0
-	 XTFcf9jWWh8NpMdvi38nslYiJjCUKtyOV1wd8FIwKnfBnZ8Sd90U8uPf42qbBk/Sj6g==
+	t=1792625697;
+	b=hOEnij91zPsqTyxDLBtsw1zAcdJSlTyhPbaWGCopgHAhqrp3jtABBaZbLE0kJwW/UpVG
+	 gYIbSHQD/Bj41Qy2GJkbFxTf7XQbHJ2ZLtHAz0B0s61TGUqAornIAGDKRwM75aXLROwrK
+	 fK0Lx/HNdB471xwcLsIludefMKwuM3jNDscjO+s0YrSGTKLQlfe0gsQ4dEeb2pN2E4dKA
+	 cpTnODZ99QMTK/lgt6xUF2+g23R/XRnaQqK44sUO+g0fylflFr/N4sojSuE2zRNQmFG6t
+	 3KPdQxYyJ27VfV0YJVAXPnRaB1ojaoV66ctMwX79nOXKCOyDrrJtGLPTk9aoJ5cFJQQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792625695;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792625697;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=s5GCFuOcmjehv03gf2ljnWIxHgzVxKtBI4zuJ/1eB5M=;
-	b=HO/n6cs0iqdA4AUmjkpNqu6kKIACdNsuFrb7DB3gzJxdcgcH5NJfJFMSRSHaG3Ur4KQP
-	 wnQAU1mlaxZyRQmP+vafs7NYkE09/dsPfUvF9mfu2pdjNXibky20o1Gf6+npEd7u2yidd
-	 Sv0PfpGVYOLDh9umXP9MZVbWvcNqpqYLmbS1uoRJf/Q8MpRvP1eKF5v6z1agpO7hEkPAj
-	 ADAbUqALVG+3jKcvhNTqmJpv3pS9xYTMwjLs8BTcNJXKaO2AxKSQufDCADoFIvFQVITWc
-	 rBjk+ONhkZSZ6npzBZmG7LEChy+Y+zQHJjd6U61ox6xln4ta42JEpwH/HDOjd/7kHIQ==
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=b+mC8VYd4OIdAs5s1Sr2HQYuGE+BUuD12RZl8Figbho=;
+	b=oclR0mQpkLHADm+0NQaYKEqum5NUyOnBFN4hjtSUIJluswPzk8BmGut98XRj/beIjNxG
+	 1oauuMBFq8grEgAKxcIm5yUPtwyDHYzbgFDXVlxoW0hjSQ1QUe5/QtW67RiW+GDoq7qJP
+	 OrIf5uxHyt2EZx7pNmtSf23UYg+UGvTG6Cfanz1f97NFW00oAFfwTt/YYAcw5KhXL9ydJ
+	 CLr98GbHN+Fn/OF2JsADLQevkCQNN/C4Uwsd+GpnAmMQKdEx+Slv0x84jl1c/pAtrPzv4
+	 9IeCnJ6dUhrEeTTJPYp/TwioSy8uwZiLnWKKZU1nmdRzyT6HCUl2ORRVfm0k3cCWbag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g7QSiiX5;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M5sHW2cn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80940606A31A;
-	Wed, 21 Oct 2026 23:34:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D05606A31F;
+	Wed, 21 Oct 2026 23:34:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g7QSiiX5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E49211F000C1;
-	Wed, 21 Oct 2026 23:34:52 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M5sHW2cn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 772431F000C2;
+	Wed, 21 Oct 2026 23:34:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792625695;
-	bh=s5GCFuOcmjehv03gf2ljnWIxHgzVxKtBI4zuJ/1eB5M=;
-	h=From:To:Cc:Subject:Date;
-	b=g7QSiiX5u84k62YLZ3c1x3+ueZUgWrw+FaS8iLWpFy0ypur0rpeshW6hISOU3LpYX
-	 q3LMdDTnMxORG/nxYgtnD0CXjNK8MnxAqtqbWxg2MKfUZuBonSM6Qr4rQFgK80bn3W
-	 ZXOfZwioE33FPbSA7dgVdF4F/+gOyhGEXfpso+uOr/gnugw3cI15IifZZ6Xa0rI84d
-	 Z8/oljAK0C56CAxKlujvNRho9+H+tS3+1hH9PqcAKAl4t0ex3rl2ORUxbxj+EdygHm
-	 g12QQU5IEvMSlmKsEbOwIj5paUUVN/lUxzNfgfeoO+vCq9caYtyD8jyXZwdrmX0MCd
-	 vCT6K/814OCtQ==
+	s=k20260515; t=1792625697;
+	bh=b+mC8VYd4OIdAs5s1Sr2HQYuGE+BUuD12RZl8Figbho=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=M5sHW2cnzWwkaf3Qjkf0OZTU7gUHdmKDYHdaTqfMhbjdkZjbnRg84RuEDsypeG6lp
+	 bOp3H6s/TgsDqqE+JOQA59IpEbc+6OWNPbTQj6AMOLah9E9ht6OLOXdDCHBctcYMH3
+	 hTtZmgQSBd3PJgLG5CoLHsRTA9AwVHa01J2AilkqIMHJui8LrU8MPgvTFVvxmJihoA
+	 lAFSKomWZsB5yTPqBmcWm0vf6bczeXn5eOyk9SZV1Mnn8jqluU+Mn33sGq90m6NFic
+	 CbALjsYjmcaM5tQBzI0Na6qKNsVvwT1QZOgS5g1qOhjQOfjFRqBNyhQ2ro7V8/agdk
+	 xDuHDfWUC221A==
 From: Imre Kaloz <kaloz@kernel.org>
 To: "David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>
@@ -48,10 +48,12 @@ Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [PATCH v3 0/4] sparc64: D-cache alias flushing fixes
-Date: Thu, 22 Oct 2026 01:33:36 +0200
-Message-ID: <cover.1792609488.git.kaloz@kernel.org>
+Subject: [PATCH v3 1/4] sparc64: skip the trap block in xcall_deliver() when there is no target
+Date: Thu, 22 Oct 2026 01:33:37 +0200
+Message-ID: <3bf5d270153bf6b8efb1673a9500df826ec28678.1792609488.git.kaloz@kernel.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <cover.1792609488.git.kaloz@kernel.org>
+References: <cover.1792609488.git.kaloz@kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -63,60 +65,40 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-These fix D-cache alias flushing on sparc64 CPUs with a virtually
-indexed L1 D-cache (Spitfire and Cheetah).
+xcall_deliver() writes the mondo data and the target CPU list through
+the trap block's physical addresses before it knows whether any CPU is
+targeted. These addresses stay zero until init_IRQ() sets them up, so a
+cross call made earlier, while only the boot CPU is online, would write
+starting at physical address 0.
 
-1/4 makes xcall_deliver() bail out before it touches the trap block
-when there is no other CPU to call, so an early cross call, before
-init_IRQ() sets up the mondo blocks, can't end up writing to physical
-address 0.
+Return before touching the trap block when no other online CPU is in
+the mask.
 
-2/4 flushes only the page a PTE maps instead of its whole folio, which
-removes about a million redundant page flushes from a colour-changing
-mremap() of a large folio (7.3 s on a Sun Fire V240).
+Signed-off-by: Imre Kaloz <kaloz@kernel.org>
+---
+ arch/sparc/kernel/smp_64.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-3/4 implements flush_cache_vmap() and flush_cache_vunmap(), which have
-been no-ops. Stale vmalloc lines corrupt BPF programs and module data
-on UltraSPARC III.
-
-4/4 passes the number of PTEs to move_pte(), as Andreas suggested. It
-touches mm/mremap.c and include/linux/pgtable.h, so it needs an ack
-from the mm folks.
-
-1-3 don't depend on 4 and can go in on their own. 2 and 3 are for
-stable (3 needs 2), 1 and 4 aren't. The series is on top of the sparc
-for-next branch.
-
-Changes in v3:
-- new 1/4 and 4/4, following Andreas' review
-- 2/4: reworded the message and the move_pte() comment, marked the
-  UP #endif
-- 3/4: reworded the message, dropped the Suggested-by (I have no
-  email address for nsafran1217, the Link credits them), noted the
-  stable dependency on 2/4
-- picked up Stian's and Adrian's Tested-by tags
-
-v2: https://lore.kernel.org/r/20260928132102.1707-1-kaloz@kernel.org
-
-Imre Kaloz (4):
-  sparc64: skip the trap block in xcall_deliver() when there is no
-    target
-  sparc64: flush only the aliased page, not its whole folio
-  sparc64: flush vmalloc ranges from the D-cache on map and unmap
-  mm: pass the number of PTEs to move_pte()
-
- arch/sparc/include/asm/cacheflush_64.h |  9 ++--
- arch/sparc/include/asm/pgtable_64.h    | 14 ++++--
- arch/sparc/kernel/smp_64.c             | 51 +++++++++++++++-----
- arch/sparc/mm/init_64.c                | 65 ++++++++++++++++++++++++++
- arch/sparc/mm/tlb.c                    |  2 +-
- arch/sparc/mm/ultra.S                  | 25 ++++++++++
- include/linux/pgtable.h                |  2 +-
- mm/mremap.c                            |  2 +-
- 8 files changed, 148 insertions(+), 22 deletions(-)
-
-
-base-commit: 2bc58762a3d74e42de129d717ae3ba10ecf0ab96
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index 371460e34484..4240c129c5fe 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -801,6 +801,15 @@ static void xcall_deliver(u64 data0, u64 data1, u64 data2, const cpumask_t *mask
+ 	local_irq_save(flags);
+ 
+ 	this_cpu = smp_processor_id();
++
++	/* The mondo block and cpu list are not set up until init_IRQ(),
++	 * so do not touch them unless there is a cpu to send to.
++	 */
++	if (cpumask_any_and_but(mask, cpu_online_mask, this_cpu) >= nr_cpu_ids) {
++		local_irq_restore(flags);
++		return;
++	}
++
+ 	tb = &trap_block[this_cpu];
+ 
+ 	mondo = __va(tb->cpu_mondo_block_pa);
 -- 
 2.47.3
 
