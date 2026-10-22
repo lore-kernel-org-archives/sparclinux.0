@@ -1,107 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.166
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792681359;
-	b=LgPAK46ksoLcrtSzMud0aAQ/VGz60D1sZviyMMYPKe1A/dfjNQqlQAD6/8Qj9m0N3ovg
-	 DK+jc1JsWeOx5DVdF5vxDWn5G1yZ24SPVTS9Pw3KAEZY37HL8bphx4TU/6OaE5cQqZVif
-	 lB7wGs0pKThxcBjFNZbYZ94GBBreXWJw1DKnLQT2g/ih+hu8dfHJHiwTocyD4hAXYDv8v
-	 fKuUPIhu4lVMp6kbtDagazlrI38heJGwgI3kq5TywNC0TD5LpVRDkjnfHhCcSusXnWk9V
-	 sAo0KJ9sMa6vnxjNbwV/jvaoOYuJKgWedaj53sy8FDa2kYcYmxaCFRhR3t1NRTT1kmg==
+	t=1792684154;
+	b=itTD3u7nr0fy1fV46ViIIdmUPykxUVsTn2yp47JghHtu+RPzu8sHScGz7NBFGELTCu8y
+	 acVPm9Mf6OoIRYJuEqgyFClq5vQGv6FnE0US3j13vP/nJQKmaBvoOciNUCbqU0Mm4su+p
+	 2QGkW7NVkHBGwqexoSho0yEEDcUV/LdjWVYDL/T4VsAoVudM5B/x9J08NHwy+DOpAg14l
+	 rCu62HU29Nhtfs9dU+fh6XvhpSxog3RK8OrxidBoFgAihQn5yad5X7IZA1hI6Dn22HVEN
+	 SiOxkC+92SzQ/Up5fbXoAWV01UkVCHGgvOMv3g2Qdngy+XGZTdA4133YpDdyby/UX5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792681359;
-	h=DMARC-Filter:Date:DKIM-Signature:DKIM-Signature:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=UzBCi/OSOXBVd/hf35Hctx/8s00KKyC8gNB54GWWKuw=;
-	b=VyUPMGFTYh39LSJuSVWp+7miqc8lGfv5iMRYGGQrgjutUX+7o6RULdx8JBUybVxsQFrE
-	 nQ/wxMDdTfGBbuevrRov87KIvXMDTvNuwEfsxTJNCzSSmftW7tvXsblexCoaXM6ZC1sFR
-	 PGodVhcXgAlUOV36R9FBO7PdbEMiGhBGoowV/rLM7h5kDJIGN5pKqYG+UviRGNL3SX3FH
-	 jSzDQ7spqUoGeYIdbNPTyAr+dFl43cPXlUJ27jp1TN+YiwSsDlWjh9rTkAmG4xjYbFYgO
-	 dlHd3bGXQ31C9CP3kHvNClMiun3eQ68JIGIi9D0s2p9sx3wwgvYOabnV8e1bBAey3lA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792684154;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:In-Reply-To:
+	 References:User-Agent:Date:Message-ID:MIME-Version:Content-Type;
+	bh=fT8Ya1Op87GUrpK4YMhzZpBMHsNUcdW4n48pCvXCzHQ=;
+	b=wDJIRJh7HQ4K7JSzMZ2LsHVz4MPrQL+195Powr3olHcwv3Pi3zkkYBO9g24VmdYxc2pv
+	 hyuRXHbHgx3PXmG6dCqLRx6UK7vATWm5Eu672D/U/5MKaPA3rEHPekDuIEa1ASKiW7vMs
+	 6IbHk4IN3HcjTSAVd5bqNIc5vpG+2bzVil2URt/CLh7lfydQZ7tHfft+sGha5nmll+/Ih
+	 LbVYegLBQ9VPth9u/5jHDUN9nR6pjeAxy2odwCJXWqFNYib7dACHrQmK8eJLysO7/C0ms
+	 DXVKtNADRx9hzpT5y3LGNeCwmlZD0WsswT9n1S960+vvx5Alpord1X4nNlsN/rdEY2g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linutronix.de;
-	spf=pass smtp.mailfrom=linutronix.de;
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=rsa-sha256 header.s=2020 header.b=2kUGpeTG;
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=ed25519-sha256 header.s=2020e header.b=rACQg86H;
-	arc=none smtp.remote-ip=193.142.43.55
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=gm0QHVFv;
+	arc=none smtp.remote-ip=91.218.175.166
+Received: from mta0.migadu.com (out-166.mta0.migadu.com [91.218.175.166])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2728606A31A;
-	Thu, 22 Oct 2026 15:02:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E2728606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D2C6606A31B
+	for <sparclinux@vger.kernel.org>; Thu, 22 Oct 2026 15:49:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7D2C6606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=linutronix.de header.i=@linutronix.de header.a=rsa-sha256 header.s=2020 header.b=2kUGpeTG;
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=ed25519-sha256 header.s=2020e header.b=rACQg86H
-Date: Thu, 22 Oct 2026 17:02:35 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1792681357;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=UzBCi/OSOXBVd/hf35Hctx/8s00KKyC8gNB54GWWKuw=;
-	b=2kUGpeTGDVBuYHmtDUk+ioLvFvif4ltj8rhWzocDuPm3HaFe4R4vTlOrnH+/NsK85KtmTp
-	BQjRWdChCYWAdK0+eKUDRrdj71IFDIxlOzl/dpE7YHJOp63rkeZsrL+lIMWPOayKDZmWQS
-	jZAmsd4OLiERAIm81xpmW1yxnaZhra+XaRdURt8feLSfDQkUZypkuicnE2Chx4WDXJq1W7
-	gDW8/bA/PN+qgiQxlc+hLTJKpE5MORxYd7/+QpWeOeTOBVrrUrdM+PZPV0PqyhtRPzLVvf
-	zZtCZj7gdLMshXYHbUIElhTwDBoSLh7+UVN4FV0jNASdMsB3S53YU8lnjUcMbw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1792681357;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=UzBCi/OSOXBVd/hf35Hctx/8s00KKyC8gNB54GWWKuw=;
-	b=rACQg86HepNQ8r26wtL/lrV9xxe+QpJ6z/mp4SnHXzsO+wI4ld+mzpC3AGpr+fKJ/pFfac
-	AwRn+5gmUDC3CcCw==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Thomas Gleixner <tglx@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Shrikanth Hegde <sshegde@linux.ibm.com>,
-	linuxppc-dev@lists.ozlabs.org, Kees Cook <kees@kernel.org>,
-	Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev,
-	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	linux-riscv@lists.infradead.org,
-	Sven Schnelle <svens@linux.ibm.com>, linux-s390@vger.kernel.org,
-	x86@kernel.org, Mark Rutland <mark.rutland@arm.com>,
-	Jinjie Ruan <ruanjinjie@huawei.com>,
-	Andy Lutomirski <luto@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Russell King <linux@armlinux.org.uk>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Guo Ren <guoren@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Helge Deller <deller@gmx.de>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Richard Weinberger <richard@nod.at>,
-	Chris Zankel <chris@zankel.net>,
-	linux-arm-kernel@lists.infradead.org, linux-alpha@vger.kernel.org,
-	linux-csky@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-	linux-sh@vger.kernel.org, linux-um@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@kernel.org>,
-	Will Deacon <will@kernel.org>, Brian Cain <bcain@kernel.org>,
-	Michal Simek <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	linux-snps-arc@lists.infradead.org, linux-hexagon@vger.kernel.org,
-	linux-openrisc@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-arch@vger.kernel.org,
-	Michal =?utf-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [patch 16/18] x86/entry: Get rid of the sys_ni_syscall()
- indirection
-Message-ID: <20261022150235.V2CSdtmu@linutronix.de>
-References: <20260707181957.433213175@kernel.org>
- <20260707190254.493733289@kernel.org>
- <20261022142425.3Wx-RrU5@linutronix.de>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=gm0QHVFv
+X-Envelope-To: sparclinux@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=fT8Ya1Op87GUrpK4YMhzZpBMHsNUcdW4n48pCvXCzHQ=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1792684151; v=1; x=1793288951;
+ b=gm0QHVFv6pqEbyGAJYdWYBPG/owToPsM3u5iAS5nrm6+JOYVEjaF2YlaZvcfj9y0lwWPNOdU
+ a5zrlbI8YCVvJDli6aln7A09ACXf0LKNGpVVBtFoShCu8NB5Z0isTxIPhcdrn+xiyemyVga/PE/
+ UgkzVuRn5V8fsjks+8vtEN5k=
+X-Envelope-To: sparclinux@vger.kernel.org
+Received: by mta12.migadu.com with ESMTPS id 7cc6c7ca1ef52428;
+	Thu, 22 Oct 2026 15:49:11 +0000
+X-Mizu-Trace-ID: 7cc6c7ca1ef52428
+X-Migadu-Flow: FLOW_OUT
+From: Roman Gushchin <roman.gushchin@linux.dev>
+To: Andreas Larsson <andreas@gaisler.com>
+Cc: sashiko@lists.linux.dev,  sparclinux@vger.kernel.org
+Subject: Re: Enabling Sashiko reviews for sparclinux mailing list
+In-Reply-To: <a08430ed-9e39-456d-8863-3fa478368134@gaisler.com> (Andreas
+	Larsson's message of "Thu, 22 Oct 2026 16:54:16 +0200")
+References: <a08430ed-9e39-456d-8863-3fa478368134@gaisler.com>
+User-Agent: mu4e 1.12.15; emacs 30.2
+Date: Thu, 22 Oct 2026 15:49:08 +0000
+Message-ID: <7ia433txrb0r.fsf@castle.c.googlers.com>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -111,25 +65,22 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20261022142425.3Wx-RrU5@linutronix.de>
+Content-Type: text/plain
 
-On 2026-10-22 16:24:30 [+0200], To Thomas Gleixner wrote:
-> The test could be updated via the hunk below in case the new behaviour
-> is what is expected. hpa made the extension to the test in commit
-> 795e2a023b808 ("selftests/x86/syscall: Add tests under ptrace to
-> syscall_numbering_64").
->=20
-> diff --git a/tools/testing/selftests/x86/syscall_numbering.c b/tools/test=
-ing/selftests/x86/syscall_numbering.c
-> index ca0eca7b9dced..1435394fba022 100644
-> --- a/tools/testing/selftests/x86/syscall_numbering.c
-> +++ b/tools/testing/selftests/x86/syscall_numbering.c
+Andreas Larsson <andreas@gaisler.com> writes:
 
-Now I notice the fix depends on CONFIG_X86_X32_ABI=3Dy (fails for =3Dn).
-But we want to get rid of it anyway so=E2=80=A6
-CONFIG_IA32_EMULATION is not affected (with the fix).
+> Hi Roman,
+>
+> Could you enable Sashiko reviews for sparclinux@vger.kernel.org?
+> Preferred configuration:
+>
+> reply_to = ["author", "list"]
 
-Sebastian
+Hi Andreas,
+
+Added:
+https://github.com/sashiko-dev/sashiko/commit/bbb84c8e441f9000de69f5a93ccf460cbd5b233d
+
+I'll roll it out later today/tomorrow.
+
+Thanks
