@@ -1,61 +1,50 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.166
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=144.76.212.145
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792684154;
-	b=itTD3u7nr0fy1fV46ViIIdmUPykxUVsTn2yp47JghHtu+RPzu8sHScGz7NBFGELTCu8y
-	 acVPm9Mf6OoIRYJuEqgyFClq5vQGv6FnE0US3j13vP/nJQKmaBvoOciNUCbqU0Mm4su+p
-	 2QGkW7NVkHBGwqexoSho0yEEDcUV/LdjWVYDL/T4VsAoVudM5B/x9J08NHwy+DOpAg14l
-	 rCu62HU29Nhtfs9dU+fh6XvhpSxog3RK8OrxidBoFgAihQn5yad5X7IZA1hI6Dn22HVEN
-	 SiOxkC+92SzQ/Up5fbXoAWV01UkVCHGgvOMv3g2Qdngy+XGZTdA4133YpDdyby/UX5Q==
+	t=1792685830;
+	b=Cn5aIJxiMrqJnH3rf4+hHHWK46DHgsGGC5ZBm/frCeb1VaXzYa/bfxbS1oVmLrGIt5PO
+	 SvUccUd105sfslme4J+gcWMj8lcnh705sSezY31hkYdWVTeou/BAZpGEUT//AIhqKOdyG
+	 B1GaTd4b/50lq5UzMFSAnAM111x/DqpsOwGIObBkEOuj132biNgEu1+eBbaFHKkPmShHI
+	 +QTFed+fU1NtLW9W7caAlGW17ISyusIrearyTU/mUj30Sc2RYLrd4E7eiI9BRspWIphEZ
+	 /i21YDPkT6OX0TzOgnwwFK45btQRv7/iEAT/3IF1P2F8CMQ9+cdEINzrt+zL3FUwU4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792684154;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:In-Reply-To:
-	 References:User-Agent:Date:Message-ID:MIME-Version:Content-Type;
-	bh=fT8Ya1Op87GUrpK4YMhzZpBMHsNUcdW4n48pCvXCzHQ=;
-	b=wDJIRJh7HQ4K7JSzMZ2LsHVz4MPrQL+195Powr3olHcwv3Pi3zkkYBO9g24VmdYxc2pv
-	 hyuRXHbHgx3PXmG6dCqLRx6UK7vATWm5Eu672D/U/5MKaPA3rEHPekDuIEa1ASKiW7vMs
-	 6IbHk4IN3HcjTSAVd5bqNIc5vpG+2bzVil2URt/CLh7lfydQZ7tHfft+sGha5nmll+/Ih
-	 LbVYegLBQ9VPth9u/5jHDUN9nR6pjeAxy2odwCJXWqFNYib7dACHrQmK8eJLysO7/C0ms
-	 DXVKtNADRx9hzpT5y3LGNeCwmlZD0WsswT9n1S960+vvx5Alpord1X4nNlsN/rdEY2g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792685830;
+	h=Received:Received:Date:From:To:cc:Subject:In-Reply-To:Message-ID:
+	 References:User-Agent:MIME-Version:Content-Type;
+	bh=dySdZErp2cxtgCmjNL3MOLQ5C3PwLjarIMbiSXRprSc=;
+	b=hGlO4NQsNKliefbo1PedoWGDHnOwXyC5KxVAKOxPh7uq1oB3+/AdffmdMXDPdve/nOPC
+	 UjAh5H3OV5bmCxYRZNtEiZbE5i6YIjDjyki6Yie7woQthyW1vbQnTUa+BdNLWYaIXYB/D
+	 2Nl/Otq5cCO9TM/6uQr1VkmmlKwkFgEa8UH3vu4GLBeDE86YPQdcBfH04wkEstzkHXLTj
+	 H8lMRjMzhI0gRX/r3Z95y9A0NsOaKDyzoI9MvNzCvTyY1uOsnpLkRvjHsZORH5sWPvq2r
+	 V2BGe/nzN768zV1A9NBe8LmlJEhwphJHI+NxZrfL/HKoDYtMvI/Fapx2mcyFWRefExQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=gm0QHVFv;
-	arc=none smtp.remote-ip=91.218.175.166
-Received: from mta0.migadu.com (out-166.mta0.migadu.com [91.218.175.166])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=permerror header.from=inai.de;
+	spf=pass smtp.mailfrom=inai.de;
+	arc=none smtp.remote-ip=144.76.212.145
+Received: from a3.inai.de (a3.inai.de [144.76.212.145])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D2C6606A31B
-	for <sparclinux@vger.kernel.org>; Thu, 22 Oct 2026 15:49:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7D2C6606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=gm0QHVFv
-X-Envelope-To: sparclinux@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=fT8Ya1Op87GUrpK4YMhzZpBMHsNUcdW4n48pCvXCzHQ=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1792684151; v=1; x=1793288951;
- b=gm0QHVFv6pqEbyGAJYdWYBPG/owToPsM3u5iAS5nrm6+JOYVEjaF2YlaZvcfj9y0lwWPNOdU
- a5zrlbI8YCVvJDli6aln7A09ACXf0LKNGpVVBtFoShCu8NB5Z0isTxIPhcdrn+xiyemyVga/PE/
- UgkzVuRn5V8fsjks+8vtEN5k=
-X-Envelope-To: sparclinux@vger.kernel.org
-Received: by mta12.migadu.com with ESMTPS id 7cc6c7ca1ef52428;
-	Thu, 22 Oct 2026 15:49:11 +0000
-X-Mizu-Trace-ID: 7cc6c7ca1ef52428
-X-Migadu-Flow: FLOW_OUT
-From: Roman Gushchin <roman.gushchin@linux.dev>
-To: Andreas Larsson <andreas@gaisler.com>
-Cc: sashiko@lists.linux.dev,  sparclinux@vger.kernel.org
-Subject: Re: Enabling Sashiko reviews for sparclinux mailing list
-In-Reply-To: <a08430ed-9e39-456d-8863-3fa478368134@gaisler.com> (Andreas
-	Larsson's message of "Thu, 22 Oct 2026 16:54:16 +0200")
-References: <a08430ed-9e39-456d-8863-3fa478368134@gaisler.com>
-User-Agent: mu4e 1.12.15; emacs 30.2
-Date: Thu, 22 Oct 2026 15:49:08 +0000
-Message-ID: <7ia433txrb0r.fsf@castle.c.googlers.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB29F606A319;
+	Thu, 22 Oct 2026 16:17:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=inai.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inai.de
+Received: by a3.inai.de (Postfix, from userid 25121)
+	id B59CC1016BF282; Thu, 22 Oct 2026 18:17:01 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by a3.inai.de (Postfix) with ESMTP id B4DE31108E606F;
+	Thu, 22 Oct 2026 18:17:01 +0200 (CEST)
+Date: Thu, 22 Oct 2026 18:17:01 +0200 (CEST)
+From: Jan Engelhardt <ej@inai.de>
+To: Stian Halseth <stian@itx.no>
+cc: davem@davemloft.net, sparclinux@vger.kernel.org, 
+    linux-kernel@vger.kernel.org, 
+    John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Subject: Re: [PATCH] sparc: populate sysfs cache topology information on
+ sun4v
+In-Reply-To: <156ed58445e869ffb783bfee0c07bc784f6178ad.camel@itx.no>
+Message-ID: <oo23630s-96q9-69n0-9457-764233rs5496@vanv.qr>
+References: <20261018222723.43442-1-jengelh@inai.de> <156ed58445e869ffb783bfee0c07bc784f6178ad.camel@itx.no>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -65,22 +54,34 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 
-Andreas Larsson <andreas@gaisler.com> writes:
 
-> Hi Roman,
+On Monday 2026-10-19 11:49, Stian Halseth wrote:
+>Hi Jan, thanks for looking into this!
 >
-> Could you enable Sashiko reviews for sparclinux@vger.kernel.org?
-> Preferred configuration:
+>On Mon, 2026-10-19 at 00:27 +0200, Jan Engelhardt wrote:
+>> +int init_cache_level(unsigned int cpu)
+>> +{
+>> +	struct cpu_cacheinfo *i = get_cpu_cacheinfo(cpu);
+>> +	i->num_levels = 2;
+>> +	i->num_leaves = 3;
 >
-> reply_to = ["author", "list"]
+>Using the MD node as the cache id with CACHE_ID set looks to me like
+>the right way to do it. I tried it on my T4-1 and V240 and have a few
+>comments.
 
-Hi Andreas,
+I did not even expect this to do anything sensible on V240.
+That is just an accident - and multicore-per-package (MC)
+sun4u are expected to be still misreported. That needs again 
+different logic.
 
-Added:
-https://github.com/sashiko-dev/sashiko/commit/bbb84c8e441f9000de69f5a93ccf460cbd5b233d
+>Maybe it's simpler to just walk the MD directly in init_cache_level()
+>and populate_cache_leaves(), following the same arcs as
+>fill_in_one_cpu(), and add one leaf per cache node?
 
-I'll roll it out later today/tomorrow.
+After some pondering and in anticipation of MC sun4u, I think
+re-walking is sensible. I expect there to be a few savings
+(just 24 per strand) and a bunch of LOC removals.
 
-Thanks
+More later.
