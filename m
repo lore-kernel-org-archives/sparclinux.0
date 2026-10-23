@@ -1,47 +1,86 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792788797;
-	b=X3oHeGbsl1+i7TBGAtTsbC8N7QJhwbPxLkCu77+rJZFLot066KkEH9lSs6d0Iw7P8xiZ
-	 QP/UV93fYLH0SjEJPiCI0le8HYbqId/9r7zS+5Taax0tJcubnNEcK5Neq2muS5PlylrT9
-	 3o+smE4GUBjPeHsUR07VKzVV6TkcyqcEvJNuRF303H+LW/QzDCDURyqOCJ0Hik5Cykj6d
-	 OPsTTD7itV1RkL9+7JVf4RlzS3SSPznBT4O6aZ+ab7TJA4BM7H9K2TYdkw9zrBr7JxAds
-	 qp+G8jPPzg3GU1D3pJYmP9rkWJ7zhR+wBX1+JTxgeW1ddL8H2WnK80HU89litk4Bqtg==
+	t=1792789403;
+	b=mF9TcpEkHvrHB7jGSyOCk4NP91JZ4Q1gRkdtaczk8b9PjnKHTJgkjmwC6vLVNP9jHW/8
+	 XmqoEni4SIqYZmNPQTSBIWaj6dZmuWpgC/3Zrc43i2Z5Fnhqxc1ayrR5Wi/nJpb11Ygxm
+	 TYr2BiFcWOJQ5ozga3g55nUFS6rhPFbuhCt2hHgXL+3x5bIVaehPIeuiiJQku+yM8Hd+K
+	 IrqPiT/Ra+CUVMR9gTJmBa4midyaWFjuabaov5p2WmBP1W6nqdsjT11ieI/aTz5GU/CzM
+	 nhBdhUDnAEGqe6ufy87dVUh6u8wheFYJn3gw3jqZY5B/518Csz0krY+huIKJEA2/jtQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792788797;
-	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=0buMQQINV0ZMT10UHG2uFH0Ptzl8aD3BfO7547k5kqY=;
-	b=zX6NFEhmTWvGJcCoSs16DzEtq9uqntiEOfnWgRDLMvIYunnFi4edSdtuDs4cBQPWW+9l
-	 34VALkM+Mz2jCGcPwEIJv1rk+gJBJEJWPiyGds0zP1UElNrk4gXG+zjP/FZ9OJB7zcfk7
-	 5VhS62eJeorCvnLOhH1NlEZUn598DeCZPbNpMo8J+CYKh4jzdP2A0ngeK6+ZygcJsEN/I
-	 WpXQzUY/rPEpUc188406TqHCWNeanoDx1FXqfAlIC2VDUqHFdcjz48bggTJSci00KUTye
-	 d6QZsPcNNnj0HeZ83AOLts7/wRDE/IiPxSFR5wDBPCICohypqgxDNRrXhwnpzf4hivg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792789403;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
+	 Date:Message-ID:MIME-Version:Content-Type;
+	bh=z4qvQCN58U+JYqI9bDmfn/D5nhfh4S82nzs2P03LmsM=;
+	b=2uMfi+UvGPwoaHqv8xhNSBzIIlBfsLU4dwwgY4lbq4Fi6qzE2SvfmKRML7OqwFM23Q9b
+	 fFcc9Q3MaapADU6HhXq2e49uuScl6H126A/ms89SO53ZdgRKTSItJScUV7xZOsb8HiEHl
+	 TeNgnkI+/GoPdeyRl+EGiHGQr2axqxZcwP8Q9cAiUt5asAifQYNu8z0M6E/XRtycR2Pbk
+	 iaIaU6K8vJOIpOhpr88mAIYSC81n2vqCZ115KL+EwFeTmtZbwlb8hTE7TxLh1PUvfV6kr
+	 Ptp3Wc8fUDPo7Vs9UvWSmpZxlgCWY+B2g9CgeDWTQlIU6hU0tjbzLvPai7BxHCor7LA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DUU81bAs;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Uq2tmGaB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 886C7606A31B;
-	Fri, 23 Oct 2026 20:53:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1729606A31A;
+	Fri, 23 Oct 2026 21:03:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DUU81bAs
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15DEB1F01825;
-	Fri, 23 Oct 2026 20:53:12 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Uq2tmGaB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97F501F01828;
+	Fri, 23 Oct 2026 21:03:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792788797;
-	bh=0buMQQINV0ZMT10UHG2uFH0Ptzl8aD3BfO7547k5kqY=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=DUU81bAsRlByMerKC6j8ENrXC1/LZaH6l/iyH813lPlUNnkhTUzRJZ7FS62aiyRtg
-	 nk18HnfoiLhgD/7nubtqFeBFg8UJPicbpbNVP1OiMueX/sFnkIptckyLCdt3yShdok
-	 fOmBsw0eNvATOPhavkFKgnshJ/cF4t2QGt4/goRkbHFXKSC+j6Sz1i4YTDQJs9StRI
-	 1k3eNBpmp7vjOP9O8hXMfiWhngOVx6UgHOW2RsbPmrG4kzH/Q6tDPkOrw8CuZMcYSY
-	 99iKODVHyysJalk31n5BoLCcDBQ+AfAMuQGn2jzvcF1E+IB7wVuvrRF9fA4u8i4QYX
-	 WRBqUM0rLtOlw==
-Message-ID: <409079fe-ab52-4389-9fe0-d7246eb27bad@kernel.org>
-Date: Fri, 23 Oct 2026 22:53:09 +0200
+	s=k20260515; t=1792789402;
+	bh=z4qvQCN58U+JYqI9bDmfn/D5nhfh4S82nzs2P03LmsM=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date;
+	b=Uq2tmGaBxQvk3ht7HGTfPReMFqJyJBCqOBq0vIxhArHZHHeoamuJ6hketeNzAHwZ8
+	 StcQA3xVSJUZdHusYqq87suQp54bO9TdiZ0Pr4Ze4Wu2fGh5HjQOT/CoRjmyJUuOT5
+	 DQIFlkgiCw5uboeFrJN90fUZm+ihmGYUDBYalCT5RPVFLoqxwSKvqaI9hdOaScug8P
+	 bsCdObO84vUQd+eimnQGnJ/jGAyvXaf1qnLPgmpV54ONY8AyHfNjtN36ieHAOum0Wt
+	 WlnPPiOkJPBZadv8Dcg6YFnsEANfVbG9w4HaV+a+oZJwLVONF8+aKkQsdWKxbxEmfR
+	 J7+cwITy6EDVA==
+From: Thomas Gleixner <tglx@kernel.org>
+To: "H. Peter Anvin" <hpa@zytor.com>, Sebastian Andrzej Siewior
+ <bigeasy@linutronix.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra
+ <peterz@infradead.org>, Michael Ellerman <mpe@ellerman.id.au>, Shrikanth
+ Hegde <sshegde@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, Kees Cook
+ <kees@kernel.org>, Huacai Chen <chenhuacai@kernel.org>,
+ loongarch@lists.linux.dev, Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt
+ <palmer@dabbelt.com>, linux-riscv@lists.infradead.org, Sven Schnelle
+ <svens@linux.ibm.com>, linux-s390@vger.kernel.org, x86@kernel.org, Mark
+ Rutland <mark.rutland@arm.com>, Jinjie Ruan <ruanjinjie@huawei.com>, Andy
+ Lutomirski <luto@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Richard
+ Henderson <richard.henderson@linaro.org>, Russell King
+ <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Guo
+ Ren <guoren@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Thomas
+ Bogendoerfer <tsbogend@alpha.franken.de>, Helge Deller <deller@gmx.de>,
+ Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger
+ <richard@nod.at>, Chris Zankel <chris@zankel.net>,
+ linux-arm-kernel@lists.infradead.org, linux-alpha@vger.kernel.org,
+ linux-csky@vger.kernel.org, linux-m68k@vger.kernel.org,
+ linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+ linux-sh@vger.kernel.org, linux-um@lists.infradead.org, Arnd Bergmann
+ <arnd@arndb.de>, Vineet Gupta <vgupta@kernel.org>, Will Deacon
+ <will@kernel.org>, Brian Cain <bcain@kernel.org>, Michal Simek
+ <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>, "David S. Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
+ linux-snps-arc@lists.infradead.org, linux-hexagon@vger.kernel.org,
+ linux-openrisc@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-arch@vger.kernel.org, Michal =?utf-8?Q?Such=C3=A1nek?=
+ <msuchanek@suse.de>, Jonathan
+ Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [patch 16/18] x86/entry: Get rid of the sys_ni_syscall()
+ indirection
+In-Reply-To: <C6D7BF04-4CF7-48D1-93B5-E80D52C2617D@zytor.com>
+References: <20260707181957.433213175@kernel.org>
+ <20260707190254.493733289@kernel.org>
+ <20261022142425.3Wx-RrU5@linutronix.de> <87fqxx1r80.ffs@fw13>
+ <87cxt11ktr.ffs@fw13> <1149A39E-BEBA-46EA-94F4-4DFFC4733EF5@zytor.com>
+ <871p9g1s3w.ffs@fw13> <87y0boze95.ffs@fw13>
+ <C6D7BF04-4CF7-48D1-93B5-E80D52C2617D@zytor.com>
+Date: Fri, 23 Oct 2026 23:03:19 +0200
+Message-ID: <87se1wyvs8.ffs@fw13>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -51,162 +90,116 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 4/4] mm: pass the number of PTEs to move_pte()
-To: Imre Kaloz <kaloz@kernel.org>, "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
- "Mike Rapoport (IBM)" <rppt@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- "Liam R. Howlett" <liam@infradead.org>, Lorenzo Stoakes <ljs@kernel.org>,
- Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>,
- Pedro Falcato <pfalcato@suse.de>, Suren Baghdasaryan <surenb@google.com>,
- Michal Hocko <mhocko@suse.com>, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-mm@kvack.org
-References: <cover.1792609488.git.kaloz@kernel.org>
- <2bc50d2a6829b49ee909e5bb943244859661a40b.1792609488.git.kaloz@kernel.org>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
- qIws/H2t
-In-Reply-To: <2bc50d2a6829b49ee909e5bb943244859661a40b.1792609488.git.kaloz@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 
-On 10/22/26 01:33, Imre Kaloz wrote:
-> Since commit f822a9a81a31 ("mm: optimize mremap() by PTE batching"),
-> move_ptes() moves a batch of PTEs mapping consecutive pages of a folio
-> at a time, but calls move_pte() once per batch with the first PTE
-> only. sparc64, the only architecture that overrides move_pte(), flushes
-> from the D-cache the page that PTE maps when the move changes its
-> colour, so the other pages of a batch would keep lines of the old
-> colour. This cannot happen today only because sparc64 has no
-> pte_batch_hint(), and mremap_folio_pte_batch() then never batches.
-> 
-> Pass nr_ptes to move_pte(), as get_and_clear_ptes() takes it. The
-> generic version ignores it, and sparc64 flushes every page of the
-> batch.
-> 
-> Signed-off-by: Imre Kaloz <kaloz@kernel.org>
-> ---
->  arch/sparc/include/asm/pgtable_64.h | 16 +++++++++-------
->  include/linux/pgtable.h             |  2 +-
->  mm/mremap.c                         |  2 +-
->  3 files changed, 11 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-> index 1430489b9ac5..9ca787b3cbfe 100644
-> --- a/arch/sparc/include/asm/pgtable_64.h
-> +++ b/arch/sparc/include/asm/pgtable_64.h
-> @@ -946,21 +946,23 @@ static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
->  	set_pte_at((mm), (addr), (ptep), __pte(0UL))
->  
->  #ifdef DCACHE_ALIASING_POSSIBLE
-> -/* This flushes only the page the PTE maps, so it relies on move_ptes()
-> - * calling it for one PTE at a time, which the default pte_batch_hint()
-> - * guarantees.
-> +/* The nr PTEs map consecutive pages of one folio and all move by the
-> + * same offset, so either every page of the batch aliases or none does.
->   */
->  #define __HAVE_ARCH_MOVE_PTE
-> -#define move_pte(pte, old_addr, new_addr)				\
-> +#define move_pte(pte, old_addr, new_addr, nr)				\
->  ({									\
->  	pte_t newpte = (pte);						\
->  	if (tlb_type != hypervisor && pte_present(pte)) {		\
->  		unsigned long this_pfn = pte_pfn(pte);			\
-> +		unsigned int i;						\
->  									\
->  		if (pfn_valid(this_pfn) &&				\
-> -		    (((old_addr) ^ (new_addr)) & (1 << 13)))		\
-> -			flush_dcache_page_all(current->mm,		\
-> -					      pfn_to_page(this_pfn));	\
-> +		    (((old_addr) ^ (new_addr)) & (1 << 13))) {		\
-> +			for (i = 0; i < (nr); i++)			\
-> +				flush_dcache_page_all(current->mm,	\
-> +					pfn_to_page(this_pfn + i));	\
-> +		}							\
->  	}								\
->  	newpte;								\
->  })
-> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-> index 8c093c119e5a..b58c0e98994e 100644
-> --- a/include/linux/pgtable.h
-> +++ b/include/linux/pgtable.h
-> @@ -1471,7 +1471,7 @@ static inline void arch_swap_restore(swp_entry_t entry, struct folio *folio)
->  #endif
->  
->  #ifndef __HAVE_ARCH_MOVE_PTE
-> -#define move_pte(pte, old_addr, new_addr)	(pte)
-> +#define move_pte(pte, old_addr, new_addr, nr)	(pte)
->  #endif
->  
->  #ifndef pte_accessible
-> diff --git a/mm/mremap.c b/mm/mremap.c
-> index e8df5cdb0ac9..7fcae7f0082d 100644
-> --- a/mm/mremap.c
-> +++ b/mm/mremap.c
-> @@ -289,7 +289,7 @@ static int move_ptes(struct pagetable_move_control *pmc,
->  			force_flush = true;
->  		}
->  		pte = get_and_clear_ptes(mm, old_addr, old_ptep, nr_ptes);
-> -		pte = move_pte(pte, old_addr, new_addr);
-> +		pte = move_pte(pte, old_addr, new_addr, nr_ptes);
->  		pte = move_soft_dirty_pte(pte);
->  
->  		if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte))
+On Fri, Oct 23 2026 at 08:38, H. Peter Anvin wrote:
+> On October 23, 2026 7:24:22 AM PDT, Thomas Gleixner <tglx@kernel.org> wrote:
+>>The real question is how we ended up there. By design or as an
+>>implementation detail which got later set in stone and the selftest was
+>>written to test the implementation instead of testing against a
+>>specification.
+>>
+>>I went back in history and in 2.6.12 the behavior was for both i386 and
+>>x86_64:
+>>
+>>  regs->ax = -ENOSYS;
+>>  syscall_trace_enter();
+>>  if (syscall_nr < MAX)
+>>  	do_syscall();
+>>  ....
+>>
+>>IOW, a tracer modification of regs->ax is not overwritten when the
+>>syscall number is out of range.
+>>
+>>Between 2.6.19-rc2 and -rc3 x86_64 was changed to _always_ overwrite
+>>regs->ax when the syscall number is out of range.
+>>
+>>In the 3.8 merge window seccomp introduced the -1 == skip bogosity which
+>>got fixed up and made "consistent" in several changes afterwards. Just
+>>that it never reached a state of consistency due to the overloading.
+>>
+>>So are we stuck with this behavior or do we sit down and define what the
+>>correct behavior should be?
+>>
+>
+> Going back on something from 3.8 that is actively used seems unwise. I
+> fear that that ship sailed a long time ago, even though I hate it just
+> as much as you do.
+
+Well, overwriting the tracer written value for invalid syscall numbers
+is something we can't undo. Though the interesting question is whether
+the -1 overloading needs to be preserved. The new code uses returns
+false when the syscall has to be aborted and that leaves the return code
+untouched. When syscall_enter_trace() returns true, the syscall is
+invoked, so it would be consistent to overwrite the return code with
+-ENOSYS even for -1. But yeah, some esoteric nonsense might rely on that
+behaviour for the wrong reasons.
+
+Fix below.
+
+Thanks,
+
+        tglx
+---
+--- a/arch/x86/entry/syscall_32.c
++++ b/arch/x86/entry/syscall_32.c
+@@ -77,6 +77,8 @@ static __always_inline void do_syscall_3
+ 	if (likely(nr < IA32_NR_syscalls)) {
+ 		nr = array_index_nospec(nr, IA32_NR_syscalls);
+ 		regs->ax = ia32_sys_call(regs, (unsigned int)nr);
++	} else {
++		regs->ax = -ENOSYS;
+ 	}
+ }
+ 
+--- a/arch/x86/entry/syscall_64.c
++++ b/arch/x86/entry/syscall_64.c
+@@ -64,15 +64,20 @@ static __always_inline bool do_syscall_x
+ 	return false;
+ }
+ 
+-static __always_inline void do_syscall_x32(struct pt_regs *regs, unsigned long nr)
++static __always_inline bool do_syscall_x32(struct pt_regs *regs, unsigned long nr)
+ {
++	if (!IS_ENABLED(CONFIG_X86_X32_ABI))
++		return false;
++
+ 	/* Adjust the starting offset of the table */
+ 	nr -= __X32_SYSCALL_BIT;
+ 
+-	if (IS_ENABLED(CONFIG_X86_X32_ABI) && likely(nr < X32_NR_syscalls)) {
++	if (likely(nr < X32_NR_syscalls)) {
+ 		nr = array_index_nospec(nr, X32_NR_syscalls);
+ 		regs->ax = x32_sys_call(regs, (unsigned int)nr);
++		return true;
+ 	}
++	return false;
+ }
+ 
+ /* Returns true to return using SYSRET, or false to use IRET */
+@@ -81,8 +86,21 @@ static __always_inline void do_syscall_x
+ 	if (likely(syscall_enter_from_user_mode_randomize_stack(regs, &nr))) {
+ 		instrumentation_begin();
+ 
+-		if (!do_syscall_x64(regs, nr))
+-			do_syscall_x32(regs, nr);
++		if (unlikely(!do_syscall_x64(regs, nr))) {
++			/*
++			 * The special treatment of syscall number -1 is a
++			 * historical bogosity as the original code used -1 to
++			 * indicate syscall abort, which is not distinguishable
++			 * from a syscall which is invoked with syscall number
++			 * -1. The historic behavior is to keep the return value
++			 * in regs->ax unmodified in that case, which means it's
++			 * either the preset value -ENOSYS or a value which was
++			 * written by a tracer. If the syscall number is invalid
++			 * but not -1 then overwrite any tracer modification.
++			 */
++			if (!do_syscall_x32(regs, nr) && nr != -1L)
++				regs->ax = -ENOSYS;
++		}
+ 
+ 		instrumentation_end();
+ 	}
 
 
-I hate move_pte() so much. And I hate sparc64 for requiring it. ;)
-
-Is there some way we can avoid this
-helper-that-shouldn't-exist-but-someone-hacked-it-in entirely?
-
-If it makes sparc64 slightly slower #dontcare.
-
--- 
-Cheers,
-
-David
