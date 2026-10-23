@@ -1,112 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792775878;
-	b=FRndZAd2vlOdcz+m+aOmV6mQ01sz1cxzDqrjuB7gRKOSiv9lvcvCVc0LKgmjOZW3QggE
-	 CdAmmkzwWCA7wGHpozHOqNRpSzum+/8qosj7nuYTBR1a1uEd0JWbNVV47f5HLGLmXnVgA
-	 M4Pdo0TzqaupqC5Z9KNyzZx2Bc779ltbt75TefYk0JOwL3PZmmb9J+kN0e2/U4ACTAJ3o
-	 HSWlL3XEBZsa757zB80cSQ5tp0N6P2BgXhgMVtaZgMcIQM65SGUnxS3pkRwTu9WDJJo/T
-	 rWyHmOj6UWx9Ds28JEH8TVNWpe7NtsVpLkeicR2DWfXDfg6lSlnEpqYQ5UQJ+cgRlVQ==
+	t=1792788797;
+	b=X3oHeGbsl1+i7TBGAtTsbC8N7QJhwbPxLkCu77+rJZFLot066KkEH9lSs6d0Iw7P8xiZ
+	 QP/UV93fYLH0SjEJPiCI0le8HYbqId/9r7zS+5Taax0tJcubnNEcK5Neq2muS5PlylrT9
+	 3o+smE4GUBjPeHsUR07VKzVV6TkcyqcEvJNuRF303H+LW/QzDCDURyqOCJ0Hik5Cykj6d
+	 OPsTTD7itV1RkL9+7JVf4RlzS3SSPznBT4O6aZ+ab7TJA4BM7H9K2TYdkw9zrBr7JxAds
+	 qp+G8jPPzg3GU1D3pJYmP9rkWJ7zhR+wBX1+JTxgeW1ddL8H2WnK80HU89litk4Bqtg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792775878;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To:
-	 X-Rspamd-Queue-Id:X-Spam-Level:X-Rspamd-Server:X-Rspamd-Action:
-	 X-Spam-Flag:X-Spamd-Result:X-Spam-Score;
-	bh=XukA89Q9BDkd0XtBh2gSl1FnwMloWguuCBheAa68ykw=;
-	b=3l6zSzdiTegeE2RzyOKJ4MiAgU4FoG1u5o4KyN+4rquwYjaa+hLN8by11sYxr9tU9qBo
-	 2FHlmG0uafPQTzfCaZTQ1IyWd7z/WzgI4IWsfYf8KvnXIlMJhavP+P+uEXVWTWGSKo0hf
-	 6rQgsBNib2qPFfeCdms+s/EIQeLDxzMXLEVdO2OHJDFFjc/8Q7yzRujhYO/hzBEJYeAzE
-	 xBot9J2siParxutz8Z2nq803z7D4r0escSMnkYUW2Q1ZcYe0+7EqDTQWwqQoV8tZjJaAa
-	 LOlYUApE46wNmhN/65rm7pI/OJ+IOZEx+HwZURbHKRO6NIzANBrDnYDp8XQp9qr9Ang==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792788797;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=0buMQQINV0ZMT10UHG2uFH0Ptzl8aD3BfO7547k5kqY=;
+	b=zX6NFEhmTWvGJcCoSs16DzEtq9uqntiEOfnWgRDLMvIYunnFi4edSdtuDs4cBQPWW+9l
+	 34VALkM+Mz2jCGcPwEIJv1rk+gJBJEJWPiyGds0zP1UElNrk4gXG+zjP/FZ9OJB7zcfk7
+	 5VhS62eJeorCvnLOhH1NlEZUn598DeCZPbNpMo8J+CYKh4jzdP2A0ngeK6+ZygcJsEN/I
+	 WpXQzUY/rPEpUc188406TqHCWNeanoDx1FXqfAlIC2VDUqHFdcjz48bggTJSci00KUTye
+	 d6QZsPcNNnj0HeZ83AOLts7/wRDE/IiPxSFR5wDBPCICohypqgxDNRrXhwnpzf4hivg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=suse.de;
-	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=vCdHe2g2;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=+jvISlXK;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=vCdHe2g2;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=+jvISlXK;
-	arc=none smtp.remote-ip=195.135.223.131
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DUU81bAs;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B16160A261D;
-	Fri, 23 Oct 2026 17:17:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5B16160A261D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 886C7606A31B;
+	Fri, 23 Oct 2026 20:53:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=vCdHe2g2;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=+jvISlXK;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=vCdHe2g2;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=+jvISlXK
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 215DA1F76C;
-	Fri, 23 Oct 2026 17:17:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1792775870; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=XukA89Q9BDkd0XtBh2gSl1FnwMloWguuCBheAa68ykw=;
-	b=vCdHe2g20uTYZTpiEzNLppFWchd8VyMkM1DHEGXwMrpeg4DbRGsEhQ630nUcaQIy7s3eya
-	KEa6Fw7SfXIZLqNVqYWr7vP9+b6ka8t8DnDO+6q/utbkH2D5hI01sM2j8niDsxM30n2ruo
-	pdMnkBXhZtmBiyTfIgUtuoIYWD1Dt8E=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1792775870;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=XukA89Q9BDkd0XtBh2gSl1FnwMloWguuCBheAa68ykw=;
-	b=+jvISlXK3WIo6Q5Pi1FehViuMkWMKuJFt8x02SWULTXNth4JhX10w56wAyJ4JA2cpH+FNf
-	LHoSA4avmdjqvJDg==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=vCdHe2g2;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=+jvISlXK
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1792775870; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=XukA89Q9BDkd0XtBh2gSl1FnwMloWguuCBheAa68ykw=;
-	b=vCdHe2g20uTYZTpiEzNLppFWchd8VyMkM1DHEGXwMrpeg4DbRGsEhQ630nUcaQIy7s3eya
-	KEa6Fw7SfXIZLqNVqYWr7vP9+b6ka8t8DnDO+6q/utbkH2D5hI01sM2j8niDsxM30n2ruo
-	pdMnkBXhZtmBiyTfIgUtuoIYWD1Dt8E=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1792775870;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=XukA89Q9BDkd0XtBh2gSl1FnwMloWguuCBheAa68ykw=;
-	b=+jvISlXK3WIo6Q5Pi1FehViuMkWMKuJFt8x02SWULTXNth4JhX10w56wAyJ4JA2cpH+FNf
-	LHoSA4avmdjqvJDg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id ABEF8133F6;
-	Fri, 23 Oct 2026 17:17:48 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id XCS7FryW22opPAAAD6G6ig
-	(envelope-from <pfalcato@suse.de>); Fri, 23 Oct 2026 17:17:48 +0000
-Date: Fri, 23 Oct 2026 18:17:42 +0100
-From: Pedro Falcato <pfalcato@suse.de>
-To: Imre Kaloz <kaloz@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, 
-	"Mike Rapoport (IBM)" <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
-	David Hildenbrand <david@kernel.org>, "Liam R. Howlett" <liam@infradead.org>, 
-	Lorenzo Stoakes <ljs@kernel.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Jann Horn <jannh@google.com>, Suren Baghdasaryan <surenb@google.com>, 
-	Michal Hocko <mhocko@suse.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-mm@kvack.org
-Subject: Re: [PATCH v3 4/4] mm: pass the number of PTEs to move_pte()
-Message-ID: <atuU4Ig51wvNt2eD@pedro-suse.tail5790ac.ts.net>
-References: <cover.1792609488.git.kaloz@kernel.org>
- <2bc50d2a6829b49ee909e5bb943244859661a40b.1792609488.git.kaloz@kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DUU81bAs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15DEB1F01825;
+	Fri, 23 Oct 2026 20:53:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792788797;
+	bh=0buMQQINV0ZMT10UHG2uFH0Ptzl8aD3BfO7547k5kqY=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=DUU81bAsRlByMerKC6j8ENrXC1/LZaH6l/iyH813lPlUNnkhTUzRJZ7FS62aiyRtg
+	 nk18HnfoiLhgD/7nubtqFeBFg8UJPicbpbNVP1OiMueX/sFnkIptckyLCdt3yShdok
+	 fOmBsw0eNvATOPhavkFKgnshJ/cF4t2QGt4/goRkbHFXKSC+j6Sz1i4YTDQJs9StRI
+	 1k3eNBpmp7vjOP9O8hXMfiWhngOVx6UgHOW2RsbPmrG4kzH/Q6tDPkOrw8CuZMcYSY
+	 99iKODVHyysJalk31n5BoLCcDBQ+AfAMuQGn2jzvcF1E+IB7wVuvrRF9fA4u8i4QYX
+	 WRBqUM0rLtOlw==
+Message-ID: <409079fe-ab52-4389-9fe0-d7246eb27bad@kernel.org>
+Date: Fri, 23 Oct 2026 22:53:09 +0200
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -116,39 +51,71 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 4/4] mm: pass the number of PTEs to move_pte()
+To: Imre Kaloz <kaloz@kernel.org>, "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+ "Mike Rapoport (IBM)" <rppt@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ "Liam R. Howlett" <liam@infradead.org>, Lorenzo Stoakes <ljs@kernel.org>,
+ Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>, sparclinux@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org
+References: <cover.1792609488.git.kaloz@kernel.org>
+ <2bc50d2a6829b49ee909e5bb943244859661a40b.1792609488.git.kaloz@kernel.org>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
 In-Reply-To: <2bc50d2a6829b49ee909e5bb943244859661a40b.1792609488.git.kaloz@kernel.org>
-X-Rspamd-Queue-Id: 215DA1F76C
-X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-13.51 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[16];
-	MIME_TRACE(0.00)[0:+];
-	MISSING_XM_UA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim,suse.de:email];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Score: -13.51
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 22, 2026 at 01:33:40AM +0200, Imre Kaloz wrote:
+On 10/22/26 01:33, Imre Kaloz wrote:
 > Since commit f822a9a81a31 ("mm: optimize mremap() by PTE batching"),
 > move_ptes() moves a batch of PTEs mapping consecutive pages of a folio
 > at a time, but calls move_pte() once per batch with the first PTE
@@ -186,16 +153,6 @@ On Thu, Oct 22, 2026 at 01:33:40AM +0200, Imre Kaloz wrote:
 >  #define __HAVE_ARCH_MOVE_PTE
 > -#define move_pte(pte, old_addr, new_addr)				\
 > +#define move_pte(pte, old_addr, new_addr, nr)				\
-
-The \ is now misaligned (at least according to my email client), perhaps you
-can fix it up :)
-
-The only nit I have is regarding the function's name.  move_pte with a nr is
-no longer really move_pte, move_ptes() is the calling function's name... Yuck.
-
-Also it seems a bit overengineered at this point, move_pte() returns a pte
-that sparc never modifies.
-
 >  ({									\
 >  	pte_t newpte = (pte);						\
 >  	if (tlb_type != hypervisor && pte_present(pte)) {		\
@@ -210,12 +167,46 @@ that sparc never modifies.
 > +			for (i = 0; i < (nr); i++)			\
 > +				flush_dcache_page_all(current->mm,	\
 > +					pfn_to_page(this_pfn + i));	\
+> +		}							\
+>  	}								\
+>  	newpte;								\
+>  })
+> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+> index 8c093c119e5a..b58c0e98994e 100644
+> --- a/include/linux/pgtable.h
+> +++ b/include/linux/pgtable.h
+> @@ -1471,7 +1471,7 @@ static inline void arch_swap_restore(swp_entry_t entry, struct folio *folio)
+>  #endif
+>  
+>  #ifndef __HAVE_ARCH_MOVE_PTE
+> -#define move_pte(pte, old_addr, new_addr)	(pte)
+> +#define move_pte(pte, old_addr, new_addr, nr)	(pte)
+>  #endif
+>  
+>  #ifndef pte_accessible
+> diff --git a/mm/mremap.c b/mm/mremap.c
+> index e8df5cdb0ac9..7fcae7f0082d 100644
+> --- a/mm/mremap.c
+> +++ b/mm/mremap.c
+> @@ -289,7 +289,7 @@ static int move_ptes(struct pagetable_move_control *pmc,
+>  			force_flush = true;
+>  		}
+>  		pte = get_and_clear_ptes(mm, old_addr, old_ptep, nr_ptes);
+> -		pte = move_pte(pte, old_addr, new_addr);
+> +		pte = move_pte(pte, old_addr, new_addr, nr_ptes);
+>  		pte = move_soft_dirty_pte(pte);
+>  
+>  		if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte))
 
-Is there no way to pass nr_ptes directly to flushing code?
 
-Anyway,
+I hate move_pte() so much. And I hate sparc64 for requiring it. ;)
 
-Reviewed-by: Pedro Falcato <pfalcato@suse.de> 
+Is there some way we can avoid this
+helper-that-shouldn't-exist-but-someone-hacked-it-in entirely?
+
+If it makes sparc64 slightly slower #dontcare.
 
 -- 
-Pedro
+Cheers,
+
+David
