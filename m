@@ -1,109 +1,105 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792791838;
-	b=r32Jrd/M9lZcaK7lN03w6UTjBoDPL/J4KEH6CrTLxLFayDXMI5ro5PKKxQo0EmOHo0RV
-	 dVUFCULBggzSmpRjHmXHYJKBoDIDB9oAe1j7xAkTGbVWzaSUsy59Fn2bnutF1Ffijamk6
-	 rQmoElbok/YWTpbHaCaUfawnTOLMbVET/H6As/hgP/HKDTtVc98WN/Bx/8XKHBTCEh7fg
-	 QdZhohTHHA5iTG2be696BLONWbKG42L47xXo1bXDObwbn9EcaDffeztFnU4GPgc7TwB1S
-	 h2QL3rTLh+HSn5CUjEMtdeYFy6CtNPOuYqOZi4p+kAFfDTglfIkmE1+JMWVd078/Rmg==
+	t=1792954058;
+	b=UDj0TcLegPGIb+NSQdzEoX6ogJ/pr4JZ15juckc45Gny/W/8cpi3W0trsN9/eDJB4Ngi
+	 Jhr9Lmp+8LR6vlb7k7cmB/BwQ4/rGJQhV/cB0hrZ1N2tqq+AzT7DUxzkT5pU2/DPc4lE9
+	 ePqnxRa/woN6aaHN2BTtVXAMBVgWmp0QfyXR4mwJHgdX5afNC6xaVK3aIhknS5A0Gei5N
+	 v8r6UpsfWHUF54jbkplGLB/wJxEuhLIcUjtNh8JBLhcXc3W2q2FE1P9ZFzN9KMsoYE5wk
+	 0As0aK7GgXm3KlL6IhZ2JLAOym25oodAmg13NUYIWR0KX2eCItS1tfcZMpQutuIt4dw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792791838;
-	h=DMARC-Filter:Date:DKIM-Signature:DKIM-Signature:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To;
-	bh=rBYqzhjRmnws8Rm/5IL7e+PRpdOctdJtXb4xboAMWSA=;
-	b=pS5RM2Ww289PLDgyM4bM+aq3w+A5rk/vYgG8CTP6Y3iMu7mjuTBwarVfU7R1Q7z1+IMf
-	 hL3GuFMkxMSZGOdxxJx8v5fOlcpWvthwDCCD/fW3iX7ezXWuOIU8IL0xba8EzrM8at9D6
-	 buuorBb+9rkg/Z536Rv1nMPlA4lyGJW8Ok7VhsmKMI2PeKqd7OEtS4sTpgWVogmG4XLOp
-	 12h4UdRXljPlm5czQ4btcmz7HGlHZWgLphOWWq0JqUro/0dzsQ5mXKN2NOoRoAoQmbOf2
-	 wot4EOUErBhmaGJAznWjRxkSLe8TYEV+zmdgQQsq/Enq/E+QYUYD81GwzCb8kCFw39w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792954058;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=5wnAqR12mDvQqCEE/MRBIlSMPEALxmmJZfIrTK2aMRo=;
+	b=oI8t25y2n3uUEUo5oZcz1ZhwNch0Zer9U2KJIUcGZxFJQlg09c+k01KATCClZitp7nVe
+	 QOpGuo43gqQs3bMRRJDQrc0EkmNQ/AmE9VzYDYqucXvSv2x/2i6lwiwrlZaagZ5mns35P
+	 1sgk98K5TOOrhJEM5poHi15RL2TVjhq2ow9zLUove1SWVRZslP3kwxpDa47ltRSE+mcP8
+	 J4LXWsvXDIIB+7wkS4snOpWPuollB6gV/R70FBmnrgnEhSSmIvSqQFZu2N1pZTAPw2FU1
+	 9wX1ISusI8e6nAL2kKacaN4zU39t2QY1pRbAmN0WczqXPPHMJW4pKsscU2Td1YKfpOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linutronix.de;
-	spf=pass smtp.mailfrom=linutronix.de;
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=rsa-sha256 header.s=2020 header.b="hwASE/IL";
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=ed25519-sha256 header.s=2020e header.b=z943ERBm;
-	arc=none smtp.remote-ip=193.142.43.55
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=J6C08BAV;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0854F606A31A;
-	Fri, 23 Oct 2026 21:43:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0854F606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62A60606A31B;
+	Sun, 25 Oct 2026 18:47:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=linutronix.de header.i=@linutronix.de header.a=rsa-sha256 header.s=2020 header.b=hwASE/IL;
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=ed25519-sha256 header.s=2020e header.b=z943ERBm
-Date: Fri, 23 Oct 2026 23:43:53 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1792791835;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=rBYqzhjRmnws8Rm/5IL7e+PRpdOctdJtXb4xboAMWSA=;
-	b=hwASE/ILIfvsagU4ja9zJyp6NCW7nhDXBrLgESHYvZc9OlC/GQdmV72Hfw8lCHeCcJDiIT
-	xFBb+eSpeLzJx+wG16eGrTDnCizzsAb6w+YXHutGNF3HFzHQkD8tsZ70QSbXCrE553aTtc
-	FyBITEp8ynQwIVKmsTH4edb2ELcKOcjRqPKGeu5zad/jr9HszyeKdSGpYIGAdGmjIg04RH
-	fcQJvL7izNOg661T28mb7TFw7IIiiiTlruIEDWxOW6votoei6lPtMgLjCAwFAfW1s9CXqg
-	i8k5N81Ek/SnmSCRgWHVGbIsWAsCZb3iRBPHtLu5gtarfP+kYufKyE0FptRrgw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1792791835;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=rBYqzhjRmnws8Rm/5IL7e+PRpdOctdJtXb4xboAMWSA=;
-	b=z943ERBmz9863Xr+14sVUMFBonUecgHEkMzxOZxtguvVf4IgWnapYNfN7FD67wKQCXc4NS
-	csUXXgLT71khc6BQ==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Thomas Gleixner <tglx@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Shrikanth Hegde <sshegde@linux.ibm.com>,
-	linuxppc-dev@lists.ozlabs.org, Kees Cook <kees@kernel.org>,
-	Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev,
-	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	linux-riscv@lists.infradead.org,
-	Sven Schnelle <svens@linux.ibm.com>, linux-s390@vger.kernel.org,
-	x86@kernel.org, Mark Rutland <mark.rutland@arm.com>,
-	Jinjie Ruan <ruanjinjie@huawei.com>,
-	Andy Lutomirski <luto@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
-	Richard Henderson <richard.henderson@linaro.org>,
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=J6C08BAV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D2E91F01828;
+	Sun, 25 Oct 2026 18:47:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792954057;
+	bh=5wnAqR12mDvQqCEE/MRBIlSMPEALxmmJZfIrTK2aMRo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=J6C08BAV+F3iiWM9FlcPNqjRNGrOHJtPKNVu3OUcI7HqHZFW2bJf7N0c8G+JK3kuC
+	 Q9nwKr5QZZOaBx04tv6bryafAtS3l8ddZSESLreLqFOuH9yUyY5YFa2WLyjKrfokOY
+	 I5aQbn4Z7ktlYAGGiVhADA+Z2owm484BBGS0MXEu9+8SJ1Xd+9nopeImLHezCjmbsI
+	 l+b9jyQmwALbi3HX0Fd2Od6jLx4uuOwo/I0r78SNRDtzRGmz0Z0w8l5bueq5IOCdWr
+	 lyimjYWJ1aQUhpScd4g5pAdhgA9k8TZ3KLStW1ngSWF9YCMs/TnFJYzxEr+8kDEq+3
+	 1F+kG3xlNHiHw==
+Date: Sun, 25 Oct 2026 19:47:34 +0100
+From: Frederic Weisbecker <frederic@kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Srikar Dronamraju <srikar@linux.ibm.com>,
+	Ingo Molnar <mingo@kernel.org>,
 	Russell King <linux@armlinux.org.uk>,
 	Catalin Marinas <catalin.marinas@arm.com>,
-	Guo Ren <guoren@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	WANG Xuerui <kernel@xen0n.name>,
 	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Helge Deller <deller@gmx.de>,
+	Florian Fainelli <florian.fainelli@broadcom.com>,
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+	Jiaxun Yang <jiaxun.yang@flygoat.com>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	Helge Deller <deller@gmx.de>, Scott Wood <oss@buserror.net>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
 	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Richard Weinberger <richard@nod.at>,
-	Chris Zankel <chris@zankel.net>,
-	linux-arm-kernel@lists.infradead.org, linux-alpha@vger.kernel.org,
-	linux-csky@vger.kernel.org, linux-m68k@vger.kernel.org,
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-	linux-sh@vger.kernel.org, linux-um@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@kernel.org>,
-	Will Deacon <will@kernel.org>, Brian Cain <bcain@kernel.org>,
-	Michal Simek <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>,
+	Rich Felker <dalias@libc.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
 	"David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>,
-	linux-snps-arc@lists.infradead.org, linux-hexagon@vger.kernel.org,
-	linux-openrisc@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-arch@vger.kernel.org,
-	Michal =?utf-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: Re: [patch 16/18] x86/entry: Get rid of the sys_ni_syscall()
- indirection
-Message-ID: <20261023214353.Q3pZID23@linutronix.de>
-References: <20260707181957.433213175@kernel.org>
- <20260707190254.493733289@kernel.org>
- <20261022142425.3Wx-RrU5@linutronix.de>
- <87fqxx1r80.ffs@fw13>
- <87cxt11ktr.ffs@fw13>
- <1149A39E-BEBA-46EA-94F4-4DFFC4733EF5@zytor.com>
- <871p9g1s3w.ffs@fw13>
- <87y0boze95.ffs@fw13>
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Srikar Dronamraju <srikar@linux.vnet.ibm.com>,
+	Dietmar Eggemann <dietmar.eggemann@arm.com>,
+	Kees Cook <kees@kernel.org>, Jinjie Ruan <ruanjinjie@huawei.com>,
+	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Marc Zyngier <maz@kernel.org>,
+	Pengjie Zhang <zhangpengjie2@huawei.com>,
+	Thierry Reding <treding@nvidia.com>, Xi Ruoyao <xry111@xry111.site>,
+	"Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+	Tiezhu Yang <yangtiezhu@loongson.cn>,
+	Rong Bao <rong.bao@csmantle.top>, Hui Wang <hui.wang@canonical.com>,
+	Thorsten Blum <thorsten.blum@linux.dev>,
+	Josh Poimboeuf <jpoimboe@kernel.org>,
+	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+	loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH] sched/hotplug: Remove unused idle_task_exit
+Message-ID: <at5OxorR-UUIxlIe@pavilion.home>
+References: <20261016095711.1364609-1-srikar@linux.ibm.com>
+ <attjv8zOftf9Hlqe@localhost.localdomain>
+ <20261023165434.GX2823843@noisy.programming.kicks-ass.net>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -113,32 +109,33 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <87y0boze95.ffs@fw13>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20261023165434.GX2823843@noisy.programming.kicks-ass.net>
 
-On 2026-10-23 16:24:22 [+0200], Thomas Gleixner wrote:
-> IOW, a tracer modification of regs->ax is not overwritten when the
-> syscall number is out of range.
+Le Fri, Oct 23, 2026 at 06:54:34PM +0200, Peter Zijlstra a écrit :
+> On Fri, Oct 23, 2026 at 03:40:15PM +0200, Frederic Weisbecker wrote:
+> > Le Fri, Oct 16, 2026 at 03:26:40PM +0530, Srikar Dronamraju a écrit :
+> > > Commit 21641bd9a7a7 ("lazy tlb: fix hotplug exit race with
+> > > MMU_LAZY_TLB_SHOOTDOWN") moved the handling previously performed by
+> > > idle_task_exit() into the scheduler CPU hotplug path using
+> > > sched_force_init_mm().
+> > > 
+> > > As a result, idle_task_exit() is now an empty stub and the remaining
+> > > architecture call sites have no effect.
+> > > 
+> > > Remove the calls to idle_task_exit() and the now unused stub.
+> > > 
+> > > Signed-off-by: Srikar Dronamraju <srikar@linux.ibm.com>
+> > 
+> > Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
 > 
-> Between 2.6.19-rc2 and -rc3 x86_64 was changed to _always_ overwrite
-> regs->ax when the syscall number is out of range.
-> 
-> In the 3.8 merge window seccomp introduced the -1 == skip bogosity which
-> got fixed up and made "consistent" in several changes afterwards. Just
-> that it never reached a state of consistency due to the overloading.
-> 
-> So are we stuck with this behavior or do we sit down and define what the
-> correct behavior should be?
+> Excellent; less is more and all that. Shall I take this through the
+> scheduler tree?
 
-I wouldn't say we are stuck. The test did reassemble the status we had
-at the moment. As you wrote yourself the behaviour changed a few times
-and not on purpose.
-I would say we define what correct behaviour should be and make sure it
-is consistent across all the architectures.
+Yes please :-)
 
-> Thanks,
-> 
->         tglx
-
-Sebastian
+-- 
+Frederic Weisbecker
+SUSE Labs
