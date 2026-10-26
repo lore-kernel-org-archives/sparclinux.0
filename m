@@ -1,111 +1,42 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=202.12.124.149
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=144.76.212.148
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793286858;
-	b=LUanwgroX6zoviZ/tlIXvJLUHFAygbCawC83sDymo5PtSgASzaiRDLTBOkijsW8vhAAC
-	 tYNnnUhhxNAdfdfXT1nd4BhYWOJyFrGx1tZXpVjkuv5l0QshVnmq6NlKfg+HhFvY5ui/K
-	 5bcY3qm+ic0jCG9zZKkLpmgRpU9mklwK7jxFFFbOzgdFZEKwZnn5fCoEV+0uWMwiSJPhj
-	 3myVlvr22TLMs+r34N39T48lQUi7TjrZanV1n/H48Ud+6qB8qBBouTkJeGjrxAoaLRvkK
-	 UN9s/xx670TrlhUDNHpr68MBsf1YvmLAFzRu4G52F76V9Ubla94d6vNI0QXo9WhgtUA==
+	t=1793296782;
+	b=xs0lelrjkt7pGzL9f1frD9RTinzSaYnkf8kDU0POEBNECXica+5DrW6Xy/xQ0D8jjuZc
+	 VAb7czVxTrsdtbeH0hAe52vX/P8R5xyUQEVSXLphjtOYXyzIctIufrdIl5fQdQtzwRQMu
+	 CWtPAgRVEcrBrDxJ0Ym9k4+RBO9eC2/gChs0yE9VELO3vBgl5HNhTNYeEFk7N8JH8lWEC
+	 7SWZEw3Q3qDE/GajR1lRdDkVUMc3m48eMoQ6VDXUuxxLmFRhGi/PU73mtUCIwYuLRNx1D
+	 GNM+6RvGl7qM5iZ1y1OVZLoEP7W1pMdIzOYkDfxdyfSGiChE8DLSBzz/D8ZU/gm0Q8Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793286858;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
-	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
-	 X-ME-Sender:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
-	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
-	 References:Subject:Content-Type:Content-Transfer-Encoding;
-	bh=3Dz/ro20JO8NmFftptneHrpics2bpuemOoF941Sp1ZI=;
-	b=evgldlSm8Lno1HWHKnO8rHRAhM4Lyg/FyVsxiAoWxYM8gRWKiX0jrdyk76921Qgu54+b
-	 uJFKAM+tB55fwR2xWN8X/B9kZYC+vK/rQxYbdsmT2EoxffCp1fQs/xKqBgocQ2OC76i+6
-	 LfH98pguxMpRMe5Bs3NtP8LzrfJCB9uiBxQHXo9EpluWa6I9uFToCQqB3rOPnxau5CP68
-	 z2FnNviIR0oB81R4u2yOAUqPMUDh+Srsb39n7vg4Y12cyWh4IZYG9gqQ+U1Zbwjez6xhB
-	 oM3lpwZHhmx5GT3X/2UufhzkQ7Xjya5W+zEb36uQBEyqfE/AueSEp2AUnNqFcoJ4lQA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793296782;
+	h=Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=Vae+p4T8Zl+Htvwo0CKGb1vRXOY+jKfS6WbpY4tQNKE=;
+	b=iqMWcyUdZjyXM2PdyA1BY4FdLx1gkD6sRRhpysdOViiMyE1QMvMdtJYduUDzYYSYJVq+
+	 9yRGU7oHsqxxG7m4oAgy05Xg6lpy/0qkNEw0EFS/Sx7XfgdwAzAWIS5X1MOuhKyM+BlHD
+	 HJskvyU02duYAkVGQh9BRayNA7u4bw+L8KwZn8Fljm6Bfug+sHC2NBWU4jfo+x9dq2bAl
+	 Wn3JtXWp6bPKzaiz+NUtRcqXRB3A67o5afGGjpzUpGQJi7X4VWLfRF6xdq4P1LBwsgx2I
+	 ixM7107tjc1b0Mn5VLb97vPL6NTv/cffkWNw8MNSnzklsscMRAwvKtuJVZtvg3Ee6kA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arndb.de;
-	spf=pass smtp.mailfrom=arndb.de;
-	dkim=pass header.d=arndb.de header.i=@arndb.de header.a=rsa-sha256 header.s=fm2 header.b=OAGfoDAN;
-	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm2 header.b=umo+suJE;
-	arc=none smtp.remote-ip=202.12.124.149
-Received: from fout-b6-smtp.messagingengine.com (fout-b6-smtp.messagingengine.com [202.12.124.149])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39A44606A31A
-	for <sparclinux@vger.kernel.org>; Thu, 29 Oct 2026 15:14:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 39A44606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=arndb.de header.i=@arndb.de header.a=rsa-sha256 header.s=fm2 header.b=OAGfoDAN;
-	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm2 header.b=umo+suJE
-Received: from ams-compute-02.internal (ams-compute-02.internal [10.64.2.62])
-	by mailfout.stl.internal (Postfix) with ESMTP id 4FCB81D00167
-	for <sparclinux@vger.kernel.org>; Thu, 29 Oct 2026 11:14:17 -0400 (EDT)
-Received: from ams-imap-03 ([10.64.2.23])
-  by ams-compute-02.internal (MEProxy); Thu, 29 Oct 2026 11:14:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1793286853;
-	 x=1793373253; bh=3Dz/ro20JO8NmFftptneHrpics2bpuemOoF941Sp1ZI=; b=
-	OAGfoDANS23piFiK41asHl5aRNZq3ilMcEzyP2ttxgFOvBAdvbBSg5169TCshQaD
-	N/8/oTn3KKRoJ0gv3WvbkX8sMIDywZqyY+PmNYVac06HJZ7VrT/xxYa3SIuaJv0j
-	VTdifQHoft647dzMzhpujWgjThCv8NeVLbY78M/uHhr7eTWqooa3KJP+6VUlp5tE
-	iNrUk7Frqwulxnpfy2bClUEknufJyxQFvUKG9045lG6xD+ox7dhsWb8zVgKUT97B
-	kU9WT+T5AS9I4ph7VdDTfsECDoQ6E983Yv7FD4To9NYoVRU1M2YRJW5VzZ5535Wh
-	DzpLET5emmpviKL/vgtOSA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1793286853; x=
-	1793373253; bh=3Dz/ro20JO8NmFftptneHrpics2bpuemOoF941Sp1ZI=; b=u
-	mo+suJEw3PeGJRIR2iSkZkUz8HWfIBz33aq7Xuv0K8IEXRcEnSIs6YYgDlcrm7/D
-	IDrwfRez76ynS+nuKrrDWhZgMMSblodcqDNctke0n7rTQkr/81BJyGpOPqj769/t
-	Pyv9EvN+DEs3kyaBYHQKoZ73WhPwrH2kIrZKg6FzxqxJYSwGU9zYIYx5hyWp1HC/
-	pe82S+6yULidrWk9gk/RMlfUgKociS/A7GHQ0G3Q+wYg8TwcqKYal9nCoZs0vDjs
-	5PIM/qk33KpMjb+8vBY4l3mIFzTKeE6f494lfPgBelcQbRMqYt7g3wUExrJ2IS2d
-	MO+gd2ezu/rUXeVsDMcvA==
-X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-08;
-	repo=github.com/dkim2wg/interop; date=2026-10-28; sw=lmtpprox;
-	action=sign d=arndb.de a=rsa-sha256;
-DKIM2-Signature: i=1; m=1; t=1793286853; d=arndb.de;
-	mf=PGFybmRAYXJuZGIuZGU+;
-	rt=PHNwYXJjbGludXhAdmdlci5rZXJuZWwub3JnPg==;
-	s=fm2:rsa-sha256:ATv7pN5diSy4UnvZHI2kAb9t5i63xRV2O4lEFyqgxVgZ5I+
-	fW8sB8r30WDsOJpeW3FpIywdTFC+aTU9nwxM8H80t5K0opn8HjQrTBbHADnZK5Sw
-	jM+8e884Z6H4GGL6AG1lKYZAOxL185hHGQlem2Du5E1D7fBYfgV4KR19sX1kd8pS
-	lE+MrSYAz42OxmgEZAz7XvZxUBjU4QRjcHZUJrM7xhqZv6dvMpgxn/HoaFsLkHSQ
-	+t3tDIli/qHAyOjDe4vsiePUxnIpSl51Laqt1M3NU04W1O459o1VeSJYtty80QzQ
-	XVpVcwGol53zradtjIIU7ewRJYprASKv1z6Ee1g==;
-X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-08;
-	repo=github.com/dkim2wg/interop; date=2026-10-28; sw=lmtpprox;
-	action=mi-m=1; hc=12;
-	hn=cc,content-transfer-encoding,content-type,date,feedback-id,
-	from,in-reply-to,message-id,mime-version,references,subject,to;
-Message-Instance: m=1; h=sha256:h8tTH65CTcGLnbqcGdI7hvWawfwV7AefhKqI4Noy6NQ=:gSavoSg4XA/c8ggO1GBeUx6d4zpVOWEZXQqYXGi+cbk=;
-X-ME-Sender: <xms:wmLjajRbLF3MjxRolDgCQ37t_ZAcs2o_ADrf8O2Mj3L_8RifTx8nIw>
-    <xme:wmLjavlgUo1EO1chtRDPwEqgPvrBWMDC5V44xAMd4HS-qfYeWiFMGSHvykVgmOmrl
-    og5qIwWJ0RhfL5RduzatplkkXPRYuVnEQQ2V2171tVvkkGm7THnN_zv>
-X-ME-Proxy-Cause: dmFkZTFPIb5Ns3wNTKQ9FOpsNHZ8i0K/UcXB8REBvxI41Ai009qX427oevKc0sIE3C8oeT
-    7V719uGlKjdT3wXhi06U+yZjGG07Lq1E0/gqtRQCnhMFLk8PRZLHx7UVYOOaWtSiuhKYPE
-    mQu1QEM5jktRXq+ISYFYlp/5ka5JYFMUADZOhZj6mROjk1QErbRrYj8lA5Kg2o95yQv6s2
-    uBAvh+wGfg7I70W4HKu2CfQgj2whzQq6t+hoiPR6RGtp/yUCG86RsEqLrTbYtseFqbOgSm
-    0L1YZ9qxZ3z+duYCUs9dIT4rd1PV+JIx/tDkwU1XkFbvhYfOlfpyei+mEbRphRmKEBNYEo
-    D/+4Z8FqvfFxH1vIGO19hkMwtd+grdvqR98uLz1xCkrMDxLF7e0u036n2SbF9KQtGCU8NK
-    dcvKCOOAgyC6xC9vm8gupWsnzn0JbZMw4hRsiLta3m2Z4w8yuNZybkyg7I+jNVDUF0XE1I
-    upn72W59rnHrzLiRWqRGgAuLZTxSYLAhqPowRlM9fqkHe5v9Ze3aYimeSbxTp5Dzy/m5bD
-    GSiUzScQ4lWLmKICBwwa1MNGAKE+pd5e4wlLztKoTi0TE+OGjgV7NMXkHRd572jbt/sH7i
-    DcpS7IDMSAAcXinGwvBY4UKkGS6nAENWhDaH1CQ3jGV6vyZDr0uXSL6EN4pA
-X-ME-Proxy: <xmx:w2LjaucF1eavZ0pjlXsP5S5H4bEVx-iUIuDjd1CtbvgSdxQek82DDw>
-    <xmx:w2LjahJn8XJWfXe4DukHaxR2L_zNlGHbPGsoNs9CUjfjghy_dudcpg>
-    <xmx:w2LjarFWNMoSOzF7uCc7JhL4eKJC3gYNT0wQTfVfw0qKnkJGMpI2ng>
-    <xmx:w2LjasAwyX6WU8uNvohqZBS2w1L8h-AMxeHRWLnAqxHqh2mYMCBK-w>
-    <xmx:xWLjaoFtAcDy6HLHPSc-2y1-YdmUx_mz8kY-rxCEO3OK7OHzIRdpcsM3>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.ams.internal (Postfix, from userid 501)
-	id EAC6432A0093; Thu, 29 Oct 2026 11:14:09 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dmarc=permerror header.from=inai.de;
+	spf=none smtp.mailfrom=a4.inai.de;
+	arc=none smtp.remote-ip=144.76.212.148
+Received: from a4.inai.de (a4.inai.de [144.76.212.148])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F1B02606A31C
+	for <sparclinux@vger.kernel.org>; Thu, 29 Oct 2026 17:59:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=inai.de
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=a4.inai.de
+Received: by a4.inai.de (Postfix, from userid 25121)
+	id D6952180037271; Mon, 26 Oct 2026 19:10:41 +0100 (CET)
+From: Jan Engelhardt <jengelh@inai.de>
+To: andreas@gaisler.com
+Cc: sparclinux@vger.kernel.org,
+	unixpro1970@gmail.com,
+	stian@itx.no,
+	glaubitz@physik.fu-berlin.de
+Subject: sparc: sysfs cache topology information for/on sun4u
+Date: Mon, 26 Oct 2026 19:01:59 +0100
+Message-ID: <20261026181041.20172-1-jengelh@inai.de>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -115,42 +46,201 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-ThreadId: AkBENj9svcUo
-Date: Thu, 29 Oct 2026 16:13:49 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Julian Vetter" <julian@outer-limits.org>,
- "David S . Miller" <davem@davemloft.net>,
- "Andreas Larsson" <andreas@gaisler.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-Id: <e26b3c92-5213-44f3-8914-5ee8fb2d662a@app.fastmail.com>
-In-Reply-To: <20261029145309.132218-1-julian@outer-limits.org>
-References: <20261029145309.132218-1-julian@outer-limits.org>
-Subject: Re: [PATCH] sparc: Remove IO memcpy and memset from sparc code
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Thu, Oct 29, 2026, at 15:53, Julian Vetter wrote:
-> Remove the IO memcpy and memset from sparc specific code and fall back
-> to the implementations from lib/iomem_copy.c. They use word accesses if
-> the buffers are aligned and only fall back to byte accesses for
-> potentially unaligned parts of a buffer, while the sparc versions always
-> use byte-wise readb()/writeb() accesses. Other architectures, such as
-> arm64, csky, loongarch and parisc, have already been converted to the
-> generic implementation.
->
-> This does not drop any memory barriers. The sparc versions don't use
-> mb(), and the rmb()/wmb() implied by readb()/writeb() on sparc32 and
-> sparc64 are only compiler barriers.
+This patch goes on top of the just-sent "[PATCH v2] sparc: populate
+sysfs cache topology information on sun4v", and is for sun4u.
 
-Hi Julian,
+Due to lack of sun4u hardware, I have *NOT* tested patch (not even in
+qemu). It compiles, but it could crash, or not do anything at all,
+and may need a developer to sprinkle it ad-hoc with some more printfs
+to see what's really going on.
 
-I suspect the sparc64 patch is wrong because the generic
-code relies on __raw_readq()/__raw_readl() to produce
-native-endian data, while the sparc64 version looks like
-they work on little-endian data the same way as readq()/readl().
+The patch arguably supports all the qemu OpenBIOS properties
+(something previously missed AFAICT), and also populates cacheinfo
+for sparc32 (also missed).
 
-Do you know if the PCI host bridge on sparc64 does an implicit
-byte swap for memory space? If it does, the __raw_ accessors
-have to flip swap the data another time for this to work.
+The real test would be on a multi-core sun4u (i.e. shared caches),
+which means UltraSPARC IV and the subsequent line of M-series
+chips/machines up to just before the M10.
 
-      Arnd
+-- 
+ arch/sparc/kernel/prom_common.c | 149 +++++++++++++++++++++++++++++++-
+ 1 file changed, 148 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
+index 34f3b2650547..0a5a49fdfc98 100644
+--- a/arch/sparc/kernel/prom_common.c
++++ b/arch/sparc/kernel/prom_common.c
+@@ -114,13 +114,159 @@ int of_find_in_proplist(const char *list, const char *match, int len)
+ }
+ EXPORT_SYMBOL(of_find_in_proplist);
+ 
++static int of_init_cache_level(unsigned int cpuid)
++{
++	static const char *const l1_obp_names[] = {
++		"dcache-size", "icache-size", "l1-dcache-size", "l1-icache-size"
++	};
++	static const char *const l2_obp_names[] = {
++		"ecache-size", "l2-cache-size",
++	};
++	struct device_node *devn = of_find_node_by_cpuid(cpuid);
++	struct cpu_cacheinfo *ci;
++
++	if (devn == NULL)
++		return 0;
++
++	ci = get_cpu_cacheinfo(cpuid);
++	for (unsigned int i = 0; i < ARRAY_SIZE(l1_obp_names); ++i) {
++		if (!of_property_present(devn, l1_obp_names[i]))
++			continue;
++		ci->num_levels = 1;
++		++ci->num_leaves;
++	}
++
++	/*
++	 * devn might be a core. Try going upwards up to two levels to find
++	 * a potential node for the socket, identified by "portid" /
++	 * "upa-portid" presence, to find the properties for the L2.
++	 */
++	for (unsigned int j = 0; j < 2; ++j) {
++		for (unsigned int i = 0; i < ARRAY_SIZE(l2_obp_names); ++i) {
++			if (of_property_present(devn, l2_obp_names[i])) {
++				ci->num_levels = 2;
++				++ci->num_leaves;
++				return 0;
++			}
++		}
++
++		if (!of_property_present(devn, "cpuid"))
++			break;
++		devn = devn->parent;
++		if (devn == NULL || of_property_present(devn, "upa-portid") ||
++		    of_property_present(devn, "portid"))
++			break;
++	}
++	return 0;
++}
++
++static void of_set_leaf(struct cacheinfo *leaf, struct device_node *devn,
++    unsigned int level, unsigned int type, unsigned int size,
++    const char *ls, const char *ns, const char *as)
++{
++	leaf->fw_token = (void *)(uintptr_t)devn->phandle;
++	leaf->level = level;
++	leaf->type = type;
++	leaf->size = size;
++	if (ls != NULL)
++		leaf->coherency_line_size = of_getintprop_default(devn, ls, 0);
++	if (ns != NULL)
++		leaf->number_of_sets = of_getintprop_default(devn, ns, 0);
++	if (as != NULL)
++		leaf->ways_of_associativity = of_getintprop_default(devn, as, 0);
++}
++
++static int of_populate_cache_leaves(unsigned int cpuid)
++{
++	struct device_node *devn = of_find_node_by_cpuid(cpuid);
++	struct cpu_cacheinfo *ci;
++	unsigned int npop = 0;
++	int size;
++
++	if (devn == NULL)
++		return 0;
++
++	ci = get_cpu_cacheinfo(cpuid);
++	size = of_getintprop_default(devn, "l1-icache-size", -1);
++	if (size != -1) {
++		/* Property typical for Spitfire systems */
++		if (npop >= ci->num_leaves)
++			return -ELOOP;
++		of_set_leaf(&ci->info_list[npop++], devn, 1, CACHE_TYPE_INST,
++			    size, "l1-icache-line-size", NULL, NULL);
++	}
++
++	size = of_getintprop_default(devn, "icache-size", -1);
++	if (size != -1) {
++		/* Property used in e.g. OpenBIOS */
++		if (npop >= ci->num_leaves)
++			return -ELOOP;
++		of_set_leaf(&ci->info_list[npop++], devn, 1, CACHE_TYPE_INST,
++			    size, "icache-line-size", "icache-nlines",
++			    "icache-associativity");
++	}
++
++	size = of_getintprop_default(devn, "l1-dcache-size", -1);
++	if (size != -1) {
++		if (npop >= ci->num_leaves)
++			return -ELOOP;
++		of_set_leaf(&ci->info_list[npop++], devn, 1, CACHE_TYPE_DATA,
++			    size, "l1-dcache-line-size", NULL, NULL);
++	}
++
++	size = of_getintprop_default(devn, "dcache-size", -1);
++	if (size != -1) {
++		if (npop >= ci->num_leaves)
++			return -ELOOP;
++		of_set_leaf(&ci->info_list[npop++], devn, 1, CACHE_TYPE_DATA,
++			    size, "dcache-line-size", "dcache-nlines",
++			    "dcache-associativity");
++	}
++
++	for (unsigned int i = 0; i < 2; ++i) {
++		size = of_getintprop_default(devn, "l2-cache-size", -1);
++		if (size != -1) {
++			if (npop >= ci->num_leaves)
++				return -ELOOP;
++			of_set_leaf(&ci->info_list[npop++], devn, 2,
++				    CACHE_TYPE_UNIFIED, size,
++				    "l2-cache-line-size", NULL, NULL);
++			break;
++		}
++
++		size = of_getintprop_default(devn, "ecache-size", -1);
++		if (size != -1) {
++			if (npop >= ci->num_leaves)
++				return -ELOOP;
++			of_set_leaf(&ci->info_list[npop++], devn, 2,
++				    CACHE_TYPE_UNIFIED, size,
++				    "ecache-line-size", "ecache-nlines",
++				    "ecache-associativity");
++			break;
++		}
++
++		/* Upwards-walking logic follows */
++		if (!of_property_present(devn, "cpuid"))
++			break;
++		devn = devn->parent;
++		if (devn == NULL || of_property_present(devn, "upa-portid") ||
++		    of_property_present(devn, "portid"))
++			break;
++	}
++	return 0;
++}
++
+ int init_cache_level(unsigned int cpuid)
+ {
+ #ifdef CONFIG_SPARC64
+ 	if (tlb_type == hypervisor)
+ 		return mdesc_cache_walk(cpuid, false);
++		/*
++		 * MDESC systems do not have the OF properties for caches,
++		 * so no point looking for them there.
++		 */
+ #endif
+-	return -ENOENT;
++	return of_init_cache_level(cpuid);
+ }
+ 
+ int populate_cache_leaves(unsigned int cpuid)
+@@ -138,6 +284,7 @@ int populate_cache_leaves(unsigned int cpuid)
+ 		break;
+ #endif
+ 	default:
++		ret = of_populate_cache_leaves(cpuid);
+ 		break;
+ 	}
+ 	if (ret == -ELOOP)
+-- 
+2.56.0
+
