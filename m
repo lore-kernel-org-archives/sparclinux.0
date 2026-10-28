@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793195962;
-	b=EDGal7vd11qmr+7W8WX4ecFNT37eG/hbweFGjdHnB8IFzuZhRrhMrWIWSCSHAXwAWSZM
-	 t1G/EqFndCNWaO50vIbLbQjEjbx3bogqgtgZmb8m8PJeg8rLeX/7lT4STNvt4kokIWEjE
-	 OojgRYyhBcQVxksERsESDFnTduiHFmbsVKUmidTKnS58dZFYIJp007bZ9V6ANxRlhUSS8
-	 muSZAb2sG12cn/LSEHATgTG5OAQSY6kvO2yFEU9ezZN1pGaT7niRxVgr0Sr2kCIum+pIC
-	 v3SDqAznjoYAobu+z0W78aJwot2PpeXf9ooYHKD6790Uxp+jzX1snb8UcgExAh9mFhA==
+	t=1793196027;
+	b=FNBqiBoFRHWJVgU+6hMrYNS42685V7WnLSgZS/aZfZ4s3vjgyBGNhBR776N4lW8tPvQ7
+	 wbJBd1joPK1qdNpafZ5+pFQUHdG2wLGiUoHzZCaA+pKgA32u6IQMW65sYZ3LPGiBukqp9
+	 S36g6Cedh8eYURfqAN6aWPFFZSAjZGhzrtYo3zZSs3OZvD8M+fccYFYplDS089imhyJnD
+	 VdxkhHem0jf+p7SUIwnO8okD1GkXfo9LRC5Zq7VUMlnIcJZr+RYQppp7hNy0LPpuZPldN
+	 0B0whxbZE0ZzDd5q7QRrLwhL6QzN4Dkt6tdlKBJP2KFg+3P79nzBRem68a4FBEn711A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793195962;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793196027;
 	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
 	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding;
-	bh=lmwsrkba+SRG/AXiVVkwXIp5wUOzmuBRAc0XQagcnRk=;
-	b=iDYFRkFG6Mp0Zc3apnSfcut93xsXlK8NI9BuAOQq9YhcOpgvv04aHmFPrLCJAxfzQ/4I
-	 KcjM5xB55zyfgGfNseANYv9Z4FAEXcA+DrB2bruwaRVzBPJ0V+8K513lJVWCogC4YtE9H
-	 GyzyI6PR/OvgI6I7/P3ARQF9Vabg25dDz14pfg02BvphG58ZPhSjCUgdtmGM6TwsSLk3N
-	 PHP43CDa4SdwqofcJIKXqauQVt1irAc17mkITNB7H7au2MoN/5Y6wF71tA/WXDO120Kod
-	 LbDSsDUKhW4bieBmoeHicfAhrJItzQg3QQqzSYfgowO0ChqoQH9k7roiDVf4r9J/feA==
+	bh=DfRxL+0TUQIipSiCQwkog2weAefiwhTq3bgpHDJnrgg=;
+	b=Spid7ltrLskZcEtLnHrmG3iUwFYlFMLNzOFEst3auxmAu0UkcPbquPcyQr4EFYHaTctG
+	 cosbDvmxDyrHzucp32HBAALXqQKPGIe9+mHZg2pGxFXQU+HlEFEr/5XMI/dA4zNnUmtkG
+	 1v7t2D6Sd5Ev2OyuQ87JmG6ApLUrNnX75yPFoyFB2IcSNyT22SDP5X3mDFArIv+OL4zn4
+	 AjHPfJEAT3FXkOk+UJA2gGVNhVR6aQ+kdefgtHmGiYw+Nd+IFB1FUshDXcidA4FJtWklm
+	 fyryRdkLebu9KNOx342sSaa1avDdU/tAi1h2yR5DcgYlZzwEF2bwCmFUeBlDary+rtQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="ZcpNV/Cy";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CeifOdun;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98607606A329;
-	Wed, 28 Oct 2026 13:59:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D504606A31F;
+	Wed, 28 Oct 2026 14:00:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZcpNV/Cy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E981F01825;
-	Wed, 28 Oct 2026 13:59:16 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CeifOdun
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 616E41F01825;
+	Wed, 28 Oct 2026 14:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793195962;
-	bh=lmwsrkba+SRG/AXiVVkwXIp5wUOzmuBRAc0XQagcnRk=;
+	s=k20260515; t=1793196027;
+	bh=DfRxL+0TUQIipSiCQwkog2weAefiwhTq3bgpHDJnrgg=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=ZcpNV/CyxgZlHYTgc9hz+BHGNvVQTNr2Km24y1NtEAipKrQpWq/PnNnomtVHFa60H
-	 fq/dnQtzBNA1YFxuQWUpMKjxRjHD9TL76A4VWNOOD17bBj39UbNmg9IoGsdC8TNibD
-	 PzZRXmfWpzc0v4S8HCUxioxzz0nUTL723I738EfkJ/pwmVnZL6fJthMXe+IdRUM8sY
-	 0VSypMLm4xLMThodRtiJupZVx4RrEYAMgTVMyOcxVO6P2TKUWAK91DXgn4+kT3k8kH
-	 SlTXh7e9aDUOI5e2xO+fmTOBmGkauVtXIU1nu/qAI16DPgVIp2HS6yRGNMGl8gcDRJ
-	 7uIMThOzuVRBA==
-Message-ID: <cc5c7066-b5cd-45df-b338-37944320da2f@kernel.org>
-Date: Wed, 28 Oct 2026 14:59:11 +0100
+	b=CeifOdunBxMvBPkFlwwoFIB+iVH33NFCwB3NcYCocHQJsLLQ+zMo87mlc7cD131ur
+	 i+khN/m0m4rdATVgt1GnI/a23VK1zaKL/q7p89wzNZwOJZ8F/u/UYDtrVRcJ5G062n
+	 8FGH1tFbXpiYBjf78WvcdOTzQs5v1ak9Q5lDXlZN5A38XkaNVCQ3MQ7MpLyhVMBbbi
+	 TsZHVWOj0mtpOjRsfDG/jg99mSMdMWxEI/Wt6X4B58zrdshOGmNZ5YlcgV8C2C0XnU
+	 ick+PGq35J55adW9948Z5ABgHM1Wew34VEysP507bOil1XEvc5mx/s4HZRrezoQWN6
+	 B812A4pNIxdzA==
+Message-ID: <b0a2e3b1-9d36-4ab7-af22-359b9ec6e57a@kernel.org>
+Date: Wed, 28 Oct 2026 15:00:18 +0100
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -53,8 +53,9 @@ Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH v3 4/4] mm: pass the number of PTEs to move_pte()
-To: Andreas Larsson <andreas@gaisler.com>, Imre Kaloz <kaloz@kernel.org>
+To: Imre Kaloz <kaloz@kernel.org>
 Cc: "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>,
  "Matthew Wilcox (Oracle)" <willy@infradead.org>,
  "Mike Rapoport (IBM)" <rppt@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -72,7 +73,6 @@ References: <cover.1792609488.git.kaloz@kernel.org>
  <20261028091631.8072-1-kaloz@kernel.org>
  <25f5cbed-9126-4870-a81e-65099155bc9d@kernel.org>
  <20261028101719.11918-1-kaloz@kernel.org>
- <4fba060e-c4f4-4d73-8efe-dbed0b5a7bc3@gaisler.com>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -119,31 +119,23 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <4fba060e-c4f4-4d73-8efe-dbed0b5a7bc3@gaisler.com>
+In-Reply-To: <20261028101719.11918-1-kaloz@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 10/28/26 14:57, Andreas Larsson wrote:
-> On 2026-10-28 11:17, Imre Kaloz wrote:
->>> The biggest problem all of us with supporting old hardware is the maintanance
->>> cost. Not just core-mm, but also things like ad-hoc page table walkers you are
->>> adding we (from core-mm) might have to touch at some point.
->>>
->>> If there is no good reason for the complexity, out it goes.
->>>
->>> Because otherwise people will push more and more for removing legacy support
->>> completely, and that's not what you want, right?
->>
->> Definitely not. Fair point, I was only looking at it from the sparc
->> side, and keeping these platforms cheap to carry matters more than a
->> few percent on reclaim. B it is, then; it's below the scissors, on top
->> of 1/4-3/4. Thanks for taking the time to go through this!
->>
->> Andreas, if David is happy with it, would you take it in place of 4/4?
-> I'm open to a solution like that, but it'll have to wait for the next
-> round as we are far too far into the merge window. 
 
-Fully agreed.
+>>
+>> Because otherwise people will push more and more for removing legacy support
+>> completely, and that's not what you want, right?
+> 
+> Definitely not. Fair point, I was only looking at it from the sparc
+> side, and keeping these platforms cheap to carry matters more than a
+> few percent on reclaim. B it is, then; it's below the scissors, on top
+> of 1/4-3/4. Thanks for taking the time to go through this!
+> 
+> Andreas, if David is happy with it, would you take it in place of 4/4?
+
+Thanks, appreciated!
 
 -- 
 Cheers,
