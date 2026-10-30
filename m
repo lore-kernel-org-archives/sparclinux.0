@@ -1,76 +1,112 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.217.51
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.48
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793353174;
-	b=RBiS8QaJr43nk3VlwwBTvFiggbYTCZ6vsRJkjDOHqViCK2iSNUVShrfG47CQiJkQ5dB/
-	 CA1R5iPNCSHaZJJG7NJiYfbiceSiS/LqH+kvqOZb4i+CeQks/LlbLlj6cap0rVisy/QXH
-	 CgJnKPv6CMTtl8vmPygOIoGHiZu+BzKQ9Q76/HA7EBoPDDEljnDUCW3Qml5Xi5XeXGEZp
-	 q62gqKSukNoq91iiM0Vyga/obpiQ7JNPMGigUrIRyBTmfXR5Cae9RbPpD2N6CMb9VAyWg
-	 FlWfQlq8pZxmT5fLhvEZRlgl64+P0m2o/5JDsaV3ScVm7KYE4472xBjj4rFgl05M9EQ==
+	t=1793368087;
+	b=dq1im2wEwdE8F3rch4ZTFH8VPgnthIGirPoh/1hyUEdYhw9L+jmp1BfpWiRyYtSF2neU
+	 sQn0KYEYDhbsdWBHWNaesT3aZC9/2004xn7ZzS5E6BNHFzAk3FSBEoeae5iqdg+l4DqvK
+	 KSdZqJb/++BmzzpeoiJYK8j0kOB2wGy01A5pvr4wegjRq04BM13I5NW0o5vqDovrk7Cjl
+	 LpqmiBaFW+zNaWH/3KGTY+09GRmHqMXyg+N5U4e+0rROJnTgXjiRvH2TC2XRbucM9f6kB
+	 QUL4wDRVqMJ3QaaemmSBPaCqdIZiLcBKVJa9bAItwRq0clLqVapnYiLPTzOjrj5lAWw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793353174;
-	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Received:
-	 X-Forwarded-Encrypted:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type;
-	bh=UvOO6JqfZMd+v5QBaFPCO17vd6AxfiDuRyj9QuuRkjg=;
-	b=xEEFVl6u6psSkXgQKDqZu4NsbfUiJhttPjsEfmm6nYSfSptnDPBy6uvg2jTSqO6tCg37
-	 XKwWJ+adtDDs+HOviaI1XCZaJiMw4ITLrKgg2y+mGEhlCbFUprT450izKNxLANjPnMyGV
-	 9LK2909qcrSW5HYffFFh7a9TXUwxoAgn5cpfU8SDbaoSw7XXVfBYkPfde/mrKOBa5ajiV
-	 nPxkbQQrXm6+9rlTb8NLAxKOs4WVv3kAVZXr7aVyqN+QIenf3xugIX57m3WZKKNkChRiy
-	 fgemxz16+V3iscpbvI6VjBhgjVDg3ByFWJe8FawTkB8ncOoCNwls0iRvWIkVKEnsDOg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793368087;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=rmX4JEwV7qAmy43PkgvX967p02rESGhBBxr09gc4cBg=;
+	b=kysEbph0dhwcFNwwhF05WEGK+UhsE/oHdXO4XfFX4RIuwJ8dJBz+WvE6blK3KxxQsB7i
+	 o8gNCKseFLCLphPesFEe9Y1sFk14JPj0coMjZ1X3ytohjuAeoKQrLK+fYocCW584gjZl0
+	 M/vh3NyVzt1UzfvXOlyFkCyP2eP7JH/7my1BuaNRXI7UdbrLEyI2n/r5+DnAqCrg1T1sA
+	 rYuEot0c7kG2ZmCrGN8LALxQFUAkXhxmZEBtWdlGMrK6icOUcGo3rktZ4gEfIg/av4O2y
+	 2XgYvxW7kHKgT3E1oCBv1ZAE2abLvjQX0Z76GurjxuIbpPv+xFWA18bHk5EJgz9jMMw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=linux-m68k.org;
+	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	arc=none smtp.remote-ip=209.85.217.51
-Received: from mail-vs1-f51.google.com (mail-vs1-f51.google.com [209.85.217.51])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=P0o7zm7K;
+	arc=none smtp.remote-ip=209.85.128.48
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DB9E606A320
-	for <sparclinux@vger.kernel.org>; Fri, 30 Oct 2026 09:39:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9DB9E606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A61606A322
+	for <sparclinux@vger.kernel.org>; Fri, 30 Oct 2026 13:48:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 09A61606A322
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-vs1-f51.google.com with SMTP id ada2fe7eead31-7c3b6e8225dso338849137.2
-        for <sparclinux@vger.kernel.org>; Fri, 30 Oct 2026 02:39:33 -0700 (PDT)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=P0o7zm7K
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4a35a60499eso6734375e9.0
+        for <sparclinux@vger.kernel.org>; Fri, 30 Oct 2026 06:48:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793368085; x=1793972885; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=rmX4JEwV7qAmy43PkgvX967p02rESGhBBxr09gc4cBg=;
+        b=P0o7zm7KEPIXltx3NlgMQzHQT99NsbdanhX5hUYiA8mqcXpAtEl9r+/7vE4Ggfb6xQ
+         AjDmKEsJCN3A9nhHSHYQq86Tx9QzgKkEoL+MNKiu90Y6d/c6qq8wEeWDbGqZ4zOp73t2
+         V+jiEVsBNp3JryoT0gq/L7+LKDEBausQ7tqgfI+sigyrm1PvM7UpDQc9g0naBiUQsKsm
+         txn6SCcpysT3ZLStg89zxyyBWbPd9BONg/H56ElBDxvktEsTFh0x/DFDQ8EoFwz5gpkM
+         +r9npc2iAjvhv6WuZ+vHLzVgZO3yPFE7oA+XMRoLdTuvTODgouxb21kNS1YSNNzhhvRI
+         MLgw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793353172; x=1793957972;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=UvOO6JqfZMd+v5QBaFPCO17vd6AxfiDuRyj9QuuRkjg=;
-        b=EPA96udlxCrzxDWA6aq/Imke/Lf6Km1vcqjCAmLR0po4SKBmDOr9kzwwb9VLdTMqXA
-         o0yYf5EJ5LTZtogli2IZ/PpQJMjXVJfg7FB8PQS/UbqiiBzysLPZNjmIAadWME7WqxuS
-         643Vs63yJbSMKxXqGHftcU7zf/u/QtYR2Xp5sOeJtDv7ZiIq3gcXl6tbab2fS8TyIDUa
-         le75bGgka3JlXD9KWGjHc42k2T0yyifTkv3JNIxY1qCaya+dHc+rG1ZMmbeFYgzc1hhY
-         a70h5UPP/HTPKUuBAqBM2jCwzxEHXXKh8r9Eg6tKJYQptpwSOulp7j9OdUYRzUX7cdJ6
-         y1DQ==
-X-Forwarded-Encrypted: i=1; AKwUvByav7LsEtU7sSMy0XJyV8IhmQnB0yT1eL7hDrSb9QI/mBJg3LzBLkm74wDH68e+dRkeK6Z845Z9gdXl@vger.kernel.org
-X-Gm-Message-State: AFq9FYJP26s4y4oFo/vxp8d/R/p0k4lQphuzGuPOi0VhkWzoGc0bnJio
-	JV7ZexyTbdc7AI3jRQ7xFgdoR3UeQ5MeqQDMivZHm36Q1bwEFOS4rp4vpS72kgdY
-X-Gm-Gg: AYBFou2TTIkIUc8ABPRf2oLuJVUN0296JDuECq++IwCvVs4OhNC4n/onrk822unkV7j
-	sRDHCesE6WhRkGcI2w6GKqGuZGyj5I7JdmrYyZCapqMTplqbY8vuD/qbqGyGj0J1DQSW+BMTNDP
-	z7a0YYzYwtYQcW6rf+LMeRQt+BDNiQjYDcThuNV3pVIvq8DQIym7y4/Ln3nDAVnZjh7gOJFgJGg
-	LXNX5066m8djWDaHbKWeN0frqJW7SO4ebed7EPoyaraP+oTTulP760Ml2nNPBt4kWFvB4PVfIOA
-	nusNkjWolgF9k016xadcqdeHtts0GbOdlQtBUbkOaMRHzLGmj2dtzUsXJad1/znI6tv34FZlj8x
-	V+YZxW6jjQYwu4nl5k+P9eq/PM4u8GswVnCCNgzJ4aTKLgDNBqU9bTjTmI3u0NExmpnojbAca6y
-	E75ISYrGvFSFL2pUu+ZR2WYvrvDHok5e3C8ywriIKqzlyJWHJSkjFSvDroBdFQILUmT4vhMHTsz
-	BeJzOBjqMP7ecq0hOxQLy/MIipqBo4x7ZD9LcofKhIdFpz+CXAzrh/l0uHVTvXZ5cQAu6pubFEr
-	QHqxcU4yg3VQbvWl8kMAGMBRkYDUAsIMyDtbPYZ+HjT+/Ly+lsQ7HutEnnj4C70N6Tc=
-X-Received: by 2002:a05:6102:6cc:b0:7d0:3eca:a872 with SMTP id ada2fe7eead31-7d072711c8cmr925920137.27.1793353172588;
-        Fri, 30 Oct 2026 02:39:32 -0700 (PDT)
-Received: from mail-ua1-f41.google.com (mail-ua1-f41.google.com. [209.85.222.41])
-        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-992ee39730asm1879559241.3.2026.10.30.02.39.30
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 30 Oct 2026 02:39:31 -0700 (PDT)
-Received: by mail-ua1-f41.google.com with SMTP id a1e0cc1a2514c-98ff53fb739so296153241.3
-        for <sparclinux@vger.kernel.org>; Fri, 30 Oct 2026 02:39:30 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBzMogvk36W84cBKoBmpEOu72GoAmEZsVp6aR6UHqDWUBXjiIVc/g3EWwN101XPSAN9KDduAEmhGmlir@vger.kernel.org
-X-Received: by 2002:a05:6102:14a3:b0:7c3:1395:a090 with SMTP id
- ada2fe7eead31-7d0726152famr950274137.6.1793353170421; Fri, 30 Oct 2026
- 02:39:30 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1793368085; x=1793972885;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=rmX4JEwV7qAmy43PkgvX967p02rESGhBBxr09gc4cBg=;
+        b=LtFgZHFHWcmpoqwbuV2Gi8IXCH0JREBPmY2jYqC+AjvVfR85MojCpM6XeTyfovlSF0
+         hdD/yugGrtIqH9EWyWr26/Y3W8iK0ip0CV4vdCQK0d6ICh9O03RDExH78MITN6oI1XcC
+         038KjnzdbMAzLuHfeIAUOLwomV+w07piIyR6HbbQGwCt8c+oGrXnMLkD2GTG9RmcDvNa
+         De7rQfo3rDvJWTiDzSVz8pNOFPVOPVAttvfWjvAPSnyF3U2nKPEvK/h9MaQVINudg/sN
+         9Cp/Sdt0D1l3x0KuUaLOCPmkJxxWgA2ndAS0Ud2Y6FqMizqxIlNfIdggp+mvt4+qJ4MY
+         QR0g==
+X-Forwarded-Encrypted: i=1; AKwUvBzDPUQ7RkyQ/pj4svjlYOonltqlIZ+4kt3MeagHsNQj8wL1JUPbPVEMcLpxhzds/pSZ+8DHlUq0scDf@vger.kernel.org
+X-Gm-Message-State: AFq9FYKBgSZwW2Lu7RIeciB+0g6Z23u7W+6wMq50L6LTeZYIQonXEp8q
+	OrhT1L9NMgKsRcbwoha1tPJ//Iub9ji1K/jP5Ro0lNftXmF9IHak1z8J
+X-Gm-Gg: AYBFou3a7hPyxpGKQsDI2pmy4IM+AxQhmyzcA+5e+q9teel2qV5RtPJl3GfSuRCxqaW
+	Tus6mAZNxqyxpt0fPv8XVWr4m5ZSU63PutjH9EWEWgordlcWJj8oW/R9/C+BYsE5G3Mc1Z8AwfN
+	Mmg6T83OECSVzcMEGPyZ1deJLcoBpPBpy+RARcPSqtm23e7Lysa2EtHbcOIuirWUSY3T1djL44Q
+	WfDLo5AGF4Er0qDTOO0GyekxyLgZqoeEOoLnEo/aXkdbcNmEA+nmNF2WSIT5VLzWfdp8Td1ZwZO
+	ZYRT6fpxOxy32bLfWs4gKhE47eGqqmBiGN8OdYKmUH/mJR3SQTfUoyqFacxZ08lNGRmL0cCnBId
+	XLjATHhNONEBlwpKkNkioc8iaJcU0W2wT47uNjDLY/Lg4GgS253Ke2exQszfjAT1uFRxNrg8f67
+	JOaMLv29Qvklfj7vbHtiBOu5dddSdnqsbT+CP0UFVWgeyTpbsb0KdROVnkIe0d5u54PAyD5foKq
+	QGVZBeEWh5F5IcWPN/YHZNEEcGwOURI0kvzz6mHI8OQzkD6smZXS+PQ5aWyrtmLOhrPsowygMF4
+	VEUJsgnIqe6t9PXbhE6J6vounv0N1+fbb8QzE3dReUkkgXDEZIh7pM0pB18hoXMydXntrpxcEgh
+	8YdJzGn2+MwH6hw==
+X-Received: by 2002:a05:600c:34d1:b0:4a2:526b:d3fd with SMTP id 5b1f17b1804b1-4ac1793fb5emr50752935e9.15.1793368085145;
+        Fri, 30 Oct 2026 06:48:05 -0700 (PDT)
+Received: from C422HJQPQG-Fractile ([130.43.154.100])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4ab69b54742sm172048905e9.15.2026.10.30.06.48.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Oct 2026 06:48:04 -0700 (PDT)
+Date: Fri, 30 Oct 2026 13:48:02 +0000
+From: "Vishal Moola (Fractile)" <vishal.moola@gmail.com>
+To: Muchun Song <songmuchun@bytedance.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	David Hildenbrand <david@kernel.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Alistair Popple <apopple@nvidia.com>, Will Deacon <will@kernel.org>,
+	"Aneesh Kumar K . V" <aneesh.kumar@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	Rich Felker <dalias@libc.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	linux-m68k@lists.linux-m68k.org, linuxppc-dev@lists.ozlabs.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+	Muchun Song <muchun.song@linux.dev>
+Subject: Re: [PATCH 0/2] mm: Remove pagetable_dtor_free()
+Message-ID: <auSgElFWW4n3sJLb@C422HJQPQG-Fractile>
+References: <20261030083800.599152-1-songmuchun@bytedance.com>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -80,51 +116,28 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261030083800.599152-1-songmuchun@bytedance.com> <20261030083800.599152-3-songmuchun@bytedance.com>
-In-Reply-To: <20261030083800.599152-3-songmuchun@bytedance.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Fri, 30 Oct 2026 10:39:18 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdVYbJOGCd82fNm8dD5kXTWQvRnymkx3w2PFH-dKnH7G8g@mail.gmail.com>
-X-Gm-Features: AclHuK8vFqi3dqWRxr6f8_rNGo4Y5wLrZ0prryPEwyIfD0-s59WP5msq_iDtOig
-Message-ID: <CAMuHMdVYbJOGCd82fNm8dD5kXTWQvRnymkx3w2PFH-dKnH7G8g@mail.gmail.com>
-Subject: Re: [PATCH 2/2] mm: remove redundant pagetable_dtor() calls
-To: Muchun Song <songmuchun@bytedance.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@kernel.org>, 
-	Oscar Salvador <osalvador@suse.de>, Alistair Popple <apopple@nvidia.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K . V" <aneesh.kumar@kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
-	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
-	"David S . Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linuxppc-dev@lists.ozlabs.org, 
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, Muchun Song <muchun.song@linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261030083800.599152-1-songmuchun@bytedance.com>
 
-On Fri, 30 Oct 2026 at 09:38, Muchun Song <songmuchun@bytedance.com> wrote:
-> pagetable_free() now runs pagetable_dtor() for constructed page
-> tables. Calling the destructor immediately before freeing the page table
-> therefore duplicates the lifecycle handling at each caller.
->
-> Remove the redundant calls and let pagetable_free() handle the
-> destructor. No functional change is intended.
->
-> Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-> ---
->  arch/m68k/include/asm/mcf_pgalloc.h    | 1 -
+On Fri, Oct 30, 2026 at 04:37:58PM +0800, Muchun Song wrote:
+> This is a follow-up cleanup to the page-table teardown fixes [1].
+> 
+> pagetable_free() now invokes pagetable_dtor() for constructed page tables.
+> This makes pagetable_dtor_free() redundant and leaves explicit destructor
+> calls immediately before pagetable_free() duplicating lifecycle handling.
+> 
+> Remove pagetable_dtor_free() and convert its callers to pagetable_free(),
+> then remove the remaining redundant pagetable_dtor() calls. This keeps the
+> destructor decision in the common free path. No functional change is
+> intended.
+> 
+> [1] https://lore.kernel.org/r/20261023063428.3658761-1-songmuchun@bytedance.com
+> 
+> Muchun Song (2):
+>   mm: remove pagetable_dtor_free()
+>   mm: remove redundant pagetable_dtor() calls
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
+For the series:
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Acked-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
