@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793821041;
-	b=vMTD6MnNaP1YC7SFSKkr9HzEjujFMrLTigGIxlvgTsUTSEKKJsgUKO4yT+s5cVQ8L8sm
-	 HODaHzyIfii8+maZrABtNfOYaG2WUEVffqlcj3hLTESil597vN82eNMbgeQkeLCWo+hU/
-	 pnWpM2T0PxeCUx1BpkqQacvjSePRRNji5vdU79cNhbWfGlZyXArIFmpNaX3BMoh6PjseY
-	 OVDYM/JIDQJqbvu8AgTvBPKUBwap7qmSgfps6JrOaU43smK11ypA67oSxAaReGDZ69J6N
-	 rSm+UEC1Q5gbSxbGV8rzKlk6zy5D8v3SCUwx5jNujyp1rg2VFOLrNri3Wo1zvMI3HtA==
+	t=1793821070;
+	b=kdEt0z929YAzul0V5pvhIEoVOeXPYhBjSGRKacRH3h21dQvq6JZSXs3MfBXrI/HLrJtb
+	 zFUrIFNSXRRmeJSe40oD5E4jXUM5o3gxtf2P/4sMOaRW/SBcLgkki8E5uVZlBjp1dS10L
+	 Sgun8e4xaoU6q6BrQbYoJa2lahch4q5sjo2HR2vLbynr0vGi2kseMhiHw3gPp9OlIpcAT
+	 otpxxXQGD6PR3GdZ3oSwzrTkFC/xGIAKqePSZPcQHk2I5jNQ6gpgBj3exBLBJ+sJbBzfg
+	 C1C0SqNmaCk9r94vq9snxiO0xQl8R7UTsgNfi+3Mrcc6NICBTps/CexeKr2EwWCo7Iw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793821041;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793821070;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=Lw0Vf60W0kkYzKNtwekBAeKHNzXOwjkfdnOtu269DYc=;
-	b=LzMg7oZ4g/QpCdFtTsa6k9d3EeNMn8PeAtCZ+YxThoPKgD3drCpCX4ljEdNfvqwT+Z0i
-	 DPmHKFvGUVaphM5R1MB7I1xq/uP0Cj15dlGZ0ttZv+zswX2yS8RJLkUTeymj89BZIWjtW
-	 HqeyRDOHhLKSARA/WzqrA4BCYTzmyoYI1Y019HjWSBJ7gZk972/+sJgA3rxEKfz5pOM5B
-	 zLoY55kUgwoZ5uBwBCbsx7L424c26le1lDSZSPjP+ea+vpWS477QgfHk2Ejjy9MNTIn/W
-	 0VVecb83VSoKxlTYetGQiVpVlDWy11CyM6g1rn8PSFR/l2M2Ap85CbeoZ9Tp9688PSA==
+	bh=JUeWoKePwtQbwIaIqH9pLOo2XgGktDed7c18k0485G4=;
+	b=Ejn8tvh32mxzbj+1YwlGk+ruhTHJgYGrE+RrNVzf5tVjGg+a4ZGm9+G33UmAvuajod1d
+	 L/zzGyz6qQhEJB1iTJbdG9N2O2nNNyo4B6kiByo+VhH6L8Aqg6sJW16aS48DSSuOr0kpo
+	 I2jqPUU/LQzE+RahYfvMJKD0Lpoz01upVJnoCcyj5pVjwEcNRBIkBr7fQZG37msyl4biW
+	 xOhc4D4llh9XKW8PccbY9fOjyvRkKCvf8pWjRXj1saINp0PrkBbnHlZtRSzoTAxndiDtC
+	 b65ysCKFnkSKBoxm7NQYOoDqSNjte0QMLn9Lc1d5DDWlvxVk4vxrYtiTZ6HGV2KrrbA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EmLpX2ce;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IGC4y00A;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A65B2606EEAC;
-	Wed,  4 Nov 2026 19:37:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 664DC6070F1A;
+	Wed,  4 Nov 2026 19:37:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EmLpX2ce
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3A211F000C1;
-	Wed,  4 Nov 2026 19:37:07 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IGC4y00A
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 099291F00A02;
+	Wed,  4 Nov 2026 19:37:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793821040;
-	bh=Lw0Vf60W0kkYzKNtwekBAeKHNzXOwjkfdnOtu269DYc=;
+	s=k20260515; t=1793821069;
+	bh=JUeWoKePwtQbwIaIqH9pLOo2XgGktDed7c18k0485G4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=EmLpX2ce4+xI5YuY9H+E4NAuUJ3qowCmVcYJTCCkVepx/RMmdLMaEsYYMQXsbD1J7
-	 WEC9f0WXVzjVi2Oaqshgnqe37kZUh1IU1akR7cldFTA/jCZLnEvU8C/L/bl8X3iKPO
-	 KU4iHkCQr+1QB2TD+AiPW+ImkXlcvWBBv4XlNOXYAnqhtkqhclQwG6XgOy0/UmrJy4
-	 Zcb2doay1Y5Z5kwFT84RW2EiGnMWXdMVd4hhXqtr4Eqn8vDxqgry++TyUO4qF5xC8v
-	 N8gGvGpsKhA7Zf88UIhR+Q037sIBp+ThuFZJJOob3FtbHyenRJkz6zqtZe34+ir1Ad
-	 eONuP2AV8VgVQ==
+	b=IGC4y00AETc18leOOoiGNlJjI14uptUXwL1lAk39h5bFLDzozGmXP95FjcQk1ai3d
+	 qHvAP6G/y59z8vruoDW5Y1VeWIGTKlWb3dS3NUkuiWuDTaM3k3qDR2DhBmAlAVa/1+
+	 jkEC8ZsTOxq9kedteP9jaXc0YU1IKsX6hdj0bx6p0gNUMMcxE+pQQ/pK252kFB4GIS
+	 hTq5UB6PWymKT/rN8RRkkmh+m3ZSylCXxhaihAqxEz2EOYZbBvhmLGNZuz6vL29QGa
+	 VhgHDRMX/6Xwut4w4xO7r/ecc/JCMProqA/4Q644WrS17ADmUJzAwlPQ6KlQcm2EPd
+	 PESuNHlL70alw==
 From: Christian Brauner <brauner@kernel.org>
 To: linux-fsdevel@vger.kernel.org
 Cc: Linus Torvalds <torvalds@linux-foundation.org>,
@@ -100,9 +100,9 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	linux-debuggers@vger.kernel.org,
 	"Christian Brauner (Amutable)" <brauner@kernel.org>,
 	Chuck Lever <cel@kernel.org>
-Subject: [PATCH RESEND v2 06/23] powerpc/rtas: let procfs copy out reads
-Date: Wed,  4 Nov 2026 20:37:05 +0100
-Message-ID: <20261104-work-procfs-arch-v2-6-2aeb952c9597@kernel.org>
+Subject: [PATCH RESEND v2 08/23] powerpc/pseries: let procfs copy in writes
+Date: Wed,  4 Nov 2026 20:37:35 +0100
+Message-ID: <20261104-work-procfs-arch-v2-8-2aeb952c9597@kernel.org>
 In-Reply-To: <20261104-work-procfs-arch-v2-0-2aeb952c9597@kernel.org>
 References: <20261104-work-procfs-arch-v2-0-2aeb952c9597@kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -116,198 +116,172 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7799; i=brauner@kernel.org; h=from:subject:message-id; bh=E607+Ep4BMMhx9MMeSbjVfV7RE8tFFJwzSH0ZS7TsqY=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS97vg8d11E6A07Z26pnAtPZ0Vb7HV+t+tHUKjKe485+ +JmMT7R7ChlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZjI9jBGhg1nFC643Hi4/cqP ylZx4bOnIk4rnJrk1nKgPHFfrIqX3WuG/1GOF465ZmXKMD7h/x8/ddKhRcs9FbiPb/4o+kwyt0v KiAMA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5534; i=brauner@kernel.org; h=from:subject:message-id; bh=R72k2XaBDNkNWoVo7wOLN896i1gM+zYb0aj1A9vFVUU=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS97vgWxbNt8wYWhvlH5RZK+OjxWGdnm7duUb1soNTor 3Rw5+3ijlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgInkrmVk+MQl1Nv2KdDqueyX 08pFh+YVduR7t06b45nf4Rck/P9LDsN/n+PLK+08DBJ4p96cFfH166t5EqlFHC8yROYun/7XY7Y 9JwA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-Implement ->proc_read_buf() for the error log and the flash files so
-procfs copies what is read to userspace after it unpinned the entry.
-
-The error log hands out a record the way it did before, the record is
-consumed before it reaches userspace. A reader that passes a NULL buffer
-now loses a record like one that passed a bad buffer always did, instead
-of getting -EINVAL. A blocking read still waits for a record with the
-entry pinned, as it did under use_pde() before; the entry is never
-removed, so nothing waits for it. The files can be spliced now, like
-every entry that is read through ->read_iter(). Note that a sendfile()
-from the error log into a target that fails or takes less than was read
-drops the records in between, splice_direct_to_actor() rewinds any
-seekable file like that and the error log doesn't hand a record out
-twice.
+Implement ->proc_write_buf() for lparcfg, ofdt and the vcpudispatch
+files so procfs copies in what is written before it pins the entry, and
+parse what was written from that copy. ofdt takes as much as
+memdup_user_nul() could copy before since device tree updates can be
+large.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- arch/powerpc/kernel/rtas_flash.c | 24 ++++++++++++------------
- arch/powerpc/kernel/rtasd.c      | 19 +++++--------------
- 2 files changed, 17 insertions(+), 26 deletions(-)
+ arch/powerpc/platforms/pseries/lpar.c     | 14 ++++++--------
+ arch/powerpc/platforms/pseries/lparcfg.c  |  7 +++----
+ arch/powerpc/platforms/pseries/reconfig.c | 22 ++++++++--------------
+ 3 files changed, 17 insertions(+), 26 deletions(-)
 
-diff --git a/arch/powerpc/kernel/rtas_flash.c b/arch/powerpc/kernel/rtas_flash.c
-index 77a4627f2507..5ebaee7683ef 100644
---- a/arch/powerpc/kernel/rtas_flash.c
-+++ b/arch/powerpc/kernel/rtas_flash.c
-@@ -269,7 +269,7 @@ static size_t get_flash_status_msg(int status, char *buf)
+diff --git a/arch/powerpc/platforms/pseries/lpar.c b/arch/powerpc/platforms/pseries/lpar.c
+index 48fe0be71a89..dfd027cc9047 100644
+--- a/arch/powerpc/platforms/pseries/lpar.c
++++ b/arch/powerpc/platforms/pseries/lpar.c
+@@ -498,7 +498,7 @@ static void dtl_worker_disable(unsigned long *time_limit)
+ 	up_write(&dtl_access_lock);
  }
  
- /* Reading the proc file will show status (not the firmware contents) */
--static ssize_t rtas_flash_read_msg(struct file *file, char __user *buf,
-+static ssize_t rtas_flash_read_msg(struct file *file, char *buf,
- 				   size_t count, loff_t *ppos)
+-static ssize_t vcpudispatch_stats_write(struct file *file, const char __user *p,
++static ssize_t vcpudispatch_stats_write(struct file *file, char *p,
+ 		size_t count, loff_t *ppos)
  {
- 	struct rtas_update_flash_t *const uf = &rtas_update_flash_data;
-@@ -283,10 +283,10 @@ static ssize_t rtas_flash_read_msg(struct file *file, char __user *buf,
- 
- 	/* Read as text message */
- 	len = get_flash_status_msg(status, msg);
--	return simple_read_from_buffer(buf, count, ppos, msg, len);
-+	return memory_read_from_buffer(buf, count, ppos, msg, len);
- }
- 
--static ssize_t rtas_flash_read_num(struct file *file, char __user *buf,
-+static ssize_t rtas_flash_read_num(struct file *file, char *buf,
- 				   size_t count, loff_t *ppos)
- {
- 	struct rtas_update_flash_t *const uf = &rtas_update_flash_data;
-@@ -299,7 +299,7 @@ static ssize_t rtas_flash_read_num(struct file *file, char __user *buf,
- 
- 	/* Read as number */
- 	sprintf(msg, "%d\n", status);
--	return simple_read_from_buffer(buf, count, ppos, msg, strlen(msg));
-+	return memory_read_from_buffer(buf, count, ppos, msg, strlen(msg));
- }
- 
- /* We could be much more efficient here.  But to keep this function
-@@ -370,7 +370,7 @@ static void manage_flash(struct rtas_manage_flash_t *args_buf, unsigned int op)
- 	args_buf->status = rc;
- }
- 
--static ssize_t manage_flash_read(struct file *file, char __user *buf,
-+static ssize_t manage_flash_read(struct file *file, char *buf,
- 			       size_t count, loff_t *ppos)
- {
- 	struct rtas_manage_flash_t *const args_buf = &rtas_manage_flash_data;
-@@ -382,7 +382,7 @@ static ssize_t manage_flash_read(struct file *file, char __user *buf,
- 	mutex_unlock(&rtas_manage_flash_mutex);
- 
- 	msglen = sprintf(msg, "%d\n", status);
--	return simple_read_from_buffer(buf, count, ppos, msg, msglen);
-+	return memory_read_from_buffer(buf, count, ppos, msg, msglen);
- }
- 
- static ssize_t manage_flash_write(struct file *file, char *buf,
-@@ -450,7 +450,7 @@ static int get_validate_flash_msg(struct rtas_validate_flash_t *args_buf,
- 	return n;
- }
- 
--static ssize_t validate_flash_read(struct file *file, char __user *buf,
-+static ssize_t validate_flash_read(struct file *file, char *buf,
- 			       size_t count, loff_t *ppos)
- {
- 	struct rtas_validate_flash_t *const args_buf =
-@@ -462,7 +462,7 @@ static ssize_t validate_flash_read(struct file *file, char __user *buf,
- 	msglen = get_validate_flash_msg(args_buf, msg, VALIDATE_MSG_LEN);
- 	mutex_unlock(&rtas_validate_flash_mutex);
- 
--	return simple_read_from_buffer(buf, count, ppos, msg, msglen);
-+	return memory_read_from_buffer(buf, count, ppos, msg, msglen);
- }
- 
- static ssize_t validate_flash_write(struct file *file, char *buf,
-@@ -623,7 +623,7 @@ static const struct rtas_flash_file rtas_flash_files[] = {
- 		.handle		= RTAS_FN_IBM_UPDATE_FLASH_64_AND_REBOOT,
- 		.status		= &rtas_update_flash_data.status,
- 		.ops.proc_flags	= PROC_ENTRY_SHORT_WRITES,
--		.ops.proc_read	= rtas_flash_read_msg,
-+		.ops.proc_read_buf = rtas_flash_read_msg,
- 		.ops.proc_write_buf = rtas_flash_write,
- 		.ops.proc_write_size = RTAS_BLK_SIZE,
- 		.ops.proc_release = rtas_flash_release,
-@@ -634,7 +634,7 @@ static const struct rtas_flash_file rtas_flash_files[] = {
- 		.handle		= RTAS_FN_IBM_UPDATE_FLASH_64_AND_REBOOT,
- 		.status		= &rtas_update_flash_data.status,
- 		.ops.proc_flags	= PROC_ENTRY_SHORT_WRITES,
--		.ops.proc_read	= rtas_flash_read_num,
-+		.ops.proc_read_buf = rtas_flash_read_num,
- 		.ops.proc_write_buf = rtas_flash_write,
- 		.ops.proc_write_size = RTAS_BLK_SIZE,
- 		.ops.proc_release = rtas_flash_release,
-@@ -645,7 +645,7 @@ static const struct rtas_flash_file rtas_flash_files[] = {
- 		.handle		= RTAS_FN_IBM_VALIDATE_FLASH_IMAGE,
- 		.status		= &rtas_validate_flash_data.status,
- 		.ops.proc_flags	= PROC_ENTRY_SHORT_WRITES,
--		.ops.proc_read	= validate_flash_read,
-+		.ops.proc_read_buf = validate_flash_read,
- 		.ops.proc_write_buf = validate_flash_write,
- 		.ops.proc_write_size = VALIDATE_BUF_SIZE,
- 		.ops.proc_release = validate_flash_release,
-@@ -655,7 +655,7 @@ static const struct rtas_flash_file rtas_flash_files[] = {
- 		.filename	= "powerpc/rtas/" MANAGE_FLASH_NAME,
- 		.handle		= RTAS_FN_IBM_MANAGE_FLASH_IMAGE,
- 		.status		= &rtas_manage_flash_data.status,
--		.ops.proc_read	= manage_flash_read,
-+		.ops.proc_read_buf = manage_flash_read,
- 		.ops.proc_write_buf = manage_flash_write,
- 		.ops.proc_lseek	= default_llseek,
- 	}
-diff --git a/arch/powerpc/kernel/rtasd.c b/arch/powerpc/kernel/rtasd.c
-index dd0df5e164a3..360ed2e30fd5 100644
---- a/arch/powerpc/kernel/rtasd.c
-+++ b/arch/powerpc/kernel/rtasd.c
-@@ -291,26 +291,18 @@ static int rtas_log_release(struct inode * inode, struct file * file)
-  * know that we can safely clear the events in NVRAM.
-  * Next we'll sit and wait for something else to log.
-  */
--static ssize_t rtas_log_read(struct file * file, char __user * buf,
-+static ssize_t rtas_log_read(struct file * file, char * buf,
- 			 size_t count, loff_t *ppos)
- {
- 	int error;
--	char *tmp;
- 	unsigned long s;
- 	unsigned long offset;
- 
--	if (!buf || count < rtas_error_log_buffer_max)
-+	if (count < rtas_error_log_buffer_max)
+ 	unsigned long time_limit = jiffies + HZ;
+@@ -509,8 +509,7 @@ static ssize_t vcpudispatch_stats_write(struct file *file, const char __user *p,
+ 	if (count > 15)
  		return -EINVAL;
  
- 	count = rtas_error_log_buffer_max;
- 
--	if (!access_ok(buf, count))
+-	if (copy_from_user(buf, p, count))
 -		return -EFAULT;
--
--	tmp = kmalloc(count, GFP_KERNEL);
--	if (!tmp)
--		return -ENOMEM;
--
- 	spin_lock_irqsave(&rtasd_log_lock, s);
++	memcpy(buf, p, count);
  
- 	/* if it's 0, then we know we got the last one (the one in NVRAM) */
-@@ -338,15 +330,14 @@ static ssize_t rtas_log_read(struct file * file, char __user * buf,
- 	}
+ 	buf[count] = 0;
+ 	rc = kstrtoint(buf, 0, &cmd);
+@@ -586,11 +585,11 @@ static int vcpudispatch_stats_display(struct seq_file *p, void *v)
  
- 	offset = rtas_error_log_buffer_max * (rtas_log_start & LOG_NUMBER_MASK);
--	memcpy(tmp, &rtas_log_buf[offset], count);
-+	memcpy(buf, &rtas_log_buf[offset], count);
+ static const struct proc_ops vcpudispatch_stats_proc_ops = {
+ 	.proc_show	= vcpudispatch_stats_display,
+-	.proc_write	= vcpudispatch_stats_write,
++	.proc_write_buf	= vcpudispatch_stats_write,
+ };
  
- 	rtas_log_start += 1;
- 	rtas_log_size -= 1;
- 	spin_unlock_irqrestore(&rtasd_log_lock, s);
+ static ssize_t vcpudispatch_stats_freq_write(struct file *file,
+-		const char __user *p, size_t count, loff_t *ppos)
++		char *p, size_t count, loff_t *ppos)
+ {
+ 	int rc, freq;
+ 	char buf[16];
+@@ -598,8 +597,7 @@ static ssize_t vcpudispatch_stats_freq_write(struct file *file,
+ 	if (count > 15)
+ 		return -EINVAL;
  
--	error = copy_to_user(buf, tmp, count) ? -EFAULT : count;
-+	error = count;
- out:
--	kfree(tmp);
- 	return error;
+-	if (copy_from_user(buf, p, count))
+-		return -EFAULT;
++	memcpy(buf, p, count);
+ 
+ 	buf[count] = 0;
+ 	rc = kstrtoint(buf, 0, &freq);
+@@ -622,7 +620,7 @@ static int vcpudispatch_stats_freq_display(struct seq_file *p, void *v)
+ 
+ static const struct proc_ops vcpudispatch_stats_freq_proc_ops = {
+ 	.proc_show	= vcpudispatch_stats_freq_display,
+-	.proc_write	= vcpudispatch_stats_freq_write,
++	.proc_write_buf	= vcpudispatch_stats_freq_write,
+ };
+ 
+ static int __init vcpudispatch_stats_procfs_init(void)
+diff --git a/arch/powerpc/platforms/pseries/lparcfg.c b/arch/powerpc/platforms/pseries/lparcfg.c
+index cb3d96efb225..bda3cac1552b 100644
+--- a/arch/powerpc/platforms/pseries/lparcfg.c
++++ b/arch/powerpc/platforms/pseries/lparcfg.c
+@@ -687,7 +687,7 @@ static ssize_t update_mpp(u64 *entitlement, u8 *weight)
+  * This function should be invoked only on systems with
+  * FW_FEATURE_SPLPAR.
+  */
+-static ssize_t lparcfg_write(struct file *file, const char __user * buf,
++static ssize_t lparcfg_write(struct file *file, char *buf,
+ 			     size_t count, loff_t * off)
+ {
+ 	char kbuf[64];
+@@ -702,8 +702,7 @@ static ssize_t lparcfg_write(struct file *file, const char __user * buf,
+ 	if (count == 0 || count >= sizeof(kbuf))
+ 		return -EINVAL;
+ 
+-	if (copy_from_user(kbuf, buf, count))
+-		return -EFAULT;
++	memcpy(kbuf, buf, count);
+ 	kbuf[count] = '\0';
+ 	tmp = strchr(kbuf, '=');
+ 	if (!tmp)
+@@ -798,7 +797,7 @@ static int lparcfg_data(struct seq_file *m, void *v)
  }
  
-@@ -359,7 +350,7 @@ static __poll_t rtas_log_poll(struct file *file, poll_table * wait)
+ static const struct proc_ops lparcfg_proc_ops = {
+-	.proc_write	= lparcfg_write,
++	.proc_write_buf	= lparcfg_write,
+ 	.proc_show	= lparcfg_data,
+ };
+ 
+diff --git a/arch/powerpc/platforms/pseries/reconfig.c b/arch/powerpc/platforms/pseries/reconfig.c
+index b543afbc1efb..d74a0710ec74 100644
+--- a/arch/powerpc/platforms/pseries/reconfig.c
++++ b/arch/powerpc/platforms/pseries/reconfig.c
+@@ -349,7 +349,7 @@ static int do_update_property(char *buf, size_t bufsize)
+  * ofdt_write - perform operations on the Open Firmware device tree
+  *
+  * @file: not used
+- * @buf: command and arguments
++ * @kbuf: command and arguments
+  * @count: size of the command buffer
+  * @off: not used
+  *
+@@ -357,26 +357,19 @@ static int do_update_property(char *buf, size_t bufsize)
+  * whole nodes along with their properties.  Operations on individual
+  * properties are not implemented (yet).
+  */
+-static ssize_t ofdt_write(struct file *file, const char __user *buf, size_t count,
++static ssize_t ofdt_write(struct file *file, char *kbuf, size_t count,
+ 			  loff_t *off)
+ {
+ 	int rv;
+-	char *kbuf;
+ 	char *tmp;
+ 
+ 	rv = security_locked_down(LOCKDOWN_DEVICE_TREE);
+ 	if (rv)
+ 		return rv;
+ 
+-	kbuf = memdup_user_nul(buf, count);
+-	if (IS_ERR(kbuf))
+-		return PTR_ERR(kbuf);
+-
+ 	tmp = strchr(kbuf, ' ');
+-	if (!tmp) {
+-		rv = -EINVAL;
+-		goto out;
+-	}
++	if (!tmp)
++		return -EINVAL;
+ 	*tmp = '\0';
+ 	tmp++;
+ 
+@@ -392,13 +385,14 @@ static ssize_t ofdt_write(struct file *file, const char __user *buf, size_t coun
+ 		rv = do_update_property(tmp, count - (tmp - kbuf));
+ 	else
+ 		rv = -EINVAL;
+-out:
+-	kfree(kbuf);
++
+ 	return rv ? rv : count;
  }
  
- static const struct proc_ops rtas_log_proc_ops = {
--	.proc_read	= rtas_log_read,
-+	.proc_read_buf	= rtas_log_read,
- 	.proc_poll	= rtas_log_poll,
- 	.proc_open	= rtas_log_open,
- 	.proc_release	= rtas_log_release,
+ static const struct proc_ops ofdt_proc_ops = {
+-	.proc_write	= ofdt_write,
++	.proc_write_buf	= ofdt_write,
++	/* what memdup_user_nul() could copy in */
++	.proc_write_size = KMALLOC_MAX_SIZE - 1,
+ 	.proc_lseek	= noop_llseek,
+ };
+ 
 
 -- 
 2.53.0
