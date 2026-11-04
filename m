@@ -1,71 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793784087;
-	b=aL0LsLVsQDUl8t2kyYSU5MK7zJjUMrpshaGwnxGrVyeXlpIcaEGvg5ufF2j40CuEyxw7
-	 iye84AQEU8hT+lbtoMF70Rh0U9UC1jrA0US0XFDl5POHGhIGVk9Xf1shT1yXrZfbdPtWB
-	 mlsLN2+fWF8o2K+/vfajhtdE/ZYGHBQCp7Qw7W82xdbG2g9D+0NjujvI0mVY3J/h8Yxwu
-	 sKL4oM1c9Xsdt9V455coS41GhwX4VrRM2aFwe6ocvwohdu2gI21kEdhPXGfo12cnGfV8o
-	 la07tD5iUhjNb6e3ZawJHgZqtGz1F2gX505FAVviUZjsemfP5QbJSAb1HFiJJCVDiGA==
+	t=1793784101;
+	b=xKx7L7mCvFnflqBC4tp/n3HxCs41QqMXl6l6YrAPVE6MK+70BfUVKtBD980ASKTtp/Ym
+	 kg5PLvJ1dJvX/mOtSR3jPqNVF0RmGLLAGwF3g80Ox6kC1uiKpiCiFtj3IEeBhdHmh2z3R
+	 ADGgIXf9AHFBfVfaPCi6KQPmqJwldxD5NvdN4HODNovldqJgO8jBNPk5q1zKgDmhq+Cg7
+	 riafU2RpMq8Bs5B4nnwyw3NrZ2/EacUw7tILwippFKK6tFReODP7JtiCGIfoXMWJIS0y9
+	 mwanpwPThdaS7lho4yb/ZY1fjaCJMrKvykUr84nAchrP1RcmjF+7YWpV3oUzGoQU8fw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793784087;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=TLWmGN3SfRKJzJtFGqy9xXljoZdTMIGgQAZ0U5pRqZ0=;
-	b=0Gn0XyU1/hEbHxhuUDjyv2GM6SMqvq1l+kphHsKgj2pwibFD3IaIMcPiXflBWwXoMnS4
-	 uCdHAgAvuooNXs6AOBNZ64coa+ICKi4mBmQLDtH03CrNlALH7pyIB7vnt4g4QdSezmFpg
-	 dqTg7tKJ2xC1z6r2LEVeQIUTtv4VZSrIS/N2aX6N+CK7M2MzT+1o2MH/U4SEqqvBntxJr
-	 54CTEGtAjUblS220FHl43SBu9au6iUc3I3ZNl+hz7QaaQEk3udEk6PJ7xxZ3jBdPUx83+
-	 CoRb1OGipYS4/C1jZHWnwUIA4JcS7vDBTlEEyhfOsjBI5MNV/kjbK5zxNfT0taSBHpg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793784101;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=9CBa+fk3/kbt44GXuKWA+WI61VvuFZ1X813XyE7+/Vw=;
+	b=mfh5vGHXsB0ff4sqfGrheMZfleb+/L45TpZrya40cADOfleuJcJk9sMpiFqKg7sRj3mx
+	 xHIq18Zt29KD8nWO+wPjJmTPap0Zp0PB4QLG2XeMQqqjWgU4a6iVjouFDHgKrokqzd85h
+	 AwFvFFKRxjGPLtuNMnrEefpHJ9u8t0ZW/7N8pcOajTtY7fJEE7GxSf4Gs6H0rBoV9b8OD
+	 pPwqpRnpjs8jk+eFhJovvgltQY+K0yeh//AWew2lJwA/QQAeyjtBzf+iT1IqNrooFzzef
+	 5HD5W7ndQ+5/uR2/sFXsje+J7yUn7muaaT10ss5d7nUtloFpDwyxiboyFez9CapBQkw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RlGTCzi8;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UTmXrgKI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6379F606A31B;
-	Wed,  4 Nov 2026 09:21:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60C53606D821;
+	Wed,  4 Nov 2026 09:21:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RlGTCzi8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CC751F00A1B;
-	Wed,  4 Nov 2026 09:21:15 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UTmXrgKI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87AD41F000C1;
+	Wed,  4 Nov 2026 09:21:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793784087;
-	bh=TLWmGN3SfRKJzJtFGqy9xXljoZdTMIGgQAZ0U5pRqZ0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=RlGTCzi8pu88TVAb0kwn4joxUiR7mlBDOdPpezl4XmsvQd8kAh4iDFU4pQONkMHIu
-	 eliic42rAIpabkq9bUb6HqnW9ZOmOC+nO6hIz58hrOaEoVJAOD6f1NccFejHSUbQEg
-	 UcTtVvMVrKX8rkKsqChfbeyKOblU3iUz404/VcCwAESFTSpzfmuSYLv6tIXqWgvwx4
-	 JsaFcHO4jSLDa+WNzQE5ZJzqGGlwKjwInimlKuIR6uaQtqBJZavxLJ41GnGzP1qeFj
-	 IB/K6cI148TQ1ND1SEtNwA24wzZ0dXL4wMxQ/4D3P3yQeU5Lj8YAihYUT5N5BdD20o
-	 LKB+GT+o55caw==
-Date: Wed, 4 Nov 2026 10:21:13 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: sashiko-reviews@lists.linux.dev
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, 
-	Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
-	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
-	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
-	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
-	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, coreteam@netfilter.org, 
-	kexec@lists.infradead.org, linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-usb@vger.kernel.org, samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-serial@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, 
-	linux-input@vger.kernel.org, linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-modules@vger.kernel.org, Chuck Lever <cel@kernel.org>, tytso@mit.edu, 
-	dmitry.torokhov@gmail.com, Petr Pavlu <petr.pavlu@suse.com>, 
-	Anna Schumaker <anna@kernel.org>, yukuai@fygo.io, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>
-Subject: Re: [PATCH RFC 38/38] selftests/proc: check that a faulting
- readlink() doesn't hold up removal
-Message-ID: <20261104-erwecken-pulsieren-anarchie-9a5a7582621e@brauner>
-References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
- <20261102-work-procfs-bugfixes-v1-38-59422ed3e465@kernel.org>
- <sashiko-outbox-195510@kernel.org>
+	s=k20260515; t=1793784101;
+	bh=9CBa+fk3/kbt44GXuKWA+WI61VvuFZ1X813XyE7+/Vw=;
+	h=From:To:Cc:Subject:Date;
+	b=UTmXrgKImETXIEXLhuBFnXWDp4j/L6cjYUCzMrVtiGLdAqlPntbX6u5i23jsRDVGP
+	 Deoa+3QtgyMVMulU5OHtgW1B7/dDgsHWwBEVOgdE+d94pADe1StR4pz0/wscipePyP
+	 FB9quHAV0mv9IFfg80INOaPxftkaExgoq3K5MQK0pVQZj+yt+FWvFQ9/FjgwN2Ycpz
+	 4Zs+cBE0heBYYRJb8spiZ5db0Grzt7/+bg0i5SKSyRZ3EQqHgM3HX+Zkx0GewV2u0Z
+	 PBJUUd3p9u08VSNhWkVA2vWol/x+Cl+806K3iAc2aYJLQKnsczi7EV6Tz/Owhl+tor
+	 Eiooa+OBUhTZw==
+From: Imre Kaloz <kaloz@kernel.org>
+To: Andreas Larsson <andreas@gaisler.com>,
+	sparclinux@vger.kernel.org
+Cc: "David S . Miller" <davem@davemloft.net>,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	Magnus Lindholm <linmag7@gmail.com>,
+	Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: [PATCH v2] sparc32: don't clear the nocache pool through the PROM mappings
+Date: Wed,  4 Nov 2026 10:20:22 +0100
+Message-ID: <20261104092022.5837-1-kaloz@kernel.org>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -75,11 +60,69 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <sashiko-outbox-195510@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Nov 03, 2026 at 02:48:45PM +0000, sashiko-bot@kernel.org wrote:
-> - [Medium] selftests/proc: Makefile adds nonexistent proc-remove-slow-reader target
+srmmu_nocache_init() runs before the switch to srmmu_swapper_pg_dir, so
+lowmem is reached through the PROM mappings inherited for KERNBASE,
+which end at 10MB on a SPARCstation 20. The pool, up to 5MB and
+allocated right above the kernel, was cleared there by
+memblock_alloc_or_panic(). Once the kernel image ends above 5MB the
+clear runs past the window, faults, and the boot CPU enters error mode.
 
-Fixed.
+Every user of the pool clears what it allocates, so allocate the pool
+with memblock_alloc_raw(), after the bitmap so the bitmap lands below it.
+
+This has been broken since 2.4.0-test2pre2.
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Imre Kaloz <kaloz@kernel.org>
+---
+Changes in v2:
+- Rebased onto sparc for-next, where "sparc32: remove redundant memset
+  in srmmu_nocache_init()" already dropped the memset(); the pool is
+  still cleared once by memblock_alloc_or_panic().
+- v1: https://lore.kernel.org/sparclinux/20260927005801.8338-1-kaloz@kernel.org/
+
+No Fixes: tag: this has been broken since 2.4.0-test2pre2, before the
+git history.
+
+ arch/sparc/mm/srmmu.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 337987e021d4..f0fb7b33c3e3 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -263,14 +263,24 @@ static void __init srmmu_nocache_init(void)
+ 
+ 	bitmap_bits = srmmu_nocache_size >> SRMMU_NOCACHE_BITMAP_SHIFT;
+ 
+-	srmmu_nocache_pool = memblock_alloc_or_panic(srmmu_nocache_size,
+-					    SRMMU_NOCACHE_ALIGN_MAX);
+-
+ 	srmmu_nocache_bitmap =
+ 		memblock_alloc_or_panic(BITS_TO_LONGS(bitmap_bits) * sizeof(long),
+ 			       SMP_CACHE_BYTES);
+ 	bit_map_init(&srmmu_nocache_map, srmmu_nocache_bitmap, bitmap_bits);
+ 
++	/*
++	 * Until the switch to srmmu_swapper_pg_dir, lowmem is only reachable
++	 * through the PROM's mappings, which may end below the top of the pool
++	 * (at 10MB on the SPARCstation 20). Allocate the pool after the bitmap
++	 * so the bitmap stays below it, and leave it uncleared: every user of
++	 * the pool clears what it allocates.
++	 */
++	srmmu_nocache_pool = memblock_alloc_raw(srmmu_nocache_size,
++						SRMMU_NOCACHE_ALIGN_MAX);
++	if (!srmmu_nocache_pool)
++		panic("%s: Failed to allocate %lu bytes\n", __func__,
++		      srmmu_nocache_size);
++
+ 	srmmu_swapper_pg_dir = __srmmu_get_nocache(SRMMU_PGD_TABLE_SIZE, SRMMU_PGD_TABLE_SIZE);
+ 	memset(__nocache_fix(srmmu_swapper_pg_dir), 0, SRMMU_PGD_TABLE_SIZE);
+ 	init_mm.pgd = srmmu_swapper_pg_dir;
+
+base-commit: c95443b98771a74c6689f5e7bbc56794fe95f550
+-- 
+2.47.3
+
