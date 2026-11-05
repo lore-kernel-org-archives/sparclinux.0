@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793907362;
-	b=jxU2D644CysPKKXQ0ern9Klsdk9HmFfMw+Vr/vcMe3ItpANGfCVBlfXeWCz3In0VGMb8
-	 cWYMF14Cmg43uR53S7VIlo4KMKNvJwkaiKDawMcIhNXsVZNpBb/7aDQU7cmNd2D66Cf3e
-	 DedItbqRM3d1D2Z2hpuE1KroYHiWZ5p1hQPfdAZe9+R0OtkrpQONUgnsQr7g8H1isrlvO
-	 o8NqbS4lK4cRt3p4UusJ42VU+Y+36kpOLpBRUi0S8ZfYuGbT/aifHBtuzw0ItOlY8lVxv
-	 xCa9tbDS4aqy9O5F/80cKXoegwmSNCoteCYzHg/AA9xgkWXiqCD2hPAFm/2uLNQIIQA==
+	t=1793908162;
+	b=o0e/ogAqaJPu5btk7m0fUdWCo0JJYQpgq4mxpbQReg0KIzMh5Ql0EIbwt3gLswSxHIBc
+	 yunWTd8xs0Ofw/K6Q8VVVxakyeitRzqq1AGfc4BIyHV0TTDI/qakJFEPGFEFZq0Z1Mp5V
+	 /oGmqEexgSSwiMuGa7rBj8/HdclLVHSif23D0/+IBAJpijIbEJz4XTiWYPu8/LUlDTSMZ
+	 5E6/XdXM9cNDB2F+qXwTJ2S68DhFMlnThgt4Q4PnxDsqzI67IHAFG1YINB8rg8KYlmuSS
+	 xu4X1VUP+Zn20C+8iO62pFDNgHyEUh4T0YFB/v0NsWGDs+zD33J60OCCanEozb4OmyQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793907362;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793908162;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=u3XH2HUDxRINO6oY1nDOxszi+5d2U3ZN+LfBIkkJykc=;
-	b=JjlaXt642gDQuEMAibHZlWzJl3muiwv6oa0OCGxAO5HTmztYHes39xlGwUVmliCTn925
-	 +hC9517jf0uMz3t3e4V7F3lJuGiDd0XrduuENootQqFQVT7keoTeUfRSaw7h+Avko1zK0
-	 mVBuLxysP34kWum40qxoRPP8j4CLQJd+dXbnbbUTaMDTxyL5GH6aRM+acjuvTKXKSgy1J
-	 Db5B7aq+u+T1S/xMNkgwGpNTrWkpsiiA6A/NF5sueMV8AdMZIIuJY+6xRcB4XvDTEsO5Z
-	 LL+GLtyMDx5wpAiggh4rmfRRL0dTtnEEV/oJdInx+PZR7O584QrkC4kjge8KpwXrfBQ==
+	bh=SQGcFgpv842CZc+i4ADTXEHohf225g6/ddUxNX/0YAI=;
+	b=I38fx+R2mPXhLAKPdAvFU/j0aJeTpZfXDiqURUA25mKneil5TBTVZFpXX5HzW7rmbDnT
+	 wmFDr+Ukr6SmNRr3iIjaHA5Dr3qhUBD3h0QvoBea0IoUenxqbHm5h5k4RhadWwxFN3Nhj
+	 b8nmbFzEZtc3oHd2sEK6nweouhUJYHP54dEDUL+CRhZFYKS5ItJPGoVsU4FNdHoojXeKA
+	 HNCNSHtzwEwxl1uFchpBndSKPvejuEBdRk+JY/RqzQDBYgAmZq8ICxnAO5DL5BBOsX6VE
+	 BWPnco5vMZFgH5s3R30Ox7AED3Lzn2sHqLMQt2DOevcWRB4sIPkmSzrypdIx4T0hI+w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="EbrLF/GI";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cZhHfqlp;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AD90606D826;
-	Thu,  5 Nov 2026 19:36:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4B0A606D510;
+	Thu,  5 Nov 2026 19:49:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EbrLF/GI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CE711F0089E;
-	Thu,  5 Nov 2026 19:36:00 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cZhHfqlp
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 189221F008A3;
+	Thu,  5 Nov 2026 19:49:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793907362;
-	bh=u3XH2HUDxRINO6oY1nDOxszi+5d2U3ZN+LfBIkkJykc=;
+	s=k20260515; t=1793908161;
+	bh=SQGcFgpv842CZc+i4ADTXEHohf225g6/ddUxNX/0YAI=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=EbrLF/GI9zveLxnzZ8uxZ7LXZBqUJdqjZ/hKoCeJ+z1yLwXWHsb2qxVPJQ8BLsPOE
-	 K/NM8kOHLdOX413B6qu4BxuoBVdDuZNIDosQo3lfsNG21BWE641KvfyeVALDLSFtDe
-	 ESPTTOTW65bJL496sXvpAbFlSD7S31p5rbp2uYOnMbdF46/hUBlGYvOTz/9riUzRjK
-	 p3f2B9HZLlYz+fkIAktgBcJKJZDL0Yykv/zheSRbg1STyFrvMiDZro6fwOyZTiGupJ
-	 cJfQ/mrW1aSt0fhZWKbtOyHFZ50PXoXdNZ2u1li9/TrUnZma8Zf3atQs17wXbvbwaB
-	 b0ELZzT+OQZ5w==
-Message-ID: <sashiko-outbox-199952@kernel.org>
+	b=cZhHfqlpVCMazdNLMYZou11HSNj+bC6q9k18GNJM/OWusa7I3cE38ZSDuLk7G2DA1
+	 Jl3LWLfce8r1+I7/kaXnW4DM1El/rS4EDvcWvFSU9gRYnhweCDoHGXs46gI+xBDByX
+	 bgwM+wgE3oMtnlEF7gWtZvRxJuCjnhN3KkQNB8x40+mSR/kNNPCHzW3fXCtyFHFFLX
+	 FHCIUG4SqoA/t9wvId31tRsBFDoxQSd/YXuLLYEqclnuoDPsXk/7YqV8Md9LhmYBjk
+	 /UvD2lsmagU5/J9f/mcGTlhm7gntE6pKkE9kjzxwlbL4fMuUu9RbvUKnSlvFWCI5Yp
+	 a0z1KaHv2TqyQ==
+Message-ID: <sashiko-outbox-199993@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH RESEND v2 22/23] proc: own the wait queue of an entry
- with a ->proc_poll()
+Subject: Re: [PATCH RESEND v2 07/26] md: let procfs own the wait queue of
+ /proc/mdstat
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Christian Brauner" <brauner@kernel.org>
 Cc: "Linus Torvalds" <torvalds@linux-foundation.org>, "Jann Horn" <jannh@google.com>, "Josef
@@ -57,12 +57,12 @@ Cc: "Linus Torvalds" <torvalds@linux-foundation.org>, "Jann Horn" <jannh@google.
  Pavlu" <petr.pavlu@suse.com>, "Anna Schumaker" <anna@kernel.org>, yukuai@fygo.io, "Heiko
  Carstens" <hca@linux.ibm.com>, "Vasily Gorbik" <gor@linux.ibm.com>, "Alexander
  Gordeev" <agordeev@linux.ibm.com>, "Christian Borntraeger" <borntraeger@linux.ibm.com>
-In-Reply-To: <20261104-work-procfs-core-v2-22-76ace653a773@kernel.org>
-References: <20261104-work-procfs-core-v2-0-76ace653a773@kernel.org>
- <20261104-work-procfs-core-v2-22-76ace653a773@kernel.org>
+In-Reply-To: <20261104-work-procfs-drivers-v2-7-245e54e87116@kernel.org>
+References: <20261104-work-procfs-drivers-v2-0-245e54e87116@kernel.org>
+ <20261104-work-procfs-drivers-v2-7-245e54e87116@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 05 Nov 2026 19:35:59 +0000
+Date: Thu, 05 Nov 2026 19:49:18 +0000
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -72,101 +72,166 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [Medium] proc: dual poll_wait() calls in proc_reg_poll() break AIO poll
+- [High] md: use-after-free on md_misc_wq in md_seq_show() during md_exit()
+- [High] md: use-after-free on mdstat_entry in md_new_event() during md_exi=
+t()
 --
 
-commit 443c1e3f3b75bcf766632cccb5651e0034423048
+commit d5381c9dd419c5377924fd70f1baf55ca30c4844
 Author: Christian Brauner <brauner@kernel.org>
 
-proc: own the wait queue of an entry with a ->proc_poll()
+md: let procfs own the wait queue of /proc/mdstat
 
-This commit gives procfs entries that implement ->proc_poll() a procfs-owned
-wait queue in struct pde_open_node and adds proc_poll_notify() to wake poll=
-ers
-on that queue. proc_reg_poll() calls poll_wait() on the procfs wait queue
-before invoking the entry's ->proc_poll() callback with the same poll_table.
+This commit replaces the module-owned md_event_waiters wait queue with
+proc_poll_notify() on the /proc/mdstat proc_dir_entry, removing the
+md_unloading flag and wait loop on module exit. It also moves the removal
+of /proc/mdstat in md_exit() to after destroy_workqueue(md_misc_wq) so
+that late md_new_event() calls do not dereference a removed proc entry.
 
-> diff --git a/fs/proc/inode.c b/fs/proc/inode.c
-> index 59de4681d8452..ab30a58879d51 100644
-> --- a/fs/proc/inode.c
-> +++ b/fs/proc/inode.c
+> diff --git a/drivers/md/md.c b/drivers/md/md.c
+> index 64abf1743e41d..7560dcf0f5c87 100644
+> --- a/drivers/md/md.c
+> +++ b/drivers/md/md.c
+
 [ ... ]
-> @@ -555,26 +561,46 @@ static ssize_t proc_reg_write(struct file *file, co=
-nst char __user *buf, size_t
->  	return rv;
->  }
-> =20
-> -static __poll_t pde_poll(struct proc_dir_entry *pde, struct file *file, =
-struct poll_table_struct *pts)
-> -{
-> -	const auto poll =3D pde->proc_ops->proc_poll;
-> -	if (poll)
-> -		return poll(file, pts);
-> -	return DEFAULT_POLLMASK;
-> -}
-> -
-> +/*
-> + * The pollers of an entry sleep on a wait queue procfs owns, which is t=
-here
-> + * for as long as the entry's inode is, however the entry's owner goes a=
-way.
-> + * The owner wakes them through proc_poll_notify(), and procfs does when=
- the
-> + * entry is removed: a poll of a removed entry reports EPOLLERR | EPOLLP=
-RI,
-> + * like kernfs_fop_poll().
-> + */
->  static __poll_t proc_reg_poll(struct file *file, struct poll_table_struc=
-t *pts)
+
+> @@ -11074,25 +11069,12 @@ void md_autostart_arrays(int part)
+>  static __exit void md_exit(void)
 >  {
->  	struct proc_dir_entry *pde =3D PDE(file_inode(file));
->  	__poll_t rv;
+>  	struct mddev *mddev;
+> -	int delay =3D 1;
 > =20
-> -	if (!pde_pin(pde))
-> +	if (!pde_has_proc_poll(pde))
->  		return DEFAULT_POLLMASK;
-> -	rv =3D pde_poll(pde, file, pts);
-> +	poll_wait(file, &pde->open->poll, pts);
-> +	if (!pde_pin(pde))
-> +		return DEFAULT_POLLMASK | EPOLLERR | EPOLLPRI;
-> +	rv =3D pde->proc_ops->proc_poll(file, pts);
+>  	unregister_blkdev(MD_MAJOR,"md");
+>  	unregister_blkdev(mdp_major, "mdp");
+>  	unregister_reboot_notifier(&md_notifier);
+>  	unregister_sysctl_table(raid_table_header);
+> =20
+> -	/* We cannot unload the modules while some process is
+> -	 * waiting for us in select() or poll() - wake them up
+> -	 */
+> -	md_unloading =3D 1;
+> -	while (waitqueue_active(&md_event_waiters)) {
+> -		/* not safe to leave yet */
+> -		wake_up(&md_event_waiters);
+> -		msleep(delay);
+> -		delay +=3D delay;
+> -	}
+> -	remove_proc_entry("mdstat", NULL);
 
-[Severity: Medium]
-Does calling poll_wait() on pde->open->poll in proc_reg_poll() before passi=
-ng
-pts to pde->proc_ops->proc_poll() break Linux AIO polling (IOCB_CMD_POLL via
-io_submit()) for unconverted procfs entries?
+[Severity: High]
+If remove_proc_entry("mdstat", NULL) is moved after the all_mddevs
+teardown loop and destroy_workqueue(md_misc_wq), can a concurrent reader
+of /proc/mdstat trigger a use-after-free on md_misc_wq and leak the mddev?
 
-While ->proc_poll() implementations still receive pts and call poll_wait() =
-on
-their own wait queues, vfs_poll() -> proc_reg_poll() ends up calling
-poll_wait() twice on the same poll_table_struct: first on &pde->open->poll =
-and
-then on the subsystem's wait queue inside ->proc_poll().
+Previously, calling remove_proc_entry("mdstat", NULL) before iterating
+over all_mddevs waited in proc_entry_rundown() for all active seq_file
+readers in md_seq_show() to complete before mddev teardown started.
+Reading /proc/mdstat pins the proc_dir_entry rather than holding a module
+reference on md_mod.
 
-When userspace submits an IOCB_CMD_POLL request via io_submit() on a pollab=
-le
-procfs file (such as /proc/pressure/*, /proc/mdstat, /proc/swaps, or
-/proc/kmsg), aio_poll() sets apt.pt._qproc =3D aio_poll_queue_proc. The fir=
-st
-poll_wait() queues the request on &pde->open->poll and sets pt->queued =3D =
-true,
-and the second poll_wait() inside ->proc_poll() hits the single-waitqueue
-check in fs/aio.c:aio_poll_queue_proc():
+In drivers/md/md.c:md_seq_show(), a reader takes a reference on
+mddev->active and drops all_mddevs_lock while formatting output:
 
-	/* multiple wait queues per file are not supported */
-	if (unlikely(pt->queued)) {
-		pt->error =3D -EINVAL;
-		return;
+drivers/md/md.c:md_seq_show() {
+	...
+	mddev =3D list_entry(v, struct mddev, all_mddevs);
+	if (!mddev_get(mddev))
+		return 0;
+
+	spin_unlock(&all_mddevs_lock);
+	...
+	spin_lock(&all_mddevs_lock);
+	mddev_put_locked(mddev);
+	return 0;
+}
+
+If md_exit() runs while md_seq_show() is between mddev_get() and
+mddev_put_locked() on an inactive array:
+
+1. md_exit() calls mddev_get(mddev) (incrementing mddev->active from 1 to
+   2), drops all_mddevs_lock, calls export_array(mddev) (which also
+   mutates mddev->disks, mddev->raid_disks, and mddev->major_version
+   without holding mddev->lock while md_seq_show() reads them), clears
+   mddev->ctime =3D 0 and mddev->hold_active =3D 0, and calls
+   mddev_put_locked(mddev).
+
+2. Because md_seq_show() still holds its reference,
+   atomic_dec_and_test(&mddev->active) in md_exit() drops mddev->active
+   from 2 to 1 and returns false, so __mddev_put() is not called and
+   mddev->del_work is not queued on md_misc_wq.
+
+3. md_exit() then calls destroy_workqueue(md_misc_wq) and blocks in
+   remove_proc_entry("mdstat", NULL) waiting for md_seq_show() to finish.
+
+4. When md_seq_show() finishes and calls mddev_put_locked(mddev),
+   mddev->active drops from 1 to 0 and __mddev_put() queues
+   mddev->del_work onto the already-destroyed md_misc_wq workqueue:
+
+drivers/md/md.c:__mddev_put() {
+	...
+	set_bit(MD_DELETED, &mddev->flags);
+	queue_work(md_misc_wq, &mddev->del_work);
+}
+
+> @@ -11112,6 +11094,11 @@ static __exit void md_exit(void)
+>  	spin_unlock(&all_mddevs_lock);
+> =20
+>  	destroy_workqueue(md_misc_wq);
+> +	/*
+> +	 * Only now can nothing reach md_new_event() anymore, which wakes the
+> +	 * pollers of /proc/mdstat through its entry.
+> +	 */
+> +	remove_proc_entry("mdstat", NULL);
+
+[Severity: High]
+Does destroy_workqueue(md_misc_wq) guarantee that an in-flight sysfs store
+on an inactive array has finished before remove_proc_entry("mdstat", NULL)
+frees mdstat_entry?
+
+In drivers/md/md.c:md_attr_store(), the caller holds a reference on
+mddev->active across entry->store() (where md_new_event() is called) and
+only drops it afterward:
+
+drivers/md/md.c:md_attr_store() {
+	...
+	spin_lock(&all_mddevs_lock);
+	if (!mddev_get(mddev)) {
+		spin_unlock(&all_mddevs_lock);
+		if (kn)
+			sysfs_unbreak_active_protection(kn);
+		return -EBUSY;
 	}
+	spin_unlock(&all_mddevs_lock);
+	rv =3D entry->store(mddev, page, length);
 
-If the polled event is not immediately ready, aio_poll() sees apt.error =3D=
-=3D
--EINVAL, removes the wait entry from &pde->open->poll, and fails the
-io_submit() request with -EINVAL.
+	if (kn)
+		sysfs_unbreak_active_protection(kn);
+	mddev_put(mddev);
+	return rv;
+}
+
+If md_attr_store() acquires mddev->active before md_exit() reaches
+mddev_put_locked(mddev) (for example, while md_exit() drops
+all_mddevs_lock around export_array(mddev)), md_exit()'s call to
+mddev_put_locked(mddev) only decrements mddev->active from 2 to 1 and does
+not queue mddev->del_work onto md_misc_wq.
+
+Similarly, if the inactive array had bound rdevs, export_array() moves
+them to mddev->deleting via md_kick_rdev_from_array() without draining
+mddev->deleting or dropping rdev->kobj, which holds a parent reference on
+mddev->kobj; if rdev_attr_store() is in flight, kobject_put(&mddev->kobj)
+in mddev_delayed_delete() returns without waiting for rdev_attr_store() to
+finish.
+
+In either case, destroy_workqueue(md_misc_wq) returns while the sysfs
+store is still running, remove_proc_entry("mdstat", NULL) frees
+mdstat_entry, and the in-flight store can then call
+md_new_event()->proc_poll_notify(mdstat_entry) on the freed mdstat_entry
+(followed by md_attr_store() calling mddev_put(mddev) and queuing
+mddev->del_work onto the destroyed md_misc_wq).
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104-work-procf=
-s-core-v2-0-76ace653a773@kernel.org?part=3D22
+s-drivers-v2-0-245e54e87116@kernel.org?part=3D7
