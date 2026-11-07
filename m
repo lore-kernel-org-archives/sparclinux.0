@@ -1,73 +1,94 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794069981;
-	b=UsQ6Xne5uteaKgr0Mk+VDvKz2ySdwT8D+RiHXELZ4BfJGlG7nMfGIZw4uWrpK9zHwlzQ
-	 6WrQefwGo+LZToMkdNKM5wMEJa8hD9vS3J3Xcz9z4xPedEwZdOSLC9VIO94uVOK6cKU6q
-	 OcR5+WzRKrXMvaqAHT4oedupT0SuplgSE+xRZgWrzqtwww8Hic+fc7mJKROVBBMr2x/ov
-	 NiwACDYUshPmw1WGYLWWYhzukQ4DJ2dqZDRBsLsl2r9oOOo9jgTbTYn9CMkNezMZZPnrB
-	 TknMUv5a+jaEWxVzRC8uEoMXODZgJKEWwi+qN/hkd7q2F6AdwjO71XUtzBbdyGnmUcw==
+	t=1794081117;
+	b=vQ+PPwMV9Hy2vuhkV4uX5UIsMqlJxI7W9e9QZV5akIRBYOL8HfyfYp5KLSfm2BKdrYVj
+	 bb5jj/55f9s6/eMAcrvFgKS+AnrjMYRVCFiRHeosV6bEmmRsDmI8bLzJ0UytOQ3jMFj2Q
+	 AjpMhIGZgS/xYJNRVzczEs+HNNEPUkoS9tIAYW12KV0TfCzc67NyDg3wFgeNEckrRWaKa
+	 w3X97w/I56DRzpylzMVgUyHKoP/Mpu0Lbu96HfDopf/puhMPqgxWo41Md4PycnjwI4jzY
+	 RJ0QEBGTkiKQOYWtJRKbaBer8NaVqPgXLnmsg7TCiJKfaBQlbzLBgD/l73gZn+jDXjg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794069981;
-	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
-	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
-	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
-	 References:Subject:Content-Type:Content-Transfer-Encoding;
-	bh=iQPFcguwJfJnGIUghj3vW2cnp0ZTKsyoI6OiYKG+trA=;
-	b=v7wF209hoERrDgjFwANIMrIRvimQbbj474nPui52auGW5BxluofGM6z4EJfOLBXkPsnR
-	 MTPk3jNz7X4guFQDBR28t2uG6Od5YUQuY9uP04OC+8pfhvsY2wefsHPsMnHwCrUIBrjbC
-	 YZwPlboaITtX6Ava/fR4AtRO3Wv7TAKn5HsESpR/axheMDnmArBRrOMELdbDpFbo4/kkX
-	 oi1IRUTWtIPdmxn+xiG1LpHXVP7NdBR5uOZn7vV7tTBJ0dxgeiqdJDboH4DP1fUeorlUQ
-	 Mnx2MgCPgoKTyXlPtrZbJ6WcDbVt9/UuoAhWoxjooXsZA0MaBC3o0OFeztayfHBIliA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794081117;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=FtLI03n5niPlmdsJ+E4XDcCPmRgq2Jm/sr5s8DtS9AM=;
+	b=QahkZe7e3T6E3HsALFJZ0Bn3NEHlIo1V1Ua4IRHjmfaZxsmENHbI0KL9ozB7pp/5Kmfu
+	 1zBoX4I2jwK53mGjPSecOccKh9e+jcj/0R+qWegLF/hELzdJQtx4CHp6EJAbCAodzJkB8
+	 GN6T2PBsfwVbPKfR++cbU2P5FNyJkA/7ZTgIbUyw7cJ43auLn3TIlEImixNu+Btt9gKpa
+	 hOymKiwaBbSkhzRIuU6pUZSyXC4kgGETB7TaJMOQCf0l/k6F1kOVkQtlCdD7Bo72YH4zz
+	 sRcp9I7SGWNqQOMJ6xxFDq4IMD4VzqQ0YRGIb04sav4DjcxXKDl59t9vT5blsDRUPOg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GdchM4JA;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=kDbbq3bH;
+	arc=none smtp.remote-ip=209.85.221.52
+Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16FD606A326;
-	Sat,  7 Nov 2026 16:46:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BDFC606A32D
+	for <sparclinux@vger.kernel.org>; Sat,  7 Nov 2026 19:51:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4BDFC606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GdchM4JA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33F3B1F008A3;
-	Sat,  7 Nov 2026 16:46:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794069980;
-	bh=iQPFcguwJfJnGIUghj3vW2cnp0ZTKsyoI6OiYKG+trA=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=GdchM4JAcx1qo6towHdQHCgh2tMHo3zzg17T84D+E9tEQ4saStJy8zvHY9EwNQyxR
-	 oK8yaLgqNU37R0MQlKrJvaZTfioOKst375+EE3LbYI7gUQePChwprYDcMtej1nwiGU
-	 dsufOCJUs+IgboNeWUzJfOUvnLV/mLmPPAxP++XxBwWdSvsRbSF91P8JnlzSeymBlh
-	 lEzS0bCVLtim+6ouaGlrDE6fsFvc5qFqfvhCWl64VQwoWxGe8sefwAjw7/I+6jcZC+
-	 /WKSC7uAJb9FKzTFrIsSEdraVR2Eq0psBydCysFViOt9COyNjQJH1jVYaRzZxwoY3u
-	 vZLcyJogV9A/g==
-Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 770BBF40066;
-	Sat,  7 Nov 2026 11:46:19 -0500 (EST)
-Received: from phl-imap-15 ([10.202.2.104])
-  by phl-compute-10.internal (MEProxy); Sat, 07 Nov 2026 11:46:19 -0500
-X-ME-Sender: <xms:21XvaoI8xVkuzu2ggxmfT2VoL9otHZIhGkdP7sT7nnFaVj7_NCZbgw>
-    <xme:21Xvai9jvswL5aosPOj2sjBdsne--z2Vcw9CybSvH6cV4Z7_VedZPDAPFFm2w_uB1
-    OOHRpQdMcOvh9FQ9jewIohgBu8C0-FJ_t7pVgQmYakS7uvE0DqdnYj1>
-X-ME-Proxy-Cause: dmFkZTFtOlailLA7ZjiNgBTvvRwW+fQs0xcHo5AHr7fRtJrIuFWMuFVGu4oQuCeZ0pr0pC
-    lj/WCGWUBzDoQrKdmeOIOx622PB5FBwnR92PlS1DrVrA5uW0MnsNHEpSCCEISbjWcBNWpd
-    AJGAUrhAP2ixHqxr5ktjqtDZtDRxQ+wxwdXnbM6ymNuxLXWUu5re/DshCdypVN4RJVSYiI
-    pX6xC2OVQ0adGi3NIKU3V3E+k0PR9F5sS1Jrk8VpzWhAMrFUcs3GPG4cWRftcOZ2GaObQm
-    dtFuqB299Yev5WyoldQClGgN+jblV8xsVjLfVWhN2y4yGtMahzOezGLQ8LrNpUxR8dZfbu
-    lIypd5PasUVA/oQYiP1JJjnE0dbtceWFuNu/cXjVcI3peKzIbO94dNfJzf+KPUBbBj6OJs
-    xONTmDWVPcnavfLGnJ9Str1iCXWjLd8n8plei7GhfZ2Yct1Mb36p3Ftpqsy8HiFzlFB6JR
-    vCDf5AqtF24I+Ixh6htHYnxAa1boUFkUM/E/HKAo3rcBd+9kTud3Md2a4DQbfiDrY+cerB
-    BCLBcSU5xi/5AvO8RpQ0ihQUFVAFkvT394aMfNkcrcyvDmaq3pfLyB5Len7h2/bmpF+8sx
-    FrsAUEinhV76Ec3u6Qe9hQY0Pq0UexmL2UqEZd4qhrOC8BGG20S51iSoFmYA
-X-ME-Proxy: <xmx:21Xvatt0Wu0fKbN7TVc00SVx5cl4nBo0Q82lDLMniu-fjrCmVGavWQ>
-    <xmx:21XvauqT1roSxPVbJ__cvWOICXpZBt0Uy7t30skmPBgH4PUxXx1_Kg>
-    <xmx:21XvasX4cyeQOJfObf8n0k85OhQoglMXW2ST001O3cCOWy0j31aVlA>
-    <xmx:21Xvau1v9osh-1HQCt_nNNhBn8zDdcUV3_YpTMTutnfhDXcPKzQcmA>
-    <xmx:21XvapvZRqwLy9j4pgfhYCEDK1_0cwha-81FwJc9sq3a-mW19BlYyiSq>
-Feedback-ID: ifa6e4810:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 5E62D782738; Sat,  7 Nov 2026 11:46:19 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=kDbbq3bH
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-48e1d0e5dafso420035f8f.1
+        for <sparclinux@vger.kernel.org>; Sat, 07 Nov 2026 11:51:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794081116; x=1794685916; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=FtLI03n5niPlmdsJ+E4XDcCPmRgq2Jm/sr5s8DtS9AM=;
+        b=kDbbq3bHTK2PIoZKpI+H9DdZkZGoZD/bpFLNuchanpHpnrfh56yqDuri2slv/Nl2HC
+         kGQglgIYAivjhexIYTy6+FNtrHbILM8vX7JB1ZjS+4tqvOSEWF/5mdwRqav9L3jp/0S6
+         n8RSgv5KD2HHMSxGKCP81clxmLVFKMYjQlFVnHyJ8gAh3Pvc3AKj/ND/rUqJYaQKqDbc
+         Pm27tXU8kjnlZhdZnwJuXuaFfJlBG2YpS7ppkqIIo0PiqU8D75Bqs1qFtaCz6FRonLDM
+         554RsdpzfWEzefLPjIVPyg88Idmww/+G7pyJ1t0Won2xabfXu3IE3a/HP/Nzkf6sGDxh
+         hKDw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794081116; x=1794685916;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=FtLI03n5niPlmdsJ+E4XDcCPmRgq2Jm/sr5s8DtS9AM=;
+        b=11krT+855P7QwHVJWQqhW/RG4eatmC97KhCE7hB8DXMJh/vRddZ/YijeJcmD2p2ze4
+         i7rAEweIK4Xo68BgM1FX1OoggBlC0V/QqIdiyU9MZpEdD6mjlb5weWcUcxE/TwYcn9On
+         2G3NM90OImKSZIF69nlsmOWcZ/r6hvbjG/96BRTbx/0BqQllfcc+i68XjHMLQZraC/HJ
+         ltu/ccAFtaHXW4EZt3upULqIM7CiG6+lapxiKImsNKGwt7/H22u4tkodfM3HfLueOyxA
+         +WqS9hB6YcdIMnWXstvm/+X/5da+okJgD33F3eqW5vwL+wTBZmDYIh4it9zl22eyhqFq
+         So5w==
+X-Forwarded-Encrypted: i=1; AKwUvBwbYHJC0+K6BesakGaeyPonNNqF/pGqVunBVFBvtqtt7Vh8ROkrT+IO5IxWM4vmqvJC/9/i16+SNNLG@vger.kernel.org
+X-Gm-Message-State: APuU4Z9HQhggKfAQhXLp3Kl3PV2y6vXNIx0oR5zo7FHsdqfW1QSqLdLt
+	VBncxqL4kWAJXZW/4WlUCxfN87OZbGkNpNXhrlrTrP64Hot3E2Tgs2p4
+X-Gm-Gg: AYBFou1mCA54IFnQ2QpbNGekC5bhshsJ4azEUulUylzD7L7kOIX0i4btD3RfCj31f8l
+	T0GFnUa3EHJTvf2ynMJM6JGL2HvgvSrU89bm0QdbcX5ZGZLOCDaJTGmZfLaiJg0iZZep1KEpRkV
+	UHpUeB6XbnBuS+quc8F/NLt/iNVbDxPCoJCQGN1ujEfPSsaC7osrSDoTfDJjGAUzD9ltl75BHSm
+	cOJck+oUaKJF7e8CjUrR16cnd7YS/CdlqNx1R1YdfpCFtylhcSqeJmxRYVdwxsbux5/cS2Z4RcS
+	9pCWGv0gl1N+9KYm0ljf7GW9LAps51lX7+J5f5vdVxyliMUwMgtvjPP3nvAuz5SHxLWwdYve5tu
+	78ddoV1TqabXVHqRoKwVCh9JSrorNW/LJtYEtUnSjgqgNXr7ctkLTMHlWoJv5DMV6JPD82B4pDI
+	dvpAMvOZP415pfVFJzt10iyk4DZEULC1GGiUfuPhmGKWfAEiUom0/lG+B+R3yUjE4oead/1Ibhq
+	xx0YXNAwRHrkn5NrSWmyPzp6OOXJI6yyCrb5T8vsUOsUMyyM7L4SDDdp2YujgYRNoF93wQ1Oxbd
+	iNPqnvuA/Q/qsnAG1a4gDukZ8WhYPPYXUOukHtf4IlsA3wFnz5mUmwTaHleXhBHTMODlRRd+LDj
+	Ww4iI43BHoqXcFLXKnfRVp00W3ZYWJ4qU/o/sP5wJZy58JzjFcBxz3SwHc/8FpwlA5iCCEGlKd0
+	p81HlHMWXGTptiGHFrr957VQyjHDjr1M4=
+X-Received: by 2002:a05:600c:64c8:b0:4a2:18c4:61a5 with SMTP id 5b1f17b1804b1-4b8190f42aemr51295615e9.6.1794081115573;
+        Sat, 07 Nov 2026 11:51:55 -0800 (PST)
+Received: from localhost.localdomain (dynamic-2a02-3100-b149-1401-90c6-65b4-035d-1e3d.310.pool.telefonica.de. [2a02:3100:b149:1401:90c6:65b4:35d:1e3d])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b76cb76697sm61139345e9.0.2026.11.07.11.51.54
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Sat, 07 Nov 2026 11:51:55 -0800 (PST)
+From: Karl Mehltretter <kmehltretter@gmail.com>
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] sparc/iommu: Use raw_cpu_read() for iommu_hash_common in iommu_tbl_range_alloc()
+Date: Sat,  7 Nov 2026 20:51:47 +0100
+Message-Id: <20261107195147.70084-1-kmehltretter@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -77,67 +98,47 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-ThreadId: AjxZksNfZZQV
-Date: Sat, 07 Nov 2026 11:45:59 -0500
-From: "Chuck Lever" <cel@kernel.org>
-To: "Christian Brauner" <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
-Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
- "Jann Horn" <jannh@google.com>, "Josef Bacik" <josef@toxicpanda.com>,
- "Chris Mason" <mason@kernel.org>, "Jeff Layton" <jlayton@kernel.org>,
- NeilBrown <neil@brown.name>, "Eric Dumazet" <edumazet@kernel.org>,
- "Thomas Gleixner" <tglx@kernel.org>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Jonathan Corbet" <corbet@lwn.net>, "Christoph Hellwig" <hch@lst.de>,
- "Greg Kroah-Hartman" <gregkh@suse.de>,
- "Joel Granados" <joel.granados@kernel.org>, "Kees Cook" <kees@kernel.org>,
- "Jan Kara" <jack@suse.cz>, "Jan Kara" <jack@suse.com>,
- linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-s390@vger.kernel.org,
- "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
- linux-um@lists.infradead.org, linux-wireless@vger.kernel.org,
- "Linuxppc Dev" <linuxppc-dev@lists.ozlabs.org>, netdev@vger.kernel.org,
- ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org,
- coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org,
- linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org,
- dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net,
- jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org,
- linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org,
- linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
- samba-technical@lists.samba.org, sparclinux@vger.kernel.org,
- linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org,
- linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
- "Takashi Iwai" <tiwai@suse.de>, linux-input@vger.kernel.org,
- linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
- linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org
-Message-Id: <a1e2d05f-08c6-41ac-a8f9-6985ee00dc97@app.fastmail.com>
-In-Reply-To: <20261104-work-procfs-net-v2-10-221e2437fed1@kernel.org>
-References: <20261104-work-procfs-net-v2-0-221e2437fed1@kernel.org>
- <20261104-work-procfs-net-v2-10-221e2437fed1@kernel.org>
-Subject: Re: [PATCH RESEND v2 10/13] SUNRPC: let procfs own the wait queue of the
- procfs channel files
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+iommu_tbl_range_alloc() reads the per-CPU starting pool cookie with
+__this_cpu_read() before acquiring pool->lock. When called from
+preemptible DMA allocation paths with PREEMPT and DEBUG_PREEMPT enabled,
+check_preemption_disabled() reports a bug.
 
+The per-CPU cookie only distributes allocations across pools, and each
+pool is synchronized by pool->lock. Replace __this_cpu_read() with
+raw_cpu_read().
 
-On Wed, Nov 4, 2026, at 4:13 PM, Christian Brauner wrote:
-> cache_poll() sleeps the poller on queue_wait, which went back to being
-> a static queue so that a poll() on a procfs channel file can't be left
-> on the queue of a cache_detail that its network namespace freed. procfs
-> owns the queue poll() uses now and it outlives the file, so the procfs
-> channel files leave the poll_wait() to procfs and an upcall wakes their
-> pollers through proc_poll_notify(). The channel entry is remembered in
-> the cache_detail for that and forgotten before the entries are removed.
-> The rpc_pipefs files keep sleeping on queue_wait, procfs has nothing to
-> do with them.
->
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
-> ---
+Fixes: ff7d37a50202 ("Break up monolithic iommu table/lock into finer graularity pools and lock")
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+---
+Assisted by an LLM.
 
-Acked-by: Chuck Lever <cel@kernel.org>
+Tested on v7.4-rc1 (d48723711bae) under QEMU sparc64 (sun4u, -smp 2)
+with PREEMPT and DEBUG_PREEMPT. Without this patch, two consecutive
+boots emit three "BUG: using __this_cpu_read() in preemptible
+[00000000] code: swapper/0/1" diagnostics in iommu_tbl_range_alloc().
+With this patch, two consecutive boots complete without the
+__this_cpu_read() preemption diagnostic.
 
+ arch/sparc/kernel/iommu-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/iommu-common.c b/arch/sparc/kernel/iommu-common.c
+index 23ca75f092770..014d4e9283d55 100644
+--- a/arch/sparc/kernel/iommu-common.c
++++ b/arch/sparc/kernel/iommu-common.c
+@@ -101,7 +101,7 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
+ 				unsigned long mask,
+ 				unsigned int align_order)
+ {
+-	unsigned int pool_hash = __this_cpu_read(iommu_hash_common);
++	unsigned int pool_hash = raw_cpu_read(iommu_hash_common);
+ 	unsigned long n, end, start, limit, boundary_size;
+ 	struct iommu_pool *pool;
+ 	int pass = 0;
+base-commit: d48723711bae9b8cdc56719c448ba42fef28cbee
 
 -- 
-Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
+2.39.5 (Apple Git-154)
+
