@@ -1,94 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.52
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=130.133.4.66
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794081117;
-	b=vQ+PPwMV9Hy2vuhkV4uX5UIsMqlJxI7W9e9QZV5akIRBYOL8HfyfYp5KLSfm2BKdrYVj
-	 bb5jj/55f9s6/eMAcrvFgKS+AnrjMYRVCFiRHeosV6bEmmRsDmI8bLzJ0UytOQ3jMFj2Q
-	 AjpMhIGZgS/xYJNRVzczEs+HNNEPUkoS9tIAYW12KV0TfCzc67NyDg3wFgeNEckrRWaKa
-	 w3X97w/I56DRzpylzMVgUyHKoP/Mpu0Lbu96HfDopf/puhMPqgxWo41Md4PycnjwI4jzY
-	 RJ0QEBGTkiKQOYWtJRKbaBer8NaVqPgXLnmsg7TCiJKfaBQlbzLBgD/l73gZn+jDXjg==
+	t=1794086045;
+	b=Bb3tDB4diAZgRqU+ih3u5L/hzxiX28uag+uA92eJmx6jpAmb6W7Hfcqcic9zgfkcWCIV
+	 ndBP9a+vJxbQClKxA3j4rXGaMjfWANGRT2ib1nJHWtbqHb+Vkv9uM5tF18NnAbzFsv/WE
+	 +l+B3DMf9f+NJTTDIZktW6XsUMybJvGSn4PoimTDfo3I864ekLQtWdZgX9gRJAwsZDWL+
+	 clPh/Ih388WYyAdACOXG8CRJi9pYJ3ZlF7Wat5pw/JYLcRzreZ8zKTkyEBJYKysHl1vpV
+	 skV/GIsVZfEap2ZYpEE+oxc+uuftm33nG2R4T61ndIKss7IDeKH36KWuylObjle6dwA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794081117;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=FtLI03n5niPlmdsJ+E4XDcCPmRgq2Jm/sr5s8DtS9AM=;
-	b=QahkZe7e3T6E3HsALFJZ0Bn3NEHlIo1V1Ua4IRHjmfaZxsmENHbI0KL9ozB7pp/5Kmfu
-	 1zBoX4I2jwK53mGjPSecOccKh9e+jcj/0R+qWegLF/hELzdJQtx4CHp6EJAbCAodzJkB8
-	 GN6T2PBsfwVbPKfR++cbU2P5FNyJkA/7ZTgIbUyw7cJ43auLn3TIlEImixNu+Btt9gKpa
-	 hOymKiwaBbSkhzRIuU6pUZSyXC4kgGETB7TaJMOQCf0l/k6F1kOVkQtlCdD7Bo72YH4zz
-	 sRcp9I7SGWNqQOMJ6xxFDq4IMD4VzqQ0YRGIb04sav4DjcxXKDl59t9vT5blsDRUPOg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794086045;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Subject:
+	 From:To:Cc:Date:In-Reply-To:References:Content-Type:
+	 Content-Transfer-Encoding:User-Agent:MIME-Version:X-Original-Sender:
+	 X-Originating-IP:X-ZEDAT-Hint;
+	bh=aqbNZDFl3W7nMuL0eYped16qZaf0LUkCZcoL0Ki7p6U=;
+	b=bYc3LVMUfNQI0JlFLkcaNEMKVISOYuIWGdsIysXW52ENwsXj+WEbKA2rPDHwG61Uyq6f
+	 l5PxjPK9bmnR1pGgHtvtekhN63s/nlRk3OS0o23wPd5Q9TggMQ91J9AGfYZdEqR0xcOe4
+	 v7y8nygUyl+D2Zw5klZjSIdmpEywfxQ+9k5wGkJeouePlDnHXTZX76eCr1rCrMPFNSY9n
+	 T/umOPlnyOwq1knInLQGAtQqO7rQf1NPHGNyKT6zbHZ8waJE4++JcWoh0HIJaSFUlprBd
+	 m/heBCuiFOFCEOR+vFjZJHXumP0sEH7pnvBX9AfDyFzrlac2NeocVyIv9Q73Xr7iVkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=kDbbq3bH;
-	arc=none smtp.remote-ip=209.85.221.52
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=physik.fu-berlin.de;
+	spf=pass smtp.mailfrom=zedat.fu-berlin.de;
+	dkim=pass header.d=fu-berlin.de header.i=@fu-berlin.de header.a=rsa-sha256 header.s=fub01 header.b=iG8QVk3F;
+	arc=none smtp.remote-ip=130.133.4.66
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BDFC606A32D
-	for <sparclinux@vger.kernel.org>; Sat,  7 Nov 2026 19:51:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4BDFC606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7596606A326;
+	Sat,  7 Nov 2026 21:14:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A7596606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=kDbbq3bH
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-48e1d0e5dafso420035f8f.1
-        for <sparclinux@vger.kernel.org>; Sat, 07 Nov 2026 11:51:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794081116; x=1794685916; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=FtLI03n5niPlmdsJ+E4XDcCPmRgq2Jm/sr5s8DtS9AM=;
-        b=kDbbq3bHTK2PIoZKpI+H9DdZkZGoZD/bpFLNuchanpHpnrfh56yqDuri2slv/Nl2HC
-         kGQglgIYAivjhexIYTy6+FNtrHbILM8vX7JB1ZjS+4tqvOSEWF/5mdwRqav9L3jp/0S6
-         n8RSgv5KD2HHMSxGKCP81clxmLVFKMYjQlFVnHyJ8gAh3Pvc3AKj/ND/rUqJYaQKqDbc
-         Pm27tXU8kjnlZhdZnwJuXuaFfJlBG2YpS7ppkqIIo0PiqU8D75Bqs1qFtaCz6FRonLDM
-         554RsdpzfWEzefLPjIVPyg88Idmww/+G7pyJ1t0Won2xabfXu3IE3a/HP/Nzkf6sGDxh
-         hKDw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794081116; x=1794685916;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=FtLI03n5niPlmdsJ+E4XDcCPmRgq2Jm/sr5s8DtS9AM=;
-        b=11krT+855P7QwHVJWQqhW/RG4eatmC97KhCE7hB8DXMJh/vRddZ/YijeJcmD2p2ze4
-         i7rAEweIK4Xo68BgM1FX1OoggBlC0V/QqIdiyU9MZpEdD6mjlb5weWcUcxE/TwYcn9On
-         2G3NM90OImKSZIF69nlsmOWcZ/r6hvbjG/96BRTbx/0BqQllfcc+i68XjHMLQZraC/HJ
-         ltu/ccAFtaHXW4EZt3upULqIM7CiG6+lapxiKImsNKGwt7/H22u4tkodfM3HfLueOyxA
-         +WqS9hB6YcdIMnWXstvm/+X/5da+okJgD33F3eqW5vwL+wTBZmDYIh4it9zl22eyhqFq
-         So5w==
-X-Forwarded-Encrypted: i=1; AKwUvBwbYHJC0+K6BesakGaeyPonNNqF/pGqVunBVFBvtqtt7Vh8ROkrT+IO5IxWM4vmqvJC/9/i16+SNNLG@vger.kernel.org
-X-Gm-Message-State: APuU4Z9HQhggKfAQhXLp3Kl3PV2y6vXNIx0oR5zo7FHsdqfW1QSqLdLt
-	VBncxqL4kWAJXZW/4WlUCxfN87OZbGkNpNXhrlrTrP64Hot3E2Tgs2p4
-X-Gm-Gg: AYBFou1mCA54IFnQ2QpbNGekC5bhshsJ4azEUulUylzD7L7kOIX0i4btD3RfCj31f8l
-	T0GFnUa3EHJTvf2ynMJM6JGL2HvgvSrU89bm0QdbcX5ZGZLOCDaJTGmZfLaiJg0iZZep1KEpRkV
-	UHpUeB6XbnBuS+quc8F/NLt/iNVbDxPCoJCQGN1ujEfPSsaC7osrSDoTfDJjGAUzD9ltl75BHSm
-	cOJck+oUaKJF7e8CjUrR16cnd7YS/CdlqNx1R1YdfpCFtylhcSqeJmxRYVdwxsbux5/cS2Z4RcS
-	9pCWGv0gl1N+9KYm0ljf7GW9LAps51lX7+J5f5vdVxyliMUwMgtvjPP3nvAuz5SHxLWwdYve5tu
-	78ddoV1TqabXVHqRoKwVCh9JSrorNW/LJtYEtUnSjgqgNXr7ctkLTMHlWoJv5DMV6JPD82B4pDI
-	dvpAMvOZP415pfVFJzt10iyk4DZEULC1GGiUfuPhmGKWfAEiUom0/lG+B+R3yUjE4oead/1Ibhq
-	xx0YXNAwRHrkn5NrSWmyPzp6OOXJI6yyCrb5T8vsUOsUMyyM7L4SDDdp2YujgYRNoF93wQ1Oxbd
-	iNPqnvuA/Q/qsnAG1a4gDukZ8WhYPPYXUOukHtf4IlsA3wFnz5mUmwTaHleXhBHTMODlRRd+LDj
-	Ww4iI43BHoqXcFLXKnfRVp00W3ZYWJ4qU/o/sP5wJZy58JzjFcBxz3SwHc/8FpwlA5iCCEGlKd0
-	p81HlHMWXGTptiGHFrr957VQyjHDjr1M4=
-X-Received: by 2002:a05:600c:64c8:b0:4a2:18c4:61a5 with SMTP id 5b1f17b1804b1-4b8190f42aemr51295615e9.6.1794081115573;
-        Sat, 07 Nov 2026 11:51:55 -0800 (PST)
-Received: from localhost.localdomain (dynamic-2a02-3100-b149-1401-90c6-65b4-035d-1e3d.310.pool.telefonica.de. [2a02:3100:b149:1401:90c6:65b4:35d:1e3d])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b76cb76697sm61139345e9.0.2026.11.07.11.51.54
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sat, 07 Nov 2026 11:51:55 -0800 (PST)
-From: Karl Mehltretter <kmehltretter@gmail.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: Karl Mehltretter <kmehltretter@gmail.com>,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc/iommu: Use raw_cpu_read() for iommu_hash_common in iommu_tbl_range_alloc()
-Date: Sat,  7 Nov 2026 20:51:47 +0100
-Message-Id: <20261107195147.70084-1-kmehltretter@gmail.com>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+	dkim=pass (2048-bit key, unprotected) header.d=fu-berlin.de header.i=@fu-berlin.de header.a=rsa-sha256 header.s=fub01 header.b=iG8QVk3F
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=aqbNZDFl3W7nMuL0eYped16qZaf0LUkCZcoL0Ki7p6U=; t=1794086043;
+	x=1794690843; b=iG8QVk3FgThLaDy1/JWn38nzMtk7uhTkxIm1Cj0Ht2YPfYnyFSod0+eoD5TEb
+	Ex8r/UVawq/O/jk15WcaCwbh6ZcWo9H/hIjiuwRHkduaf4WrCIvSJLmASjHUMz/zYjdVc+Str7eEl
+	eWAyQKZTCm7MnK8LN4hla8joZzbXXxQIvKkUqUsKo708I3khtFw//oUk3iRzhkEDm+sgETNgeUwYX
+	eisdYLKjc/DKRXhfLaqBBZwmEuJ069rv42VX5bGSg8QXfzaCRaUmLrRquFMTHpWcm4n4ms8KRGfbR
+	hzENrG/q9nJt42WZt5PTa3Z5kFfGwdFkm3wCOwLjQ5KIx1dPhQ==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.100)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1xPnjU-00000003pWH-25CG; Sat, 07 Nov 2026 22:13:52 +0100
+Received: from p5b13a90a.dip0.t-ipconnect.de ([91.19.169.10] helo=suse-laptop.fritz.box)
+          by inpost2.zedat.fu-berlin.de (Exim 4.100)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1xPnjU-000000010QH-0aj4; Sat, 07 Nov 2026 22:13:52 +0100
+Message-ID: <155ec5c6c5f6d4287a420191cb3927eba1d97526.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH] sparc/iommu: Use raw_cpu_read() for iommu_hash_common
+ in iommu_tbl_range_alloc()
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Karl Mehltretter <kmehltretter@gmail.com>, "David S. Miller"
+	 <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Sat, 07 Nov 2026 22:13:51 +0100
+In-Reply-To: <20261107195147.70084-1-kmehltretter@gmail.com>
+References: <20261107195147.70084-1-kmehltretter@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.62.1 
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -98,47 +79,35 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-iommu_tbl_range_alloc() reads the per-CPU starting pool cookie with
-__this_cpu_read() before acquiring pool->lock. When called from
-preemptible DMA allocation paths with PREEMPT and DEBUG_PREEMPT enabled,
-check_preemption_disabled() reports a bug.
+Hi Karl,
 
-The per-CPU cookie only distributes allocations across pools, and each
-pool is synchronized by pool->lock. Replace __this_cpu_read() with
-raw_cpu_read().
+On Sat, 2026-11-07 at 20:51 +0100, Karl Mehltretter wrote:
+> Fixes: ff7d37a50202 ("Break up monolithic iommu table/lock into finer gra=
+ularity pools and lock")
+> Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+> ---
+> Assisted by an LLM.
+>=20
+> Tested on v7.4-rc1 (d48723711bae) under QEMU sparc64 (sun4u, -smp 2)
+> with PREEMPT and DEBUG_PREEMPT. Without this patch, two consecutive
+> boots emit three "BUG: using __this_cpu_read() in preemptible
+> [00000000] code: swapper/0/1" diagnostics in iommu_tbl_range_alloc().
+> With this patch, two consecutive boots complete without the
+> __this_cpu_read() preemption diagnostic.
 
-Fixes: ff7d37a50202 ("Break up monolithic iommu table/lock into finer graularity pools and lock")
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
----
-Assisted by an LLM.
+According to your Fixes tag, this bug was introduced in 2015. However,
+I have to admit I have never seen this message, neither on sun4u nor
+on sun4v machines.
 
-Tested on v7.4-rc1 (d48723711bae) under QEMU sparc64 (sun4u, -smp 2)
-with PREEMPT and DEBUG_PREEMPT. Without this patch, two consecutive
-boots emit three "BUG: using __this_cpu_read() in preemptible
-[00000000] code: swapper/0/1" diagnostics in iommu_tbl_range_alloc().
-With this patch, two consecutive boots complete without the
-__this_cpu_read() preemption diagnostic.
+Is there a reliable way to reproduce this bug?
 
- arch/sparc/kernel/iommu-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Adrian
 
-diff --git a/arch/sparc/kernel/iommu-common.c b/arch/sparc/kernel/iommu-common.c
-index 23ca75f092770..014d4e9283d55 100644
---- a/arch/sparc/kernel/iommu-common.c
-+++ b/arch/sparc/kernel/iommu-common.c
-@@ -101,7 +101,7 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
- 				unsigned long mask,
- 				unsigned int align_order)
- {
--	unsigned int pool_hash = __this_cpu_read(iommu_hash_common);
-+	unsigned int pool_hash = raw_cpu_read(iommu_hash_common);
- 	unsigned long n, end, start, limit, boundary_size;
- 	struct iommu_pool *pool;
- 	int pass = 0;
-base-commit: d48723711bae9b8cdc56719c448ba42fef28cbee
-
--- 
-2.39.5 (Apple Git-154)
-
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
