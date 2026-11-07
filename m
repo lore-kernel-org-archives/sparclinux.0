@@ -1,83 +1,73 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794067831;
-	b=bNxXRcSiB2KxYU6KuGyhC9en7XoDmWzzcR388479PW0tmUdI+RXMzPpDqNWFuhT2sKxn
-	 dLWq5pmZUZ7k+aOtnIgKFa8BY0Ssf8PImSyremihV8AQ4F/jw71e0X3ttZCKWdaRyB0e7
-	 24xda3EoCCMQbDkJ9Iw7drLUImHu1HFDSL58DQq+XezsZ8JM3zDgmR3k8o2biH6kmfLFl
-	 YaUhTWbRCXr+r98GwPddMaTCs+1S1C70pTsY2s4chuqac9GVuCAhtm+txweFz8saksCgs
-	 6ODSdgMtA2tO481B0bGMzf23loTkjhxfwdXLTRUHNGBgyT1eX9bzxyjL6CWG9rpwGVA==
+	t=1794069812;
+	b=yVLoyleBxsuugqtJmUt/7WtPiN9gxIoqM/bHlp742/o4MNm2d/ItJ4ah2UJSHhzBGwCf
+	 RTkgwPw4QWlDt2bHvgPQZUBiHgiEdcCR+UTqb1OXaRS8SQ/bglKrR/h2AXjJH3AaMNvBz
+	 sxIIHgRqrhVDuwbC/NEL4svAW1PexNyGGzx5ryrKKaJ2x42jrpDtEvCMftKaTOROMoq9I
+	 CImmGFvQBIyHIr0VmuKmFVdVAWVouFwiturAHAnAYeO9peHx9o5uCrQfranOtMKrA0vjX
+	 DxaII+/xpGReiRIsyExzW5oWYu7PsLNjdHBGlxpkAvg6u7rohM5H20457KFqGjYgPTA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794067831;
-	h=Received:DKIM-Signature:Date:From:To:CC:Subject:User-Agent:
-	 In-Reply-To:References:Message-ID:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=yrl1fDgvB8SejpyA+O0u1vRjlm41/COeTHtKBCR1yZ8=;
-	b=d47J0q+aIryhgPNg1v3RSp7XlziOAmnEFxpZGzixZr2xD77Okt9aKdWK7/U2EAw6Sxnd
-	 gnVNkM6Ip3sqMV0NVxuRMglW5I3reCGX+RaBtzSHox0h37bC4Szlf+119hQPDqt7grncw
-	 x4edcJjoLTU85MLqkeORDmWw3CSUjLgw1oD6p0hmhwwWSZLcoAvWsnITKhmfjmCkbrNmH
-	 VkNzq88oXosfg6unlxHTOYHHQs4VoPyc0Vq0UWvkdyeEhtPDnDVyZEo/O9UUjjgV+zU28
-	 2i7i0mUGA4YrXpwMUoPpM3WC8+qaDgMzwrY/U6APzyriQz5YvrhLoLlXJsx2N/4dUsQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794069812;
+	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
+	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
+	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
+	 References:Subject:Content-Type:Content-Transfer-Encoding;
+	bh=vJlfnNqej/LkG6MaOOq3+jKdNMX9ZNsvcUBYJfUwMpw=;
+	b=EHeacWCCyNvRz/fCnvdg8jwDWj+NTdHx3mfbq8V9vly8xeP6udgZxAvaLz9iqHQOx7fm
+	 kpwiGHsJZxwufnbwfKSg5CxFVp5XG0UT/WqAbkaBLiOmwr67Ka+k1ulxDbcpWphOoKcFG
+	 VfDjVeDtLuFvg/QCg7C7eej/5IMGhmli5CQ0qupq0DE07MLowzWLalHDJICXPRUhFYCdI
+	 G1O7FztejISR7Rvzc2N9VT/Z2RCpSerRxShclTVQkp0OG5L9X2t63DVRinL4hTTMdmH0R
+	 AQPbpJUvG9ha3SLWCkpT1fDi+7CBVjLD66Kl666U9fH5TetI9l01WYJ2bgA+mwlH1hQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DudqRbSQ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=URn14ZUS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98E27606A32C;
-	Sat,  7 Nov 2026 16:10:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D0FD606A32D;
+	Sat,  7 Nov 2026 16:43:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DudqRbSQ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1758C1F0089F;
-	Sat,  7 Nov 2026 16:10:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=URn14ZUS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D16CD1F0089F;
+	Sat,  7 Nov 2026 16:43:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794067830;
-	bh=yrl1fDgvB8SejpyA+O0u1vRjlm41/COeTHtKBCR1yZ8=;
-	h=Date:From:To:CC:Subject:In-Reply-To:References;
-	b=DudqRbSQXCpr6NhdcgkB28/OJ09fv/xb+ZGVAY2ZZcm0NtXYxKjH24XfLPv1YVH+1
-	 N2Smc+eQQaJmUtmHSjIuIOHPbXtdHkwnaUWqwn18l1Zgme7MhVjd/tmwPXx2sHiZmJ
-	 bVG7HcpDVP0TwBfdMqAH6zxIyHwUkaCeHOVhR2aYppt91bZLwCTiFYtodZA1aRzQhT
-	 JFzXQc4CJvaSMHUeBSzyyst4sJaPobtuTL08pUib1PO2/6JKi1TR0Oc7vVJSOMiTRg
-	 di9pOtOgBcjQKNqN/zgV0r2ojSo7IUXfYme+kVAZvSpJolvZJtmmOXjKLjiXPaiu1m
-	 qPutBKIcKy2tg==
-Date: Sat, 07 Nov 2026 08:10:28 -0800
-From: Kees Cook <kees@kernel.org>
-To: Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
-CC: Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>,
- Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>,
- Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
- Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
- Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>,
- Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>,
- Joel Granados <joel.granados@kernel.org>, Jan Kara <jack@suse.cz>,
- Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org,
- linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org,
- linux-scsi@vger.kernel.org, linux-um@lists.infradead.org,
- linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- netdev@vger.kernel.org, ntfs3@lists.linux.dev,
- platform-driver-x86@vger.kernel.org, coreteam@netfilter.org,
- kexec@lists.infradead.org, linux-pci@vger.kernel.org,
- linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org,
- dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net,
- jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org,
- linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org,
- linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
- samba-technical@lists.samba.org, sparclinux@vger.kernel.org,
- linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org,
- linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
- Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org,
- linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
- linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org,
- "Christian Brauner (Amutable)" <brauner@kernel.org>,
- Chuck Lever <cel@kernel.org>
-Subject: =?US-ASCII?Q?Re=3A_=5BPATCH_RESEND_v2_07/23=5D_proc=3A_let_pr?=
- =?US-ASCII?Q?ocfs_own_the_seq=5Ffile_of_seq=5Ffile_entries?=
-User-Agent: K-9 Mail for Android
-In-Reply-To: <20261104-work-procfs-core-v2-7-76ace653a773@kernel.org>
-References: <20261104-work-procfs-core-v2-0-76ace653a773@kernel.org> <20261104-work-procfs-core-v2-7-76ace653a773@kernel.org>
-Message-ID: <8A21EE2A-F392-40B7-9152-CBC440FDDA70@kernel.org>
+	s=k20260515; t=1794069812;
+	bh=vJlfnNqej/LkG6MaOOq3+jKdNMX9ZNsvcUBYJfUwMpw=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject;
+	b=URn14ZUSHujYsiOHTH1FknpWKhq2JGT/Wcg4NPoKfIXDBsGTX0hpoXCNaDFBdVr3Y
+	 LrUXN/UylwfLTnxmPH2u0snZEEwhvHPpzVvw70oe/+iRCtt8VEEuDNIjAhc5Iv8E+U
+	 iCyEm8dltFsbB/vgqDpFMQ4NbdhjbXWQPVqTvxXaLy4s7TA325vQOoMxR3m+Q78ObZ
+	 5oSZVxqcZXokGSRT+GyvJ5Q8fg/SK/s07P4nFNd5oTjff4Df4j6yR+ezrNUDVYNKkB
+	 YiE5Z4blZBKkQ0H22n8eMlwz2n5MpTB1eCEDffxGe0y5muae+Fm8reshujKqz2LI7N
+	 62+aV9uxm+esg==
+Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
+	by mailfauth.phl.internal (Postfix) with ESMTP id 0FF15F40066;
+	Sat,  7 Nov 2026 11:43:31 -0500 (EST)
+Received: from phl-imap-15 ([10.202.2.104])
+  by phl-compute-10.internal (MEProxy); Sat, 07 Nov 2026 11:43:31 -0500
+X-ME-Sender: <xms:MlXvaricqmdkz4nJjHy6_1-OcNbNjJfOfMZFsMkBLpVfN9O9SJfEeg>
+    <xme:MlXvai3eoFGB8GwhLZn8J4WsYKH4hOu6G3Q7gr8e4fXnWqVmSvgTFa-GpgxyHkOEr
+    L-OQp2xf0vhZpcrfwkQnMqf2SkcZAd4Ack8XK5PBI0cwmyR1HQ7Soue>
+X-ME-Proxy-Cause: dmFkZTFLL677GNytOzk0A+kd9ul4MOhn1Bd8CLtUWXIpAgb7PtsQ0aq95lY8R0bYfU7Q0x
+    n5d0WBpD9FT2nvfoJmzNAgZYYIh2v8uIBqD+3kym1iJwW3NcCGcPRmVKGoEq8HTsd/5dJU
+    2J48TZn04h0Zva9Se+6i0Uayg+tLAEGtZ9JsZJreI+85t81p0qV4OmLXyYVoibKnHGAmU+
+    V84Ank9lExn6nPEXZTe/ek0+CRfDCNpZnvqcUrPRgnLGP7j2ClEUeekRiCJrPe1AdpWK4n
+    iQP0pojNqeWGt6mvrMDgor3WiGAUwUn/0Wc1GIBJUaZVbab5Ly5C4zud+ZZmCdcg78sylA
+    MkAoK/Ct+9LkIkCQHTqEcC7AA8Dm+XyCBSNHm91TdHG2obtXEwkFkvprz41Oubks9Sfcuw
+    r8ZFF7zKrowRVymCMTJ3nHI6+8Zo71jCVuXtvZZ6w9cN8PmSV3Vn1s7VPQ5TgGXqHVraqe
+    u/ZoGJ6QHgPjV17gJtXdfiHt2sN7ZYj6x6HdPkZbk8RpmhwlywyFibfUo2gMexHcNVBZpG
+    rhksTaN91XMy6HTgmkQAu6nrk3lfjM6xIWzBlVuMR4FN3s8+OGMqI6oxye/ZeVnCAvWV7c
+    OcJYn3qIDB/bjeL3B7VhC0AAaQ19NVf7PtpGN7ZfAEzvhDoWuh++9ymg0Qkw
+X-ME-Proxy: <xmx:M1XvanFoWE96jO_B3AbQEY3Fgm7Vdpeg3rVFs0aZ7ZzrVjTy-FVuDA>
+    <xmx:M1XvasgOGD898cTU-y0NCKAJa0gzkkq4FlzZwNZENFphZjNvC_BaFw>
+    <xmx:M1Xvaku9YBTnGUiBAN2j62vBcN4ju9zahN6VGS9E7w_Ad8r8DuHRTg>
+    <xmx:M1XvavuA3oRcXqag5vxh76qUsy08UM9e3UUXDGjXTsGUK7xhzSvxDQ>
+    <xmx:M1XvapGwUANTzGTOxc9uEv1YKFK55EtxiSqeAiq8o-ngr74jUF77oHfW>
+Feedback-ID: ifa6e4810:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id DFD31782738; Sat,  7 Nov 2026 11:43:30 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -87,33 +77,66 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+X-ThreadId: AE4uiykVHNXw
+Date: Sat, 07 Nov 2026 11:43:10 -0500
+From: "Chuck Lever" <cel@kernel.org>
+To: "Christian Brauner" <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
+Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
+ "Jann Horn" <jannh@google.com>, "Josef Bacik" <josef@toxicpanda.com>,
+ "Chris Mason" <mason@kernel.org>, "Jeff Layton" <jlayton@kernel.org>,
+ NeilBrown <neil@brown.name>, "Eric Dumazet" <edumazet@kernel.org>,
+ "Thomas Gleixner" <tglx@kernel.org>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Jonathan Corbet" <corbet@lwn.net>, "Christoph Hellwig" <hch@lst.de>,
+ "Greg Kroah-Hartman" <gregkh@suse.de>,
+ "Joel Granados" <joel.granados@kernel.org>, "Kees Cook" <kees@kernel.org>,
+ "Jan Kara" <jack@suse.cz>, "Jan Kara" <jack@suse.com>,
+ linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-s390@vger.kernel.org,
+ "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+ linux-um@lists.infradead.org, linux-wireless@vger.kernel.org,
+ "Linuxppc Dev" <linuxppc-dev@lists.ozlabs.org>, netdev@vger.kernel.org,
+ ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org,
+ coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org,
+ linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net,
+ jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org,
+ linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
+ samba-technical@lists.samba.org, sparclinux@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org,
+ linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
+ "Takashi Iwai" <tiwai@suse.de>, linux-input@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
+ linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org
+Message-Id: <39d3364c-d4d1-4919-86c0-695f75946c95@app.fastmail.com>
+In-Reply-To: <20261104-work-procfs-net-v2-7-221e2437fed1@kernel.org>
+References: <20261104-work-procfs-net-v2-0-221e2437fed1@kernel.org>
+ <20261104-work-procfs-net-v2-7-221e2437fed1@kernel.org>
+Subject: Re: [PATCH RESEND v2 07/13] SUNRPC: let procfs copy in writes
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
 
 
-On November 4, 2026 11:30:58 AM PST, Christian Brauner <brauner@kernel=2Eo=
-rg> wrote:
-> [=2E=2E=2E]
->+static int pde_init_seq_direct(struct proc_dir_entry *pde)
->+{
->+	struct seq_operations *ops;
->+
->+	if (!pde_is_seq_file(pde))
->+		return 0;
->+	ops =3D kmalloc(sizeof(*ops), GFP_KERNEL);
+On Wed, Nov 4, 2026, at 2:59 PM, Christian Brauner wrote:
+> Implement ->proc_write_buf() for the procfs channel, flush and
+> use-gss-proxy files so procfs copies in what is written before it pins
+> the entry. The channel file parses the downcall from that copy and the
+> flush files share the parsing with rpc_pipefs in do_write_flush(). The
+> rpc_pipefs files keep copying in themselves.
+>
+> CACHE_DOWNCALL_MAX and CACHE_FLUSH_MAX name the limits both sides
+> enforce, procfs through ->proc_write_size. The procfs files are removed
+> when the network namespace goes away and that no longer waits for a
+> writer that faults on its buffer.
+>
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-Please use the new style typed allocation calls for objects:
+Acked-by: Chuck Lever <cel@kernel.org>
 
-ops =3D kmalloc_obj(*ops);
 
-(This happened to jump out at me, but please check the other patches for t=
-his pattern=2E)
-
-> 		dp->open =3D kzalloc(sizeof(*dp->open), GFP_KERNEL);
-
-Same, etc=2E
-
---=20
-Kees Cook
+-- 
+Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
