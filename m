@@ -1,96 +1,125 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.45
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.49
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794101756;
-	b=oC6C4la3nVNcFlQfUjsmgD+hVWXb94LLB+gOb/2IRFxoIA2QTen/o97iR6uKgUBqhSfc
-	 h4d5+BJkf0vtCwlDF1xGrKPaxRKbfAy9MZn92gZxqdFsVOyxHXZa4MWZJQJ864QA1sAZ7
-	 eXY1Dsh4zrKe8CGFodvuckbi3LW4dk2FZQqmJZPbthsfMxazk3qtD5+iDodBy4NUQ3In+
-	 BLFMGOXmiHF/LpE7mFkgMNTYOO5vN3/kHgmCdt1pjoJg8+eUWPC6h93LcjAMmpYNsRJBh
-	 XzQ6jVoRhfm7xdUBqFCFhKA9xXrUMmUlQYt1C7oArIP3804a3oKssMvxgFxUyzlAfaw==
+	t=1794164398;
+	b=5pGg2VuYNQBCoUFVVNSJ8178zkevSUjy1RYGa4Yrwgwsx+wNtgaJJP0WTMDXD6PNq9mI
+	 09Jzj+tsJYU9GIFT8hHF+VgFjxUyO5KsIDZK9OrxKk5ZLBNanPw+6ZY6sWKQN98g8tfsb
+	 X0OsOa0G/mSxLU3aw0TxnLr5VhUScHXioQ7aapumyCBAKSXLclIzeCsarxAsa7VgRd8+L
+	 vruv6FKjC5j+/x46AzAovIpMuTLszjjom0meKqG7BnbdLq2PH+Pd9hwS/ZkxV8J+L4nOv
+	 F8KT9P/coB2G8CY8Qhd4I+ro+3xjKxza9GYho5mLSH2eDQ4qWyoiUTCf+15vnq3XPrA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794101756;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794164398;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=gp1dlJYmM8w8ntmi7bQBqlanLKPIa5O7ZBIuoOP2eTo=;
-	b=dRzzBfpiSDtIcXxBRLpJqFW6dsa1OBCpfGirifYQUIoNUsnRy1WDES3Z4n8yXusR+nAa
-	 LFGLnwZOWXP8d3HVbWf0Zj188Ntx2FiR5NHSRFkZOjXinHQGzcWZrgFZiSRek5RTA7eJe
-	 G5naSF198ryU/SyKcKhMD4gHnWX87nfTE1A7888RaBrxKXmd6Bf0l8nIIcBL8Pwa17ksF
-	 sipqSpQ6bpRRR5fqqdIHlx1D01yg6BdNad0H9cbFBd1xSz2d2qdK2vaUuZ4vwZ1SPKeGa
-	 4a3N8teIZdE3EsyhmJiyQLK7qdszzm5z6n6Mk1Qob4K3F7nzhBh4sd+9NkgnmJCtH5Q==
+	 Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:X-Mailer:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=JLhUwzup1lwefYy8NOOFjthYnrByVfTsqIe79kkV+Lk=;
+	b=Xyh0oPywlwyOVJb7MIbdSLLujDhqMue5fFnrSOcGsbGyGLDfI1wICLv3K0VEGZDVeQx1
+	 uyNdzkF/g5/bXX7UNyL16JnUZUVj5BPb27imFQzCx5VBeSf5A8uDUBMr/pXDrFdtbm4UC
+	 xNy6/aIvHHdXLqgj54ZQrdCZ0+gePZC3aS3o0d7iWsg61g/ddr6HL/JwwK49p8o0enpyI
+	 aEF0KC+Eo1hYLwvelM/3IED1F1wXnm4H2vFq5cesFI+2XkHtlMadb+wQOGuCixaZCINoF
+	 fMsS30PtIge6+ceZZRhTT1JeWTK3H4GtlOxSAg4PKgd0v/o7aw2EInVtjwJkCFhkWvQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LPKx7euy;
-	arc=none smtp.remote-ip=209.85.128.45
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=XrEUEgHU;
+	arc=none smtp.remote-ip=209.85.128.49
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1443C606A326
-	for <sparclinux@vger.kernel.org>; Sun,  8 Nov 2026 01:35:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1443C606A326
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4416F606D807
+	for <sparclinux@vger.kernel.org>; Sun,  8 Nov 2026 18:59:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4416F606D807
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LPKx7euy
-Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4a2167bd087so874655e9.3
-        for <sparclinux@vger.kernel.org>; Sat, 07 Nov 2026 17:35:55 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=XrEUEgHU
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4a59100fa83so1416375e9.0
+        for <sparclinux@vger.kernel.org>; Sun, 08 Nov 2026 10:59:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794101754; x=1794706554; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+        d=gmail.com; s=20260707; t=1794164397; x=1794769197; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=gp1dlJYmM8w8ntmi7bQBqlanLKPIa5O7ZBIuoOP2eTo=;
-        b=LPKx7euykCc6fTmtO5pRIlQXGah7shoNbqdlnxNCJxyMKwTVSHYyg8Sf1ZEjPHW8vw
-         PVVUK7e96QGKdUmMifjk+4oTHEcAnnj1OvCxM1wyHGfXBLNKZFOlpFWNxQbDPQoQYOqk
-         MSWTlnNYM325/0NwLgUjhJoPaAzBUeVczhO0Puz5mq38WEvUgvy1Nwv12ditwAuDEgtQ
-         JxewrpdwQOeebFoWjKSyn6DtVp2jWlC4YmrcgZG23vdKL7bDTPPS5xWyS0JNFRGgcrwm
-         9g5RvnYCofGfkgSVnF5GVnJ6wCQSNDmyRRxYCQ0essSOMX5oRn3Pte9+lT3kRKE0BLMA
-         hJ8w==
+        bh=JLhUwzup1lwefYy8NOOFjthYnrByVfTsqIe79kkV+Lk=;
+        b=XrEUEgHUwv+lt2Z0T4RzlOQuYT1yMbnY/MJrtF5HY2pc8m0ujKE+1IGJbqc3A1SsPJ
+         Pz+po0Wh7ECcrOl1hyNdZBme+OsO/r11IeCA1lW9KMbstFhlOkC0Hm7Ef+TTavGsfrDk
+         7T2AE8nlcorDhYFpLo0KTCt4xOv09AacMRilfH2h4PS2mZ0iBReAF8XAcgtI3iT+qlRY
+         EJQPYUIUlDRCCjadf1+24R8V0flZyhCZpLCroCVsidoQ510350k4POOaAcSXgGRrBTWF
+         rbpUnz5O6K0TOR8uz/zwLHiObwDAqnCJFWP0+ssCNYCBYnXJwQ2yMfUqdKkv6ro/lp/q
+         XMaA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794101754; x=1794706554;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1794164397; x=1794769197;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=gp1dlJYmM8w8ntmi7bQBqlanLKPIa5O7ZBIuoOP2eTo=;
-        b=D8+munT3IYt8hoJOYk7cKzZi84OyvDimCFK+zDJTWzUuZ70EjsflU/Gy6TKugfBBGc
-         AHQ9sz7m5Qjzr1DVQbaHt1CM5JeTChOLcz6/OeRTWCUgmBlN8sN8lY2hNcZAj9Oz8Z9v
-         K7JifmKxdl6/liWtRu8Diy9vPjQ3EW5tfZwqnmbMKcCnsooDr4pmw3qs/v/UnMfge19M
-         XM+SnnF/RPtTFyV+xr1xyF4DNp5t2HsKNz3167nIngoiwqf8iXQfY/RsWpjG+ukugg0l
-         XPniUUuXl3BbSA5ye4lf1lCzD4Lx+IZgLHewkfuQYFeGLaXtsaRrwBvGwiIWOQIeM1zx
-         tTWA==
-X-Forwarded-Encrypted: i=1; AKwUvByjmOmeMGyz4zowjVUUzqV9SbZEeUy1lZg675HWyo1LE0DV4piQIkKo/kYwVoJvr4/c72ZjAsg9DVZY@vger.kernel.org
-X-Gm-Message-State: APuU4Z9/MdyIt4CQTXQ18PT8cR6xOgvDmubeR98cZHYe7efEeqwvxS+4
-	woZZndVkAA1sHFO2hxKzPOrotLcis+nMYk+VcYkUGLfF0H0eoOJnKEd1
-X-Gm-Gg: AYBFou2pUp02OyiHjVkr3jp/wr4T742gh337FlZaPmf5Ag5JP/UnaHvG93hI9DC3zbR
-	RjxTUXCkn7n0/sHHnZ0SmyK/f0Vt1/hMDf3uBF9P0WE7ezUPkR917tdcTboMt66wyIgbGZsK4wq
-	PP62b53oL8eaO5S7zuE6gPyzkF94p5g1EspG2LTIsDGh8vNwGWlye4pyr5MByMENwroS/XPKG1E
-	EAngLE8V8z3XKJD88CEDoIoK/hu8usGGKiJKB5wYnEmIOdSEJ/aB3a8huDWR8+yIuxu36uiZHO1
-	cnD6+sDTbeMd6NdILH5S+hwOslBAcprcVXLRi++r0RfeEvXevqX9WIV4HX0GVgXC82sLpV6nCr/
-	3ZmaDNiPmpkKU0XfP/+zDey/cKFfzLvk52VankpNNcGAdMCQVuKKBYT8wrdbnVDMFodx9XPeDls
-	MbiUxFQv/OheBfQ3uj8GPoyM3nOBGD78gdam0Lgw+JiZMTYxK7mA5JEBEicq8RMHyYFl3R9SqAZ
-	HQ7jj1YJVmdfE14ZFRs5eBzddSbKe8GTY9jNSfVu7surCIIxTgo/fX8s67WP7tekwhTvXyHLVdm
-	xxTerMjJY4SrhmO+PbvUdNSwf2H86Jknc2AZtz9/NnGKiaEa4Yl7Zu+R6d+QJua4I2qeyj5H2qR
-	JK0Dxwnl3bPr7UaO3GYDdYyQhGZ/v2oHAlcQCPcH2F3T6Qa+6iKprCRCcfmTZ9KA8gHrT7jhCqd
-	rABXofQsZBhRhKjj+2Bcrb6ZzrztyzCrrS7u7Dn6Mp2VkxaBVIqLk=
-X-Received: by 2002:a05:600c:5397:b0:4a2:267:25b3 with SMTP id 5b1f17b1804b1-4b963c8715fmr5551595e9.35.1794101754249;
-        Sat, 07 Nov 2026 17:35:54 -0800 (PST)
-Received: from MacBook-Pro-von-Karl.localdomain (dynamic-2a02-3100-b149-1401-90c6-65b4-035d-1e3d.310.pool.telefonica.de. [2a02:3100:b149:1401:90c6:65b4:35d:1e3d])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b7efb134ccsm103722785e9.10.2026.11.07.17.35.50
+        bh=JLhUwzup1lwefYy8NOOFjthYnrByVfTsqIe79kkV+Lk=;
+        b=HfHcIAbQ+2Qb/qxT0mFRqHwcNWYissjY5dAFz9rOMn2ISYHzwH9bQ90T9XiFuDJcbp
+         VAeeV19lxK3IEa9ImUpHc7omITrS09l4qG2W3TytJo7ncoH5f1LxvKyTiyrk0njWP/Ct
+         vYvpXFZ+yVhE8Ff1NmHNHMXLL/ZRpXJkQxb1BN59vaKbDsjbunI/H82XM563IUSfKHei
+         MeRCCZ/JKkFUv9lL/k9bw/DWZoFwafKWjAXZPo73xDtMS2pLCi0TIkPvPwJQ+OtAQtZN
+         ZLQezH6UFNhv9dTAH/LP+ywuIa/0swCG9pfHDFPKXjk5jqUFYwhyKY2e8j9X27P7GtEj
+         UMew==
+X-Forwarded-Encrypted: i=1; AL+hErHUvQ6rbegxrL12pBQSjlQ5Gg7Izy0/2n9xoJmTZPLFLADKDUqjW2FYESXAnADfCW/WXZljCunEPvPX@vger.kernel.org
+X-Gm-Message-State: APuU4Z8VBrRWde06Y2Sq2P9cMw42ygibC7nUS8F0tBRVtBU8gahmH324
+	VDzcUvAstCjG9Jq0rcoCYcrLZpyri+2KrbshxeccOfSTeaSJTRkCkhQL
+X-Gm-Gg: AYBFou0UY4CXBhnt4p+o8VBSGsLv3oKZ7kh7qCdqotTWdJ1kS25Bs9IC87z4cObccT8
+	o2KFY2pzpXoIlvSHtbQANApdeYaRyjdrPYNn+mlVuWJrtf4awCOVOHPKxWyoOml+c9zCJ7XgVNT
+	Ns6KBZxSZgDr6IDNmcNPpp/nb7fsMv2NIIOmP1Ryj12HGuvZothFb4638pdRFK7PUqyIyaBHWni
+	nIYJ0XGCUuHF9AHVm8kw1l/0B74lXaSJ0KgVrLnT374FtskADMgDEF4cMIWMLojFjbHtL7R/h+v
+	lVVQP06KpP2prHq40NEXC69esEQaL6T0HlAsWrE7qkogC/ehgCgjqNOWFGsu43q0W2HuvA5ueQv
+	V+EkBHmQZBorAL6IWuyD/23OUInRz8u8JOG0pWyTAAINPc1QglGhsksE0wur0j1OiAhbyeSfOcX
+	DU/RXgvmuqp5QFhqLzxbSgI2ceCRMHHStGScBIgdcMkU17Gfxcv2eipEcb42egC/KTfRkzGbJSV
+	q67u9qv1bHflw+nYF5iWPmhJZlsGdeCMVhzuu6JwZFUQyW9PVqiji91jHTgm8AYvf9Ln0nrrOzB
+	0gnLMHMNrOOSsmkb63lwqkWLGh987WsrYC0XHTfoYjFPZIL0grmbNwI7JDV3SvkM
+X-Received: by 2002:a05:600c:468f:b0:4a1:7e77:c382 with SMTP id 5b1f17b1804b1-4b960d9b170mr35982125e9.5.1794164396406;
+        Sun, 08 Nov 2026 10:59:56 -0800 (PST)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b7efb1f3acsm185228445e9.14.2026.11.08.10.59.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 07 Nov 2026 17:35:52 -0800 (PST)
-Date: Sun, 8 Nov 2026 02:35:49 +0100
-From: Karl Mehltretter <kmehltretter@gmail.com>
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] sparc/iommu: Use raw_cpu_read() for iommu_hash_common in
- iommu_tbl_range_alloc()
-Message-ID: <au_RHuVI6noT1W0X@gmail.com>
-References: <20261107195147.70084-1-kmehltretter@gmail.com>
- <155ec5c6c5f6d4287a420191cb3927eba1d97526.camel@physik.fu-berlin.de>
+        Sun, 08 Nov 2026 10:59:56 -0800 (PST)
+Date: Sun, 8 Nov 2026 18:59:53 +0000
+From: David Laight <david.laight.linux@gmail.com>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+ linux-fsdevel@vger.kernel.org, Linus Torvalds
+ <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik
+ <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, Jeff Layton
+ <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet
+ <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, Al Viro
+ <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph
+ Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados
+ <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara
+ <jack@suse.cz>, Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org,
+ linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-um@lists.infradead.org,
+ linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ netdev@vger.kernel.org, ntfs3@lists.linux.dev,
+ platform-driver-x86@vger.kernel.org, coreteam@netfilter.org,
+ kexec@lists.infradead.org, linux-pci@vger.kernel.org,
+ linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net,
+ jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org,
+ linux-mm@kvack.org, linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
+ samba-technical@lists.samba.org, sparclinux@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org,
+ linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
+ Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
+ linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, Chuck Lever
+ <cel@kernel.org>
+Subject: Re: [PATCH RESEND v2 14/23] proc: let procfs copy in writes before
+ pinning the entry
+Message-ID: <20261108185953.28054fb3@pumpkin>
+In-Reply-To: <20261107-akteur-gemieden-eckdaten-21304d085e35@brauner>
+References: <20261104-work-procfs-core-v2-14-76ace653a773@kernel.org>
+	<CAMuHMdVfakapgBK6TBhO1iWX8qzvLDk8jzRS=t2MVa5G=MCUeg@mail.gmail.com>
+	<20261107-akteur-gemieden-eckdaten-21304d085e35@brauner>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -100,51 +129,19 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <155ec5c6c5f6d4287a420191cb3927eba1d97526.camel@physik.fu-berlin.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 07, 2026 at 10:13:51PM +0100, John Paul Adrian Glaubitz wrote:
-> On Sat, 2026-11-07 at 20:51 +0100, Karl Mehltretter wrote:
-> > Fixes: ff7d37a50202 ("Break up monolithic iommu table/lock into finer graularity pools and lock")
-> > Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
-> > ---
-> > Assisted by an LLM.
-> > 
-> > Tested on v7.4-rc1 (d48723711bae) under QEMU sparc64 (sun4u, -smp 2)
-> > with PREEMPT and DEBUG_PREEMPT. Without this patch, two consecutive
-> > boots emit three "BUG: using __this_cpu_read() in preemptible
-> > [00000000] code: swapper/0/1" diagnostics in iommu_tbl_range_alloc().
-> > With this patch, two consecutive boots complete without the
-> > __this_cpu_read() preemption diagnostic.
+On Sat, 7 Nov 2026 10:48:35 +0100
+Christian Brauner <brauner@kernel.org> wrote:
+
+> > While at it, I think it would be good to use this conversion as an
+> > opportunity to replace "char *" by "void *", which will probably let
+> > you drop several casts from users.  
 > 
-> According to your Fixes tag, this bug was introduced in 2015. However,
-> I have to admit I have never seen this message, neither on sun4u nor
-> on sun4v machines.
-> 
-> Is there a reliable way to reproduce this bug?
-> 
+> So I tried that too. The thing is it drops exactly one u8 * cast in
+> ntfs3's label write. 
 
-Hi Adrian,
+Since char is now unsigned that one isn't even needed...
 
-Yes. It needs PREEMPT=y and DEBUG_PREEMPT=y. Debian's sparc64 kernel
-uses PREEMPT_VOLUNTARY, so a kernel built from that config cannot
-print it.
-
-sparc64_defconfig with PREEMPT, DEBUG_PREEMPT and lockdep, booted with
-
-  qemu-system-sparc64 -M sun4u -m 512 -nographic -no-reboot \
-      -kernel arch/sparc/boot/image \
-      -append "console=ttyS0 loglevel=7 panic=-1"
-
-prints three reports on every boot, from the pata_cmd64x and sunhme
-probes.
-
-Danish Khateeb saw the same reports:
-https://lore.kernel.org/r/20260923144909.414968-1-danishkhateeb03@gmail.com/
-
-It is only a warning. The per-CPU value only picks the first pool to
-try, and each pool has its own lock.
-
-Thanks,
-Karl
+David
