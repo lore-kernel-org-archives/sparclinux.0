@@ -1,92 +1,91 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.49
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.44
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794177363;
-	b=SWw5LUBTnjbXv0pfhSUCcNuYzyDnNnfpp9H4IqP26yGJUN5/yO8ToM5ZSS4k7G8pvF1n
-	 e9J73WUIWI3pNEQMohg4+vwS267KPSyshgdtqHvAHhdQ8TmKYGHRPiFk8VCUCazMOKRTl
-	 0W51/dSQ/REdg1fjwatiVLYBS1ree6XJvtcDNlPeBEpfLV5GOmxM0W8MQTV2KWdWQU85W
-	 Sf2LnwSyOiAYLTiw9z7RDoeNEV3a/+G0fo2OLRzaIMbfaYgZ8Gy2d27Le3D4fiHJAxZXw
-	 IoWil1mxbCgdMrRdzGIyd4jcP3Fgu9DA8wX5Ink9mAZUSoaz6h2dLg9yuRqgHKMpj+g==
+	t=1794177364;
+	b=uCAEdle8ber1os3G0Uw0yTfzOjWNR+JHs8+vSox29YAXxQ3YshyYaNrMSJO0kQEW4gSd
+	 tBBj7QZcIFMul8nzUo4zoWXQYXHYoWSpE+MpboY385tpvDyXH0XxI0Nd1kTJMtzFwqJiX
+	 Sw3Pz5FAoABgcYu6Mv/K0NhcgfpiaL6blq/xI/re0SksapxVnGF+bfe7f2E933UGLQltc
+	 oMYdXqrJBjdgBLC0CaV72cA0gRQ+Q4MGwKEquLLitTyxevcJqggti9YUT0Ylh3DKDUKGK
+	 Yi+K6zyznolCytPUHlBjDEHzBF7ixfihuXK5+XO6XAx+IxEDennUyuyb+jjqfuZWjIg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794177363;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794177364;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=1kNf7/T6Z3Z9x33XOj8xN/pKgMapC3Cz/qc8M6FMmZs=;
-	b=ZH/7AWzHSxw3ZcMk2QlWUyDdm2y6dt+zWUuJw1e2I8AySGn5bwQAciBh9bsoFLSWHLxO
-	 Qmv4Nl9Dnc+GJEZ2/rxwCtus8516awLCNkT4eWDaETJ8IfIi7boQZ77Tx8eAkUgr8d77c
-	 wr+Qw0mQz54yq/MB765iZfj1S/UlEqJQwqClbll1/kpCT2bDwOWpwJYG16fqOgWQnVMH9
-	 OjvGJTrS78xQKwJwheUTu2th8ovqiRl93Z3+8pTgpK2gF7Uxm992Vn47T/l2IYgkJERa/
-	 NBtw7eGqvZEp/mmyKa1Au4OxFa9qXkf8i1jmv7tI5wrl9/2eYAZ19qRStRC6uci6XJA==
+	bh=yjigVlqZ7YlJzjIRljgnWOG1b/RgP2qYk03IHWd+kyQ=;
+	b=ny5ZgmsGvlkD0np6MJgHNQOJJbCr3cW7ODtYfFCMQ7Zt66GPVA9tV8j5keGDK68YuF7O
+	 SECZta6MfN0I5oz2EkdYS5y5bbBrvJ+Jb1FZTL86/ZrWroaPdYvY/k0P8ZtTXkw1P9CLl
+	 yhOr5dvcimhqt9G5PMnA2zmQcikev0asht/1fO5t9gpNOfuzWJw0SDa0xo3foar+0XmYE
+	 +/LtUBnTXOcONA3FVtLoShJDxwlx6vltRvXB8M4RcH8WVwHZmwmGE/sx/qWZl9rjkKXmx
+	 h6Q2To7J4rjT0Qqs/ddVwFhrLrtUL2aCfFtZhDrXUtad1ygrcfJf8i69nVo1WlSRkpA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ShDTzBtj;
-	arc=none smtp.remote-ip=209.85.218.49
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=qPdEvlXN;
+	arc=none smtp.remote-ip=209.85.208.44
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7BF9606D81F
-	for <sparclinux@vger.kernel.org>; Sun,  8 Nov 2026 22:36:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C7BF9606D81F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A4C1606D82D
+	for <sparclinux@vger.kernel.org>; Sun,  8 Nov 2026 22:36:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2A4C1606D82D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ShDTzBtj
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-c4ceaee6770so38813966b.0
-        for <sparclinux@vger.kernel.org>; Sun, 08 Nov 2026 14:36:02 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=qPdEvlXN
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6b408f2d936so413622a12.1
+        for <sparclinux@vger.kernel.org>; Sun, 08 Nov 2026 14:36:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794177361; x=1794782161; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1794177363; x=1794782163; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=1kNf7/T6Z3Z9x33XOj8xN/pKgMapC3Cz/qc8M6FMmZs=;
-        b=ShDTzBtjwSJXqCMUEGb41FMhfMCTTwW4HowLQCzZKTOq5TPR8B+oJmlWU0VXWp52un
-         pH2EFzrQjftXsAXbJiSx0VG8GWoMjew7u9AEjPk3kVUN2nhQZgNacTUoOpLtYMku4sbu
-         8G600W8DRgFXm9rfHZ5yoWELYtmGh2R3zZCQ7WXgX/UuAMVXplzjC9nUsk1wMbIHlX+l
-         s43+GotMUmZwMqn6b+83G1vAXAgfwgXtkJ1UHeIF/nUXIcmsUBaeRy8on4nHjT/OnSQ6
-         ZnjPwBCB/cjzS2NWFqBJIo3htOBmYBxvOLTOFImIQFDbcvouSsStUfcxGJo8sg2QxALz
-         zifQ==
+        bh=yjigVlqZ7YlJzjIRljgnWOG1b/RgP2qYk03IHWd+kyQ=;
+        b=qPdEvlXN/8NYW+AIFOUBAaAsmqasuqAXI+HQki9oDLjkSxLb6+KPwYlg0VepThaJ4u
+         jhs0LZWMGL2Hti/VATF3AZ49ta8ezuKTNpoKCxa6Rm22lXmIENvG5E6MIfWkYMbA9J7i
+         7M3BOY/40qFCSj+vzVzMjgYEWgWXhd7YDXjyfrGPZ4nKMkLAMqbKr9tADXgNZurxlGQ9
+         21eI+WhVw1SaZrxx1xiGxKCVDzj74mh0ZAo2Dw63UKwoWmTQN5MgMTPqzV2lnmfdOiK3
+         LBgvVAOq1j8lH1z7UO4wy4D7mcL77tqTof8+IQAdAfyPYuYQiwXG2BFuCqTi4GIM1uAj
+         t0mA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794177361; x=1794782161;
+        d=1e100.net; s=20260707; t=1794177363; x=1794782163;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=1kNf7/T6Z3Z9x33XOj8xN/pKgMapC3Cz/qc8M6FMmZs=;
-        b=Zding6BZM4GGOlDPugaWl79ZwewzsRPqyj9JqBfiv0X5BplY9MN5U2NVo4FcSVQnhJ
-         hhfWg3tL2AmHpDC+lmHtakrnC+2OAi3dRoytvnxXIRNDf5pGaIO0PI9zrWQFyObY33yT
-         xDlcrd19N7qnLzyC76t187dOsIieypiujHvZx4u7LO8U4yi/qQKNyOOclC8pDcQPvVuS
-         0WyDfcCreBTbaWHuIsF7HYd3Wly9Wte2Lyol19e/s+ErO0kVneQ5Z9keXpCPaeR7Ufs/
-         YtGa2z0O9DyS6iw+peyGBvSqRJbJMYJu4/+w/lw55i2q4dyF9jKrFLJ/xZrAc6Uj825j
-         LwPQ==
-X-Gm-Message-State: APuU4Z9pZkuZqQ0Jy+bvTXdNBQztF3tEftBnZGCyP43KNAQAf8+QBBAr
-	LEa1xjP3/K12MLFn/eMag6g0Rdit+iahcu1id9FxMEqIjt6EWeDHgMej
-X-Gm-Gg: AYBFou0zdorDhrthlES8Q2I4LRNvlzD+C1DeOGsg0Tne/En7m+IJnkSwfD/zYViWM9k
-	NGwvOf5W8jns+awhELdpxIJ4QVtcOq8/E4kOxV7/tFFFblr3COCGlzyZpG/GUye9OhPKxNKjbuo
-	ShtdueXEr3C9MELi7dWkppkycardkUeR5QsAJgUZW3ni7sX2rPbNFqPpiXo2pFa0u4n4KtKZA/D
-	T/EWmJJqvb8hBZ9UJDnilqtGEq0N0BcrOFCT/CIs5Oz/sY12oP3ekBvlC703wGudl7Oz9tK8Yu+
-	NFkBWqWhH1MOMwQF3/IbD/y02BG3R16OMNgFQKwPBhQTSP7RonA98uKWZ1vMWLN/VoSXcveBBM5
-	8DHBQZ3hE2a/Fk9yGelluJhfHhz2mzMoDGGuKtara2EEvsIPaZGYEJt0GCRgzUJhxC8aY1Rf/kd
-	EnRdfjna9LvdGrtx7LcFjF16tSjV1EL+GSQDqpjUyXgyIfner+br6uRj3jQ09wxO7qBdg6S+OPR
-	lhm2eYn7TW7b9gGg33k3HUxz3VjJWKuqFmSCJOV4sEV+dVp7/GGlbnYtqnEJ9cjWqNQHzCJqGXA
-	WRZifc7kNf4HaO/khRYr/eI9ztGnQ8DuzyxnLST/2odSht4q6h2626CdE/PN0c2X8AERH3k=
-X-Received: by 2002:a17:907:9347:b0:c36:a4b4:b1ed with SMTP id a640c23a62f3a-c4d6daf7d4emr185489266b.11.1794177361100;
-        Sun, 08 Nov 2026 14:36:01 -0800 (PST)
+        bh=yjigVlqZ7YlJzjIRljgnWOG1b/RgP2qYk03IHWd+kyQ=;
+        b=EqrNzMC4pir0cfTyPHh3PYNQE57TPX0UjOkPyyNZNHCSHnis3uJF9WFt0LtXjmY1a+
+         MjO+g96oFN2LjsQ6i4e+kmVSOQhh+uPJ3TcwZlnVxloR3PFReiHw5qPumoURwlV3K/cl
+         9BTeSoQ6ST0YA6NdLscSX7ZsCmkzu924Pnhq3P8yh99U9w4wy9q7PAg4Dxb9OIo4RGM3
+         D92rEGyjbeOtiUHiv+dS7fvnY5T46pwVuagh/ddu87ikthy2v6QXBXU9Og1GmNQGUpjR
+         OYi8SHF73SVdpNQddHspN7VlCv9Hr6HO3L7lvZ4rw8vqEmySuVXoL6SrqCg+uxGkRor3
+         Ej1g==
+X-Gm-Message-State: APuU4Z/DK1qo/bJDcwFvuZ34F8GTvjsOi6rQ6QpfYflcSJq/65nRA9F+
+	S6MnCd1L+n2C4nzYix57il0tFTMQnlnQNGjsetilegF/TnkCqYA0Toe0PzxS2Ifz
+X-Gm-Gg: AYBFou3j+/Ax6KssfQG01wgP0A8FGMgG2eyBi56XFBYlVYXg5KNggNkEVGoEEzHEzzV
+	HP3b9xN+uN5wP6Z6nXJ6ZgxSzKucg4jJVZI5GPo5eE+aLvMqHNTz5y5/b4fc0BBjrNFf6sVSUDh
+	BUFFF6Q7LggUZF79J0O5oyUs7Ky00WZ+ob8thZD83aLz0Z4S2wTNRcNXIB27vWh88TC6TgMtf7c
+	d9IOaFXfYMG8ZULz+SJ/4NX3ZhVeyGLrBBKmLKKH6fmTjlwy2Fuw6ejf2kRFY/RY6Anqz3q/bhS
+	Y2XZPwh7Yu2ispJbdFguVgUyx309Oh+W4IVI2yF3jEcfPzvQtEPT1RCNDiuv64wwVJFbP/hLs8x
+	GPwMPWAtLANooSS099A2SvPM7vMAYbRSVrXwxVgIYUWddBV3UffJ8rpfO4lD5PE/FonyMve8pW+
+	C/bsRyLLrmVLYaBS/cZiofDGLCVV9gjZ5kOp7EbvW+B+Fmd9L1lWp5Hp+2hjwx+QknAxg54pR5/
+	kddLejvavqcNIzL3W5zUBJeRpSKrQIyvhJDtEyggSbkGrZGNQEt5KG5ndzqG4rU53q0s/l2JhC2
+	LaIYQELMEAN1NzdKFwiMCMZo5v9QC8OEE6+6nhxuqQDrfWiKuceN3R9AlCxrlRkUed4v6lE=
+X-Received: by 2002:a05:6402:5288:b0:6b7:1d67:eeec with SMTP id 4fb4d7f45d1cf-6b7224522bamr1427849a12.14.1794177362272;
+        Sun, 08 Nov 2026 14:36:02 -0800 (PST)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b721ebc7b0sm859272a12.14.2026.11.08.14.36.00
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b721ebc7b0sm859272a12.14.2026.11.08.14.36.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 08 Nov 2026 14:36:00 -0800 (PST)
+        Sun, 08 Nov 2026 14:36:01 -0800 (PST)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
 Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	linmag7@gmail.com,
-	stable@vger.kernel.org
-Subject: [PATCH 4/9] sparc32: flush the cache when a kmap_local mapping is installed
-Date: Sun,  8 Nov 2026 23:34:14 +0100
-Message-ID: <20261108223516.1125534-5-linmag7@gmail.com>
+	linmag7@gmail.com
+Subject: [PATCH 5/9] sparc32: preset modified and referenced bits in kmap PTEs
+Date: Sun,  8 Nov 2026 23:34:15 +0100
+Message-ID: <20261108223516.1125534-6-linmag7@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261108223516.1125534-1-linmag7@gmail.com>
 References: <20261108223516.1125534-1-linmag7@gmail.com>
@@ -101,108 +100,43 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-sparc32 defines arch_kmap_local_pre_map() as flush_cache_all(), but
-generic highmem has never called that hook. The post-conversion flush
-correction moved cache maintenance into this uncalled hook, so a new kmap
-can be installed while another mapping of the same page still holds dirty
-lines at a different colour.
+Preset SRMMU_DIRTY and SRMMU_REF in kernel kmap PTEs, matching
+PAGE_KERNEL. These mappings do not use hardware M/R transitions for user
+dirty/accessed accounting. The protection applies to persistent PKMAP
+entries as well as transient local mappings.
 
-A writer dirties a MAP_SHARED page through its user mapping on one cpu
-while a reader pread()s the same offset on another: on an SS-20 with two
-RT626 modules all 100 iterations came back stale, 96288 words wrong. With
-the flush restored, 0 of 100.
+ROSS SPARC RISC User's Guide, section 4.2.1.1, describes hardware table
+walks and PTE updates when a write or translating operation encounters an
+unset M/R bit. Presetting the bits avoids those updates for kernel
+accesses. A whole-context cache flush does not perform that translating
+access.
 
-Flush from arch_kmap_local_post_map(), which generic code does call, on
-both the map and the scheduler restore paths. Running after the pte is
-installed is safe: the address is not handed to the caller until the hook
-returns. Route it and the tlb flush through sparc32_kmap_local_post_map()
-and sparc32_kmap_local_tlb_flush() so later patches have somewhere for a
-cpu-specific policy.
+This also provides the PTE convention needed by subsequent alias
+reconciliation, but does not by itself provide that protocol.
 
-MBus supplies only optional VA[19:12] "super-set" bits to a virtually
-indexed cache, so differing colours remain a synonym problem the bus does
-not resolve.
-
-Reference: MBus Interface Specification, SPARC International, 1997, "Basic
-Assumptions for Level 2", signal VA[19:12] (MAD[53:46]).
-
-Retain global TLB invalidation. Although the slots are CPU-local, remote
-translating cache backends can populate entries for them. Local TLB
-maintenance requires those remote translating users to be removed first
-and belongs in the later HyperSPARC optimization.
-
-Fixes: f99e02372af2 ("sparc/mm/highmem: flush cache and TLB")
-Cc: stable@vger.kernel.org
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
- arch/sparc/include/asm/highmem.h | 14 ++++++++++----
- arch/sparc/mm/srmmu.c            | 21 +++++++++++++++++++++
- 2 files changed, 31 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/highmem.h | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
-index b1b915ac604d..14b03f348823 100644
+index 14b03f348823..d451232625d3 100644
 --- a/arch/sparc/include/asm/highmem.h
 +++ b/arch/sparc/include/asm/highmem.h
-@@ -26,6 +26,10 @@
- #include <asm/vaddrs.h>
- #include <asm/pgtsrmmu.h>
+@@ -30,7 +30,12 @@ void sparc32_kmap_local_cache_flush(unsigned long vaddr);
+ void sparc32_kmap_local_tlb_flush(unsigned long vaddr);
+ void sparc32_kmap_local_post_map(unsigned long vaddr, pte_t pteval);
  
-+void sparc32_kmap_local_cache_flush(unsigned long vaddr);
-+void sparc32_kmap_local_tlb_flush(unsigned long vaddr);
-+void sparc32_kmap_local_post_map(unsigned long vaddr, pte_t pteval);
-+
- #define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE)
+-#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE)
++/*
++ * Kernel kmap mappings do not need hardware dirty/accessed tracking.
++ * Match PAGE_KERNEL and avoid M/R updates during translated accesses.
++ */
++#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE | \
++			   SRMMU_DIRTY | SRMMU_REF)
  extern pte_t *pkmap_page_table;
  
-@@ -48,10 +52,12 @@ extern pte_t *pkmap_page_table;
- #define flush_cache_kmaps()	flush_cache_all()
- 
- /* FIXME: Use __flush_*_one(vaddr) instead of flush_*_all() -- Anton */
--#define arch_kmap_local_pre_map(vaddr, pteval)	flush_cache_all()
--#define arch_kmap_local_pre_unmap(vaddr)	flush_cache_all()
--#define arch_kmap_local_post_map(vaddr, pteval)	flush_tlb_all()
--#define arch_kmap_local_post_unmap(vaddr)	flush_tlb_all()
-+#define arch_kmap_local_pre_unmap(vaddr) \
-+	sparc32_kmap_local_cache_flush(vaddr)
-+#define arch_kmap_local_post_map(vaddr, pteval) \
-+	sparc32_kmap_local_post_map(vaddr, pteval)
-+#define arch_kmap_local_post_unmap(vaddr) \
-+	sparc32_kmap_local_tlb_flush(vaddr)
- 
- #endif /* __KERNEL__ */
- 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 49d41b33aabf..aa53ec10cd8a 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -88,6 +88,27 @@ static int is_hypersparc;
- 
- static int srmmu_cache_pagetables;
- 
-+void sparc32_kmap_local_cache_flush(unsigned long vaddr)
-+{
-+	flush_cache_all();
-+}
-+
-+/*
-+ * Nothing has touched the new mapping yet, so flushing other aliases of this
-+ * page here is as good as doing it before the pte was set.
-+ */
-+void sparc32_kmap_local_post_map(unsigned long vaddr, pte_t pteval)
-+{
-+	sparc32_kmap_local_cache_flush(vaddr);
-+	sparc32_kmap_local_tlb_flush(vaddr);
-+}
-+
-+void sparc32_kmap_local_tlb_flush(unsigned long vaddr)
-+{
-+	/* Remote translating cache operations can populate these entries. */
-+	flush_tlb_all();
-+}
-+
- /* these will be initialized in srmmu_nocache_calcsize() */
- static unsigned long srmmu_nocache_size;
- static unsigned long srmmu_nocache_end;
+ /*
 -- 
 2.43.0
 
