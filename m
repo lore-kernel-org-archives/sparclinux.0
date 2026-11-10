@@ -1,57 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.189.121.228
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794342524;
-	b=io13Cj7pQhD60QXDBgnv3Ch9CXzzt+QWs2oC48q1mVJsXZXQ3VoMvYeEgDKY5eDatIcz
-	 EB64WGjxd04OHBEKmyh2OPzCiiXHX7nk/F4xvRp7A1WqBDUPW3kc+Carjb0ScjG5sNbMG
-	 2zxg1qmdM6cl4DShzB/0OF/e2uAgnKzC7/L+BMrYdp9VtMVxHFELrw2j2MPj94ErmbgPX
-	 gxhk6gxv6ogyS6o9KVdvWRXssXsS3M54gZQnUJ5wp44QXziOAQgf9ZTXcbvk4t9yzH0Jw
-	 pam5X/pxavWHPF7OIth393MbRY3BMJTnAFbEyz9bS4NhXxE6DcqCNqbvbuVnOvIAVFg==
+	t=1794350388;
+	b=S/HMx8gYm/qYHeATEpk/vO9RgSmbr/SgJOxC/s3Ru+jgl9/OXE5FK19rS/qoC2gb4Fc6
+	 fheUbMyU3/fU/tHzqD8/+8xMsYN5lfJW8OK26tsLH2Rf7vdsqu63vSaK2rZUezkNS+gzS
+	 7a0prZF/6xEnaqINy4RcMK4y1Ry690DTsPIzOlxO1CXTgjNwKyudhXGyYx2N6I/s1wO+B
+	 vIVL+Qx1z2EYTkm1XfweNrLOHz9iEJu25/Hpt82GBulpZm42VWWBNQOseMFnd8Uc4zYL7
+	 RgF/8V9WmhStdZ84ldEMY2OAbcQCfeDM3iluWCIyR4JPEs1egzRPy1XUqZoq4Zl5shg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794342524;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=O9+07kQ5qMDcMJJwDIRuYbfPBV95MmmanwGcaycIOCI=;
-	b=gYYZwaezc1TD7eErtoyrmx3I9hdnh9FOiJaqbFvHcc1Y+wIPxHOGtg1J67mQyxCEFIFF
-	 cFGWIeSXjXv8Vb1Kdj1vNAt9Vjei7Cq4S+dNcZbQIm1efeXP8PjJ2imQdrmHghfjvF5KH
-	 2yIiqfrMhrMo+ErAb4X1OA4W4OuEp4pwTFdtVJfChxj3vPH2jGUwpznV9nEPYE/RbrMnQ
-	 QCRrH/kOvVa2+eFJj3pqIvdCODpgY5QlgLtJuuqTiiVlFrOR6y3mlFxF8QpQ7pV5UQXPR
-	 rvjUqVy1YGm8nJQ5XEKlJ5sA5W4za80t03lQyPKUUDDiBrXEkGQ6HRCI3DWu0CAMU7Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794350388;
+	h=DMARC-Filter:From:DKIM-Signature:To:Cc:Subject:Date:Message-ID:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=abytDKbRvkocR2z10vArTxNaa1BYMBdrXV+srDgYG3U=;
+	b=xxgqUy45rmJbJtwf07oHitbOdviyD2Ei3InWG5F9reeu6DSA1A1Yk0skUogbOIT2H+iz
+	 yfdrC6TkwqNXK7361bFMJnj6LqA+Jegqya+7jzQje4XYLTpTU3uNE3bC4ovdZtOsxF3g2
+	 UeQgztc9fIuVLi5OI7FlG4wGMXYTtOjoWUX7T86h8d9jZXbmm2QAeXEcpLfcH5LP4fEdr
+	 yXyfbmSRF0oBQpUZ+I99EmlJamm1sSbc6a2LPCD/66ReNH5DPWpSJsBkmKlPzfzsCBjcf
+	 k1CV+knjqC+HF72pqa89GRRwcmnsMNMq191XT/yR1y8dutukguFi9nRN2jasZ5KlKRA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QHGesRXl;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=itx.no;
+	spf=pass smtp.mailfrom=itx.no;
+	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=Na8Vxn+D;
+	arc=none smtp.remote-ip=91.189.121.228
+Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78932606A31C;
-	Tue, 10 Nov 2026 20:28:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F89606A31C;
+	Tue, 10 Nov 2026 22:39:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4F89606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QHGesRXl
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 702D41F0089F;
-	Tue, 10 Nov 2026 20:28:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794342524;
-	bh=O9+07kQ5qMDcMJJwDIRuYbfPBV95MmmanwGcaycIOCI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=QHGesRXlG6F6bPtprtn7q92Ptm3oVG9KKpU+TmXM8ZMqt0OVGChOvCvMwH9IM/bnF
-	 bMLWk2MR+BTPpcJAUpw1eklVsv2ZABw39haSewYv74D93sZSWefdpWRmWGfmrYH2tg
-	 dR5OBG/JyccESjv3pJtzxdXhKiXAhWmNW5ahMyBPP2im0r8YWckA682WKF8MSGmGYz
-	 ty4M7j+4ckNf/C/SPG/rCg3BbRxAafmFQtTP+7m5BSz07sjMqZ0Wn8XOkHmjgC2LmL
-	 YSWaESImoDLaqcCNqWl3hAWuC8G/cJ0klFY6x6aPw1d/qm9eudGlZMsIL9VJGpzsKN
-	 js6ofCoxAT94g==
-Date: Wed, 11 Nov 2026 07:28:35 +1100
-From: Dave Chinner <dgc@kernel.org>
-To: Stian Halseth <stian@itx.no>
-Cc: Carlos Maiolino <cem@kernel.org>, linux-xfs@vger.kernel.org,
-	"Darrick J . Wong" <djwong@kernel.org>, sparclinux@vger.kernel.org,
-	Jan Engelhardt <jengelh@inai.de>, stable@vger.kernel.org
-Subject: Re: [PATCH] xfs: read rmapbt high key offsets with get_unaligned()
- in scrub
-Message-ID: <avN-c2otlYfqEQ--@dread>
-References: <20261109134853.1659991-1-stian@itx.no>
- <avI9zGQRG_kh0l2w@dread>
- <a69cd8605f2011f348c895a8d892463879f76823.camel@itx.no>
+	dkim=pass (1024-bit key, unprotected) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=Na8Vxn+D
+From: Stian Halseth <stian@itx.no>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
+	t=1794350379;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=abytDKbRvkocR2z10vArTxNaa1BYMBdrXV+srDgYG3U=;
+	b=Na8Vxn+D3OoyQkmLuPcA6U4R+h2EVu2LExgF+hagCflCEukX7Jb59HHQbgJBxTjAB55r1c
+	FU0FVxiP64lkAM2lKKwo8apu7aFiziNvMWIqIBsIq2doEbce0KIbdYrdszgKY+gvqACf9m
+	Nity4J9fqrJuIuR2070BQKuMe7BQZAo=
+To: Carlos Maiolino <cem@kernel.org>,
+	linux-xfs@vger.kernel.org
+Cc: "Darrick J . Wong" <djwong@kernel.org>,
+	Dave Chinner <dgc@kernel.org>,
+	sparclinux@vger.kernel.org,
+	Stian Halseth <stian@itx.no>,
+	Jan Engelhardt <jengelh@inai.de>,
+	stable@vger.kernel.org
+Subject: [PATCH v2] xfs: fix unaligned access to rmapbt high keys in scrub
+Date: Tue, 10 Nov 2026 23:39:27 +0100
+Message-ID: <20261110223927.558557-1-stian@itx.no>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -61,54 +62,72 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <a69cd8605f2011f348c895a8d892463879f76823.camel@itx.no>
 
-On Tue, Nov 10, 2026 at 09:33:46AM +0100, Stian Halseth wrote:
-> Hi Dave,
-> 
-> On Tue, 2026-11-10 at 08:40 +1100, Dave Chinner wrote:
-> > 
-> > That just looks wrong to begin with. Decoding an on-disk structure
-> > without using be64_to_cpu() to get it in the correct endian order
-> > first?
-> > 
-> > Oh... the code plays "I'm too smart for my own good" micro-
-> > optimisation games by endian swapping the badflag variable to avoid
-> > needing to endian swap the rm_offset field.
-> > 
-> > It seems to me that the correct fix here is to stop endian swapping
-> > the badflag variable, and endian swap the rmap.rm_offset fetches for
-> > both the low key and high keys, like all the other places that
-> > dereference rmap.rm_offset direct from pointers returned by
-> > xfs_btree_key_addr()/xfs_btree_high_key_addr().
-> > 
-> 
-> Thanks, I've looked a bit deeper than my one-line fix, based on your
-> feedback.
-> 
-> Yes, we can remove badflag. be64_to_cpu() alone doesn't fix the
-> trap, though, since it's a no-op on big-endian. gcc still reads
-> hkey->rmap.rm_offset with the same 8-byte ldx. I tried it on my
-> T4-1 and the fault count didn't change.
-> 
-> The other places get away with it because they go through a
-> struct xfs_rmap_key pointer first (kp = &key->rmap in
-> xfs_rmapbt_cmp_key_with_cur() and xfs_rmapbt_cmp_two_keys()), and since
-> that struct is packed gcc uses byte loads.
+An rmapbt node stores each key as a low/high pair of packed 20-byte
+struct xfs_rmap_key, so every high key is only 4-byte aligned.
+xchk_rmapbt_check_unwritten_in_keyflags() reads rm_offset through
+union xfs_btree_key, which is 8-byte aligned, so the compiler may use
+an 8-byte load. On sparc64 every high key it checks then takes an
+unaligned access trap:
 
-Ah, that explains why those work without issue - that's the bit I
-missed.
+  Kernel unaligned access at TPC[105a54d8] xchk_rmapbt_check_unwritten_in_keyflags+0xb8/0x160 [xfs]
 
-> I suggest we do the the same here, with be64_to_cpu() and no badflag.
-> That gets the faults to zero on the T4-1. Can send that as a v2 later,
-> if no one disagree with that approach.
+Read both keys through struct xfs_rmap_key and convert rm_offset with
+be64_to_cpu(), like the other rmapbt key accessors, instead of
+comparing against a byte-swapped flag.
 
-It sounds like the right approach to me.
+Fixes: 38384569a2a8 ("xfs: detect unwritten bit set in rmapbt node block keys")
+Reported-by: Jan Engelhardt <jengelh@inai.de>
+Closes: https://github.com/sparclinux/issues/issues/115
+Cc: stable@vger.kernel.org # v6.4+
+Signed-off-by: Stian Halseth <stian@itx.no>
+---
+Tested on sparc64 (T4, 7.3.3) by scrubbing the rmapbt of a loop-mounted
+image: alignment faults per scrub went from about 4000 to 0.
 
--Dave.
+v2: read both keys through struct xfs_rmap_key with be64_to_cpu() and drop
+the byte-swapped badflag (Dave). be64_to_cpu() on the union alone still
+traps, as it is a no-op on big-endian.
+v1: https://lore.kernel.org/all/20261109134853.1659991-1-stian@itx.no/
+
+ fs/xfs/scrub/rmap.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/fs/xfs/scrub/rmap.c b/fs/xfs/scrub/rmap.c
+index 68e2847c962bb..29609c5967fe3 100644
+--- a/fs/xfs/scrub/rmap.c
++++ b/fs/xfs/scrub/rmap.c
+@@ -149,8 +149,7 @@ xchk_rmapbt_check_unwritten_in_keyflags(
+ 	struct xfs_scrub	*sc = bs->sc;
+ 	struct xfs_btree_cur	*cur = bs->cur;
+ 	struct xfs_btree_block	*keyblock;
+-	union xfs_btree_key	*lkey, *hkey;
+-	__be64			badflag = cpu_to_be64(XFS_RMAP_OFF_UNWRITTEN);
++	const struct xfs_rmap_key *lkey, *hkey;
+ 	unsigned int		level;
+ 
+ 	if (sc->sm->sm_flags & XFS_SCRUB_OFLAG_PREEN)
+@@ -166,15 +165,15 @@ xchk_rmapbt_check_unwritten_in_keyflags(
+ 
+ 		keyblock = xfs_btree_get_block(cur, level, &bp);
+ 		for (ptr = 1; ptr <= be16_to_cpu(keyblock->bb_numrecs); ptr++) {
+-			lkey = xfs_btree_key_addr(cur, ptr, keyblock);
++			lkey = &xfs_btree_key_addr(cur, ptr, keyblock)->rmap;
+ 
+-			if (lkey->rmap.rm_offset & badflag) {
++			if (be64_to_cpu(lkey->rm_offset) & XFS_RMAP_OFF_UNWRITTEN) {
+ 				xchk_btree_set_preen(sc, cur, level);
+ 				break;
+ 			}
+ 
+-			hkey = xfs_btree_high_key_addr(cur, ptr, keyblock);
+-			if (hkey->rmap.rm_offset & badflag) {
++			hkey = &xfs_btree_high_key_addr(cur, ptr, keyblock)->rmap;
++			if (be64_to_cpu(hkey->rm_offset) & XFS_RMAP_OFF_UNWRITTEN) {
+ 				xchk_btree_set_preen(sc, cur, level);
+ 				break;
+ 			}
 -- 
-Dave Chinner
-dgc@kernel.org
+2.43.0
+
