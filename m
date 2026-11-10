@@ -1,56 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.189.121.228
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794275161;
-	b=LylpQB/Dc6IsI2LDY9nZnA1OX2KvJdCvnxENG8pEtYi+2fvy+50gcFgy/jKzTxXqQWJI
-	 OXn1+5DfCmUS31zaNVx2r0ysWpp80FlOpQzITMhtw0btwwwBstIekZni9ZncXaeqS3lT1
-	 ovHL8q3cqnORC+s/0+E4t2v8/w5GdzuxxH1YRb+b57CPni29K+bGeeqWsMPgXiavlb5lt
-	 zFlVorNr9W6pERnOG31ibMEQD066etb5j1Z9155bkeQ52NxnTp9RjMQ6c4qszhiwstW5V
-	 NEaE3gOhanXrWt4zYGuBapOCW5BFCR8VdKkiPyyvkmCd6v3cRbYZK+twu/tJWNwu8Pw==
+	t=1794299631;
+	b=zhhv7neP+tYEW9UF8ZOjwLzZXDC9pBBwEuEZHl7YdM8TyDOcPwtG+8SeX8EmK55LtQsg
+	 Po63OytKBtsI1uZbk285xGy631K4gJniDc9obKi3e8lRuY6wBZgRL4PjLAiimNDXeFbkr
+	 b1Fln4WvoNQttXYgfOQkalK5oSzHdu7PU39h+bN9dcntMldBzaaVoMD5ZSO//ER+zLKgl
+	 a2wu+2pQsJasXPCfAqtYpkSq8V67nATSpb+h0coebgJGxrUDLEb/v49+CFC2f9xaKfWHx
+	 PLw/pR7HJPrtlvPDyn5Hs29TUMf6mICHCrDVqbOnKZBgFZHzVsOI9Zle2SYz5NFHUpQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794275161;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=BHbu7DtxTaCJENrjxojIT37r05A0OE9kUrheliounuY=;
-	b=Qi1C8KcVnYjlRJhuHMafL7Lqovh/KK2BMhfyi2AfmaPwfA/S5BcDEb8X68fsUChqqcX5
-	 D/BbpGaIf5M9agCbLHrgH+5S6aclwF6xEnbdyF0cK7fUNRGjSS7Q/uKBrvUccafh1rMZs
-	 upLG6GHA8Cv0pnoqzKfpe+klIkKOHz9kYMW22fv+eJzK86TzcQr/QP8eEcLEqpcYSjBji
-	 742t+11M/DDcWHX+bxU0Gx3qb6pTtl3ABf7JNZ5ls/n0xz/Am6w096nFWiOLOVoWaSPgD
-	 85mEtxXUKjgxyU1Kxu7JAYNz9E0KKFwhLt3PwNf6dPrDhHgz93lZhnaGbfYGciOfQpA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794299631;
+	h=DMARC-Filter:Message-ID:DKIM-Signature:Subject:From:To:Cc:Date:
+	 In-Reply-To:References:Content-Type:MIME-Version;
+	bh=Ah7DRRGif0ihNqUB0G/kpe9gLj4SKfyuQtnDg8TbPpA=;
+	b=R8mocjBULuHRWTTGvTyow14ze1j3bibZQcET/Nw/Vre+CSMHBsYo11EGpLrb3+axQP+u
+	 05nzmGjyhrcfn7R5MhEtd3QpLmE/wxOkQ4iMadoI+HasCsNKLIS4Axbj+sJpkEx3Lcxae
+	 GNWMcNikYhhzG2HbM1UdHDIMTlxLU55R2ssKNZkvRzHyqHNG4Tu03nzsJmV1+pLkawaMu
+	 rLlGKUQdxM63EAq4aLMVhkKqcA49pr6PC6QW07xD59u0jXwMj7M/MxnRXRqAr7LpHJ43u
+	 cwTKa4WxYu0VPGQ8FA88sHvKJ2jOZipPUVCwgvzXxJGC1P16fDMNyg/0EgZp08V9Lkg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cjbBnWxq;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=itx.no;
+	spf=pass smtp.mailfrom=itx.no;
+	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b="D/5GVdff";
+	arc=none smtp.remote-ip=91.189.121.228
+Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECEC9606A326
-	for <sparclinux@vger.kernel.org>; Tue, 10 Nov 2026 01:46:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89141606A33F;
+	Tue, 10 Nov 2026 08:33:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 89141606A33F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cjbBnWxq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60B571F008A1;
-	Tue, 10 Nov 2026 01:46:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794275160;
-	bh=BHbu7DtxTaCJENrjxojIT37r05A0OE9kUrheliounuY=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=cjbBnWxqzhXBvxMobGkPbWk+IWQiRrO/gxaB4cH3H14KjE5kExTwvX41s2IoNUjgh
-	 wg3MfYmA2rt0iGNUtm7/SNVbQu0OJPOhQ4W4G+6Fcm+EPi/ABRPQz1ZiSJDjmh37N8
-	 JxRZhTpk+B9iXOWIB9LUPtrl2AjsgRDO++qKFbONr6z6Uuz7J15vUQ42cpZWendhtY
-	 Zem0u1SEak/2QxRuurmySFVMxquAjBDRsFyZvsq3hMDkswdNi2eLI/Gg9f8mF6OhJq
-	 RQzNY4lbRiy1pfpl7sgzbzrDpehHS2x9RGFZSJdrX4osV9PmxAiMsNFyHh6v+pDndl
-	 O+0sj04Ywl7Gw==
-Message-ID: <sashiko-outbox-205984@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v2] net: add SO_BYPASS_RFS to exclude a socket
- from RFS and aRFS
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Vitaly Zuevsky" <vitaly.zuevsky@gcore.com>
-Cc: sparclinux@vger.kernel.org
-In-Reply-To: <20261109014547.81555-1-vitaly.zuevsky@gcore.com>
-References: <20261109014547.81555-1-vitaly.zuevsky@gcore.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 10 Nov 2026 01:45:59 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=D/5GVdff
+Message-ID: <a69cd8605f2011f348c895a8d892463879f76823.camel@itx.no>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
+	t=1794299628;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ah7DRRGif0ihNqUB0G/kpe9gLj4SKfyuQtnDg8TbPpA=;
+	b=D/5GVdffs4M+bd8nulnh4HMbJLDt2bagv+uLLG6+Qw1eNfYp9jVepe0T29uuGtXcCR0SC4
+	NqzpMoOqADzG9kznELEyijM3WE5+S7JLJaJGYVQ2ToHzhzaInoaNKWnAwSZWsmWe9NzNjH
+	RGBxZlC/pWHLNzvpZgGxW19zK9l/t/8=
+Subject: Re: [PATCH] xfs: read rmapbt high key offsets with get_unaligned()
+ in scrub
+From: Stian Halseth <stian@itx.no>
+To: Dave Chinner <dgc@kernel.org>
+Cc: Carlos Maiolino <cem@kernel.org>, linux-xfs@vger.kernel.org, "Darrick J
+ . Wong" <djwong@kernel.org>, sparclinux@vger.kernel.org, Jan Engelhardt
+ <jengelh@inai.de>,  stable@vger.kernel.org
+Date: Tue, 10 Nov 2026 09:33:46 +0100
+In-Reply-To: <avI9zGQRG_kh0l2w@dread>
+References: <20261109134853.1659991-1-stian@itx.no> <avI9zGQRG_kh0l2w@dread>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-8W9Nb+LbcswGxvghoGqD"
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -59,120 +62,61 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Medium] net: race in sk_setsockopt() deleting RFS flow before setting
-  sk_bypass_rfs
-It also noticed 1 related pre-existing issue this patch does not
-introduce:
-- [Medium] net: file descriptor leak in sk_getsockopt() [1]
---
 
-commit 0bb55ec9420355430d450dec603d8adf895ff281
-Author: Vitaly Zuevsky <vitaly.zuevsky@gcore.com>
+--=-8W9Nb+LbcswGxvghoGqD
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-net: add SO_BYPASS_RFS to exclude a socket from RFS and aRFS
+Hi Dave,
 
-This commit adds the SO_BYPASS_RFS boolean socket option and a skc_bypass_r=
-fs
-bit in struct sock_common to exclude a socket from RFS and aRFS flow record=
-ing
-and deletion.
+On Tue, 2026-11-10 at 08:40 +1100, Dave Chinner wrote:
+>=20
+> That just looks wrong to begin with. Decoding an on-disk structure
+> without using be64_to_cpu() to get it in the correct endian order
+> first?
+>=20
+> Oh... the code plays "I'm too smart for my own good" micro-
+> optimisation games by endian swapping the badflag variable to avoid
+> needing to endian swap the rm_offset field.
+>=20
+> It seems to me that the correct fix here is to stop endian swapping
+> the badflag variable, and endian swap the rmap.rm_offset fetches for
+> both the low key and high keys, like all the other places that
+> dereference rmap.rm_offset direct from pointers returned by
+> xfs_btree_key_addr()/xfs_btree_high_key_addr().
+>=20
 
-> diff --git a/net/core/sock.c b/net/core/sock.c
-> index e2401d735c5a7..00808217aebf1 100644
-> --- a/net/core/sock.c
-> +++ b/net/core/sock.c
-[ ... ]
-> @@ -1597,6 +1598,14 @@ int sk_setsockopt(struct sock *sk, int level, int =
-optname,
->  		reuseport_update_incoming_cpu(sk, val);
->  		break;
-> =20
-> +#ifdef CONFIG_RPS
-> +	case SO_BYPASS_RFS:
-> +		if (valbool)
-> +			sock_rps_delete_flow(sk);
-> +		sk->sk_bypass_rfs =3D valbool;
-> +		break;
-> +#endif
-> +
->  	case SO_CNX_ADVICE:
->  		if (val =3D=3D 1)
->  			dst_negative_advice(sk);
+Thanks, I've looked a bit deeper than my one-line fix, based on your
+feedback.
 
-[Severity: Medium]
-Can a concurrent receive or send re-record the flow between
-sock_rps_delete_flow() and setting sk->sk_bypass_rfs?
+Yes, we can remove badflag. be64_to_cpu() alone doesn't fix the
+trap, though, since it's a no-op on big-endian. gcc still reads
+hkey->rmap.rm_offset with the same 8-byte ldx. I tried it on my
+T4-1 and the fault count didn't change.
 
-Callers such as inet_recvmsg() invoke sock_rps_record_flow() without
-holding the socket lock:
+The other places get away with it because they go through a
+struct xfs_rmap_key pointer first (kp =3D &key->rmap in
+xfs_rmapbt_cmp_key_with_cur() and xfs_rmapbt_cmp_two_keys()), and since
+that struct is packed gcc uses byte loads.
 
-CPU0                              CPU1
-sk_setsockopt(SO_BYPASS_RFS, 1)
-  sock_rps_delete_flow(sk)
-    _sock_rps_delete_flow(sk)
-                                  inet_recvmsg()
-                                    sock_rps_record_flow(sk)
-                                      /* sk->sk_bypass_rfs is still 0 */
-                                      _sock_rps_record_flow(sk)  <-- re-rec=
-ords flow
-  sk->sk_bypass_rfs =3D 1;
+I suggest we do the the same here, with be64_to_cpu() and no badflag.
+That gets the faults to zero on=A0the T4-1. Can send that as a v2 later,
+if no one disagree with that approach.
 
-Once sk->sk_bypass_rfs is set, sock_rps_delete_flow() returns early, so
-the re-recorded entry stays in rps_sock_flow_table while SO_BYPASS_RFS is
-enabled and is not cleared when the socket closes.  Setting
-sk->sk_bypass_rfs before calling _sock_rps_delete_flow() would avoid
-leaving a stale entry if a concurrent reader races with setsockopt().
+/Stian
 
-> @@ -2118,6 +2127,12 @@ int sk_getsockopt(struct sock *sk, int level, int =
-optname,
->  		v.val =3D READ_ONCE(sk->sk_incoming_cpu);
->  		break;
-> =20
-> +#ifdef CONFIG_RPS
-> +	case SO_BYPASS_RFS:
-> +		v.val =3D sk->sk_bypass_rfs;
-> +		break;
-> +#endif
-> +
->  	case SO_MEMINFO:
->  	{
->  		u32 meminfo[SK_MEMINFO_VARS];
+--=-8W9Nb+LbcswGxvghoGqD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-[Severity: Medium]
-This problem wasn't introduced by this patch, but can sk_getsockopt() leak
-a file descriptor via sk_getsockopt_peerpidfd() [1] when optlen is
-smaller than sizeof(int)?
+-----BEGIN PGP SIGNATURE-----
 
-net/core/sock.c:sk_getsockopt_peerpidfd() {
-	...
-	if (len > sizeof(pidfd))
-		len =3D sizeof(pidfd);
-	...
-	pidfd =3D pidfd_prepare(peer_pid, flags, &pidfd_file);
-	...
-	if (copy_to_sockptr(optval, &pidfd, len) ||
-	    copy_to_sockptr(optlen, &len, sizeof(int))) {
-		put_unused_fd(pidfd);
-		fput(pidfd_file);
+iHUEABYKAB0WIQTK1ph9OaYoND1R57zoeAEuJe36VgUCavLW6gAKCRDoeAEuJe36
+VpqIAQDwM38Ng2/+nJXWA1tqhydtdItszJQ5hauH3V4CYrtPMAEAtZQzI8evZy4n
+rg5ct3pDU1mwLbG4+LHtEOachYBVHgg=
+=Sgji
+-----END PGP SIGNATURE-----
 
-		return -EFAULT;
-	}
-
-	fd_install(pidfd, pidfd_file);
-	return 0;
-}
-
-len is capped at sizeof(pidfd) without checking that it is at least
-sizeof(pidfd).  If a caller passes a smaller optlen, copy_to_sockptr()
-copies a truncated value into optval and fd_install() installs the new
-pidfd into the process's file descriptor table without the caller
-receiving the full descriptor number needed to close it.
-
-[1] https://sashiko.dev/#/bug/linux-49f253f1-047b-482f-9138-26dfe35242e3
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109014547.8155=
-5-1-vitaly.zuevsky@gcore.com?part=3D1
+--=-8W9Nb+LbcswGxvghoGqD--
