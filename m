@@ -1,90 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.53
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794273682;
-	b=F7gHrxm3MOHBm7UgjPV6ZIVOP53gpNUE3dmyJw4wkOqxIK9XQ7/uxcIXyp8UrVA076NH
-	 ytNUMINniZEZ4hkn4WLa0qlJximZi8qiAFojmq4+lm7VKBb2Zr/5MHos5t7QhVTfGhvY8
-	 lcUlPV8Hwdavmv4HVuP3Onex2gLrcbNrQVfWljkN0UQU7QTgCUyrJO38wQnn4X4+QJM5m
-	 83lQiuR9giE6mM2yRAtdxEOh4q6H+dBGrhu2ucANkCSTnGKfKstCB4lPVpT1tukUswWsx
-	 IfVUBCYn20t24tTIz2R1/tiwT9ValTrUZsAZrmJDYlv0uXfJlIIG0VaLCgI88R6LuXw==
+	t=1794275161;
+	b=LylpQB/Dc6IsI2LDY9nZnA1OX2KvJdCvnxENG8pEtYi+2fvy+50gcFgy/jKzTxXqQWJI
+	 OXn1+5DfCmUS31zaNVx2r0ysWpp80FlOpQzITMhtw0btwwwBstIekZni9ZncXaeqS3lT1
+	 ovHL8q3cqnORC+s/0+E4t2v8/w5GdzuxxH1YRb+b57CPni29K+bGeeqWsMPgXiavlb5lt
+	 zFlVorNr9W6pERnOG31ibMEQD066etb5j1Z9155bkeQ52NxnTp9RjMQ6c4qszhiwstW5V
+	 NEaE3gOhanXrWt4zYGuBapOCW5BFCR8VdKkiPyyvkmCd6v3cRbYZK+twu/tJWNwu8Pw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794273682;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:X-Forwarded-Encrypted:X-Received:MIME-Version:References:
-	 In-Reply-To:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type;
-	bh=m2qXctBTC0OPADf0V2KkMb6r2GA0JgabIuFAMe6ERzQ=;
-	b=RZJVDcsh1o64/961ImjsKFTUoJPdpP9zwNfy3EmCqeGekQUGf7kZ2cw7Ve2yC1Q4+8vE
-	 7+qcLt8xHEZ69B67irAsoBFX+nARkKQk4Q+0hfJ8wiFTaoBvaDOz/Ic3F+SeAVdVuR3+M
-	 1QMlS1MdL/Jy4xO2qALhdFY8V2XAjc3rQeEx98soXgl95u6+fO7yTNC129rRtzOJmSZ+I
-	 HAy0mhPSCr6WeeqxVtBmLzhX7m6rQShlH0I2Rdl88WQieUlfGkEgOnv1Ci3peAYfr1LLv
-	 9IKDMW0ScM3Euvnrfv4sAIfznvS84NObW537H0yzTt9oCqpDUArxOvR88tVFA6jLFpg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794275161;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=BHbu7DtxTaCJENrjxojIT37r05A0OE9kUrheliounuY=;
+	b=Qi1C8KcVnYjlRJhuHMafL7Lqovh/KK2BMhfyi2AfmaPwfA/S5BcDEb8X68fsUChqqcX5
+	 D/BbpGaIf5M9agCbLHrgH+5S6aclwF6xEnbdyF0cK7fUNRGjSS7Q/uKBrvUccafh1rMZs
+	 upLG6GHA8Cv0pnoqzKfpe+klIkKOHz9kYMW22fv+eJzK86TzcQr/QP8eEcLEqpcYSjBji
+	 742t+11M/DDcWHX+bxU0Gx3qb6pTtl3ABf7JNZ5ls/n0xz/Am6w096nFWiOLOVoWaSPgD
+	 85mEtxXUKjgxyU1Kxu7JAYNz9E0KKFwhLt3PwNf6dPrDhHgz93lZhnaGbfYGciOfQpA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=linux-foundation.org;
-	spf=pass smtp.mailfrom=linuxfoundation.org;
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=cRegKcAN;
-	arc=none smtp.remote-ip=209.85.208.53
-Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cjbBnWxq;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76B38606A321
-	for <sparclinux@vger.kernel.org>; Tue, 10 Nov 2026 01:21:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 76B38606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECEC9606A326
+	for <sparclinux@vger.kernel.org>; Tue, 10 Nov 2026 01:46:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=cRegKcAN
-Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-6b577addee9so2037343a12.1
-        for <sparclinux@vger.kernel.org>; Mon, 09 Nov 2026 17:21:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1794273680; x=1794878480; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=m2qXctBTC0OPADf0V2KkMb6r2GA0JgabIuFAMe6ERzQ=;
-        b=cRegKcANAzuhN5uDFW569OXdZwb6gMtXkNC/10z7VU6wE2Fu6yj8VJJnAbNzHxJxRV
-         OYYTyJV8PJKjJwt65ReIFr/5xjetM3YE4o/s05RWg/YApoVU3wx+brhEDlaC7uKu3O2j
-         Tqk4s5AOzt8ZniVR2F6/Gz8CAmdG9w8k7m5NI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794273680; x=1794878480;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=m2qXctBTC0OPADf0V2KkMb6r2GA0JgabIuFAMe6ERzQ=;
-        b=tuQn/zBpDBhp0OuRgD7RZpy0fstDdrJO3ZKWZT4xoh+AEkCgRrkMPdk81c9QaVrgEy
-         rO4XN04ZufKhSshGtOAY5CHhmKLqRfUlumA0ihjsVnxHC5pLkamQQocksza+JC5vJTlf
-         d3/nR8RYGOrjnj8Vx35jlD8butRMzvOJRFCpLNI0DkyaflpQuK5DE9h0Xzl5i4s9/Prx
-         eVeIlCQBScBr5E3y3jo0VPd5x+SNLYLmxh8uRX+WyHiNT3GDtct1beCND5VfJeoivZ7m
-         vphyc7t4ZIKZmggmq+3D9hXSFZ9TXKzw85deTf/tqEsGEBy30GCyePgMhdrfpjQQsjVW
-         CyOA==
-X-Forwarded-Encrypted: i=1; AL+hErEg5C1sULnA0p5Jeo7dRuInQEUuhD6R0IcKRpqq6ikR1eHy+4vUFK85xE7EsZpKEX0G+75hPzSZM2/A@vger.kernel.org
-X-Gm-Message-State: APuU4Z8kfT9C4yTCII98waTKZOwbGLVPSsGgfPpGb5BiRWs8uMRuw7Ne
-	GJocdP/KMiBBwU2F8yYKruPBL+/hjVE8QCa6m9Z71zVo1/IMxxfdJ6QFee3AXSSLuuYgUuguwAM
-	iGf5KU2lIgA==
-X-Gm-Gg: AYBFou1IA4MfOLLO8BVT1CwJpiYY0yj6sC53FZ+5BXgmAmtCBMrX5srlU8P9jVFN/Fn
-	LXkyUSAYA1C8Vtm5z4E3j3sSFDnZ/M2+EgFxufDRrkfhWibSELefeenc5ou7/ATrgQxtFCMvt5G
-	IpOOWaiCddJ6A4eJgeHthmzVzn6YbbCCJPYnEmslVzGX8QMIEwLlwOM244ZYEjUQrsKzhHXFgZm
-	LTdvw5C7rYLwyZn91LNVEpR25elgtp3cInSiO42qKa4fKheo2K9tkLx+j7eiDWH3Q1i1BYo5+t3
-	I5aOlBTaB7KIQuR0rvkjAa54oK/FYs+7aPlvg/BeRUGZj4L8G2mX/2iC7+1hUHZ77GDdfdXOSh1
-	ymyXtodihx1NJfYysz+7H2irZF4CFAQO6akgYUYVF3OtXpAYb5PorHgjR3EByw9+5YZJbp4B7Bm
-	e5rfiVjqo9r0DgzNJD4iB5lODfzNv19dqUtXLQqqX+ko19U7cTzJSHSIXkrfHb8cqOAqrdb6P8f
-	owZ+7aDooZVd6YyC8Js9bwuj1jXTLo4p2cudVP+Hwx3bKUAKf7VYtJzSMXnO+OP/m9Ulc0jEtAL
-	6X1IM6amJtsr6Br/e/dpNKfdalW8Zy5NTR2/7G9IUhnB9QMgFLraYLzMpt4G9bMhzrBPQTEjtWw
-	2hg==
-X-Received: by 2002:a17:906:f5a4:b0:c34:e9fe:82ed with SMTP id a640c23a62f3a-c50496a40a9mr70990966b.28.1794273679937;
-        Mon, 09 Nov 2026 17:21:19 -0800 (PST)
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com. [209.85.208.48])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c504a693e82sm40841566b.83.2026.11.09.17.21.19
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 09 Nov 2026 17:21:19 -0800 (PST)
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-6b587538a37so2142609a12.2
-        for <sparclinux@vger.kernel.org>; Mon, 09 Nov 2026 17:21:19 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErGC/S2X+lucDdBBkJoJM83fFgt83aCUsaKVlF4BOp4r9kCeuW9cESnwh8BsaLi21ak0bmpoZviDoZO5@vger.kernel.org
-X-Received: by 2002:a17:907:9451:b0:c41:1750:59a2 with SMTP id
- a640c23a62f3a-c50495dfbd5mr87253466b.12.1794273275844; Mon, 09 Nov 2026
- 17:14:35 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cjbBnWxq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60B571F008A1;
+	Tue, 10 Nov 2026 01:46:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794275160;
+	bh=BHbu7DtxTaCJENrjxojIT37r05A0OE9kUrheliounuY=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=cjbBnWxqzhXBvxMobGkPbWk+IWQiRrO/gxaB4cH3H14KjE5kExTwvX41s2IoNUjgh
+	 wg3MfYmA2rt0iGNUtm7/SNVbQu0OJPOhQ4W4G+6Fcm+EPi/ABRPQz1ZiSJDjmh37N8
+	 JxRZhTpk+B9iXOWIB9LUPtrl2AjsgRDO++qKFbONr6z6Uuz7J15vUQ42cpZWendhtY
+	 Zem0u1SEak/2QxRuurmySFVMxquAjBDRsFyZvsq3hMDkswdNi2eLI/Gg9f8mF6OhJq
+	 RQzNY4lbRiy1pfpl7sgzbzrDpehHS2x9RGFZSJdrX4osV9PmxAiMsNFyHh6v+pDndl
+	 O+0sj04Ywl7Gw==
+Message-ID: <sashiko-outbox-205984@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next v2] net: add SO_BYPASS_RFS to exclude a socket
+ from RFS and aRFS
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Vitaly Zuevsky" <vitaly.zuevsky@gcore.com>
+Cc: sparclinux@vger.kernel.org
+In-Reply-To: <20261109014547.81555-1-vitaly.zuevsky@gcore.com>
+References: <20261109014547.81555-1-vitaly.zuevsky@gcore.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 10 Nov 2026 01:45:59 +0000
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -93,57 +59,120 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-References: <20261104-work-procfs-core-v2-14-76ace653a773@kernel.org>
- <CAMuHMdVfakapgBK6TBhO1iWX8qzvLDk8jzRS=t2MVa5G=MCUeg@mail.gmail.com>
- <20261107-akteur-gemieden-eckdaten-21304d085e35@brauner> <20261108185953.28054fb3@pumpkin>
- <alpine.DEB.2.21.2611090504170.17804@angie.orcam.me.uk> <20261109214558.0d9d5228@pumpkin>
-In-Reply-To: <20261109214558.0d9d5228@pumpkin>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 9 Nov 2026 17:14:19 -0800
-X-Gmail-Original-Message-ID: <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
-X-Gm-Features: AclHuK-x8jcOOQUqd2amGoGEAKER9jIFGaeL4LxxWAd0cGV7dz_RR64PtDogpPU
-Message-ID: <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
-Subject: Re: [PATCH RESEND v2 14/23] proc: let procfs copy in writes before
- pinning the entry
-To: David Laight <david.laight.linux@gmail.com>
-Cc: "Maciej W. Rozycki" <macro@orcam.me.uk>, Christian Brauner <brauner@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, linux-fsdevel@vger.kernel.org, 
-	Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
-	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
-	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
-	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
-	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
-	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
-	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
-	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 9 Nov 2026 at 13:46, David Laight <david.laight.linux@gmail.com> wrote:
->
-> Just that the cast would have to be:
->         u8 *foo = (u8 *)bar;
-> where 'bar' is 'char *', and I don't think you need a cast there when
-> char is unsigned.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Medium] net: race in sk_setsockopt() deleting RFS flow before setting
+  sk_bypass_rfs
+It also noticed 1 related pre-existing issue this patch does not
+introduce:
+- [Medium] net: file descriptor leak in sk_getsockopt() [1]
+--
 
-.. and just to clarify: 'char' is always unsigned in the kernel on all
-architectures since commit 3bc753c06dd0 ("kbuild: treat char as always
-unsigned") back four years ago...
+commit 0bb55ec9420355430d450dec603d8adf895ff281
+Author: Vitaly Zuevsky <vitaly.zuevsky@gcore.com>
 
-            Linus
+net: add SO_BYPASS_RFS to exclude a socket from RFS and aRFS
+
+This commit adds the SO_BYPASS_RFS boolean socket option and a skc_bypass_r=
+fs
+bit in struct sock_common to exclude a socket from RFS and aRFS flow record=
+ing
+and deletion.
+
+> diff --git a/net/core/sock.c b/net/core/sock.c
+> index e2401d735c5a7..00808217aebf1 100644
+> --- a/net/core/sock.c
+> +++ b/net/core/sock.c
+[ ... ]
+> @@ -1597,6 +1598,14 @@ int sk_setsockopt(struct sock *sk, int level, int =
+optname,
+>  		reuseport_update_incoming_cpu(sk, val);
+>  		break;
+> =20
+> +#ifdef CONFIG_RPS
+> +	case SO_BYPASS_RFS:
+> +		if (valbool)
+> +			sock_rps_delete_flow(sk);
+> +		sk->sk_bypass_rfs =3D valbool;
+> +		break;
+> +#endif
+> +
+>  	case SO_CNX_ADVICE:
+>  		if (val =3D=3D 1)
+>  			dst_negative_advice(sk);
+
+[Severity: Medium]
+Can a concurrent receive or send re-record the flow between
+sock_rps_delete_flow() and setting sk->sk_bypass_rfs?
+
+Callers such as inet_recvmsg() invoke sock_rps_record_flow() without
+holding the socket lock:
+
+CPU0                              CPU1
+sk_setsockopt(SO_BYPASS_RFS, 1)
+  sock_rps_delete_flow(sk)
+    _sock_rps_delete_flow(sk)
+                                  inet_recvmsg()
+                                    sock_rps_record_flow(sk)
+                                      /* sk->sk_bypass_rfs is still 0 */
+                                      _sock_rps_record_flow(sk)  <-- re-rec=
+ords flow
+  sk->sk_bypass_rfs =3D 1;
+
+Once sk->sk_bypass_rfs is set, sock_rps_delete_flow() returns early, so
+the re-recorded entry stays in rps_sock_flow_table while SO_BYPASS_RFS is
+enabled and is not cleared when the socket closes.  Setting
+sk->sk_bypass_rfs before calling _sock_rps_delete_flow() would avoid
+leaving a stale entry if a concurrent reader races with setsockopt().
+
+> @@ -2118,6 +2127,12 @@ int sk_getsockopt(struct sock *sk, int level, int =
+optname,
+>  		v.val =3D READ_ONCE(sk->sk_incoming_cpu);
+>  		break;
+> =20
+> +#ifdef CONFIG_RPS
+> +	case SO_BYPASS_RFS:
+> +		v.val =3D sk->sk_bypass_rfs;
+> +		break;
+> +#endif
+> +
+>  	case SO_MEMINFO:
+>  	{
+>  		u32 meminfo[SK_MEMINFO_VARS];
+
+[Severity: Medium]
+This problem wasn't introduced by this patch, but can sk_getsockopt() leak
+a file descriptor via sk_getsockopt_peerpidfd() [1] when optlen is
+smaller than sizeof(int)?
+
+net/core/sock.c:sk_getsockopt_peerpidfd() {
+	...
+	if (len > sizeof(pidfd))
+		len =3D sizeof(pidfd);
+	...
+	pidfd =3D pidfd_prepare(peer_pid, flags, &pidfd_file);
+	...
+	if (copy_to_sockptr(optval, &pidfd, len) ||
+	    copy_to_sockptr(optlen, &len, sizeof(int))) {
+		put_unused_fd(pidfd);
+		fput(pidfd_file);
+
+		return -EFAULT;
+	}
+
+	fd_install(pidfd, pidfd_file);
+	return 0;
+}
+
+len is capped at sizeof(pidfd) without checking that it is at least
+sizeof(pidfd).  If a caller passes a smaller optlen, copy_to_sockptr()
+copies a truncated value into optval and fd_install() installs the new
+pidfd into the process's file descriptor table without the caller
+receiving the full descriptor number needed to close it.
+
+[1] https://sashiko.dev/#/bug/linux-49f253f1-047b-482f-9138-26dfe35242e3
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109014547.8155=
+5-1-vitaly.zuevsky@gcore.com?part=3D1
