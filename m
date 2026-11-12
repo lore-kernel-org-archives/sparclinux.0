@@ -1,71 +1,111 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=202.12.124.158
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794448639;
-	b=Q022gjR/Rt/lm8mJmdTpzrTMDaq35+OEgZ5ilE0OWj0eXLa8D3RYXOdgBqs7UVS2coOh
-	 ECN6wxiyMoYZdYkwTbfQGCH0HDbRbu+zSEWrfPptGd07/xRckHjtnETYhyZnFkjUpIpr0
-	 n776YDCnQ0xYqmpQ8v5zcXpQXURB+S5O0kfuF36a1WZnPSNpMBSJBvTnhJ1VOO9tRhBV1
-	 koUWuqkL1QYP6wJ36jQ3mJXrhx7ipw25rK7wEunKdYRZ7+VwsgNZOrpFA8vFILseYSa85
-	 HwpSHGQC7EenygIrMI3BHEYeQb16bQWGYi0gLEBmxW15El0CylWviHlqe8QpdMeVFpA==
+	t=1794492291;
+	b=ucQsXKXPfsjoXs23JvfVCJVyAn4DXAGf1viXUoPWFA0io3ltdfoZF15+dseyMpF9QsRK
+	 7fE2lPqbpiR8kxrGo7f/W/+Ogob3Bi6cWKZotKMvKJGeho1a60y9eYMxi2qf/Bqe79U/t
+	 9/SU0+CIrOJN5Dqqtb6QYrFHiuTyFF6H/QACX/lw2HI3E7UH+31nWKdNCxTSk9HAUhwo6
+	 kYjU91/t/WAm2pMbHzY5Y6Kpu3zta420G+yC2grDtoENJaBYUUMBMw5izAi5Z4op7FEAb
+	 p80hwn+vmKLxxVFu8nYzbssgltmNogHLnzBjqLgis6pV3Q/lWRvUp3Q2ilRH+qG3ikg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794448639;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 In-Reply-To:References:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=i9rfrReLPN4eoCuhLh++xCTWs2P8s66MnyJOkAlyAg0=;
-	b=w1f3V4LQlvdHMpQDQmXq16WQRZavJ/IZF3OpdAh+/e8MzbupMHEyh1OrIf/F6ZIwxbTm
-	 9Fi0wLbtZrkbD47cmFg5e49Cce6Lh1KwV/lIgCrdvnTwaoRRtWfZtKxpsnuIIq33bpePN
-	 cgykELfaHMG0fnSvgMVhwmDgZw5gDeUxJs2pppivQsgOjGTPQuiBgVvHHzohCu4S8pfW5
-	 gbZs6AbgXNPwSTQI1E8cgeppDF7JWCOWxVZg9480inzOuUXv6W5klsUIo3OrHLW8MDKcr
-	 kPgi6uPneGjBkkGqCC03+hB2zY5amgnPEXsDv7z2nOYrXCQIw1BlwidPcUiTG4837YQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794492291;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
+	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
+	 X-ME-Sender:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
+	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
+	 References:Subject:Content-Type:Content-Transfer-Encoding;
+	bh=/tAXn9HhhI5i2xRr+VsFOZh/OUH+m9OqcmYc0kEYn+s=;
+	b=cnzPVJf0RHCNIWq6/anU83aHKW6jzA1VJ5ZpNyoAuQQMiaL1o/aZiLUnSixSqDKPcwzf
+	 B/RApw85zh9qCgL8alOqp7QYWMupSapbW+N1WCLCGyyx96lX/16EydJySVzdTqjJRjsBB
+	 nckxJFQCrLcKnL9u7dV9saT62WltLYW0Elaszlv0Rmqwu3BKEYQQvwbZkOwufpgaEPEA0
+	 bauJXo0u0vOEIqI86OYWn4Lb2N2aIvJgZ0BkD3OnKwjGMaEC45hwTtjcOp2KYdxfAJERu
+	 1hm/54XlZYUoPum+HQRuZtX0rOP9PnYX74hKqaIIEFNKrHN2cBIAfXoyXClNBdjC/rA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mdrF9o6F;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=arndb.de;
+	spf=pass smtp.mailfrom=arndb.de;
+	dkim=pass header.d=arndb.de header.i=@arndb.de header.a=rsa-sha256 header.s=fm2 header.b=h6epGYND;
+	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=E1F13uXq;
+	arc=none smtp.remote-ip=202.12.124.158
+Received: from fhigh-b7-smtp.messagingengine.com (fhigh-b7-smtp.messagingengine.com [202.12.124.158])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A966606A31C;
-	Thu, 12 Nov 2026 01:57:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 677F4606AEB6
+	for <sparclinux@vger.kernel.org>; Thu, 12 Nov 2026 14:04:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 677F4606AEB6
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mdrF9o6F
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9C9A1F00A05;
-	Thu, 12 Nov 2026 01:57:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794448639;
-	bh=i9rfrReLPN4eoCuhLh++xCTWs2P8s66MnyJOkAlyAg0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=mdrF9o6FROv/mgAPvMpl+QiF3JupPX1P1uoWPHATrVXMSEfMTZIxv02J5UNbbBQTG
-	 XmQWi3bBr5iOKInVlrxNI0cmROqz5hG/x6pdA/JVjAyaLyN/Oxx7f9iJ1p+cJbm+0b
-	 cKXKvfh3JwO/MctQmCOLRsvViLS7PQvOrP2zCYGgz4lvuU8pKiJx8fUiS4eFsqynCH
-	 RE7ynLHMY7nIDSFsOUBS58APApbq5qziRG/kZceg9CWSw8IzT5bYj5aOnzwZ2htzD+
-	 6yfXQtpK5UufU+FSKrT780J0u1qtKGOcXg9nJFMmujbYBvKlCwCp/6NH7CnUMZb3/J
-	 Roc0rnupeYE6A==
-Date: Wed, 11 Nov 2026 17:57:14 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Vitaly Zuevsky <vitaly.zuevsky@gcore.com>
-Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>, Eric Dumazet
- <edumazet@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
- <horms@kernel.org>, Jonathan Corbet <corbet@lwn.net>, Shuah Khan
- <skhan@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Richard
- Henderson <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>,
- Magnus Lindholm <linmag7@gmail.com>, Thomas Bogendoerfer
- <tsbogend@alpha.franken.de>, "James E.J. Bottomley"
- <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>,
- Andreas Larsson <andreas@gaisler.com>, Kuniyuki Iwashima
- <kuniyu@google.com>, Willem de Bruijn <willemb@google.com>, Arnd Bergmann
- <arnd@arndb.de>, Christian Brauner <brauner@kernel.org>, Andrew Halaney
- <andrew@amutable.com>, Jori Koolstra <jkoolstra@xs4all.nl>, Alexander
- Mikhalitsyn <alexander@mihalicyn.com>, Tariq Toukan <tariqt@nvidia.com>,
- Saeed Mahameed <saeedm@nvidia.com>, Chuang Wang <nashuiliang@gmail.com>,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
- linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-arch@vger.kernel.org
-Subject: Re: [PATCH net-next v2] net: add SO_BYPASS_RFS to exclude a socket
- from RFS and aRFS
-Message-ID: <20261111175714.1bea2584@kernel.org>
-In-Reply-To: <20261109014547.81555-1-vitaly.zuevsky@gcore.com>
-References: <20261109014547.81555-1-vitaly.zuevsky@gcore.com>
+	dkim=pass (2048-bit key, unprotected) header.d=arndb.de header.i=@arndb.de header.a=rsa-sha256 header.s=fm2 header.b=h6epGYND;
+	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=E1F13uXq
+Received: from ams-compute-02.internal (ams-compute-02.internal [10.64.2.62])
+	by mailfhigh.stl.internal (Postfix) with ESMTP id A13037A0151
+	for <sparclinux@vger.kernel.org>; Thu, 12 Nov 2026 09:04:50 -0500 (EST)
+Received: from ams-imap-03 ([10.64.2.23])
+  by ams-compute-02.internal (MEProxy); Thu, 12 Nov 2026 09:04:50 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1794492281;
+	 x=1794578681; bh=/tAXn9HhhI5i2xRr+VsFOZh/OUH+m9OqcmYc0kEYn+s=; b=
+	h6epGYNDiXOZ0U54jmhcFmhr9liTv0S3e/4nsnTQfdZmBFJGFRaPsxgpJKPUpAk1
+	man4juZ+v7SfR72SVe3i5cfcS0G7NL3QkvZTt+0piUTA2wTEghZ7hXd9p0RBPABG
+	5vhk1MBr3ULBoO0fTV4xpy4d/uBlLl/WFzoCs379XjgTDVtHfTWujuvdYu9H5pow
+	2mXvdrxvo6BhDIXhZTTx/bO3Exp+PlvP7cK/DsGo9hy9sNUO0aoE67RezRNBDEZt
+	Kasby90AUwr7/BWv+b6YVD+uqy69CBR415lbcTs4A9hLDdoP+N+5GcejR9XDXDhW
+	w0ADKq6QwhGjXMVmZTHlJQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1794492281; x=
+	1794578681; bh=/tAXn9HhhI5i2xRr+VsFOZh/OUH+m9OqcmYc0kEYn+s=; b=E
+	1F13uXqZUsWP9ERbcmBRauF4vI+GEx2BkuRQNzoes0ataedMZtzqTjRBbAf7LabK
+	6WDlDw915yi5GTALoa6bso7Dz4Pc0J9qUX9MgVn/kt3l+Lah3AavR6rBwmaTmSf1
+	/Dkgzk8DNWALFs+mQR3HrIKBuWVqz/5oa9tJ3ZgIgjiHGDvTqNr6BNpbQqqJor89
+	huWf3aFIMMPKU8muFWmaNaWYC1XeD81vPT0o1Ohqq1cIEcM1xxKA2Xzx7q+SLPfa
+	QKwNqZZeCSI8o3vbKYTqsjy8jI/z1G4n6JK8HUwDxqK0p+GX20y40nbDpuam5VaR
+	ofEDJNS4lNkRVhiMiG7mA==
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
+	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
+	action=sign d=arndb.de a=rsa-sha256;
+DKIM2-Signature: i=1; m=1; t=1794492281; d=arndb.de;
+	mf=PGFybmRAYXJuZGIuZGU+;
+	rt=PHNwYXJjbGludXhAdmdlci5rZXJuZWwub3JnPg==;
+	s=fm2:rsa-sha256:gAU13RVFZbCaMX2koYR5eF9nBlANlhTxOEVKh3SYTb9svrB
+	iwbqHKLD29OhymYlOkbNOl+Yw6I7OufFsx0K5YZKNUmkMkNWBVWJiEl9k9uUwxHJ
+	OvazpVrfDDFTA8p8RWluu0fGNYmGbkTMMPiOvPl1aDXG/vm1tcFBzWuai6E+L5mw
+	TNxplK+sMkruP/yr8pVQ5OuTLahqO9vndulyxv27VDX1ot3VdWJidniLeeCek+FQ
+	CkMo7x9EcO2KwZAq5chhyWjInU0n5Cj9UDy18ZOpb6SZMYc3oY3D0JlFfLsellUV
+	S9YHb0OTXctxNKDnVtLmd+RURIXeOgop3kkOpYg==;
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
+	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
+	action=mi-m=1; hc=12;
+	hn=cc,content-transfer-encoding,content-type,date,feedback-id,
+	from,in-reply-to,message-id,mime-version,references,subject,to;
+Message-Instance: m=1; h=sha256:yhBWo2F8Mg0lXsgAAiDFBLboJONwipmeaHVibNlXcm4=:/tAXn9HhhI5i2xRr+VsFOZh/OUH+m9OqcmYc0kEYn+s=;
+X-ME-Sender: <xms:dcf1ap4UN1N1sYgm98NrBR9yMo43zP8zWJHt_KoCCUEsCOixwmXvbA>
+    <xme:dcf1ahuPMMxteh0vrY0B4rNvmUkFDIN65y7XQAlfVmsmWslILsr3sEP7InMBsBFGj
+    jbDb_lVhqrDpul3WXu1CnFH6muk8Of_T9-Lj4BHAQuKYb3qH8sFKJ4o>
+X-ME-Proxy-Cause: dmFkZTEraX544mQ4uwFvdzCIHZ/nHTECZ1d9wNRCoCeA56HdTpiTyq3xSVAqiNV3X35/Z+
+    dDXXwTcNSzIAJs5fwRvM3QaBeQigOW0u7sEAgv9lxlziJXvg6CryNer7nVzhQF8juyj+aa
+    hRvH/YxuTpd4mrkR5o5OwzbwL4nDwtcuGyVhfjrnAyzbXG69muhVoQHXlcEoD8wQmkGr28
+    VnetKWGF/1sn1HHrJB+F7J5TcmgHftJ59BVNmRvt+ttOpu2zJ8WeAveF1srqK9/1pU1bv9
+    kQRD8+Jeqc9KbjeuF/GwuTL1cm0gvom1BFAQUMXqfIfM0hlgHFgzSKueKw1YJR40jKF1Kv
+    1gxoiF0Xcg0X8YKBTOnVVdwZbEx7LTkcAo9TDrv5CmdIwZlhYabltHnf1TXjhEhFJ7mRh9
+    CsavwvhJzZQje+YI9kWh/F4c3Byqi+Lh9cZ94FgydIu4K98FIU4bAF8yVVBQpwEVNFNrcV
+    /Y8BolSDQx3UwXNXakz2fAlRJjSjz7Bcqoa/DazJqLfFkM9i0bZDaW55ekxupA1FzMDwsX
+    2fYIe3mnx8s7qWJWF4kH37tOLKz6HQ9xmLTk66yk1/H2bO8Wqfi47UDgWnfhstGrZNWee4
+    lE+sM2ptnn48DlRfenKAM500y06BMwBdjQDEM2nKvqkQ7fX1p3NjqkZSZqcQ
+X-ME-Proxy: <xmx:d8f1anI4GyahBTQZsMiQINwhNdinl3W9pXUuBsnor0nDZiOGnXqGHA>
+    <xmx:d8f1arzkSPTEAgh1hwjM-z_KEXo1JI1bT0cQNqGONl2t3IaIjdm0hA>
+    <xmx:d8f1aq0bbLxprs1Ax6j_YjKbqVlZDjcm0WcWdgsV6Z2ubsV4AScf_Q>
+    <xmx:d8f1ak9BDP92Kq051cUj7-aWz23-e42FFO7yN9MbetviFDBx2VwM2g>
+    <xmx:ecf1aqEH4wnb05YC4zON_rcfe3sxx7jDz8fsDVXV3sknS5Vvne6Dwq7a>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.ams.internal (Postfix, from userid 501)
+	id 2DC8932A009E; Thu, 12 Nov 2026 09:04:37 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -75,27 +115,34 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+X-ThreadId: AtwnaRLwEjKw
+Date: Thu, 12 Nov 2026 15:04:16 +0100
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>,
+ "Masami Hiramatsu" <mhiramat@kernel.org>
+Cc: "Christian Brauner" <brauner@kernel.org>, linux-kernel@vger.kernel.org,
+ linux-kbuild@vger.kernel.org, kernel-dev@igalia.com,
+ "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
+ linux-alpha@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, soc@lists.linux.dev,
+ linux-mips@vger.kernel.org, sparclinux@vger.kernel.org
+Message-Id: <b580eaab-100f-4375-a8df-7d1f4c751cbc@app.fastmail.com>
+In-Reply-To: <20261105-tonyk-syscall_table-v9-13-8d1275885d9c@igalia.com>
+References: <20261105-tonyk-syscall_table-v9-0-8d1275885d9c@igalia.com>
+ <20261105-tonyk-syscall_table-v9-13-8d1275885d9c@igalia.com>
+Subject: Re: [PATCH v9 13/15] syscalls: Avoid matching substrings in the ABI parsing
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Sun,  8 Nov 2026 20:45:47 -0500 Vitaly Zuevsky wrote:
-> RFS and accelerated RFS are enabled per host and per rx queue, but
-> whether steering helps is a property of the flow. A host that carries
-> a few long-lived flows which benefit from steering alongside a large
-> churn of short-lived flows which arrive on the right CPU already has
-> no way to express that today.
+On Thu, Nov 5, 2026, at 21:05, Andr=C3=A9 Almeida wrote:
+> Currently, the abi parsing for grep will match substrings. For instanc=
+e, an
+> ABI called `abc` will match also the ABI called `abcde`. Use the space
+> limiter to match a complete word and avoid matching substrings.
+>
+> While here, add a true command in the end of grep command to avoid the
+> script exiting earlier and being able to do the cleanup.
+>
+> Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
 
-1) Please respond to netdev-bot+sashiko@kernel.org, we don't use 
-the global bot (you only got a reply from it because you CCed half 
-of the universe for no real reason).
-
-2) Some data showing the win from this on real production workloads
-would be nice.
-
-3) The API looks backwards? I'd think that most users would want an opt
-in for sockets they care about rather than having to chase down every
-other socket on the system to exclude?
-
-4) Please trim the slop in the documentation.
--- 
-pw-bot: cr
+Acked-by: Arnd Bergmann <arnd@arndb.de>
