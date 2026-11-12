@@ -1,110 +1,110 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=202.12.124.158
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=202.12.124.144
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794492334;
-	b=1WcF2Qe+bZN22Hyj+IFIX9AnbvIZ/fMy/w+THRDRqUoPcAp7hO52WI73RspGEz1B8FAQ
-	 7mrls0bfm5kgRYUUEHZjyhKZZavQQqHieyVQtDNtSvZC1GaR094o15NXVb4Sfi9G3t7P4
-	 JNDHuBQq/ccceqX6iJNp3Fd+DSmYXVOWUiaQhmZRLUWl7SFwqal1Fqxw31f3BT/BXkn+U
-	 jPktf7xfvXkIvZCXjsOhSpu109+7ebufmxY5YNfEcO0zhR/+B0PILAyr/NFutMGfc9fug
-	 P3LX4zx0qcWhbc8K/f/1LOXnzHckHBzR76tRaZiUtUc0fcvFHopFia1QgPkSyfaZo6Q==
+	t=1794492396;
+	b=26eNUXKyMBOLEQcTmUh7/JHnkHWrFbG729DY1g5Bwumnd2sMh/fcq0UIPmbS+86NQwoh
+	 RHJYRZbEPrUFgZWMJucwmVYluLrMQmKKU+LcXeJGKf7Y/59sVs4HFA7dTQNlXVeqLupNg
+	 LWiWrYiHZ1NIWQnhoF0ZsbX35ubceL0i5ifR9xo9/72A4Xb4rmnYm12zfL3oQQkALQcEc
+	 yueU3N5gMjxAzSDyjtSmgNj7+aKf2WcLX4zeQHrrO9DQhyzCeJmMPGVADUGueJSUtOPfw
+	 QVSTSHgiTMfWMyc/+6lAiwFHsvI466PHCTIJeQeIFw9Cb6eJzQEgij7ANNB/n0dPreg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794492334;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794492396;
 	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
 	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
 	 X-ME-Sender:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
 	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
 	 References:Subject:Content-Type:Content-Transfer-Encoding;
-	bh=pko6mRCMfp9Cyyy/gAoWpwIveNBcnJXIKlKgVug+D/o=;
-	b=2Ql2uaBxBvHxzBGrySBgUlvocjwPzmwVOhngE0TxfHvEs70x3QIrKOGnICfdaMPoxq9+
-	 fZ76AM3uRG6xNA3t9loJbTWzg62fsWdsKW4+59Nn1mecgSD2ov+4alCax/FiNRuDl9kIl
-	 krHSy0Ffswz8YfyIeeSzj7vrT+pNxTfD0T4Ef/j2wF3Z2+/CImdR0Zx2KoxCHXyVdUrrQ
-	 V1Mt89y4Ccn0FhmJGpSztDMTBdjM+SAkBBOqyCE4kKV1FWdeRZeEFv1hybBGVmv6aIVJB
-	 ZdHIgK+lo8tQnD9BY/ZmwMwZezvPA1ffDpExLXV6a26m3GQjPos0+74Jo4U5ZEbmPXw==
+	bh=/KkZMOTLKDJQcKnM7ovd2Dn2GxF4wr8aJ6Z+ZtRW5lE=;
+	b=T8PHbreyvDqvAm+bdZf0FjXGE7x6daz5d6brbIcSM7DstyjMqISgZt278fp07yTR/1TN
+	 v6Uz/IensGZQKJxFvcs7vJ9bYe649/3v8DEbxYPI3/Qn/qGApguAFHhfzHXrsFFF8UXUV
+	 inv8/l4CZSFsVVQID76x0ANFWz3rYbTE2zgq7jGiihs5/GKL/6WIQvkoteE33AS4o+7ir
+	 mK4pI2/m4b+QVXzfbBl6qKxR1w0eM+df/3m/y1Fq5lsBCum14F57tEHO2W/SEslXgMAs2
+	 BUAtm397KTpK93pzK6tTs5+Hfs5Z4zZ1aw8d4dIStn18hrSE6IuGTSJtfW3lK2m6yCQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=arndb.de;
 	spf=pass smtp.mailfrom=arndb.de;
-	dkim=pass header.d=arndb.de header.i=@arndb.de header.a=rsa-sha256 header.s=fm2 header.b=Xh+h1wSV;
-	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=FqEKdWwe;
-	arc=none smtp.remote-ip=202.12.124.158
-Received: from fhigh-b7-smtp.messagingengine.com (fhigh-b7-smtp.messagingengine.com [202.12.124.158])
+	dkim=pass header.d=arndb.de header.i=@arndb.de header.a=rsa-sha256 header.s=fm2 header.b=dbjy4+Z+;
+	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=jsamXKKy;
+	arc=none smtp.remote-ip=202.12.124.144
+Received: from fout-b1-smtp.messagingengine.com (fout-b1-smtp.messagingengine.com [202.12.124.144])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 560FA606A897
-	for <sparclinux@vger.kernel.org>; Thu, 12 Nov 2026 14:05:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 560FA606A897
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D82B60A261A
+	for <sparclinux@vger.kernel.org>; Thu, 12 Nov 2026 14:06:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2D82B60A261A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=arndb.de header.i=@arndb.de header.a=rsa-sha256 header.s=fm2 header.b=Xh+h1wSV;
-	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=FqEKdWwe
+	dkim=pass (2048-bit key, unprotected) header.d=arndb.de header.i=@arndb.de header.a=rsa-sha256 header.s=fm2 header.b=dbjy4+Z+;
+	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=jsamXKKy
 Received: from ams-compute-02.internal (ams-compute-02.internal [10.64.2.62])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 674FC7A00F6
-	for <sparclinux@vger.kernel.org>; Thu, 12 Nov 2026 09:05:33 -0500 (EST)
+	by mailfout.stl.internal (Postfix) with ESMTP id 5E1021D001EE
+	for <sparclinux@vger.kernel.org>; Thu, 12 Nov 2026 09:06:35 -0500 (EST)
 Received: from ams-imap-03 ([10.64.2.23])
-  by ams-compute-02.internal (MEProxy); Thu, 12 Nov 2026 09:05:33 -0500
+  by ams-compute-02.internal (MEProxy); Thu, 12 Nov 2026 09:06:35 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
 	:cc:content-transfer-encoding:content-type:content-type:date
 	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1794492325;
-	 x=1794578725; bh=pko6mRCMfp9Cyyy/gAoWpwIveNBcnJXIKlKgVug+D/o=; b=
-	Xh+h1wSVBu44nSJ74HnYBVZC3D0EBf1F6f0FHS7sToQviRCNenAi+z0CBn0Jwnox
-	ejnFqzYKhIx51SNCnaUSnZzzqrQ+wqvQckDK/fMjWzFOO2enBez9pGWqHZf9eS79
-	7TqHB9QdwSNlpvFDqzH0SPMAmX3a3kSolXe6DKs+ij1SwIupxzQzK+bPO+p5fSpZ
-	YEtrA07xt/Q5H+cyOb/m8WWQXhqCvZtYZBN5r0VTNpsWfLsx5KSYwLH1gPTz8wh7
-	aAqiDcYOqUbLfnb6FUeX3j1uLR6qs97kX1JsfW1YijTycwg1n8uBYQy+YQQIx/rG
-	6nqV9Rtub99HBhD3dooiXQ==
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1794492386;
+	 x=1794578786; bh=/KkZMOTLKDJQcKnM7ovd2Dn2GxF4wr8aJ6Z+ZtRW5lE=; b=
+	dbjy4+Z+hJnfJusW9p8xSSYAEHXM0zVp+ypHcRANXar9+N2RjAIg+JldE6pUGthp
+	Lvcf/Il+pN0sPVy+sxMeIf+JTov5CMU2K32yZ/91Q/G9C6rw2DxdJsg3dvCdYINe
+	EZQIbjT5sgD6XZ2/0RlJvQdicjt3v/H97hdIRVlmLB+2Enpu2MAwsGFPpoSgHY3h
+	U/KqHJ8Q4wyStF8q5qjnAquoxMKJSUP3plId0gsAywmBcuZe4QC2OjfVCtQlfWeg
+	WckoId/GvVfsqcgNt0Mb9R3kAnXzNV4NdTHqP8PgOThH7Ok2u7Pv6iJwvu7KJGGs
+	ynGZl9a+iBbiVcEBjx2Pgg==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-transfer-encoding
 	:content-type:content-type:date:date:feedback-id:feedback-id
 	:from:from:in-reply-to:in-reply-to:message-id:mime-version
 	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1794492325; x=
-	1794578725; bh=pko6mRCMfp9Cyyy/gAoWpwIveNBcnJXIKlKgVug+D/o=; b=F
-	qEKdWweWYKGwAOqEQHtslqgHkl02o+VAPHTV+Ok0UxkqW/umCZK0USiDkcQGDmnm
-	zPqB668MutngAEMB6/B4Zt3OVm3JGZi4AHkcmcwX4RIJEQwks++WW45H32q4p+AI
-	J0HR4qb8etAY1z/DVsxOmHZ/CWUTbosqjobcqGf0CTFp5A8O1Cbr679+KBZH5Map
-	oDlpoY18EPMZynyf5mjNnsHtfwDhd/qStKlC7GIJ7InkQPO+N9RaeZWMt+FCvmZR
-	vnaSVJrvgEMOkz1zMQrY+2SUBpg1yhVk/8oOekR4AMGm6Mw7wyoDhXo4bJvfu5pD
-	tMEv9Zan5KlrwtvUv90+A==
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1794492386; x=
+	1794578786; bh=/KkZMOTLKDJQcKnM7ovd2Dn2GxF4wr8aJ6Z+ZtRW5lE=; b=j
+	samXKKyQcrlGQtGpvUpGp+oRp4ujEWwheRFlyTS2oKjFrvqZ3OJxT8zQVo2wtSLS
+	y2z2lUqhHGGDXKE4iIcBBKaVCcF1lMPae/SfaTKgolpV5+DZeNIeL2EiEwsB5HLH
+	YteQ+sMl05mL6Qa0MSed67pdWOcmw8DNNuVOC9XMWEuw/WAQuv+u6ukp0fxBH8GI
+	3rD8uEkVbMZ/dnaUPE1rIBadBBBHId7UKltBuZT+ikbKxQcprio7MuSLVpk6vDRc
+	Yj9DsT4AwO7GP+IqZsaBHdQHfxLsvMG77YBI021VzcHYu9yE7k4H9lqZPrHCcIyS
+	Ymo++NmJ9mCgfJnKZjwwg==
 X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
 	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
 	action=sign d=arndb.de a=rsa-sha256;
-DKIM2-Signature: i=1; m=1; t=1794492325; d=arndb.de;
+DKIM2-Signature: i=1; m=1; t=1794492386; d=arndb.de;
 	mf=PGFybmRAYXJuZGIuZGU+;
 	rt=PHNwYXJjbGludXhAdmdlci5rZXJuZWwub3JnPg==;
-	s=fm2:rsa-sha256:AstGTgtsxggLmyUDv7BunCj72dDvIHRYygJd/kRcDcLy14I
-	AD9okuPPw2VKiLFVAqUs4k/ZF+/3SaXnv3x77DiW5Sb9s3Lbh2sd3xlzcRbS1CJy
-	Zz+Tywx7PRpXleuOYwztbUdOddyVFS/wSX7vdpaqiLHaFdCnYNxvQ0gGj75S0onI
-	9VLEGkVipeO0SdlPU8L9A55cvPesAummYWwQ9aRxFTyOYgd+y1pSfY8HrRQgkyB1
-	z7gtB0YhfOA3XmyPaidnuOha/7mSm4YaddIYBAiYGfXq/0VthIDYrkeoFI/qZaRJ
-	MIv7yZk9TKJ4d0EU1CK4Qqlz5ufWV494nW2ZqJQ==;
+	s=fm2:rsa-sha256:RQqGl2VpAo0A+UWEU9kbQpXHHgDpRFazadLpSqVDOxCIZwW
+	Bca8q8ABVRyLyPKgjteglEYhwWgj3MFN/ho77J3cGuTYc8glqCfqOT2eQ5UbwnWa
+	TB8VavSdlc1/hMr6CDNilCOSKMFmWpLt+3KYGfZes1fkZ/z15kPEM1Jo6brSpNPI
+	Bro4gcAubu01jQjRpUX9wrwLDkpmpavXgqCS9pkPw7y36SdEgdUO1pQg/V3Hwp2a
+	kKE3MWBLjjW3RXa+PWP2RxQKlSy1pQfoRSA2mQAhoylSrrGme9JC5LInIEmHX0Gf
+	EpfzlzwVnzXf+Fp/VdLdD6CSTCFbjPXsLlkTxhQ==;
 X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
 	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
 	action=mi-m=1; hc=12;
 	hn=cc,content-transfer-encoding,content-type,date,feedback-id,
 	from,in-reply-to,message-id,mime-version,references,subject,to;
-Message-Instance: m=1; h=sha256:V60JOROyj/FCtqcbRKRyHTpWddfUd3jbk7dyOJsukjU=:Of2aUQiysyEawKxf7qyisIhQXXg6zSM4x99cDBoHPUk=;
-X-ME-Sender: <xms:oMf1agFOMxhRnSVLuDUoykP5UcEaUmqTFjlXdqyO2uB6F9su6yRNUw>
-    <xme:oMf1akLwZwhweZnV5ZmnIfs10GzsHsK22-pTYnrYX3V-cjegvJPl_Myftn5u0Gbwm
-    DaCWXLR_MoNxjIEU4nSmSLZrTGV1f3nnW3z6kcicXNxfBcD27jZuRoh>
-X-ME-Proxy-Cause: dmFkZTEo6VaWdj6bxILRHhv5G1jOW57ujTVJlC60OvW6f6oZAOkjAhJfLyfQ49u3ydRqSD
-    6McsbenddWiSAoIlBf0W+NIryEOud74ndQRz1ZNlMraGhXPv+PXtGwEWkyMxloBFs28AM+
-    VC192GnF3PbfCLd/7+bSFeIt/B0QBaOAfOsIn395cK3dTopXenIvBp6SQsQKB6phN+B9N8
-    64zvJ/tH5yyX1gC6DuvHI/QxWEKFFTCz3bKka6l9Oc60EMdBZdJIR7mDAcEwPZSfBGmwPb
-    2Z9OY6PpxO64z/9vBGotM7b8//4i1p4MJhV0SzERiXc9YegNJHS2YEhsW2FEyw/g3Y3ZRu
-    oYdobkUaJL2vVkuf3T68WqVhzELvAAGfVl1I02wG2/C2ee5pG4BsL99/ufnRR/RMRJfUDL
-    IAOiMCCS/0lXXQL0QiDC+S9LQxR0GnnllNps6HKEOYOzABoYBb73irVKV+/FvcBrj/lZlt
-    KNgU5rRvLdeTEsl5/OmCVzut8/pJmcfBWSq9jgtDWtKtfbYVKtPBr6tYGiNLXE4KYwDsCX
-    TuSkgz3NcCJjmEocAeYLBdE3MtcNWb4/YseBTWzbPMmhrXkYZPYwSVkCpchNqNRuriNhqE
-    AZrpEdcFFaE1gBWBqfwXUzpCNEzsnW4FNez5rGN8yS7XzeIux+zwtk8TNIAA
-X-ME-Proxy: <xmx:osf1avEZfAfXrF6erZ-8PXAN54m2ulAyFtO0FYzjsf_1FxrnbaIiCQ>
-    <xmx:osf1as8BNfiWFYPBCaJ86GPB2RJe4q470hV-HuChed5yBLL21RKeRQ>
-    <xmx:osf1asSOl9G_RlHWFW4hJcVJeg1HfYqN5torsMoo160Yk7Co8S1WEQ>
-    <xmx:osf1ahrsJhcpjQbCC8-euvDiMkYTBNRXBWR9bHNczCu6x11eef6VMw>
-    <xmx:pcf1ashlANfxc3dlsCHW7RA00z0RWpZW_h8YKAmt-y_S0kOrMRqVWIb4>
+Message-Instance: m=1; h=sha256:TDEx+2XEDPCwv4i3FL9YSLCi5D8dWp2o3/cQgDiP8ns=:JHxY1gVMr5Yna58r7UfKvy6gRlQIWiwsrWDbIJI7G2c=;
+X-ME-Sender: <xms:38f1ap_rJ_jsCsMQ41MAW2hQ3TzEVmEcFUvryDJReN1fekLFDTRq9g>
+    <xme:38f1aogA03r26N-KGCidodJks_jV2i2QBQITe8K6lqxYzUtCzOaUbofdiK9mgnl9w
+    4ZSp7imGgtUt91NUthq-qz5A_onLXGmHwQOGqHgoeFbSVisrMxAOq7c>
+X-ME-Proxy-Cause: dmFkZTGPYkBCc9nvzgnh9CGa6gZKRI+IcEF1fg2G7Wyq7UzVQeV6zNhlYgHQfreqw2bxe9
+    xQstIULovF3CK4uhQpR8cEZz7AA0ChTcc22sELOJwvqNoYuolmsRFj0T0BBjeZiEwJOfuC
+    8YQUZSg/a2Pp3PAfG0BJ1TzmC3yOR/962VxYr9uTD3HHZcQj7wOtSY5EZ9rz/FmieEs2pt
+    ukVFgDGlkLdaPqPT+/JFhrt3WarMufiyGKdUxGynEAYbzdq/V972kexsOQnXXscwtAYcd8
+    d+KOCpTn2YnKI3/alMszUky1iaLkLaklciJetmtygaZapBAqTDBO66YloxtQj3IKN6cSTA
+    MAGBcSvHE8mQzLvD1RdfnfYWV44W4zZqHFWnK46VkpMPCkZtCvdy1JS+zAdg6ODYWBgKsD
+    G8sSlbHqlM7hd4t9mTGAxa1B+jPcF0JHXlo4G4Ns5UrWM79As6MJBBbDQ9pzNL5wmKmp89
+    HsTHn1gVjydVG6zngECVmN2OdrumnMCfS/7D+j5FlgpCnRuWsk1vNcaAv2ujcn89BUVEfq
+    aLFNbpWVHAZQkgKGXB3cfnG5iKu8XvVRhSk8NbFtdT58W6T/GXeZegPtC8Q5A4B0/fsRCc
+    JckAnzZnlsR81jRCGZDPK88pufnNmWTUXHHxN6EbStsauEOutjojfgYf/PJw
+X-ME-Proxy: <xmx:4cf1alh_NXAllw19P2oRA6fO455cK5nUCq3vAi2OiZ7imJsGjryqrw>
+    <xmx:4cf1aqe7-r9GX8R86cK8PdYqUuBHWMw1K7V0irj7LBNAkhvArEZsOw>
+    <xmx:4cf1ak1gMTN2vGrJp-SfOWzM_3j-zFtVjwOA2HoRHWTsnOzc4VECqA>
+    <xmx:4cf1amr-GAxp0EUs_TeKwqgOPFj_tHkZmUeu7dDGJJqE9zrC2m2dMg>
+    <xmx:4sf1agKKrF8Afl_meq1aS-zdAZZTmLJ8mGoP55xmG21a__LtfRPA2OIF>
 Feedback-ID: i56a14606:Fastmail
 Received: by mailuser.ams.internal (Postfix, from userid 501)
-	id 8FB1332A0099; Thu, 12 Nov 2026 09:05:20 -0500 (EST)
+	id 0959B32A0099; Thu, 12 Nov 2026 09:06:23 -0500 (EST)
 X-Mailer: MessagingEngine.com Webmail Interface
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -115,8 +115,8 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-ThreadId: A6ErS7mxpCYw
-Date: Thu, 12 Nov 2026 15:05:00 +0100
+X-ThreadId: AgHRK7OsiQZc
+Date: Thu, 12 Nov 2026 15:05:52 +0100
 From: "Arnd Bergmann" <arnd@arndb.de>
 To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>,
  "Masami Hiramatsu" <mhiramat@kernel.org>
@@ -126,31 +126,30 @@ Cc: "Christian Brauner" <brauner@kernel.org>, linux-kernel@vger.kernel.org,
  linux-alpha@vger.kernel.org, linux-s390@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, soc@lists.linux.dev,
  linux-mips@vger.kernel.org, sparclinux@vger.kernel.org
-Message-Id: <b728a698-bac7-4cfb-9eba-505f955148eb@app.fastmail.com>
-In-Reply-To: <20261105-tonyk-syscall_table-v9-1-8d1275885d9c@igalia.com>
+Message-Id: <e993ddca-9e64-4a78-adf5-a105dd5d6254@app.fastmail.com>
+In-Reply-To: <20261105-tonyk-syscall_table-v9-2-8d1275885d9c@igalia.com>
 References: <20261105-tonyk-syscall_table-v9-0-8d1275885d9c@igalia.com>
- <20261105-tonyk-syscall_table-v9-1-8d1275885d9c@igalia.com>
-Subject: Re: [PATCH v9 01/15] syscalls: Make --abis parsing more robust
+ <20261105-tonyk-syscall_table-v9-2-8d1275885d9c@igalia.com>
+Subject: Re: [PATCH v9 02/15] syscalls: Create unified partial table for all archs
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
 On Thu, Nov 5, 2026, at 21:05, Andr=C3=A9 Almeida wrote:
-> Some archs Makefile have something like this as the rule for making the
-> syscall files:
+> To take advantage of the subset of syscall numbers that are guaranteed=
+ to
+> be shared, create a new table and adapt generation scripts to use it. =
+In
+> that way, every new syscall can be added to a single file.
 >
->   cmd_systbl =3D $(CONFIG_SHELL) $(systbl) --abis common,$* $< $@
+> Create special ABIs in order to make the table work for different arch=
+s:
 >
-> The $* symbol is evaluated to the variable found at $(uapi)/unistd-%.h,
-> where % is 32 or 64, resulting in e.g. `--abis common,32`. Sometimes t=
-he
-> rule for the file won't have a %, resulting in a trailing comma e.g.
-> `--abis common,`.
+>  - `clone3` for archs that use the common clone3 entry
+>  - `__clone3` for archs that use their own special entry point
 >
-> Currently this input is transformed into (common|). This is problematic
-> because grep will then match any ABI because of the trailing `|`. Make=
- the
-> syscalls scripts more robust by removing any trailing comma.
+> Create flags for syscall Makefiles to use the common table.
 >
 > Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
+> ---
 
 Acked-by: Arnd Bergmann <arnd@arndb.de>
