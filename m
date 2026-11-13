@@ -1,47 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.189.121.228
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794580577;
-	b=jZ7cWCcmPI/iekvaFLHTY/WGYeTbNdp8pW9W8exRLakStO2JUjmKk15PYwO0Op6+EL2/
-	 EvMCOoyjPU0nOTpdLj6P5OjE8GIxRF0DDv4wzN7/03IDjqX+CP+hVjLgOMRgkWnFx5f73
-	 JXXFq/LLLpY9tCUnfWGigtEynqLwG/EHZDXZ7yCYte9BO93fUkWD9qoQLTN0LcqaavZqd
-	 IXO18ehbtJmYsoEHmX5EcW9RHrSR3U7v7PBWaNctfxRR/mQ79bZHwpdwY7dZfVfz9KjR2
-	 OBcx8tSwwW4wexZUt9ZAdjdpKOQ++ULzIUi5nm5uQVFaN9qgOvo968/8CWwhzTxF6eA==
+	t=1794580879;
+	b=DqSC531VJg+VGTO+8A7WHM6AHO4NYV39+xcRfCAhFtqLtD/jFUOzibresxVHqLwe3AFH
+	 GY2kabrPBfRqROlqnSijcaLGKQkabTYBmQz5BdiFwJ/6jgrmsyOIKui5kl+yApwSMCS2e
+	 FrcDTh6N0aF+0mWl/+KEDHgcyTt2RBnPrTydaO79aI5c0T4IKL8T1ah/ludEHOMnmMy7+
+	 HD3BiqfWXlOV9caAvPx7BVSweGmajiOVN3sxTeR260Ka1mtiH4uYPQ9sdtK66eiseB7TL
+	 qT0rRPjXRI3IttGOfqjNaOBuaX9HqaUS3gmLIB7lwvBK080qrL0BDvtNRdWd6eh8Fnw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794580577;
-	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=w49hyKAjJNYQc0T0xEVaI68+0oF+m2dcDRcRYzEk8rs=;
-	b=OtwB2aXtZOl+ucpDClDVKDR7uUEqEjuYNerfG4u1kOAqAhopQ4XfofcZyQVUNNtmA4q7
-	 brkJqiBoLRaaYBDufLX9OL2sauWefFNq7hDz4a3DucgEKykUgv/5xSN9zYgUZ8RbjA1qT
-	 k6Xna6VuEQjo5RLTTev5N9tfk3k8VyjHKqZumcYxCWxxs4qS3qiArN+HDKMipLusxYWGq
-	 D3PyRbXGSP2B65jvCrF8LX4SC+DydffFJoGItwEGhbxdgCFh/G8SE3zN3lp7VROF2dRbI
-	 lbkygIl7z57fI5mUAWCKvAIiFF1ZfA7lqwYCPglocO27LO3L5KaSEbM2eFJAw62WouA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794580879;
+	h=DMARC-Filter:From:DKIM-Signature:To:Cc:Subject:Date:Message-ID:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=YkNWVwW1/XPiB+NZFpQOG8PrZ8FpJ1mKSzeBpPs45Oo=;
+	b=WkjObR1Q5KoWRJMeVm2vGDG7hRSNppVc0F9hp+cbLGGDEA8xOj76bPGOtGPFJivAw4rM
+	 50gI1rhMINjpQuh+HOGiuw8mj4I+NPN6dLP+oq8d5C/F9QO+F7lJ19SGnAksHCwBT6Drr
+	 Dj3VRckUY6rvMi+JW9fz/XOElDeU6X1Z8U+QLdjRkopY6AiDivHBJsT/vObzM/u4YMxdi
+	 Rf4yMbB0WTeaa9/mPRcTOAvNaW2fFB8ipLXpAy2zuuFTMLopvy3qKw7ZLQu5ojmfnE0V6
+	 bxyff/gQMl3yOEPsITPijvAnqwnsFyns0kMpGJ294RECh/lzeQFvO8/fCvGJ3vYvJng==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jDjzVVrU;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=itx.no;
+	spf=pass smtp.mailfrom=itx.no;
+	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=da2O+VHs;
+	arc=none smtp.remote-ip=91.189.121.228
+Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EAD0606A327;
-	Fri, 13 Nov 2026 14:36:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEC0B606A332;
+	Fri, 13 Nov 2026 14:41:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CEC0B606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jDjzVVrU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88B8A1F000C4;
-	Fri, 13 Nov 2026 14:36:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794580577;
-	bh=w49hyKAjJNYQc0T0xEVaI68+0oF+m2dcDRcRYzEk8rs=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=jDjzVVrUjcqqvOcF2zRf/R4D2SkobqauH5sB4E4FWc03X74m4jxFCQSio9YHHHuuR
-	 9Ml4Tlrckfk60OSmZz+hec4p2l9kmjLvQBMrX/YWsRQQvgUFJp0NHQZIrCyw0Gwiek
-	 QZbpgzhogd+cwsY3Nd25gGqUKt3Baw/aKdlCaoUNBkxmn6Z5pyPj2weF8qqKc3/A8M
-	 /Hvf3OTZxfDyyZ1sLXoNdqhyld8LAWFVmEcfNS1X7e6OGeS63NUqhOrnPQq/ZF6Igj
-	 DMtYYds7K9Hh4P0SFcSWYXYIJSddoBhMr/8mdEZ/t7+gx48plf7GD6vYahVdtRVM4l
-	 DMbaEQTybkmNw==
-Message-ID: <3f7af771-87a7-4ae7-9919-bc4c23bd31c9@kernel.org>
-Date: Fri, 13 Nov 2026 15:36:01 +0100
+	dkim=pass (1024-bit key, unprotected) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=da2O+VHs
+From: Stian Halseth <stian@itx.no>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
+	t=1794580876;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=YkNWVwW1/XPiB+NZFpQOG8PrZ8FpJ1mKSzeBpPs45Oo=;
+	b=da2O+VHsg9+fNSNXZT9aSQJrhsPjjYADDsebMcpXTv0UMeXsOaHujEu/FV7+2QzDYe5sTv
+	bAQJ8ywirLL1+JyOkGpCWtHN60L1M1cc0gBSDI8JxBPfu16ABppI266YPZZmouQwSNnypS
+	qVjVZfGwIKxBALRCSRxQnOjMchkoVqs=
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>,
+	Naveen N Rao <naveen@kernel.org>,
+	Danish Khateeb <danishkhateeb03@gmail.com>,
+	sparclinux@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Stian Halseth <stian@itx.no>
+Subject: [PATCH v2 0/4] sparc64: kprobes: Make kprobes work on sun4v
+Date: Fri, 13 Nov 2026 15:40:53 +0100
+Message-ID: <20261113144057.1697874-1-stian@itx.no>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -51,135 +63,46 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RESEND v8 11/16] powerpc: extend execmem_params for
- kprobes allocations
-To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
- "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>,
- Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?=
- <bjorn@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>,
- "David S. Miller" <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>,
- Donald Dutile <ddutile@redhat.com>, Eric Chanudet <echanude@redhat.com>,
- Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
- Huacai Chen <chenhuacai@kernel.org>,
- Kent Overstreet <kent.overstreet@linux.dev>, Liviu Dudau
- <liviu@dudau.co.uk>, Luis Chamberlain <mcgrof@kernel.org>,
- Mark Rutland <mark.rutland@arm.com>, Masami Hiramatsu <mhiramat@kernel.org>,
- Michael Ellerman <mpe@ellerman.id.au>, Nadav Amit <nadav.amit@gmail.com>,
- Palmer Dabbelt <palmer@dabbelt.com>, Peter Zijlstra <peterz@infradead.org>,
- =?UTF-8?Q?Philippe_Mathieu-Daud=C3=A9?= <philmd@linaro.org>,
- Rick Edgecombe <rick.p.edgecombe@intel.com>,
- Russell King <linux@armlinux.org.uk>, Sam Ravnborg <sam@ravnborg.org>,
- Song Liu <song@kernel.org>, Steven Rostedt <rostedt@goodmis.org>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
- bpf@vger.kernel.org, linux-arch@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
- linux-mm@kvack.org, linux-modules@vger.kernel.org,
- linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
- netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-References: <20240505160628.2323363-1-rppt@kernel.org>
- <20240505160628.2323363-12-rppt@kernel.org>
-Content-Language: fr-FR
-From: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
-In-Reply-To: <20240505160628.2323363-12-rppt@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Hi Mike,
+Any kprobe hit on a sun4v machine oopses. The probed instruction is
+single-stepped from memory that is not executable there. Patch 1
+moves the copy into an instruction slot from get_insn_slot(), as other
+architectures do.
 
-Looks like I missed this change ...
+Once probes work, three older single-step bugs show up. A taken BPr or
+FP branch resumes at the wrong address (patch 2). So does a probe on a
+delay slot instruction (patch 3). An annulled branch can skip the
+break instruction after the copy (patch 4). Patch 2 overlaps Danish
+Khateeb's relbranch_fixup() fix from September. Whichever is applied
+first, the other is a small rebase.
 
-Le 05/05/2024 à 18:06, Mike Rapoport a écrit :
-> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> 
-> powerpc overrides kprobes::alloc_insn_page() to remove writable
-> permissions when STRICT_MODULE_RWX is on.
-> 
-> Add definition of EXECMEM_KRPOBES to execmem_params to allow using the
-> generic kprobes::alloc_insn_page() with the desired permissions.
-> 
-> As powerpc uses breakpoint instructions to inject kprobes, it does not
-> need to constrain kprobe allocations to the modules area and can use the
-> entire vmalloc address space.
+Tested on a SPARC T7-1 and T4-1 (sun4v) and a Sun Fire V240 (sun4u):
+entry and return probes, probes on all 50 instructions of
+__task_pid_nr_ns at once while checking getppid(), ps and /proc, probes
+on the SPARC AES routines during AF_ALG encryption (sun4v), and
+refusal of ba,a. Without the series the first probe hit oopses on
+sun4v. A probe on a taken brnz oopses on sun4u as well.
 
-Using breakpoint means the segment must still be executable.
-On book3s/32 VMALLOC segment is not executable, while module segment is.
+v2: make flush_insn_slot() a no-op in patch 1 (Masami). The slot is
+flushed in arch_prepare_kprobe() when it is written. A killed probe
+has a NULL slot pointer. init_aggr_kprobe() flushed through it.
+Patch 4 no longer touches the macro. Rebased onto 7.4-rc3. Build
+tested on the T7-1.
+v1: https://lore.kernel.org/all/20261009180336.1315684-1-stian@itx.no/
 
-See commit 6ca055322da8 ("powerpc/32s: Use dedicated segment for modules 
-with STRICT_KERNEL_RWX")
+Stian Halseth (4):
+  sparc64: kprobes: Single-step from an executable instruction slot
+  sparc64: kprobes: Fix up register and FP branches after single-step
+  sparc64: kprobes: Resume after a delay slot at the saved next PC
+  sparc64: kprobes: Handle annulled branches
 
-See report and fix at 
-https://lore.kernel.org/all/ed03d290d440d579a81ae0b7de5243721291d903.1794543909.git.ritesh.list@gmail.com/
-
-Christophe
-
+ arch/sparc/include/asm/kprobes.h | 14 +++----
+ arch/sparc/kernel/kprobes.c      | 69 +++++++++++++++++++++++++++-----
+ 2 files changed, 66 insertions(+), 17 deletions(-)
 
 
-> 
-> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-> ---
->   arch/powerpc/kernel/kprobes.c | 20 --------------------
->   arch/powerpc/kernel/module.c  |  7 +++++++
->   2 files changed, 7 insertions(+), 20 deletions(-)
-> 
-> diff --git a/arch/powerpc/kernel/kprobes.c b/arch/powerpc/kernel/kprobes.c
-> index 9fcd01bb2ce6..14c5ddec3056 100644
-> --- a/arch/powerpc/kernel/kprobes.c
-> +++ b/arch/powerpc/kernel/kprobes.c
-> @@ -126,26 +126,6 @@ kprobe_opcode_t *arch_adjust_kprobe_addr(unsigned long addr, unsigned long offse
->   	return (kprobe_opcode_t *)(addr + offset);
->   }
->   
-> -void *alloc_insn_page(void)
-> -{
-> -	void *page;
-> -
-> -	page = execmem_alloc(EXECMEM_KPROBES, PAGE_SIZE);
-> -	if (!page)
-> -		return NULL;
-> -
-> -	if (strict_module_rwx_enabled()) {
-> -		int err = set_memory_rox((unsigned long)page, 1);
-> -
-> -		if (err)
-> -			goto error;
-> -	}
-> -	return page;
-> -error:
-> -	execmem_free(page);
-> -	return NULL;
-> -}
-> -
->   int arch_prepare_kprobe(struct kprobe *p)
->   {
->   	int ret = 0;
-> diff --git a/arch/powerpc/kernel/module.c b/arch/powerpc/kernel/module.c
-> index ac80559015a3..2a23cf7e141b 100644
-> --- a/arch/powerpc/kernel/module.c
-> +++ b/arch/powerpc/kernel/module.c
-> @@ -94,6 +94,7 @@ static struct execmem_info execmem_info __ro_after_init;
->   
->   struct execmem_info __init *execmem_arch_setup(void)
->   {
-> +	pgprot_t kprobes_prot = strict_module_rwx_enabled() ? PAGE_KERNEL_ROX : PAGE_KERNEL_EXEC;
->   	pgprot_t prot = strict_module_rwx_enabled() ? PAGE_KERNEL : PAGE_KERNEL_EXEC;
->   	unsigned long fallback_start = 0, fallback_end = 0;
->   	unsigned long start, end;
-> @@ -132,6 +133,12 @@ struct execmem_info __init *execmem_arch_setup(void)
->   				.fallback_start	= fallback_start,
->   				.fallback_end	= fallback_end,
->   			},
-> +			[EXECMEM_KPROBES] = {
-> +				.start	= VMALLOC_START,
-> +				.end	= VMALLOC_END,
-> +				.pgprot	= kprobes_prot,
-> +				.alignment = 1,
-> +			},
->   			[EXECMEM_MODULE_DATA] = {
->   				.start	= VMALLOC_START,
->   				.end	= VMALLOC_END,
+base-commit: b3dfbde62cf1981c4638939c159dfd087b7a72e9
+-- 
+2.43.0
 
