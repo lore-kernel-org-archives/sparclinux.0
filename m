@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794753562;
-	b=yZVfEGttjpNgVCCllEfL18tuSZKvp7VVFfZUp6EpeTRYcQuqENWUquPJGHjT7kuuIWOU
-	 YpdMCztvhHAlSYgw7b+C9gBdi3MoSioN9/rJnkepz8zGRii7kHz8BueI8getsHFsTuQge
-	 /UO6B1Ah3w/mYnc8iBBuJCLEhmE4SwBfC2KpdwSL6lQ/Y/ulMB8d1kS6pCq0QWLcTGkuo
-	 erj6Zw/Vb1p1rVZQU1NargmW7fWoc3+pxKGnPLj4ztea5/p7E4RULy3klQyNStk1ZoZy7
-	 ajepCV+Xsk8QtySFGSvOqkDQL1GDt0LZzWM2JX6C4PjErMop3lu6Vs3WjV3t1j/4sNw==
+	t=1794753569;
+	b=TPxwfTUlsclckA6KSgMZiQYfbXJepsiqbjaNXdp5jTZTTUGipn3k8SijTQ1JdO3399lW
+	 oEF36BtOD1H4oj5S8QZrx5TMikjB/1u85Z9TnNENNXVuMbLuYn8I/JtS/W4k8wjmJ12ok
+	 cZ6u/3BHl/kb1N5UbB9OBFnWthGw0IZ6U9ut2FGv7wXDUQSapN4olVLmWwcMEx+h4v4fW
+	 D9zDkx3pWDRL1biQ1KpkGRGk8YSoimfYPb1UKvaAnIEUxdIGCtmp52+Kh7NtPZ8JU9tNw
+	 qGCqdqr/3zoc35z6kRxl6ZFVr5qdyPRerc+5wP7kACY0XHcY2uaupqRK7WvRFI/UU4Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794753562;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794753569;
 	h=DMARC-Filter:Received:Received:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=ZaejXHaBUpAvEwKuL1oBVBhqrVdgMX2jfRxMaYZY1C0=;
-	b=Rx1+vcPeIVVcga5XGy0+S6Tpas85+7uZgdf8cB2WDGA6c2FarOqT+fbMHiSsoGJeHO5n
-	 gZ9I+7QyEZTnEbcYzcpuHbdj0oOX6C6AgpUJc1r9Fj1FVbccwQgc+LxhyoVZBwWlcHfuc
-	 BtHZOjZh8CdZp/qEspd5dqWx/wmwCM/LIGETyxa/5peLrpuRQ5JvalOa+fNabpDFAl8rC
-	 M+T8/zPU6ksavKuw0hVtr6qFr11kKcHCiXMVd7ZQnwuuvykouBT0oD+M10eejytewgx5y
-	 nhORekwtHrFJ9WoS5Lr2gvDjnA0yL8mD87+GbYKS23oURsHrNHJmCJSzUhaTaSc0fqg==
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=TskDAOAWXEo8flmJwWvmjXmj7YUn6WxOmJxYrefk24E=;
+	b=cSuQyUN0t6tVbYomeDMmA3vah9KPhsVLbS9nOnu8ImWF4XYuZ+1cuEXed4u213HvdPtT
+	 14ERU0Hu5KpclvdgZlORFxveIaTLVztYp61LIOOeKLF8pz2TjbAQRtZTcvV5589NtYI/t
+	 q8Vqmdzrhmu8O31jtnjperAZ+UB4NMXPdabgOORe8k/+3yeNLiZIMYK34pKe0pBGL1lrr
+	 PcGfVW7aRfOhhgkssZ7WzJ7LZ6saBxpBPw4gYTYQz7+AHBeUPk/px8dXq5S+1UndX76q2
+	 rwYMMf5OAfDxwFt3NyZE6tGuBqjI8vnTI1y2daogXhSXIHXZ5Ilj/eTp1whyFtuy8dg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=arm.com;
 	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Y7Vd6qgN;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=dGY+3TkQ;
 	arc=none smtp.remote-ip=217.140.110.172
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AEEA9606A31F;
-	Sun, 15 Nov 2026 14:39:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AEEA9606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 83B05606A31D;
+	Sun, 15 Nov 2026 14:39:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 83B05606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Y7Vd6qgN
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=dGY+3TkQ
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 84E751476;
-	Sun, 15 Nov 2026 06:39:16 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D88F71476;
+	Sun, 15 Nov 2026 06:39:24 -0800 (PST)
 Received: from cesw-amp-gbt-1s-m12830-01.blr.arm.com (cesw-amp-gbt-1s-m12830-01.blr.arm.com [10.164.195.33])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id ACC043F85F;
-	Sun, 15 Nov 2026 06:39:11 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 1063F3F85F;
+	Sun, 15 Nov 2026 06:39:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1794753559; bh=jI0WbTDOJd6J5+na5JHcdV0AETzFP4/ftE8ndjLZuMw=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Y7Vd6qgN125q8hK35gQR0raUdxPiX5gSqSFy44kpN+z29FlGNNe97oyKtLMGxDtlE
-	 Z/Y0dYXpMbLieTfKz8aDW2YRqEltVKVwNb+kxYClYQWm/5ZbkGfdaEkJ5vK6fiVuNF
-	 RTmXNEProFAb29tj75RfnqnFRB6o6JsA/6UCCFok=
+	t=1794753567; bh=IRV0Se7ac+aPU1wxdxXwDgPgVOJdcgTy6K/y0/wG5B4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=dGY+3TkQ+VgGngptslyasnoZpm9Yj8NS4w09ek+LZL0mTIqzRaBpDUc5jGG1Ed2DJ
+	 sK0OjKBZDEwa/YRcNoZGJYHYfM12KtRPersett9Qx4i6pCmZCotZU5wPk66mu+m+no
+	 xl6d9kcEV3X3vFYAMzmNuk6f62viZZPOPADhEKpY=
 From: Dev Jain <dev.jain@arm.com>
 To: david@kernel.org,
 	ljs@kernel.org,
@@ -73,10 +74,12 @@ Cc: Dev Jain <dev.jain@arm.com>,
 	geert@linux-m68k.org,
 	sparclinux@vger.kernel.org,
 	ryan.roberts@arm.com
-Subject: [PATCH v4 0/9] Optimize anonymous swapbacked large folio unmapping
-Date: Sun, 15 Nov 2026 14:38:55 +0000
-Message-ID: <20261115143905.3045084-1-dev.jain@arm.com>
+Subject: [PATCH v4 1/9] mm/swapfile: add batched version of folio_dup_swap
+Date: Sun, 15 Nov 2026 14:38:56 +0000
+Message-ID: <20261115143905.3045084-2-dev.jain@arm.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261115143905.3045084-1-dev.jain@arm.com>
+References: <20261115143905.3045084-1-dev.jain@arm.com>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -88,128 +91,139 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Speed up unmapping of anonymous swapbacked large folios by clearing
-the ptes, and setting swap ptes, in one go.
+Add folio_dup_swap_pages to handle a batch of consecutive pages. Note
+that folio_dup_swap already can handle a subset of this: nr_pages == 1 and
+nr_pages == folio_nr_pages(folio). Generalize this to any nr_pages.
 
-The following benchmark (stolen from Barry) is used to measure the
-time taken to swapout 256M worth of memory backed by 64K large folios:
+Currently we have a not-so-nice logic of passing in subpage == NULL if
+we mean to exercise the logic on the entire folio, and subpage != NULL if
+we want to exercise the logic on only that subpage. Remove this
+indirection: the caller invokes folio_dup_swap_pages() if it wants to
+operate on a range of pages in the folio (i.e nr_pages may be anything
+between 1 and folio_nr_pages()), and invokes folio_dup_swap() if it
+wants to operate on the entire folio.
 
- #define _GNU_SOURCE
- #include <stdio.h>
- #include <stdlib.h>
- #include <sys/mman.h>
- #include <string.h>
- #include <time.h>
- #include <unistd.h>
- #include <errno.h>
-
- #define SIZE_MB 256
- #define SIZE_BYTES (SIZE_MB * 1024 * 1024)
-
- int main() {
-     void *addr = mmap(NULL, SIZE_BYTES, PROT_READ | PROT_WRITE,
-                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-     if (addr == MAP_FAILED) {
-         perror("mmap failed");
-         return 1;
-     }
-
-     memset(addr, 0, SIZE_BYTES);
-
-     struct timespec start, end;
-     clock_gettime(CLOCK_MONOTONIC, &start);
-
-     if (madvise(addr, SIZE_BYTES, MADV_PAGEOUT) != 0) {
-         perror("madvise(MADV_PAGEOUT) failed");
-         munmap(addr, SIZE_BYTES);
-         return 1;
-     }
-
-     clock_gettime(CLOCK_MONOTONIC, &end);
-
-     long duration_ns = (end.tv_sec - start.tv_sec) * 1e9 +
-                        (end.tv_nsec - start.tv_nsec);
-     printf("madvise(MADV_PAGEOUT) took %ld ns (%.3f ms)\n",
-            duration_ns, duration_ns / 1e6);
-
-     munmap(addr, SIZE_BYTES);
-     return 0;
- }
-
-Performance as measured on a Linux VM on Apple M3 (arm64):
-
-Vanilla - Mean: 37401913 ns, std dev: 12%
-Patched - Mean: 17420282 ns, std dev: 11%
-
-resulting in more than 2x speedup.
-
-No regression observed on 4K folios.
-
-Performance as measured on bare metal x86:
-
-Vanilla - mean: 54986286 ns, std dev: 1.5%
-Patched - mean: 51930795 ns, std dev: 3%
-
-I tried magnifying the difference on x86 by using 1M large folios, but
-can't spot an obvious improvement (looks like my system is too fast to
-benefit from batched atomic operations!), hinting that the benefit lies
-mainly in the reduction of ptep_get() calls and the reduction of TLB
-flushes during contpte-unfolding, on arm64.
-
-No regression is observed on 4K folios on x86 too.
-
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Signed-off-by: Dev Jain <dev.jain@arm.com>
 ---
-Applies on mm-unstable (24231596edf2).
+ mm/rmap.c     |  2 +-
+ mm/shmem.c    |  2 +-
+ mm/swap.h     | 18 ++++++++++++++++--
+ mm/swapfile.c | 18 ++++++++----------
+ 4 files changed, 26 insertions(+), 14 deletions(-)
 
-mm-selftests pass.
-
-This breakout patchset is the final completion of
-https://lore.kernel.org/all/20260526063635.61721-1-dev.jain@arm.com/
-
-The extra addition is the generic set_softleaf_ptes() helper.
-
-v3->v4:
- - Make page_anon_exclusive_batch return the exclusivity instead of
-   computing that in the caller
- - Make ttu_anon_folio() return the number of unmapped pages, to simplify
-   the code
-
-v2->v3:
- - page_anon_exclusive_batch returns unsigned long, shift to rmap.h
- - Drop a para in description of patch 5, use softleaf_is_swap to gate
-   pte_swp_exclusive
- - finish_folio_unmap -> finish_folio_unmap_batch
- - Add patch 9 to do batching for sparc
-   
-v1->v2:
- - Add WARNs for folio span in folio_*_swap_pages
- - Trivial changes to page_anon_exclusive_batch
- - Add two sanity checks in patch 4
-
-Dev Jain (9):
-  mm/swapfile: add batched version of folio_dup_swap
-  mm/swapfile: add batched version of folio_put_swap
-  mm: move anon-exclusive batch helper to rmap.h
-  mm/rmap: Add batched version of folio_try_share_anon_rmap_pte
-  mm/internal: rename swap offset helpers to softleaf offset
-  mm/internal: add set_softleaf_ptes
-  mm/memory: use set_softleaf_ptes for uffd-wp markers
-  mm/rmap: batch unmap anonymous swap-backed large folios
-  mm, sparc: batch arch_unmap_one()
-
- arch/sparc/include/asm/pgtable_64.h |  10 ++-
- arch/sparc/kernel/adi_64.c          |  21 +++++
- include/linux/pgtable.h             |   6 +-
- include/linux/rmap.h                |  76 ++++++++++++++----
- mm/internal.h                       |  64 +++++++++++----
- mm/memory.c                         |  23 +++---
- mm/mprotect.c                       |  25 +-----
- mm/rmap.c                           | 119 ++++++++++++++++++++--------
- mm/shmem.c                          |   8 +-
- mm/swap.h                           |  35 +++++++-
- mm/swapfile.c                       |  39 +++++----
- 11 files changed, 289 insertions(+), 137 deletions(-)
-
+diff --git a/mm/rmap.c b/mm/rmap.c
+index 0faef46806e5c..512a3a1c63c73 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -2165,7 +2165,7 @@ static bool ttu_anon_swapbacked_folio(struct vm_area_struct *vma,
+ 	swp_entry_t entry = folio_page_swap_entry(folio, page);
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
+-	if (folio_dup_swap(folio, page) < 0)
++	if (folio_dup_swap_pages(folio, page, 1) < 0)
+ 		return false;
+ 
+ 	/*
+diff --git a/mm/shmem.c b/mm/shmem.c
+index 4686875a3adde..e3db6e45cae0c 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -1958,7 +1958,7 @@ int shmem_writeout(struct swap_io_ctx *ctx, struct folio *folio,
+ 		 */
+ 		shmem_disallow_eviction(info);
+ 
+-		folio_dup_swap(folio, NULL);
++		folio_dup_swap(folio);
+ 		shmem_delete_from_page_cache(folio, swp_to_radix_entry(folio->swap));
+ 
+ 		BUG_ON(folio_mapped(folio));
+diff --git a/mm/swap.h b/mm/swap.h
+index d488a69c28091..cbcfd587aac1a 100644
+--- a/mm/swap.h
++++ b/mm/swap.h
+@@ -245,7 +245,8 @@ extern int swap_retry_table_alloc(swp_entry_t entry, gfp_t gfp);
+  * folio_put_swap(): does the opposite thing of folio_dup_swap().
+  */
+ int folio_alloc_swap(struct folio *folio);
+-int folio_dup_swap(struct folio *folio, struct page *page);
++int folio_dup_swap_pages(struct folio *folio, struct page *page,
++		unsigned long nr_pages);
+ void folio_put_swap(struct folio *folio, struct page *page);
+ 
+ /* For internal use */
+@@ -387,7 +388,8 @@ static inline int folio_alloc_swap(struct folio *folio)
+ 	return -EINVAL;
+ }
+ 
+-static inline int folio_dup_swap(struct folio *folio, struct page *page)
++static inline int folio_dup_swap_pages(struct folio *folio, struct page *page,
++		unsigned long nr_pages)
+ {
+ 	return -EINVAL;
+ }
+@@ -489,6 +491,18 @@ static inline void __swap_cache_replace_folio(struct swap_cluster_info *ci,
+ }
+ #endif /* CONFIG_SWAP */
+ 
++/**
++ * folio_dup_swap() - Increase swap count of all swap entries of a folio.
++ * @folio: folio with swap entries bound.
++ *
++ * See folio_dup_swap_pages() for more information.
++ */
++static inline int folio_dup_swap(struct folio *folio)
++{
++	return folio_dup_swap_pages(folio, folio_page(folio, 0),
++				    folio_nr_pages(folio));
++}
++
+ static inline bool swap_cache_folio_mappable(struct folio *folio,
+ 		unsigned int nr_pages)
+ {
+diff --git a/mm/swapfile.c b/mm/swapfile.c
+index fcda5eba17140..d46cb1cf6469d 100644
+--- a/mm/swapfile.c
++++ b/mm/swapfile.c
+@@ -1860,9 +1860,10 @@ int folio_alloc_swap(struct folio *folio)
+ }
+ 
+ /**
+- * folio_dup_swap() - Increase swap count of swap entries of a folio.
++ * folio_dup_swap_pages() - Increase swap count of swap entries of a folio.
+  * @folio: folio with swap entries bounded.
+- * @page: if not NULL, only increase the swap count of this page.
++ * @page: the first page in the folio to increase the swap count for.
++ * @nr_pages: the number of pages in the folio to increase the swap count for.
+  *
+  * Typically called when the folio is unmapped and have its swap entry to
+  * take its place: Swap entries allocated to a folio has count == 0 and pinned
+@@ -1876,18 +1877,15 @@ int folio_alloc_swap(struct folio *folio)
+  * swap_put_entries_direct on its swap entry before this helper returns, or
+  * the swap count may underflow.
+  */
+-int folio_dup_swap(struct folio *folio, struct page *page)
++int folio_dup_swap_pages(struct folio *folio, struct page *page,
++		unsigned long nr_pages)
+ {
+-	swp_entry_t entry = folio->swap;
+-	unsigned long nr_pages = folio_nr_pages(folio);
++	swp_entry_t entry = folio_page_swap_entry(folio, page);
++	unsigned long idx = folio_page_idx(folio, page);
+ 
+ 	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_WARN_ON_FOLIO(!folio_test_swapcache(folio), folio);
+-
+-	if (page) {
+-		entry = folio_page_swap_entry(folio, page);
+-		nr_pages = 1;
+-	}
++	VM_WARN_ON_FOLIO(idx + nr_pages > folio_nr_pages(folio), folio);
+ 
+ 	return swap_dup_entries_cluster(swap_entry_to_info(entry),
+ 					swp_offset(entry), nr_pages);
 -- 
 2.43.0
 
