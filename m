@@ -1,54 +1,89 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794657205;
-	b=BvkKyNnB5xVNfD964oCDwqE4Sph/RD1k9F1oAX/FdCfEDx+9xRuCCgiWy5dEKNjqsgdA
-	 +wGlkvgvV21FC79e8mRqPVjuttV2Hvgw1akHScNvvqtSOUXPqnHyuGYsbKPK/xoVy3g0m
-	 Rt7QIwCDgwOqpvR6wamBccIy1Te91OqIA0jMPYk6dn0cDbiRTFU7vFZSTnfBSL8sR3m0m
-	 mfKwGZqskZKw1+7Vg61q5BtoOaFfDp8zHRtSn0BaQTb8kVoVRzmDjq7Al/7i9qBv17R0w
-	 65WKGxCsnwwfG1EKyVfmfE4sRxLM/oYKKRxQomiD/1LSlFitRzpZew7DX5gKb4la8Fw==
+	t=1794724744;
+	b=RfPXdTfAIy1ysjOFvtCTRQMxC+F3xOpE4hDmDl8rVT57PkmAljINPwPslLJGny4jBQCt
+	 eJhagj1Ge7cZZe0fxwGj8K8Xu2yazP7Gfpj03cJtkXUI3NBXM/DlB0QLA0IJhixNbBwjB
+	 mZaPefrO03klqZZk3fBQ5lPo3nN4C8/OZbq8axuE0wOyZjJ3FKc2MIgAmoQXCIgJNweNn
+	 Ai5W3gLl1eMXuxRTj3qqwVmVZJ6MQOuNU6uWF5ucCyOTVlfRTTDGD9BIzrMqznQE++/TE
+	 TV39guLR/nF1vFv2UhTy6olzozYW8q9xiOtLodUNl+4WYJAaUAVDKGv6hBkXITKA6dA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794657205;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=UHmecFZqwrRCDn8YnJiwPqnBfBvX41ZxZ7DwvgiUHrU=;
-	b=wfnfXlANhwO4d0pFBXhKsp1EXT/4ZjWMrVQPAQsCmOOGqCG3cuagC7mKkTMcCXfiMRXg
-	 YSGID2bKmbtKfDMbXmc9k9JbCP9lh4sA0xrCk+MhtYurUC8kCmm0ZPNdZumxCOpJWWhIP
-	 qX1QiPmcQcy2FA7DgBsNihbQGdZTZrXHinRYgS5kmkK9JuVt7H1/NZdfURONWXtHw1tnZ
-	 6REBbNIpj9ejdvP29A5iSsWzUkc8R2Io85e9rqCu1mm/7cOT9UYg0Y73WXUezLHfEUfrQ
-	 0odthKng/4Y0PsorGeQuH7sQeoKp8MpYEcCKIAVQYe1QHNNw4t1Lg/MP+AayYFVsYVA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794724744;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=5uzNQjIqKu1Z5H5h4ULFcPsML/9M2qNB6yySUHBpd2Q=;
+	b=h/AP1EZHYqg1tUtXFrQDnze6+q1cmHPahHxpMrVoJED9C10jFUDrV+eTss2V+6e5Txo4
+	 uOtWg177eJ0EYJe3dNwCCMRkmcUdsrobpGfqTlGMbEV4fohtS5UrR9fnNWmDK7yiQKVSo
+	 lvXyluqIVz4JMkc15So0HpwtGomN7fS/5lCGSELj0kYIId9RfS2tDeV6eqBWc5dX+IEW3
+	 vJt/2AI2Tb7/xkrdWLn8j5QdiSbjFlOi02IpXFjszjANEkVaz0SeVJP4qM9YGASjJj+uF
+	 84fasrzTtew0nqHJb1nxrkIZORmmCKztn6nAvhCEDxjWL+1U7gyT/fNoFkBfW5wjJLw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=B+dVNbwk;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XY6g0QDN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03552606A880;
-	Sat, 14 Nov 2026 11:53:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06DB7606A323;
+	Sun, 15 Nov 2026 06:39:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=B+dVNbwk
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A4481F000CD;
-	Sat, 14 Nov 2026 11:53:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XY6g0QDN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FF9C1F000C4;
+	Sun, 15 Nov 2026 06:38:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794657204;
-	bh=UHmecFZqwrRCDn8YnJiwPqnBfBvX41ZxZ7DwvgiUHrU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=B+dVNbwk0uX76HZMRcvgKHV0wWVIh15XIIf+4t4SDKup6nMl6XpJGv8SdxhOTXkVb
-	 VRf+vbQ7NM7zMfCDclmnYAagli4wjQXlSMvUCzn++kZ7YcBFGDdo/A9+Rpzt+0x7ND
-	 jDwq21WUnDPr5J4QLUc/a98qbRxmZu7MZ85terUXoA4PwoxRH2OjlOC4j7ARZn7L0d
-	 +3N7+DRugwJ1YWgNjvpyGJGI1UjZAJxNlBDl6WEYgdysiwr8g6SO5F9wpa9vaK88bL
-	 eVWyN3tOufSkQcD6eDZuOM5AvIE4fjSanK4mdmCDP5VE6otR6BbChMUhEGFq6txwl9
-	 c+icJBOQ2sHMQ==
-From: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-To: Stian Halseth <stian@itx.no>
-Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Naveen N Rao <naveen@kernel.org>, Danish Khateeb <danishkhateeb03@gmail.com>, sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/4] sparc64: kprobes: Single-step from an executable instruction slot
-Date: Sat, 14 Nov 2026 20:53:21 +0900
-Message-ID: <undine-1794657201253656548-9ae005d7b6d5e024@undined.local>
-X-Mailer: UndineD 0.1
-In-Reply-To: <20261113144057.1697874-2-stian@itx.no>
-References: <20261113144057.1697874-1-stian@itx.no> <20261113144057.1697874-2-stian@itx.no>
+	s=k20260515; t=1794724743;
+	bh=5uzNQjIqKu1Z5H5h4ULFcPsML/9M2qNB6yySUHBpd2Q=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=XY6g0QDNlp+U9PsTjMW6Z7U+4AKhATHLs5He0CZN49f2Nu0bcao4bAPuuwEsft6FI
+	 TWnoj+VGBoUPTmb0EJCJXCsTtwSE0k13bv5Te+OZ5Acn6pVLSE5i/fhLT5QGKgwaOk
+	 Ucb2W6afh0Q1yzMIuWl0IoyL1xjTDc8J5WHHCJWlw82oKPLfFptJE13O1Ok9X62IyP
+	 xkoneXTm1OtIXF7WSDiXJH8M/fRN/bG7+qbjc7kJUeud8mWA9cz/xm6XTt15y1BZge
+	 qGkeMJ/mOBJIxREW4t6uml5kStkcI3+UGIwjK5RYkeEIMSPndyRf3R1y4lpuaoL/kN
+	 M2jExDr2sEOLQ==
+Date: Sun, 15 Nov 2026 08:38:46 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	"Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
+	Alexandre Ghiti <alexghiti@rivosinc.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Donald Dutile <ddutile@redhat.com>,
+	Eric Chanudet <echanude@redhat.com>,
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Liviu Dudau <liviu@dudau.co.uk>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nadav Amit <nadav.amit@gmail.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Sam Ravnborg <sam@ravnborg.org>, Song Liu <song@kernel.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
+	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-modules@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH RESEND v8 11/16] powerpc: extend execmem_params for
+ kprobes allocations
+Message-ID: <avlTdlK9ErlqVRYl@kernel.org>
+References: <20240505160628.2323363-1-rppt@kernel.org>
+ <20240505160628.2323363-12-rppt@kernel.org>
+ <3f7af771-87a7-4ae7-9919-bc4c23bd31c9@kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -58,109 +93,43 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <3f7af771-87a7-4ae7-9919-bc4c23bd31c9@kernel.org>
 
-On Fri, 13 Nov 2026 15:40:54 +0100, Stian Halseth <stian@itx.no> wrote:
-> kprobes single-steps the probed instruction from kprobe->ainsn.insn[].
-> The array is embedded in struct kprobe, in the linear mapping. The
-> sun4v linear mapping is not executable. Every probe hit oopses:
-> 
->   sun4v_insn_access_exception: ADDR[fff800005b0cd66c] CTX[0000] TYPE[0006], going.
-> 
-> Allocate the copy with get_insn_slot(), as other architectures do. The
-> slot comes from executable memory in the module area.
-> 
-> flush_insn_slot() flushed the embedded copy after init_aggr_kprobe()
-> had copied it into the aggregator. The aggregator now shares the slot
-> by pointer. arch_prepare_kprobe() flushes the slot when it writes it.
-> Make the macro a no-op, like x86 and arm64.
-> 
-> Fixes: c4bce90ea2069 ("[SPARC64]: Deal with PTE layout differences in SUN4V.")
-> Closes: https://github.com/sparclinux/issues/issues/110
-> Signed-off-by: Stian Halseth <stian@itx.no>
+Hi Christophe,
 
-Looks good to me from kprobe point of view.
-
-Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-
-Thanks,
-
-> ---
->  arch/sparc/include/asm/kprobes.h | 12 ++++++------
->  arch/sparc/kernel/kprobes.c      | 12 ++++++++++++
->  2 files changed, 18 insertions(+), 6 deletions(-)
+On Fri, Nov 13, 2026 at 03:36:01PM +0100, Christophe Leroy (CS GROUP) wrote:
+> Hi Mike,
 > 
-> diff --git a/arch/sparc/include/asm/kprobes.h b/arch/sparc/include/asm/kprobes.h
-> index aec742cd898f2..d14206c063e25 100644
-> --- a/arch/sparc/include/asm/kprobes.h
-> +++ b/arch/sparc/include/asm/kprobes.h
-> @@ -11,25 +11,25 @@
->  #include <linux/types.h>
->  #include <linux/percpu.h>
->  
-> +#define __ARCH_WANT_KPROBES_INSN_SLOT
-> +
->  typedef u32 kprobe_opcode_t;
->  
->  #define MAX_INSN_SIZE 2
->  
->  #define kretprobe_blacklist_size 0
->  
-> -#define arch_remove_kprobe(p)	do {} while (0)
-> +struct kprobe;
-> +void arch_remove_kprobe(struct kprobe *p);
->  
-> -#define flush_insn_slot(p)		\
-> -do { 	flushi(&(p)->ainsn.insn[0]);	\
-> -	flushi(&(p)->ainsn.insn[1]);	\
-> -} while (0)
-> +#define flush_insn_slot(p)	do { } while (0)
->  
->  void __kretprobe_trampoline(void);
->  
->  /* Architecture specific copy of original instruction*/
->  struct arch_specific_insn {
->  	/* copy of the original instruction */
-> -	kprobe_opcode_t insn[MAX_INSN_SIZE];
-> +	kprobe_opcode_t *insn;
->  };
->  
->  struct prev_kprobe {
-> diff --git a/arch/sparc/kernel/kprobes.c b/arch/sparc/kernel/kprobes.c
-> index 191bbaca99212..608efda8cb948 100644
-> --- a/arch/sparc/kernel/kprobes.c
-> +++ b/arch/sparc/kernel/kprobes.c
-> @@ -52,6 +52,10 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
->  	if ((unsigned long) p->addr & 0x3UL)
->  		return -EILSEQ;
->  
-> +	p->ainsn.insn = get_insn_slot();
-> +	if (!p->ainsn.insn)
-> +		return -ENOMEM;
-> +
->  	p->ainsn.insn[0] = *p->addr;
->  	flushi(&p->ainsn.insn[0]);
->  
-> @@ -62,6 +66,14 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
->  	return 0;
->  }
->  
-> +void __kprobes arch_remove_kprobe(struct kprobe *p)
-> +{
-> +	if (p->ainsn.insn) {
-> +		free_insn_slot(p->ainsn.insn, 0);
-> +		p->ainsn.insn = NULL;
-> +	}
-> +}
-> +
->  void __kprobes arch_arm_kprobe(struct kprobe *p)
->  {
->  	*p->addr = BREAKPOINT_INSTRUCTION;
-> -- 
-> 2.43.0
+> Looks like I missed this change ...
 > 
->
+> Le 05/05/2024 à 18:06, Mike Rapoport a écrit :
+> > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+> > 
+> > powerpc overrides kprobes::alloc_insn_page() to remove writable
+> > permissions when STRICT_MODULE_RWX is on.
+> > 
+> > Add definition of EXECMEM_KRPOBES to execmem_params to allow using the
+> > generic kprobes::alloc_insn_page() with the desired permissions.
+> > 
+> > As powerpc uses breakpoint instructions to inject kprobes, it does not
+> > need to constrain kprobe allocations to the modules area and can use the
+> > entire vmalloc address space.
+> 
+> Using breakpoint means the segment must still be executable.
+> On book3s/32 VMALLOC segment is not executable, while module segment is.
+> 
+> See commit 6ca055322da8 ("powerpc/32s: Use dedicated segment for modules
+> with STRICT_KERNEL_RWX")
+> 
+> See report and fix at https://lore.kernel.org/all/ed03d290d440d579a81ae0b7de5243721291d903.1794543909.git.ritesh.list@gmail.com/
+
+I'll take a look, thanks!
+ 
+> Christophe
 
 -- 
-Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Sincerely yours,
+Mike.
