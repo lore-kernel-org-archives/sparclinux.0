@@ -1,85 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794753635;
-	b=nE7Gnm56NTTfJwWXvbs3/DyJ3LZwcKmmhb6wgMfaq8155WLKG30AzYXzCAUjJoqaVgpJ
-	 Jprh5raJYJgwiFsiPGdnN9SSL0L+6r/u15pIDXUIm07T4Gw0EaYYU6qH+Y09+PsUL4ErK
-	 LWcZcTpbQ6HolXBEomWZjhl4VTZLscUNDzHS5AWbC4yDRYLSEJFzPrkqePNRSxmJjpZQB
-	 XRf2VObg4+pF250AqQ43ZUdW/sGBzMzO/Q+FsA/htZaqsnTzr7JunBCZiMBcMyA6kotNh
-	 yMsHymNcFQpCyUgfpG6tqFWEVsVgDTn/ifxKcL9w0JHetkPJH6w7XW1k7T0rJJ7i0AA==
+	t=1794756208;
+	b=sjjg1MvTOq3E7OuLqg8GKB+dGrSmq+S/DgNezrYF8WOMTO8NL1TzeaWATmSpNwRGe7j9
+	 4kVkndQwkP1nrN2WrUavg1Hn+UBp56mGPbzbyC62i4dfCjp5PhZLgSkC/grHK+aDbbSyQ
+	 WDblmFSkx6DadC9x+7w8HLvqOG6yuIcF1ItIoFEKjchmnL6TO21s7aw7vSjRDlZpFimo0
+	 cJHUgni4HxJCVWD3ZWxldU+frwK/ui9/tII8cew8vqMoyVtcgRHcbfwLf7/A+Pfck54B5
+	 MPkyhNE/xYNzbC3GD83Eouxg982ydtOciojSWM3oSVRnfbj2kF80lDYgXKJjEocSWTQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794753635;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=FI3asJNj7qOQlV/TGWUmB60338C7WC/uFNSW9D9/jCI=;
-	b=V+aggnmbcAOu4Llf5AWBPuf2QTlUUI3Z+ZN464wMwIS3PluaUuniiG0UyDehiCPb/ALo
-	 qXk7NA94//zxZ3357LyK93Yfc81lcThlwVnUxmdNqcguqHSG2C424vUgRAezkr9xK7Sjy
-	 xxDNvKlRUfg5ASXFqt/dFFtbgjfHqDSZ5Ri8nazMgppE4CYAUVnwVHf5z7YxmdBOwZ68F
-	 zUfcO0pgqARTUiRJL33lQ029QVNYJB0I1sB3w7xGiHjL+VxbXWdGF4nBbN18EJRSY7OMt
-	 UzhR0FAH7zT9qVfcLVyhJfDCvAwp8tizzBlyCd9UUTM8w98MlsGqImKPJ1tvf8bKl5g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794756208;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=v8TIMiq73Mw5ReQUdV1tXDz4+sKry0oZWtUShE+0QUw=;
+	b=iywjn/le9vMlBfzstBM6x+bET6VqmZ6cAjBbuf9Nc5qPiI/JOOoRGooYUZsULDACbZLs
+	 Vy/oEuS3kWb96EOlrK5/zTtTl1TTMdAMqI93/+Q5Nq8zZk0oWKulqvN4BKN7BCI+xX1Cd
+	 0FWheN28bBfNn9sV71i/iYhImZlX8RtQGidVWr7xTSxuy6hw9OrzizADAiU3hVjtaHsN8
+	 bBVq5jk/IkUBO9O4t7D9XguFs0cfpvpnk9SFcxBDHY+EA1vrkMlLpOaVY/+bzOveI0eB1
+	 IJ+hyOwxkZLrl1xZUboUMKoFFzRiWiehdXpAKl/nXIHe2S8pyWBQACPoAo9Yu6wcsUA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=DMEVOckw;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5B1ED606A31E;
-	Sun, 15 Nov 2026 14:40:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5B1ED606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fAQB6H3O;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23C0606A31A
+	for <sparclinux@vger.kernel.org>; Sun, 15 Nov 2026 15:23:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=DMEVOckw
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B0AE41575;
-	Sun, 15 Nov 2026 06:40:31 -0800 (PST)
-Received: from cesw-amp-gbt-1s-m12830-01.blr.arm.com (cesw-amp-gbt-1s-m12830-01.blr.arm.com [10.164.195.33])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id DDDDA3F85F;
-	Sun, 15 Nov 2026 06:40:26 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1794753634; bh=IOwZLzBTzh9eQvjrTuwoQ1OhI4taf+RWz3s7nNKkGsw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=DMEVOckw1bncfikR/EnGed2E3Z2HQv6tBEHDD6DNwp5YW2PUslaR2AIXb5/Gq6tCp
-	 8+NsqxFXbKEp9lKCyxiV/D3wB/+ZsWC4gyT8qCCKDGygsZ0gggx8gEsNMAXNSaBPix
-	 efHhX4QG2x37fNTYQWwMb+8DBFYlDIhWS1gCWEg4=
-From: Dev Jain <dev.jain@arm.com>
-To: david@kernel.org,
-	ljs@kernel.org,
-	akpm@linux-foundation.org,
-	hughd@google.com,
-	chrisl@kernel.org,
-	kasong@tencent.com,
-	davem@davemloft.net,
-	andreas@gaisler.com
-Cc: Dev Jain <dev.jain@arm.com>,
-	riel@surriel.com,
-	liam@infradead.org,
-	vbabka@kernel.org,
-	harry@kernel.org,
-	jannh@google.com,
-	lance.yang@linux.dev,
-	baolin.wang@linux.alibaba.com,
-	shikemeng@huaweicloud.com,
-	nphamcs@gmail.com,
-	baoquan.he@linux.dev,
-	baohua@kernel.org,
-	youngjun.park@lge.com,
-	linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org,
-	rppt@kernel.org,
-	surenb@google.com,
-	mhocko@suse.com,
-	pfalcato@suse.de,
-	anshuman.khandual@arm.com,
-	geert@linux-m68k.org,
-	sparclinux@vger.kernel.org,
-	ryan.roberts@arm.com
-Subject: [PATCH v4 9/9] mm, sparc: batch arch_unmap_one()
-Date: Sun, 15 Nov 2026 14:39:04 +0000
-Message-ID: <20261115143905.3045084-10-dev.jain@arm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261115143905.3045084-1-dev.jain@arm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fAQB6H3O
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2AEA1F000C4;
+	Sun, 15 Nov 2026 15:23:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794756208;
+	bh=v8TIMiq73Mw5ReQUdV1tXDz4+sKry0oZWtUShE+0QUw=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=fAQB6H3OHz6MhUX4o14L06zIdHxek5EYYUSe8L67TknIoIgOFFrvSKoXE8PkUoHAG
+	 SNzqFF/b+7omJmf9eZNnEkrun6GzBdMgPXVdD+3YqUcPbwET/vKWMev2PSKPQa/iZK
+	 EM5DW0eWMo+59T/M0uhbOGP/S8glmJyWXzOc0w9salYEV4jkvtPOdRdkjeVoNo9pBT
+	 Q1ssqgET+egcv4GrSvaPrYDchm6tVUGoBvkFvBjjQn6ieMhns/YaKmy9akI8TvV7yZ
+	 sDGRmuGwPVOkuh39SzzWXz+LqrU26yAHUX3d0Ka+7CC2AHNLBjX7VX5DFCF5fUAzOo
+	 /y0qLa0tKDaCQ==
+Message-ID: <sashiko-outbox-215629@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v4 9/9] mm, sparc: batch arch_unmap_one()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Dev Jain" <dev.jain@arm.com>, david@kernel.org, ljs@kernel.org, akpm@linux-foundation.org, hughd@google.com, chrisl@kernel.org, kasong@tencent.com, davem@davemloft.net, andreas@gaisler.com
+Cc: riel@surriel.com, liam@infradead.org, vbabka@kernel.org, harry@kernel.org, jannh@google.com, lance.yang@linux.dev, baolin.wang@linux.alibaba.com, shikemeng@huaweicloud.com, nphamcs@gmail.com, baoquan.he@linux.dev, baohua@kernel.org, youngjun.park@lge.com, linux-mm@kvack.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com, pfalcato@suse.de, anshuman.khandual@arm.com, geert@linux-m68k.org, sparclinux@vger.kernel.org, ryan.roberts@arm.com
+In-Reply-To: <20261115143905.3045084-10-dev.jain@arm.com>
 References: <20261115143905.3045084-1-dev.jain@arm.com>
+ <20261115143905.3045084-10-dev.jain@arm.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 15 Nov 2026 15:23:26 +0000
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -88,158 +59,80 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-The anonymous large-folio unmap batching path can clear and replace
-multiple PTEs at once, but architectures like sparc need arch_unmap_one()
-to preserve per-page metadata before swap entries are installed.
-sparc uses this hook to save ADI tags.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Medium] sparc: leak of ADI tag_users and tag storage in
+  adi_save_tags_range()
+--
 
-Extend arch_unmap_one() to operate on a pte range.
+commit ccbef0704b88d6e8aff2c2f0c82f32d9131dcc3f
+Author: Dev Jain <dev.jain@arm.com>
 
-sparc uses the count to walk the PTE range and save ADI tags for entries
-carrying _PAGE_MCD_4V. There is no reverse operation for a partially
-saved range: saving ADI tags only records a copy for later restore, so
-if a later entry fails and the core keeps the original PTEs, there is
-no architectural state to unsave.
+mm, sparc: batch arch_unmap_one()
 
-Signed-off-by: Dev Jain <dev.jain@arm.com>
----
- arch/sparc/include/asm/pgtable_64.h | 10 +++++++---
- arch/sparc/kernel/adi_64.c          | 21 +++++++++++++++++++++
- include/linux/pgtable.h             |  6 +++---
- mm/rmap.c                           | 11 +++--------
- 4 files changed, 34 insertions(+), 14 deletions(-)
+This commit extends arch_unmap_one() to accept a page count so SPARC can
+save ADI tags across a PTE batch during anonymous large-folio unmapping.
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 44d1333065a6a..f7dd1872884e4 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -1037,6 +1037,9 @@ void adi_restore_tags(struct mm_struct *mm, struct vm_area_struct *vma,
- int adi_save_tags(struct mm_struct *mm, struct vm_area_struct *vma,
- 		  unsigned long addr, pte_t oldpte);
- 
-+int adi_save_tags_range(struct mm_struct *mm, struct vm_area_struct *vma,
-+			unsigned long addr, pte_t oldpte, unsigned long nr);
-+
- #define __HAVE_ARCH_DO_SWAP_PAGE
- static inline void arch_do_swap_page(struct mm_struct *mm,
- 				     struct vm_area_struct *vma,
-@@ -1057,10 +1060,11 @@ static inline void arch_do_swap_page(struct mm_struct *mm,
- #define __HAVE_ARCH_UNMAP_ONE
- static inline int arch_unmap_one(struct mm_struct *mm,
- 				 struct vm_area_struct *vma,
--				 unsigned long addr, pte_t oldpte)
-+				 unsigned long addr, pte_t oldpte,
-+				 unsigned long nr)
- {
--	if (adi_state.enabled && (pte_val(oldpte) & _PAGE_MCD_4V))
--		return adi_save_tags(mm, vma, addr, oldpte);
-+	if (adi_state.enabled)
-+		return adi_save_tags_range(mm, vma, addr, oldpte, nr);
- 	return 0;
- }
- 
-diff --git a/arch/sparc/kernel/adi_64.c b/arch/sparc/kernel/adi_64.c
-index 18036a43cf568..ffa378accefe3 100644
---- a/arch/sparc/kernel/adi_64.c
-+++ b/arch/sparc/kernel/adi_64.c
-@@ -9,6 +9,7 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/mm_types.h>
-+#include <linux/pgtable.h>
- #include <asm/mdesc.h>
- #include <asm/adi_64.h>
- #include <asm/mmu_64.h>
-@@ -394,3 +395,23 @@ int adi_save_tags(struct mm_struct *mm, struct vm_area_struct *vma,
- 
- 	return 0;
- }
-+
-+int adi_save_tags_range(struct mm_struct *mm, struct vm_area_struct *vma,
-+			unsigned long addr, pte_t oldpte, unsigned long nr)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < nr; i++, addr += PAGE_SIZE,
-+	     oldpte = pte_next_pfn(oldpte)) {
-+		int ret;
-+
-+		if (!(pte_val(oldpte) & _PAGE_MCD_4V))
-+			continue;
-+
-+		ret = adi_save_tags(mm, vma, addr, oldpte);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index 7e62479db5df7..71fa47b60e50c 100644
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -1431,12 +1431,12 @@ static inline void arch_do_swap_page_nr(struct mm_struct *mm,
-  * restored when the page is swapped back in. SPARC M7 and newer
-  * processors support an ADI (Application Data Integrity) tag for the
-  * page as metadata for the page. arch_unmap_one() can save this
-- * metadata on a swap-out of a page.
-+ * metadata on swap-out of one or more pages.
-  */
- static inline int arch_unmap_one(struct mm_struct *mm,
- 				  struct vm_area_struct *vma,
--				  unsigned long addr,
--				  pte_t orig_pte)
-+				  unsigned long addr, pte_t orig_pte,
-+				  unsigned long nr)
- {
- 	return 0;
- }
-diff --git a/mm/rmap.c b/mm/rmap.c
-index a2481323b778a..89dd71f84ff74 100644
---- a/mm/rmap.c
-+++ b/mm/rmap.c
-@@ -1974,6 +1974,7 @@ static inline unsigned int folio_unmap_pte_batch(struct folio *folio,
- 
- 	if (flags & TTU_HWPOISON)
- 		return 1;
-+
- 	if (!folio_test_large(folio))
- 		return 1;
- 
-@@ -1984,11 +1985,6 @@ static inline unsigned int folio_unmap_pte_batch(struct folio *folio,
- 	if (pte_unused(pte))
- 		return 1;
- 
--#ifdef __HAVE_ARCH_UNMAP_ONE
--	if (folio_test_anon(folio) && folio_test_swapbacked(folio))
--		return 1;
--#endif
--
- 	/*
- 	 * If unmap fails, we need to restore the ptes. To avoid accidentally
- 	 * upgrading write permissions for ptes that were not originally
-@@ -2183,8 +2179,7 @@ static bool __ttu_anon_swapbacked_folio(struct vm_area_struct *vma,
- 	 * architectures where we could have PFN swap PTEs,
- 	 * so we'll not check/care.
- 	 */
--	if (arch_unmap_one(mm, vma, address, pteval) < 0) {
--		VM_WARN_ON(nr_pages != 1);
-+	if (arch_unmap_one(mm, vma, address, pteval, nr_pages) < 0) {
- 		folio_put_swap_pages(folio, page, nr_pages);
- 		return false;
- 	}
-@@ -2753,7 +2748,7 @@ static bool try_to_migrate_one(struct folio *folio, struct vm_area_struct *vma,
- 			 * architectures where we could have PFN swap PTEs,
- 			 * so we'll not check/care.
- 			 */
--			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
-+			if (arch_unmap_one(mm, vma, address, pteval, 1) < 0) {
- 				if (folio_test_hugetlb(folio))
- 					set_huge_pte_at(mm, address, pvmw.pte,
- 							pteval, hsz);
--- 
-2.43.0
+> diff --git a/arch/sparc/kernel/adi_64.c b/arch/sparc/kernel/adi_64.c
+> index 18036a43cf568..ffa378accefe3 100644
+> --- a/arch/sparc/kernel/adi_64.c
+> +++ b/arch/sparc/kernel/adi_64.c
+[ ... ]
+> @@ -394,3 +395,23 @@ int adi_save_tags(struct mm_struct *mm, struct vm_ar=
+ea_struct *vma,
+> =20
+>  	return 0;
+>  }
+> +
+> +int adi_save_tags_range(struct mm_struct *mm, struct vm_area_struct *vma,
+> +			unsigned long addr, pte_t oldpte, unsigned long nr)
+> +{
+> +	unsigned long i;
+> +
+> +	for (i =3D 0; i < nr; i++, addr +=3D PAGE_SIZE,
+> +	     oldpte =3D pte_next_pfn(oldpte)) {
+> +		int ret;
+> +
+> +		if (!(pte_val(oldpte) & _PAGE_MCD_4V))
+> +			continue;
+> +
+> +		ret =3D adi_save_tags(mm, vma, addr, oldpte);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return 0;
+> +}
 
+[Severity: Medium]
+Does this leak tag_desc->tag_users references and tag storage when
+adi_save_tags() fails partway through a batch?
+
+Each successful adi_save_tags() call invokes alloc_tag_store(), which
+allocates a tag_storage_desc_t slot (and its tag_desc->tags buffer) or
+increments tag_desc->tag_users on an existing descriptor:
+
+arch/sparc/kernel/adi_64.c:alloc_tag_store() {
+    ...
+				if ((addr >=3D tag_desc->start) &&
+				    (tag_desc->end >=3D (addr + PAGE_SIZE - 1))) {
+					tag_desc->tag_users++;
+					goto out;
+				}
+    ...
+}
+
+If a batch crosses tag_desc->end at page i > 0 and alloc_tag_store() fails
+its GFP_NOWAIT allocation for the new range, adi_save_tags_range() returns
+an error without unwinding the first i pages.  In mm/rmap.c,
+__ttu_anon_swapbacked_folio() then fails and ttu_anon_swapbacked_folio()
+restores the present PTEs for the entire sub-batch via set_ptes().  Because
+those first i pages are not swapped out, adi_restore_tags() ->
+del_tag_store() never runs for them, leaking their tag_users references and
+preventing del_tag_store() from freeing tag_desc->tags or releasing the
+descriptor slot until process exit.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261115143905.3045=
+084-1-dev.jain@arm.com?part=3D9
