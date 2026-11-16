@@ -1,49 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=78.133.224.34
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794812215;
-	b=BZw8g9dM6buZILpnz9jZvkb2ovNFu2QVb4gXEmSJ7tm7xlnYeWGtV/xPKLArs/w6sFyq
-	 xpvzsBXkgzIwFaUa7rVdgIoJMy/GELjJ0cn0ASfsh8rGyAPH9nNLSTeDW2tG8uXQBkba8
-	 PFqjfJjug8lM7ebcObRfMyGeg/8qjlRVqkZZN1BS1VrNvlkeKJNnP9/pLGUvRXl239zwH
-	 9FFLKIGzBZltF3qYirpS7bMhb5eX6Kot9xrOCNC14NxFSg1NRcUwy5MM5AKa0eZxpwgbI
-	 +ZTijziJUds1c7+ijmv4K42LiUfU7lZQBvG+vtFn0AagmvZrKzE3zLDvu80OxRGFI5w==
+	t=1794812947;
+	b=ePYLK8Y++vV92rE1O+zSZCs4lo87Otb4FfAJWiDs70cEphLaB2Y96yBMFN3hxfG6Wu7S
+	 ID1wO3/s7IRKmfszS6ass9rVS/NkT+0IEKNclHH6Na5A1XglLvVX89hw6EX3OTizXWw11
+	 XaY2Vq2klq+DvtRoTGG5+ExU/nDQ1RsbCFoZ8eimZrSHXVAtAp/S1UOfts+Fre8by4a0k
+	 75Ao4/kAVxy2XfqfbsSPh5jyAdGfMPBkfJKDBLVoPGrY+SF+4T5MKQQKPRboRM10D4ihZ
+	 XGbgoYXU6qr45whCoELyMp4Xzt4TGUiDdtmlGclm984F6gQjikei6KsKoZ/5SsaMAvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794812215;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=Av8Qql1PFCbNo0ym4O0ZY8gbj5FgwCTE5iiuHlTnyDA=;
-	b=Vy7f6+KOLbyrd7zoPv4LRi9mpMtb/HdVwqmgbr4cS0Bjz1A/VyiG+ULBWAGALHYaJkZq
-	 kgArktNZDu0NP7YD/r5EWvcsUbYWbhYd73RjitH/YZIlk4Y/fg4IYQDsMwKW9/yRSqwAz
-	 ZdaWZEs4iezHHccpNIAXD+aAQQhVgV9UH7lmuNSuoEYe6Ba9hHe5aM+6DMR+D57BXKNXk
-	 HNCGUaJMI2mTv3rcgRHN8Vpgmz7s6zu0PFEujQ3MyH4cH09jiRULmrz2Gcq6SYfEm/CVz
-	 o9Z26O4DJh+XWHSVCUn/lDNliBHNdYTauEbuEKgUPpRao9t8euEBq9kLiqgSBSDArnQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794812947;
+	h=DMARC-Filter:Received:Received:Date:From:To:cc:Subject:In-Reply-To:
+	 Message-ID:References:User-Agent:MIME-Version:Content-Type;
+	bh=1mHmG9IJHtIMld4ZeRanDjKIMZUQxx8f0ptnWkrCv+U=;
+	b=0i8RahmNidBKHbWBeQckX6v4j9iCyuvVL/fZe/BEsPc/Xoe2nv+21TKq8Z9boKNYHrYK
+	 TotB7T80Z1D6oFXyUkcSsAhoCh3IC2ARjY/i+UN6pi3dNYn0B76azB/X9E/tIfcdqgcSB
+	 9AKBwpQFVyOBZwo6poe7axdA/vqIytMUUML/LMiEAVafmfqLwAHbYtegV4ihhnpc2LQN1
+	 1aZBowjXeK5BftnnOth8JJo70ZfTNBNImfEeyD/SSoOHs0mtHF983Xw9qw+XNmuv9T2VO
+	 QrXYqlONvEBxO/uVPvcWVve8MQ3C5gxmDeM/Gca8NoKmNnPn6fkxMNR6i7ZoQw4/UxQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=C3aFddts;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 618F4606A32C
-	for <sparclinux@vger.kernel.org>; Mon, 16 Nov 2026 06:56:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 618F4606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=C3aFddts
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0DB12143D;
-	Sun, 15 Nov 2026 22:56:50 -0800 (PST)
-Received: from [10.163.155.94] (unknown [10.163.155.94])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 1C5003F632;
-	Sun, 15 Nov 2026 22:56:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1794812213; bh=iJSVzWp3/nSBdi9cZI1iskHcjerH/hi74/XTquikmPQ=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=C3aFddts8iOCMXlkDDHaAcQg7bsRD+smfjKxKYK5fRswDNVlUKNtAQRdKxeFQ18Ta
-	 T8LjGnwNYkkZPALZcA+TvIc+u1SUOSDDYIjLW8qbraexmbYBEdNluSHkqA3OMC/Y5J
-	 qTrubTZPG8r87GvQScYmKm0/IzMAYOTALGAPvpsc=
-Message-ID: <3dab1bbf-77e4-4ce6-8314-2b3154be74dd@arm.com>
-Date: Mon, 16 Nov 2026 12:26:40 +0530
+	dmarc=none header.from=orcam.me.uk;
+	spf=none smtp.mailfrom=orcam.me.uk;
+	arc=none smtp.remote-ip=78.133.224.34
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 364A6606A332;
+	Mon, 16 Nov 2026 07:09:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 364A6606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=orcam.me.uk
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+	id 39D8A92009C; Mon, 16 Nov 2026 08:09:04 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by angie.orcam.me.uk (Postfix) with ESMTP id 376CC92009B;
+	Mon, 16 Nov 2026 07:09:04 +0000 (GMT)
+Date: Mon, 16 Nov 2026 07:09:04 +0000 (GMT)
+From: "Maciej W. Rozycki" <macro@orcam.me.uk>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+cc: David Laight <david.laight.linux@gmail.com>, 
+    Christian Brauner <brauner@kernel.org>, 
+    Geert Uytterhoeven <geert@linux-m68k.org>, linux-fsdevel@vger.kernel.org, 
+    Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+    Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
+    NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
+    Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+    Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+    Greg Kroah-Hartman <gregkh@suse.de>, 
+    Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, 
+    Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+    linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+    linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+    linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+    linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
+    linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, 
+    ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+    coreteam@netfilter.org, kexec@lists.infradead.org, 
+    linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+    netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+    ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+    linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+    linux-cifs@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+    linux-hwmon@vger.kernel.org, linux-mm@kvack.org, linux-sh@vger.kernel.org, 
+    linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+    sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+    linux-doc@vger.kernel.org, linux-serial@vger.kernel.org, 
+    linux-atm-general@lists.sourceforge.net, Takashi Iwai <tiwai@suse.de>, 
+    linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+    linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
+    linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
+Subject: Re: [PATCH RESEND v2 14/23] proc: let procfs copy in writes before
+ pinning the entry
+In-Reply-To: <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
+Message-ID: <alpine.DEB.2.21.2611160657470.17804@angie.orcam.me.uk>
+References: <20261104-work-procfs-core-v2-14-76ace653a773@kernel.org> <CAMuHMdVfakapgBK6TBhO1iWX8qzvLDk8jzRS=t2MVa5G=MCUeg@mail.gmail.com> <20261107-akteur-gemieden-eckdaten-21304d085e35@brauner> <20261108185953.28054fb3@pumpkin>
+ <alpine.DEB.2.21.2611090504170.17804@angie.orcam.me.uk> <20261109214558.0d9d5228@pumpkin> <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -53,105 +81,21 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 9/9] mm, sparc: batch arch_unmap_one()
-To: sashiko-reviews@lists.linux.dev, david@kernel.org, ljs@kernel.org,
- akpm@linux-foundation.org, hughd@google.com, chrisl@kernel.org,
- kasong@tencent.com, davem@davemloft.net, andreas@gaisler.com
-Cc: riel@surriel.com, liam@infradead.org, vbabka@kernel.org,
- harry@kernel.org, jannh@google.com, lance.yang@linux.dev,
- baolin.wang@linux.alibaba.com, shikemeng@huaweicloud.com, nphamcs@gmail.com,
- baoquan.he@linux.dev, baohua@kernel.org, youngjun.park@lge.com,
- linux-mm@kvack.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com,
- pfalcato@suse.de, anshuman.khandual@arm.com, geert@linux-m68k.org,
- sparclinux@vger.kernel.org, ryan.roberts@arm.com
-References: <20261115143905.3045084-1-dev.jain@arm.com>
- <20261115143905.3045084-10-dev.jain@arm.com>
- <sashiko-outbox-215629@kernel.org>
-Content-Language: en-US
-From: Dev Jain <dev.jain@arm.com>
-In-Reply-To: <sashiko-outbox-215629@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 
+On Mon, 9 Nov 2026, Linus Torvalds wrote:
 
+> > Just that the cast would have to be:
+> >         u8 *foo = (u8 *)bar;
+> > where 'bar' is 'char *', and I don't think you need a cast there when
+> > char is unsigned.
+> 
+> .. and just to clarify: 'char' is always unsigned in the kernel on all
+> architectures since commit 3bc753c06dd0 ("kbuild: treat char as always
+> unsigned") back four years ago...
 
-On 15/11/26 8:53 pm, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue to consider:
-> - [Medium] sparc: leak of ADI tag_users and tag storage in
->   adi_save_tags_range()
+ Thanks, yes, that's the piece of the context I was missing.  I've since
+actually come across this commit while investigating which Linux ports 
+have plain `char' signed in the psABI (MIPS for sure).
 
-Legit, so I have no choice but to add the restore side of arch_unmap_one(),
-brilliant :)
-
-
-> --
-> 
-> commit ccbef0704b88d6e8aff2c2f0c82f32d9131dcc3f
-> Author: Dev Jain <dev.jain@arm.com>
-> 
-> mm, sparc: batch arch_unmap_one()
-> 
-> This commit extends arch_unmap_one() to accept a page count so SPARC can
-> save ADI tags across a PTE batch during anonymous large-folio unmapping.
-> 
->> diff --git a/arch/sparc/kernel/adi_64.c b/arch/sparc/kernel/adi_64.c
->> index 18036a43cf568..ffa378accefe3 100644
->> --- a/arch/sparc/kernel/adi_64.c
->> +++ b/arch/sparc/kernel/adi_64.c
-> [ ... ]
->> @@ -394,3 +395,23 @@ int adi_save_tags(struct mm_struct *mm, struct vm_area_struct *vma,
->>  
->>  	return 0;
->>  }
->> +
->> +int adi_save_tags_range(struct mm_struct *mm, struct vm_area_struct *vma,
->> +			unsigned long addr, pte_t oldpte, unsigned long nr)
->> +{
->> +	unsigned long i;
->> +
->> +	for (i = 0; i < nr; i++, addr += PAGE_SIZE,
->> +	     oldpte = pte_next_pfn(oldpte)) {
->> +		int ret;
->> +
->> +		if (!(pte_val(oldpte) & _PAGE_MCD_4V))
->> +			continue;
->> +
->> +		ret = adi_save_tags(mm, vma, addr, oldpte);
->> +		if (ret)
->> +			return ret;
->> +	}
->> +
->> +	return 0;
->> +}
-> 
-> [Severity: Medium]
-> Does this leak tag_desc->tag_users references and tag storage when
-> adi_save_tags() fails partway through a batch?
-> 
-> Each successful adi_save_tags() call invokes alloc_tag_store(), which
-> allocates a tag_storage_desc_t slot (and its tag_desc->tags buffer) or
-> increments tag_desc->tag_users on an existing descriptor:
-> 
-> arch/sparc/kernel/adi_64.c:alloc_tag_store() {
->     ...
-> 				if ((addr >= tag_desc->start) &&
-> 				    (tag_desc->end >= (addr + PAGE_SIZE - 1))) {
-> 					tag_desc->tag_users++;
-> 					goto out;
-> 				}
->     ...
-> }
-> 
-> If a batch crosses tag_desc->end at page i > 0 and alloc_tag_store() fails
-> its GFP_NOWAIT allocation for the new range, adi_save_tags_range() returns
-> an error without unwinding the first i pages.  In mm/rmap.c,
-> __ttu_anon_swapbacked_folio() then fails and ttu_anon_swapbacked_folio()
-> restores the present PTEs for the entire sub-batch via set_ptes().  Because
-> those first i pages are not swapped out, adi_restore_tags() ->
-> del_tag_store() never runs for them, leaking their tag_users references and
-> preventing del_tag_store() from freeing tag_desc->tags or releasing the
-> descriptor slot until process exit.
-> 
-
+  Maciej
