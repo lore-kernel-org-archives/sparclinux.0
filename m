@@ -1,57 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.189.121.228
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795002949;
-	b=x83u0VY64IGBOlwhNYdp30ScQNHgqd6cMBYWuV1FAo8GubiM6CjA7//bbk1BoHaoyGEb
-	 on5gpIEx3LfRdCrZH2wIj+iFFl51R7Y3+JXojg1ppwO+s22lYTxJU0K29QARs8jbwBEKE
-	 25IA2WfK6quc/b73otu7pabAIFv0OnnoC0fMsJ4cN+L3JpCDzlQZMoOQwh2bAuFvuYQm/
-	 zqkxwib9bADQyMzt0Rtrrrh0etRP8EnfYebd4YKDDHlo+af9JGXvSDI4wABVTJ37h6Y+d
-	 F6K67Zu7rpCW+C40/GQ0MQbDxrrDpGk5eAYivg6THijwWrRP8ZTmoRAV/7XyJkzlMCQ==
+	t=1795003658;
+	b=EHzECR4bXpNWM+UnlF82WiaEjOZtaGp9l8JKcJPNA+/VsoBZwbZc7LMfXXFhf5jGBjz+
+	 nRK/AdAyrYrn/zQ6wHV3ecGRBnmw1eP1uHB4RHFIxnLTz//gPESuHVafCgSTiyd6wkwXe
+	 dEJ4TsWsGTMAemQayaOIQ/YkH58HZdgwf+SHlM7n00prz5x2YL2vp6UxRbrvoxWkNy/8k
+	 fSEpw7Qf0nUs+kF4alX1a7XKg3bt2Sh3fBVoLkzOFdGOtREe498dARawDcIcL/Np81Fh3
+	 plyfYmWmUXm+QbyutsDfKufRDZ+G4WY4I3au4d4rk2jti37nl4Ds3aYsYWnPrUHLwwQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795002949;
-	h=DMARC-Filter:From:DKIM-Signature:To:Cc:Subject:Date:Message-ID:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=ktDRFEd3cHMhVFB21yzeutgeNHmAtQl6TM+AH+W9ESc=;
-	b=a13PpGkZtO+K+fcKR8zLEJVJSXThZUm7LnHia0MnibWXWRcRYTE0Tvhn/YTkVqzI41nL
-	 GQD8F5/oFdCJgidZ4Zvg617C+CYpsddHFC57NHqqaLkuz9bYtL1CWMUbLuXcvjQl2AW2Y
-	 SS+qyv9SUyiBFzgrd4+YWvmr7w+PoCF1EjJDN2pKazfgdbZypNrgPQSuFLnjfgyZ0pY9C
-	 9TO1lx88QKbiZB33I/Ln7XhbupU7BDBRD1jkkoQkqiAO3EgtLcp/eemTQjb2BzHGHPo9t
-	 HiXoF/6T8BtgFTl5cQWA58buVvWHh5BDq/o0zSBT17dD7GI1L8FmwwEIsRy7zL3kjKQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795003658;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=P+0uEEzysBwDVEJFldbQ69RtlM+ycb/aa/1uZEpypS8=;
+	b=hKSrpcg+qqO3firK6zW5pTV1oFa6f/XYNc+OTXlGY2NlWNQkDWOLnw0HmMrdtgwT3Tuv
+	 If0MMXwCheSLPjh//PRKnDyoqIviVAR/7s74svN0OqpxFTmZM04bGcatI+WygSz2DBJRX
+	 uZV3wZRypE0mBlwbwVu8Q7vgCbA52YSjxGFkB1B744ah4kCWQczpKgg0HcGM3YpA9eqU+
+	 fZcj68GDvniEs088kFTUwVVGCYh8HxJ884L973ZT9SX4+gzBnP67wSpCekLEUs+ky4xbW
+	 B0+bquzP7S76UDB9jm3AVW5sIYQz96HQb88BKY3NW/UCEAXCX8YpdNXt0xb3Jc8BSkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=itx.no;
-	spf=pass smtp.mailfrom=itx.no;
-	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=LdFCu6+p;
-	arc=none smtp.remote-ip=91.189.121.228
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FPySjeK8;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE584606A32A;
-	Wed, 18 Nov 2026 11:55:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CE584606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9147E606A333
+	for <sparclinux@vger.kernel.org>; Wed, 18 Nov 2026 12:07:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=LdFCu6+p
-From: Stian Halseth <stian@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1795002945;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=ktDRFEd3cHMhVFB21yzeutgeNHmAtQl6TM+AH+W9ESc=;
-	b=LdFCu6+p3W/pi8CC929VIrPGgeg+ABoBluELvt+zneTnpKjxhmaeWX7CQLXcLnQ6lM7S7D
-	y+tJUisCBoZ7XyQ2h+BrT4H2GjADIysi55vRBsCvBNOWG0A0m2w6RQV1wGqdCrtT5G4bjj
-	iQ3DXmPPl+pOK3ezkRG6PuPEdOqO1pM=
-To: sparclinux@vger.kernel.org
-Cc: Andreas Larsson <andreas@gaisler.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Biggers <ebiggers@kernel.org>,
-	Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>,
-	linux-kernel@vger.kernel.org,
-	Stian Halseth <stian@itx.no>
-Subject: [PATCH v2 0/2] sparc64: Read qemu,hwcap-list on sun4u
-Date: Wed, 18 Nov 2026 12:55:35 +0100
-Message-ID: <20261118115537.160675-1-stian@itx.no>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FPySjeK8
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F368B1F000D0;
+	Wed, 18 Nov 2026 12:07:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795003658;
+	bh=P+0uEEzysBwDVEJFldbQ69RtlM+ycb/aa/1uZEpypS8=;
+	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
+	b=FPySjeK8l4XXkCbll/DeMe9aB6j5qK8M5mICSOde7fki2iFaYa/fGBX+5H9XxshmT
+	 KlRG+r1ZYLtHWw1TyA8KANgMcyksrOd51Vt0t/0hsj1CxsBDVdqakK7DZ7v9k8Xo0U
+	 BakvmIOD8h3mC2SbiNRCP+t+y24q26+Ng6HKgO6tKQpjjVkPp+5nmrTd0KxAMvUjWQ
+	 D7uwqlkVjOmsoZq5ab4TKGUB4Wi6ujX8tuz0xDKHKKQFEm8t4aCkj6xOu8UZ58M9lf
+	 XWFW2CXcrBkChHVfozRFamEl3QtyNBaHdOY0l5lw24VENZCIed+q1dSKugyGxaJ5ot
+	 g7Glkm3S31GSA==
+Message-ID: <sashiko-outbox-220876@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v2 1/2] sparc64: Stop the hwcap-list parser at an
+ unterminated entry
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Stian Halseth" <stian@itx.no>, sparclinux@vger.kernel.org
+In-Reply-To: <20261118115537.160675-2-stian@itx.no>
+References: <20261118115537.160675-1-stian@itx.no>
+ <20261118115537.160675-2-stian@itx.no>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 18 Nov 2026 12:07:37 +0000
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -60,57 +59,33 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-QEMU's default sparc64 machine is sun4u. With -cpu ...,+crypto it
-emulates the SPARC crypto opcodes and passes the hwcap-list to
-OpenBIOS. OpenBIOS puts the list on the cpu node as qemu,hwcap-list.
-Patch 2 reads it there. The crypto KUnit tests then run the sparc64
-code under QEMU.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Low] sparc64: missing Fixes trailer for mdesc_cpu_hwcap_list() bug
+  fix
+--
 
-Patch 1 is new. Sashiko found that the hwcap-list parser reads past an
-entry that has no NUL. The machine description parser has the same
-bug, so patch 1 fixes it before patch 2 moves the code.
+commit d3a59092fe2c64c80fb8dba94ba6f29bf1d288f4
+Author: Stian Halseth <stian@itx.no>
 
-On sun4u, the ecb-, cbc- and ctr-aes-sparc64 glue loses its round keys
-in skcipher_walk_done(). Under QEMU with +crypto, their self-tests
-fail. No real sun4u CPU has the crypto opcodes. Eric's series moves
-these modes into lib/crypto and fixes it:
-https://lore.kernel.org/linux-crypto/20261118041033.50014-1-ebiggers@kernel.org/
-It is planned for 7.5 via libcrypto-next.
+> sparc64: Stop the hwcap-list parser at an unterminated entry
+>
+> mdesc_cpu_hwcap_list() walks the hwcap-list strings with strlen() and
+> strcmp(). If the last entry has no NUL within the property, both read
+> past its end. len then goes negative, and while (len) does not stop.
+>
+> Measure each entry with strnlen() first, and stop at one that does not
+> fit, as of_property_read_string_helper() does.
+>
+> Signed-off-by: Stian Halseth <stian@itx.no>
 
-The QEMU side is in master for 11.2, commit a1eb9a1720 ("hw/sparc64:
-Pass hwcap-list to OpenBIOS via fw_cfg"). The OpenBIOS side is on the
-OpenBIOS list:
-https://mail.coreboot.org/archives/list/openbios@openbios.org/thread/3XVXVLHWT2T63IYWR67WPOHFSJGLP3NP/
-Until QEMU ships an OpenBIOS with it, nvramrc can set the property:
+[Severity: Low]
+This fixes a bug in mdesc_cpu_hwcap_list().  Should this include:
 
-NV='" /SUNW,UltraSPARC-IIi" find-device " vis" encode-string " vis2" encode-string encode+ " vis3" encode-string encode+ " aes" encode-string encode+ " sha1" encode-string encode+ " sha256" encode-string encode+ " sha512" encode-string encode+ " crc32c" encode-string encode+ " qemu,hwcap-list" property device-end'
-./tools/testing/kunit/kunit.py run --arch=sparc64 \
-	--kunitconfig=lib/crypto/.kunitconfig \
-	--kunitconfig=lib/crc/.kunitconfig \
-	--qemu_args='-cpu TI-UltraSparc-IIi,+vis3,+crypto' \
-	--qemu_args='-prom-env use-nvramrc?=true' \
-	--qemu_args="-prom-env 'nvramrc=$NV'"
+  Fixes: ac85fe8b2124 ("sparc: Sanitize cpu feature detection and reporting=
+.")
 
-Changes in v2:
-- New patch 1: stop the parser at an entry without a NUL (Sashiko).
-- Patch 2: Eric's Tested-by. No other change.
-- Dropped the lib/crypto question from the notes. Eric's series
-  answers it.
-
-v1: https://lore.kernel.org/all/20261117112914.2300417-1-stian@itx.no/
-
-Stian Halseth (2):
-  sparc64: Stop the hwcap-list parser at an unterminated entry
-  sparc64: Read qemu,hwcap-list from the OF cpu node on sun4u
-
- arch/sparc/kernel/setup_64.c | 68 ++++++++++++++++++++++++++----------
- 1 file changed, 50 insertions(+), 18 deletions(-)
-
-
-base-commit: 666539eecdf4db623f5e3c3e55cf9f2dfad24aa4
--- 
-2.43.0
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261118115537.1606=
+75-1-stian@itx.no?part=3D1
