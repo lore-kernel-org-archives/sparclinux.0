@@ -1,59 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.189.121.228
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794976739;
-	b=242+NB75JSRSXwzP9RHF0aMHyiOuVlMJMc0+Z7drxxtQ5XJ6Eljgy9n1FW5ooGtoTFn8
-	 rdo18VUW1zZ5aZ6TJfWHkBIleeg/2Ye+ddguURfjJLKPfBov3QAxKMbRgnH7GWf/pJxLt
-	 wtSwb5BH9E+AtuBysDD0o95nnoVey+wsGWWmPU1PXtPa87+yaIJGXQoeymDxcZZ+m7DVc
-	 nQqc9uCtat2r+jQ2Rj4YZv3/sICmhQ96hO1YjjtZxRta5+GZ+Gs7RRKI6CYjWcgLiDDCa
-	 68PfQglp/3CLoJw5801tJoH0mcCvoY18haPvkrx5M3SIqz9gRxYtyV77M/zJIpicYEA==
+	t=1795000555;
+	b=fp0lVpww7cFSyuEr8sB2erYw/xnRsTQ2jWUyFIzs+tDDQEh90Wr347gAcCRTVc0JjNE7
+	 XsgVm4gTlvv6kfN/5WAInzZKWpKVFYwmRAF6mD/HApdZ1hwULZgR3KxezENso5aM+snhK
+	 MEjNHsE2ElIFcU6hkurwxwiR6Dj5v0TfDaJcdEKfM14G0/OvDzk3Xw54Q0b0Mi1eRfjQb
+	 CVi4xtt0EhEmcy/PZQaeMu6sxVhM0PVoj/fC5FCQJuTCwaNG7xFNEDfMhNdzntcugd+yv
+	 UdpfjYpe+zxEiabx43rcpgzvesPvkA/jBgnIG10jEGZEDkcJHCrv1Bv8xcqgAeOrmpw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794976739;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=9LEd/iw8t5Hh+C/3HS9Kzo7OZZlo3oexvOhpz2iPYZo=;
-	b=CxxHgQwP1SDZmkdXqLXfICl2/WEfMZn2EJjTGOz2WGCT1BCAwt8S8PwFSnm6pa8WrsUi
-	 NpqTyNLRZnQt07Pfue4wBMFXSluA4c8ULZ6dXTDR70rhUIaqB82R+Z4DWBQFwLXa3YGUj
-	 lQuW9B8NKVtAPAOfOazmAsD7tiERUMJQ2kwpo8XV2a7uRrBJDAzSUkdc5Qg8RUUdr5vuA
-	 BqYRBxB7Ja7riVdYPYprL4ioIFPf7D77XS7CLDXIiJDQER5Q4yru6WoPFFAMdcqGq3Yjd
-	 azAd7jW7DSMMkAlOLeLFcXj6nypYMSHCSSb6lxKNzxUtIHHJKu5zLHdP+al99S957Tw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795000555;
+	h=DMARC-Filter:Message-ID:DKIM-Signature:Subject:From:To:Cc:Date:
+	 In-Reply-To:References:Content-Type:MIME-Version;
+	bh=Y4hHKOCSU2CmbP8FEKSLsQJzoNedloCjuCXqEcxU9FM=;
+	b=YuI2jN+bXpS/pVX1UDvVJdu0wfDcfbynS44uOETyHWta8LpmOGAbWkA406eK/YHsGJL0
+	 gYAml1GF70gAr6C0OQw/vRsr+cDpSAebTsI2rS64Kkhksg3XKNfdGkctPzQ4qykGwawZp
+	 SOJBiNtITj0c41SgZSGD962qWwb26N7T5Q91mwJgIvB1iQJ2JF6OLEaMuHBNtZf7EYGfJ
+	 ci5z7fAHkHmfQhfSmyzbfh0SFgXOUfjGCcP9bX4V5x3NfqG0Eci/e4HN3v70BGO/kigEL
+	 Ae3w8aTB2tmLDfYnPWCrQInIE4at/qLkjUv99zx7c4DET6np8ayBeHWBI27MRMso2wQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dRefRfIQ;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=itx.no;
+	spf=pass smtp.mailfrom=itx.no;
+	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=jJW1YBwm;
+	arc=none smtp.remote-ip=91.189.121.228
+Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D808606A32F;
-	Wed, 18 Nov 2026 04:38:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1CA260A2601;
+	Wed, 18 Nov 2026 11:15:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C1CA260A2601
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dRefRfIQ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97B591F000C4;
-	Wed, 18 Nov 2026 04:38:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794976738;
-	bh=9LEd/iw8t5Hh+C/3HS9Kzo7OZZlo3oexvOhpz2iPYZo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=dRefRfIQGx6izPeu48H4wEb+8I56HJageEuBtdwB8m2uuPFlRwEaudqirO5kgL33S
-	 HUckgjj87QtvHPN8YG/q70m39c+8nQ8fScjWaRNQm0P1QJ1sJcT3Kpi5i+yhSku608
-	 36CtEmBh6JAedAodbIXpb7KVgA4cWRsuyrlaUAq6S10jHCf9ndyfMRSs8h35tuZnZl
-	 EP9gjICgvwoiBPDwHWJoeEM5Lj8m/Dm36GtR+vVccZrg7pxKsAGmOs6Kn1TOkOU7H/
-	 JHYMwGc07mAI0/5fnUt3kcVJS3AuxGwfJxRK1GU+KP49x+4mXIidj5x1nexAEXbQkP
-	 2Un4Ti9Er6IRw==
-Date: Tue, 17 Nov 2026 20:38:57 -0800
-From: Eric Biggers <ebiggers@kernel.org>
-To: Stian Halseth <stian@itx.no>
-Cc: sashiko-reviews@lists.linux.dev, sparclinux@vger.kernel.org,
-	Andreas Larsson <andreas@gaisler.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>,
-	linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key, unprotected) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=jJW1YBwm
+Message-ID: <51593f27903fb901f7c34e3c084d1c34a126e567.camel@itx.no>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
+	t=1795000552;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Y4hHKOCSU2CmbP8FEKSLsQJzoNedloCjuCXqEcxU9FM=;
+	b=jJW1YBwm3C78/3vUAUiLSB5okP4vTdUjECOQRa/X+YgAfsFTxxScUebAebdNRx2YHvcXgO
+	bC0U4bXiHqhVGbhwNoUcSAnw/ZAbAU6E646B9nm9z30+Ck6BJWxDWz4alVSQ/4sY4Su5BF
+	5s/Slsky5tEZ0eMUjECFdYqQSuOTY7E=
 Subject: Re: [PATCH] sparc64: Read qemu,hwcap-list from the OF cpu node on
  sun4u
-Message-ID: <20261118043857.GA3400@sol>
+From: Stian Halseth <stian@itx.no>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: sashiko-reviews@lists.linux.dev, sparclinux@vger.kernel.org, Andreas
+ Larsson <andreas@gaisler.com>, "David S . Miller" <davem@davemloft.net>,
+ Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>,
+ linux-kernel@vger.kernel.org
+Date: Wed, 18 Nov 2026 12:15:51 +0100
+In-Reply-To: <20261118043857.GA3400@sol>
 References: <20261117112914.2300417-1-stian@itx.no>
- <sashiko-outbox-218725@kernel.org>
- <8c0c3734b9ad1ba0072ce1fbcf895b544563798f.camel@itx.no>
+	 <sashiko-outbox-218725@kernel.org>
+	 <8c0c3734b9ad1ba0072ce1fbcf895b544563798f.camel@itx.no>
+	 <20261118043857.GA3400@sol>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-siijRfQfDx5NwjZLvIFT"
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -63,72 +67,53 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <8c0c3734b9ad1ba0072ce1fbcf895b544563798f.camel@itx.no>
 
-Hi Stian,
 
-On Tue, Nov 17, 2026 at 01:44:14PM +0100, Stian Halseth wrote:
-> Hi all,
-> 
-> On Tue, 2026-11-17 at 11:46 +0000, sashiko-bot@kernel.org wrote:
-> > 
-> > [Severity: High]
-> > This problem wasn't introduced by this patch, but can hwcap_list_caps()
-> > read out of bounds and loop forever [1] if the property buffer is not
-> > null-terminated?
-> 
-> Yes, and we can fix that in v2. As it stands the parser trusts the list
-> to end with a NUL, which is not guaranteed if a QEMU user supplies a
-> fw_cfg file directly.
-> 
-> > 
-> > [Severity: High]
-> > Does setting HWCAP_SPARC_CRYPTO in sparc64_elf_hwcap on sun4u cause a
-> > regression where the sparc64 skcipher drivers corrupt FPU state and round
-> > keys across skcipher_walk_done()?
-> > 
-> 
-> This might be a bit worse than I first thought. I was aware of the
-> self-test failures, as noted in my patch notes, but it looks like this
-> could also cause some data corruption. Only QEMU can hit it, since no
-> real sun4u CPU has the crypto opcodes.
-> 
-> I have not reproduced it myself, and before spending time on that,
-> I would like to get Eric's take on removing the glue code altogether.
-> If not, we could fix the glue itself, for example by dropping the FP
-> state before skcipher_walk_done(). IMO that would be maintaining code
-> that probably should be removed. Not my call, though.
-> 
-> Andreas, please don't apply this patch as-is for now. I will wait for
-> Eric's reply before proceeding.
+--=-siijRfQfDx5NwjZLvIFT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-The following series migrates the remaining SPARC crypto opcodes
-accelerated AES modes into lib/crypto/:
-https://lore.kernel.org/linux-crypto/20261118041033.50014-1-ebiggers@kernel.org/
+Hi Eric,
 
-There we have more control over the bounce buffering, and I set the size
-to 128 bytes (rather than crypto/skcipher.c's PAGE_SIZE) to keep it
-below the size threshold at which memcpy() uses the FPU registers.
+On Tue, 2026-11-17 at 20:38 -0800, Eric Biggers wrote:
+> The following series migrates the remaining SPARC crypto opcodes
+> accelerated AES modes into lib/crypto/:
+> https://lore.kernel.org/linux-crypto/20261118041033.50014-1-ebiggers@kern=
+el.org/
 
-I tested this patch with that series and the QEMU support you added, and
-everything seems to work.  And Camellia is not supported in QEMU, so
-that is not an issue either (and really it's time to just delete the
-kernel's Camellia code anyway, as no one uses it).  So feel free to add:
+Thanks, that was quick! I'll send a v2 of this patch with your
+Tested-by. It also gets a new first patch=A0that addresses the Sashiko
+finding.
 
-    Tested-by: Eric Biggers <ebiggers@kernel.org>
+I've also tested directly from your branch. With +crypto, the KUnit
+tests and the full self-tests pass. To make sure the=A0library really
+uses the opcodes, I broke the AES round instruction in a local QEMU
+build. The AES tests then failed with +crypto and passed without it.
+I'll also try it on real hardware, a T4 and an M7, and reply on your
+series.
 
-We should be fine as long as my series is merged too (and I plan to take
-it via libcrypto-next in 7.5).
+> I think this is the only case where a Linux architecture has
+> restrictions on when memcpy() can be called, though.  It would be worth
+> finding a way to remove that footgun
 
-I think this is the only case where a Linux architecture has
-restrictions on when memcpy() can be called, though.  It would be worth
-finding a way to remove that footgun, e.g. making memcpy() automatically
-fall back to scalar code if the FPU is already in use.  It seems that
-some of the SPARC memcpy() implementations already do that, in fact.
+Agreed. Not a full proposition (yet), but perhaps U1memcpy and
+U3memcpy could fall back to integer copies when the FPU is in use,
+like NG4memcpy and M7memcpy do. I haven't properly looked into it,=A0
+but I might later.
 
-Thanks,
+/Stian
 
-- Eric
+
+--=-siijRfQfDx5NwjZLvIFT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTK1ph9OaYoND1R57zoeAEuJe36VgUCav2I5wAKCRDoeAEuJe36
+VifkAQC/AxmvDhLO+ORuG8DbZsBS/uFyjlZEJpTFUiDZAQfzCgD+K/aguaFLYTg8
+r4fGVnSPHVzb+dt1eX4ggNH+QtwkKQQ=
+=jGxd
+-----END PGP SIGNATURE-----
+
+--=-siijRfQfDx5NwjZLvIFT--
