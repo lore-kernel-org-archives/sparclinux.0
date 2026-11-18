@@ -1,63 +1,60 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.189.121.228
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795000555;
-	b=fp0lVpww7cFSyuEr8sB2erYw/xnRsTQ2jWUyFIzs+tDDQEh90Wr347gAcCRTVc0JjNE7
-	 XsgVm4gTlvv6kfN/5WAInzZKWpKVFYwmRAF6mD/HApdZ1hwULZgR3KxezENso5aM+snhK
-	 MEjNHsE2ElIFcU6hkurwxwiR6Dj5v0TfDaJcdEKfM14G0/OvDzk3Xw54Q0b0Mi1eRfjQb
-	 CVi4xtt0EhEmcy/PZQaeMu6sxVhM0PVoj/fC5FCQJuTCwaNG7xFNEDfMhNdzntcugd+yv
-	 UdpfjYpe+zxEiabx43rcpgzvesPvkA/jBgnIG10jEGZEDkcJHCrv1Bv8xcqgAeOrmpw==
+	t=1795002588;
+	b=fv8N0ldjqrXprFjeI5iAOHwhEyEumIkm/ZRUeRZLKB+oyU0vN7AjeSd9cA/+vQrbiqPh
+	 HwhuyWc6pmgIJsRkJ6As1blBihOY5xsB/yRtgOST7uR2fJ2+vNkGxudwkj0edEWXgyL9+
+	 r7w6qKvDo6h1eCA4G+Ced20xDDIEl9Z7g/fgL92SvnCK/CtZiltl4CziQsxD278iHuZ0R
+	 74ilJBbknvqVSKmid2RAoZRY3agln/eT3Vsn+QHAoYroKdTYPlAz6cMmQe7AsW+C8LfI4
+	 pU82R2eSYhTm7cXI/5oJg0lbeploes44bX5FWdMkna9IW9T2MSGTm7ZsvYw5eNo8UfA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795000555;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795002588;
 	h=DMARC-Filter:Message-ID:DKIM-Signature:Subject:From:To:Cc:Date:
 	 In-Reply-To:References:Content-Type:MIME-Version;
-	bh=Y4hHKOCSU2CmbP8FEKSLsQJzoNedloCjuCXqEcxU9FM=;
-	b=YuI2jN+bXpS/pVX1UDvVJdu0wfDcfbynS44uOETyHWta8LpmOGAbWkA406eK/YHsGJL0
-	 gYAml1GF70gAr6C0OQw/vRsr+cDpSAebTsI2rS64Kkhksg3XKNfdGkctPzQ4qykGwawZp
-	 SOJBiNtITj0c41SgZSGD962qWwb26N7T5Q91mwJgIvB1iQJ2JF6OLEaMuHBNtZf7EYGfJ
-	 ci5z7fAHkHmfQhfSmyzbfh0SFgXOUfjGCcP9bX4V5x3NfqG0Eci/e4HN3v70BGO/kigEL
-	 Ae3w8aTB2tmLDfYnPWCrQInIE4at/qLkjUv99zx7c4DET6np8ayBeHWBI27MRMso2wQ==
+	bh=KkcD2wgRhDzHWNTmtyhw/sR/Zau+ag/Z3ParFWO/T78=;
+	b=XtRc8saiWWKjwrEXyRaGVKZIKBhaeic3IX0dqKflRfWj4iefS91vSKB8wXI6c/gBK2Xi
+	 4bO6vD64kgvOP/yKjss+WDTx7bD4LXi0U2mDcmghhD0AO7xNtADgGaM4EI/gGzmfodleb
+	 WUeJwskCzryDMeIgTH2RI+lh2sTML9Mv89kPQv5cFwuQZ3Lihy/ZS3ZXzWkZvc4YVZKOi
+	 Yff0RjU9GxrgIlZurvgerkQB7iSytmVMuxIqQaPAvoioT5VtY8kf5wfUTFPVM/sT56hy+
+	 pu/0U4lK6yGILBEK2g/Wd7NNvdLG2IoRxHSpTLYXWu5FnOtNbDoLFNXcIZ7cXPnWTCw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=itx.no;
 	spf=pass smtp.mailfrom=itx.no;
-	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=jJW1YBwm;
+	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=m9Fc6fIN;
 	arc=none smtp.remote-ip=91.189.121.228
 Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1CA260A2601;
-	Wed, 18 Nov 2026 11:15:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C1CA260A2601
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 000D9606A31C;
+	Wed, 18 Nov 2026 11:49:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 000D9606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=jJW1YBwm
-Message-ID: <51593f27903fb901f7c34e3c084d1c34a126e567.camel@itx.no>
+	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=m9Fc6fIN
+Message-ID: <14a61f2afeb1ea212976a16db2f85fa952dc2b26.camel@itx.no>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1795000552;
+	t=1795002579;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Y4hHKOCSU2CmbP8FEKSLsQJzoNedloCjuCXqEcxU9FM=;
-	b=jJW1YBwm3C78/3vUAUiLSB5okP4vTdUjECOQRa/X+YgAfsFTxxScUebAebdNRx2YHvcXgO
-	bC0U4bXiHqhVGbhwNoUcSAnw/ZAbAU6E646B9nm9z30+Ck6BJWxDWz4alVSQ/4sY4Su5BF
-	5s/Slsky5tEZ0eMUjECFdYqQSuOTY7E=
-Subject: Re: [PATCH] sparc64: Read qemu,hwcap-list from the OF cpu node on
- sun4u
+	bh=KkcD2wgRhDzHWNTmtyhw/sR/Zau+ag/Z3ParFWO/T78=;
+	b=m9Fc6fIN08iGkul/bPrkKxfIUxOW7SKaM7QnYp1kwNZXys8BT7jzAljRhg1IaDaWzxnOQ0
+	fiOsNApu4WiW+XUwTdJfKDUg2sBYMRHh+BLKiOw/AQ3SMWOZyN9N1uz0wprsac1M7XKb6V
+	ohNadjFcABKib8svgLz/cL2diZY7Ffg=
+Subject: Re: [PATCH 0/4] Migrate SPARC64 accelerated AES modes into library
 From: Stian Halseth <stian@itx.no>
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: sashiko-reviews@lists.linux.dev, sparclinux@vger.kernel.org, Andreas
- Larsson <andreas@gaisler.com>, "David S . Miller" <davem@davemloft.net>,
- Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>,
- linux-kernel@vger.kernel.org
-Date: Wed, 18 Nov 2026 12:15:51 +0100
-In-Reply-To: <20261118043857.GA3400@sol>
-References: <20261117112914.2300417-1-stian@itx.no>
-	 <sashiko-outbox-218725@kernel.org>
-	 <8c0c3734b9ad1ba0072ce1fbcf895b544563798f.camel@itx.no>
-	 <20261118043857.GA3400@sol>
+To: Eric Biggers <ebiggers@kernel.org>, linux-crypto@vger.kernel.org
+Cc: Ard Biesheuvel <ardb@kernel.org>, "Jason A . Donenfeld"
+ <Jason@zx2c4.com>,  Herbert Xu <herbert@gondor.apana.org.au>,
+ sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, "David S
+ . Miller" <davem@davemloft.net>, Magnus Lindholm <linmag7@gmail.com>, John
+ Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Wed, 18 Nov 2026 12:49:38 +0100
+In-Reply-To: <20261118041033.50014-1-ebiggers@kernel.org>
+References: <20261118041033.50014-1-ebiggers@kernel.org>
 Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-siijRfQfDx5NwjZLvIFT"
+	protocol="application/pgp-signature"; boundary="=-VVpLPpVx+UaJrhr+/7H6"
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -69,51 +66,42 @@ Precedence: list
 MIME-Version: 1.0
 
 
---=-siijRfQfDx5NwjZLvIFT
+--=-VVpLPpVx+UaJrhr+/7H6
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
 Hi Eric,
 
-On Tue, 2026-11-17 at 20:38 -0800, Eric Biggers wrote:
-> The following series migrates the remaining SPARC crypto opcodes
-> accelerated AES modes into lib/crypto/:
-> https://lore.kernel.org/linux-crypto/20261118041033.50014-1-ebiggers@kern=
-el.org/
+On Tue, 2026-11-17 at 20:10 -0800, Eric Biggers wrote:
+>=20
+> This series migrates the SPARC64 crypto opcodes accelerated
+> implementations of AES-ECB, AES-CBC, and AES-CTR into lib/crypto/.
+>=20
 
-Thanks, that was quick! I'll send a v2 of this patch with your
-Tested-by. It also gets a new first patch=A0that addresses the Sashiko
-finding.
+The self-tests (CONFIG_CRYPTO_SELFTESTS_FULL=3Dy) and AES KUnit suites
+pass on SPARC T4 and M7. I also compared ecb, cbc and ctr(aes)
+through AF_ALG against openssl, with random keys, IVs and lengths.
+They all match.
 
-I've also tested directly from your branch. With +crypto, the KUnit
-tests and the full self-tests pass. To make sure the=A0library really
-uses the opcodes, I broke the AES round instruction in a local QEMU
-build. The AES tests then failed with +crypto and passed without it.
-I'll also try it on real hardware, a T4 and an M7, and reply on your
-series.
+Through the crypto API, the speed is the same as before. On the T4,
+tcrypt mode=3D200 gives the same throughput from 1024 bytes up, and is
+within a few percent below that. The library ECB, CBC and CTR are now
+~10 times faster on 4096 bytes.
 
-> I think this is the only case where a Linux architecture has
-> restrictions on when memcpy() can be called, though.  It would be worth
-> finding a way to remove that footgun
-
-Agreed. Not a full proposition (yet), but perhaps U1memcpy and
-U3memcpy could fall back to integer copies when the FPU is in use,
-like NG4memcpy and M7memcpy do. I haven't properly looked into it,=A0
-but I might later.
+Tested-by: Stian Halseth <stian@itx.no>
 
 /Stian
 
-
---=-siijRfQfDx5NwjZLvIFT
+--=-VVpLPpVx+UaJrhr+/7H6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 
-iHUEABYKAB0WIQTK1ph9OaYoND1R57zoeAEuJe36VgUCav2I5wAKCRDoeAEuJe36
-VifkAQC/AxmvDhLO+ORuG8DbZsBS/uFyjlZEJpTFUiDZAQfzCgD+K/aguaFLYTg8
-r4fGVnSPHVzb+dt1eX4ggNH+QtwkKQQ=
-=jGxd
+iHUEABYKAB0WIQTK1ph9OaYoND1R57zoeAEuJe36VgUCav2Q0gAKCRDoeAEuJe36
+Vv/CAP9pXuHaKqEx+X3d8Eq32qSgxh2ueCeSL/fW5VO2SJG+gQEAs0cXyht3sQqL
+bq7671SNe1oVpRj+qqw6YDOzPibhtg0=
+=BR+6
 -----END PGP SIGNATURE-----
 
---=-siijRfQfDx5NwjZLvIFT--
+--=-VVpLPpVx+UaJrhr+/7H6--
