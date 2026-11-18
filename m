@@ -1,49 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794976348;
-	b=FYDxi5+rVfHsELaIE3sTme/GKzxG6MaAq698SiL+BIOTVu7jdvqWWjia3nlXOE8RP6F6
-	 Eb60sHUznnhkzP0QBynzmPoYf8ReDSX1MMOkaEbsKvnBdwljr6WDGweLTU4+p6njf96om
-	 /VQWlweRkECny8qj96Qj9jTs+riDb0vlrpir8NW/2/YfwwASnRt8an92mnM1GsBehZiZQ
-	 x+99QrsaN0P7te1AXHHkVlrr+0GQa0/50CeIevlHiQjWcen3rB4K7X/oZ82vn/aWpTbjf
-	 4lpnoSX3DHx/atk9uj6vpbBkYGJqjQjtHvguMHFNZzVp8UznuCR2Fyq1uMtSILb58Tg==
+	t=1794976739;
+	b=242+NB75JSRSXwzP9RHF0aMHyiOuVlMJMc0+Z7drxxtQ5XJ6Eljgy9n1FW5ooGtoTFn8
+	 rdo18VUW1zZ5aZ6TJfWHkBIleeg/2Ye+ddguURfjJLKPfBov3QAxKMbRgnH7GWf/pJxLt
+	 wtSwb5BH9E+AtuBysDD0o95nnoVey+wsGWWmPU1PXtPa87+yaIJGXQoeymDxcZZ+m7DVc
+	 nQqc9uCtat2r+jQ2Rj4YZv3/sICmhQ96hO1YjjtZxRta5+GZ+Gs7RRKI6CYjWcgLiDDCa
+	 68PfQglp/3CLoJw5801tJoH0mcCvoY18haPvkrx5M3SIqz9gRxYtyV77M/zJIpicYEA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794976348;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=7MS9sX+VwlIh4X9xAEq10Tl8H83Ldhcl5BWCWkiO/T4=;
-	b=gEEFGcGrBGcsa5Nx77Rky4HEbIVl2Gfwit6Kz8UuXE0nRjPP5lgvXpzimWPqbViNUfEv
-	 fqo5LH2OWnkl1vdriBHQFhMorM231TGnst4UB1cL7/2ztw6w0h2rGKw74JZ3r1Pv8jy0E
-	 0pIxyraQAr+3HwWj/9bvwsfdftUOIHs/S+RopW1eOd4ofMr8U70qSPBikkG+ygeqkP/BJ
-	 /d+maOKjLpaWJ8JV4lNRf+RYO3zI+DyUJ/2HapZ9SnZ6/hqZJCXEkX/nfK6M2qgVmQTSH
-	 4jo7gnJ85uI7Sfrg9Oa9rh9rLYUuWuGc5ssrIT2uD1KJHCc25AY3Oq0wFUr1fASkU/Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794976739;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=9LEd/iw8t5Hh+C/3HS9Kzo7OZZlo3oexvOhpz2iPYZo=;
+	b=CxxHgQwP1SDZmkdXqLXfICl2/WEfMZn2EJjTGOz2WGCT1BCAwt8S8PwFSnm6pa8WrsUi
+	 NpqTyNLRZnQt07Pfue4wBMFXSluA4c8ULZ6dXTDR70rhUIaqB82R+Z4DWBQFwLXa3YGUj
+	 lQuW9B8NKVtAPAOfOazmAsD7tiERUMJQ2kwpo8XV2a7uRrBJDAzSUkdc5Qg8RUUdr5vuA
+	 BqYRBxB7Ja7riVdYPYprL4ioIFPf7D77XS7CLDXIiJDQER5Q4yru6WoPFFAMdcqGq3Yjd
+	 azAd7jW7DSMMkAlOLeLFcXj6nypYMSHCSSb6lxKNzxUtIHHJKu5zLHdP+al99S957Tw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=p0UjN81h;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 24252606A334;
-	Wed, 18 Nov 2026 04:32:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 24252606A334
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dRefRfIQ;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D808606A32F;
+	Wed, 18 Nov 2026 04:38:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=p0UjN81h
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id ECCCA1596;
-	Tue, 17 Nov 2026 20:32:22 -0800 (PST)
-Received: from [10.163.128.4] (unknown [10.163.128.4])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 339513F882;
-	Tue, 17 Nov 2026 20:32:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1794976345; bh=mGDSNtodI21bLq4+K4VQm6Lw0wUHcWZaLpeVsLI8sl8=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=p0UjN81hgfNuYJHbl7yquDsT3i72OvHpwNBMIyqfWFMgSGo89/71Q7Sok0hzEiMaq
-	 j3LGaIu8n7IHqWAPU+8tkD0AKEx6AzV6qY543089IEqaaXTn9ZLFgAKQvXPDiKD3RS
-	 hA2IEUpDwaPsa3QUdfrIDnEp4BPvA6DqnJzyyFkY=
-Message-ID: <a45d7c1a-08a8-4f18-82cb-535b6d1d3aab@arm.com>
-Date: Wed, 18 Nov 2026 10:02:12 +0530
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dRefRfIQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97B591F000C4;
+	Wed, 18 Nov 2026 04:38:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794976738;
+	bh=9LEd/iw8t5Hh+C/3HS9Kzo7OZZlo3oexvOhpz2iPYZo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=dRefRfIQGx6izPeu48H4wEb+8I56HJageEuBtdwB8m2uuPFlRwEaudqirO5kgL33S
+	 HUckgjj87QtvHPN8YG/q70m39c+8nQ8fScjWaRNQm0P1QJ1sJcT3Kpi5i+yhSku608
+	 36CtEmBh6JAedAodbIXpb7KVgA4cWRsuyrlaUAq6S10jHCf9ndyfMRSs8h35tuZnZl
+	 EP9gjICgvwoiBPDwHWJoeEM5Lj8m/Dm36GtR+vVccZrg7pxKsAGmOs6Kn1TOkOU7H/
+	 JHYMwGc07mAI0/5fnUt3kcVJS3AuxGwfJxRK1GU+KP49x+4mXIidj5x1nexAEXbQkP
+	 2Un4Ti9Er6IRw==
+Date: Tue, 17 Nov 2026 20:38:57 -0800
+From: Eric Biggers <ebiggers@kernel.org>
+To: Stian Halseth <stian@itx.no>
+Cc: sashiko-reviews@lists.linux.dev, sparclinux@vger.kernel.org,
+	Andreas Larsson <andreas@gaisler.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] sparc64: Read qemu,hwcap-list from the OF cpu node on
+ sun4u
+Message-ID: <20261118043857.GA3400@sol>
+References: <20261117112914.2300417-1-stian@itx.no>
+ <sashiko-outbox-218725@kernel.org>
+ <8c0c3734b9ad1ba0072ce1fbcf895b544563798f.camel@itx.no>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -53,186 +63,72 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 0/9] Optimize anonymous swapbacked large folio
- unmapping
-To: "Garg, Shivank" <shivankg@amd.com>,
- "andreas@gaisler.com" <andreas@gaisler.com>,
- "david@kernel.org" <david@kernel.org>,
- "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
- "hughd@google.com" <hughd@google.com>, "ljs@kernel.org" <ljs@kernel.org>,
- "chrisl@kernel.org" <chrisl@kernel.org>,
- "kasong@tencent.com" <kasong@tencent.com>,
- "davem@davemloft.net" <davem@davemloft.net>
-Cc: "geert@linux-m68k.org" <geert@linux-m68k.org>,
- "rppt@kernel.org" <rppt@kernel.org>, "nphamcs@gmail.com"
- <nphamcs@gmail.com>, "shikemeng@huaweicloud.com"
- <shikemeng@huaweicloud.com>, "vbabka@kernel.org" <vbabka@kernel.org>,
- "harry@kernel.org" <harry@kernel.org>, "riel@surriel.com"
- <riel@surriel.com>, "anshuman.khandual@arm.com" <anshuman.khandual@arm.com>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "surenb@google.com" <surenb@google.com>,
- "linux-mm@kvack.org" <linux-mm@kvack.org>,
- "youngjun.park@lge.com" <youngjun.park@lge.com>,
- "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
- "ryan.roberts@arm.com" <ryan.roberts@arm.com>,
- "jannh@google.com" <jannh@google.com>,
- "liam@infradead.org" <liam@infradead.org>,
- "baolin.wang@linux.alibaba.com" <baolin.wang@linux.alibaba.com>,
- "mhocko@suse.com" <mhocko@suse.com>,
- "lance.yang@linux.dev" <lance.yang@linux.dev>,
- "baohua@kernel.org" <baohua@kernel.org>,
- "baoquan.he@linux.dev" <baoquan.he@linux.dev>,
- "pfalcato@suse.de" <pfalcato@suse.de>
-References: <20261115143905.3045084-1-dev.jain@arm.com>
- <4c351ae2672a817df071b5a8b6b402846b897a75.camel@amd.com>
-Content-Language: en-US
-From: Dev Jain <dev.jain@arm.com>
-In-Reply-To: <4c351ae2672a817df071b5a8b6b402846b897a75.camel@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <8c0c3734b9ad1ba0072ce1fbcf895b544563798f.camel@itx.no>
 
+Hi Stian,
 
-
-On 17/11/26 10:19 pm, Garg, Shivank wrote:
-> On Sun, 2026-11-15 at 14:38 +0000, Dev Jain wrote:
->> Speed up unmapping of anonymous swapbacked large folios by clearing
->> the ptes, and setting swap ptes, in one go.
->>
->> The following benchmark (stolen from Barry) is used to measure the
->> time taken to swapout 256M worth of memory backed by 64K large folios:
->>
->>  #define _GNU_SOURCE
->>  #include <stdio.h>
->>  #include <stdlib.h>
->>  #include <sys/mman.h>
->>  #include <string.h>
->>  #include <time.h>
->>  #include <unistd.h>
->>  #include <errno.h>
->>
->>  #define SIZE_MB 256
->>  #define SIZE_BYTES (SIZE_MB * 1024 * 1024)
->>
->>  int main() {
->>      void *addr = mmap(NULL, SIZE_BYTES, PROT_READ | PROT_WRITE,
->>                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
->>      if (addr == MAP_FAILED) {
->>          perror("mmap failed");
->>          return 1;
->>      }
->>
->>      memset(addr, 0, SIZE_BYTES);
->>
->>      struct timespec start, end;
->>      clock_gettime(CLOCK_MONOTONIC, &start);
->>
->>      if (madvise(addr, SIZE_BYTES, MADV_PAGEOUT) != 0) {
->>          perror("madvise(MADV_PAGEOUT) failed");
->>          munmap(addr, SIZE_BYTES);
->>          return 1;
->>      }
->>
->>      clock_gettime(CLOCK_MONOTONIC, &end);
->>
->>      long duration_ns = (end.tv_sec - start.tv_sec) * 1e9 +
->>                         (end.tv_nsec - start.tv_nsec);
->>      printf("madvise(MADV_PAGEOUT) took %ld ns (%.3f ms)\n",
->>             duration_ns, duration_ns / 1e6);
->>
->>      munmap(addr, SIZE_BYTES);
->>      return 0;
->>  }
->>
->> Performance as measured on a Linux VM on Apple M3 (arm64):
->>
->> Vanilla - Mean: 37401913 ns, std dev: 12%
->> Patched - Mean: 17420282 ns, std dev: 11%
->>
->> resulting in more than 2x speedup.
->>
->> No regression observed on 4K folios.
->>
->> Performance as measured on bare metal x86:
->>
->> Vanilla - mean: 54986286 ns, std dev: 1.5%
->> Patched - mean: 51930795 ns, std dev: 3%
->>
->> I tried magnifying the difference on x86 by using 1M large folios, but
->> can't spot an obvious improvement (looks like my system is too fast to
->> benefit from batched atomic operations!), hinting that the benefit lies
->> mainly in the reduction of ptep_get() calls and the reduction of TLB
->> flushes during contpte-unfolding, on arm64.
->>
->> No regression is observed on 4K folios on x86 too.
->>
->> ---
->> Applies on mm-unstable (24231596edf2).
+On Tue, Nov 17, 2026 at 01:44:14PM +0100, Stian Halseth wrote:
+> Hi all,
 > 
-> Hi Dev,
+> On Tue, 2026-11-17 at 11:46 +0000, sashiko-bot@kernel.org wrote:
+> > 
+> > [Severity: High]
+> > This problem wasn't introduced by this patch, but can hwcap_list_caps()
+> > read out of bounds and loop forever [1] if the property buffer is not
+> > null-terminated?
 > 
-> Most of this series touches rmap and core MM code, which now go
-> through the new MM core tree:
+> Yes, and we can fix that in v2. As it stands the parser trusts the list
+> to end with a NUL, which is not guaranteed if a QEMU user supplies a
+> fw_cfg file directly.
 > 
-> T: git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+> > 
+> > [Severity: High]
+> > Does setting HWCAP_SPARC_CRYPTO in sparc64_elf_hwcap on sun4u cause a
+> > regression where the sparc64 skcipher drivers corrupt FPU state and round
+> > keys across skcipher_walk_done()?
+> > 
+> 
+> This might be a bit worse than I first thought. I was aware of the
+> self-test failures, as noted in my patch notes, but it looks like this
+> could also cause some data corruption. Only QEMU can hit it, since no
+> real sun4u CPU has the crypto opcodes.
+> 
+> I have not reproduced it myself, and before spending time on that,
+> I would like to get Eric's take on removing the glue code altogether.
+> If not, we could fix the glue itself, for example by dropping the FP
+> state before skcipher_walk_done(). IMO that would be maintaining code
+> that probably should be removed. Not my call, though.
+> 
+> Andreas, please don't apply this patch as-is for now. I will wait for
+> Eric's reply before proceeding.
 
-Oh I just saw the update in MAINTAINERS, thanks for informing didn't know
-about this. I'll send v5.
+The following series migrates the remaining SPARC crypto opcodes
+accelerated AES modes into lib/crypto/:
+https://lore.kernel.org/linux-crypto/20261118041033.50014-1-ebiggers@kernel.org/
 
+There we have more control over the bounce buffering, and I set the size
+to 128 bytes (rather than crypto/skcipher.c's PAGE_SIZE) to keep it
+below the size threshold at which memcpy() uses the FPU registers.
 
-> 
-> So, it would probably be better to base the next version on this rather than mm-unstable.
-> 
-> Thanks,
-> Shivank
-> 
->>
->> mm-selftests pass.
->>
->> This breakout patchset is the final completion of
->> https://lore.kernel.org/all/20260526063635.61721-1-dev.jain@arm.com/
->>
->> The extra addition is the generic set_softleaf_ptes() helper.
->>
->> v3->v4:
->>  - Make page_anon_exclusive_batch return the exclusivity instead of
->>    computing that in the caller
->>  - Make ttu_anon_folio() return the number of unmapped pages, to simplify
->>    the code
->>
->> v2->v3:
->>  - page_anon_exclusive_batch returns unsigned long, shift to rmap.h
->>  - Drop a para in description of patch 5, use softleaf_is_swap to gate
->>    pte_swp_exclusive
->>  - finish_folio_unmap -> finish_folio_unmap_batch
->>  - Add patch 9 to do batching for sparc
->>    
->> v1->v2:
->>  - Add WARNs for folio span in folio_*_swap_pages
->>  - Trivial changes to page_anon_exclusive_batch
->>  - Add two sanity checks in patch 4
->>
->> Dev Jain (9):
->>   mm/swapfile: add batched version of folio_dup_swap
->>   mm/swapfile: add batched version of folio_put_swap
->>   mm: move anon-exclusive batch helper to rmap.h
->>   mm/rmap: Add batched version of folio_try_share_anon_rmap_pte
->>   mm/internal: rename swap offset helpers to softleaf offset
->>   mm/internal: add set_softleaf_ptes
->>   mm/memory: use set_softleaf_ptes for uffd-wp markers
->>   mm/rmap: batch unmap anonymous swap-backed large folios
->>   mm, sparc: batch arch_unmap_one()
->>
->>  arch/sparc/include/asm/pgtable_64.h |  10 ++-
->>  arch/sparc/kernel/adi_64.c          |  21 +++++
->>  include/linux/pgtable.h             |   6 +-
->>  include/linux/rmap.h                |  76 ++++++++++++++----
->>  mm/internal.h                       |  64 +++++++++++----
->>  mm/memory.c                         |  23 +++---
->>  mm/mprotect.c                       |  25 +-----
->>  mm/rmap.c                           | 119 ++++++++++++++++++++--------
->>  mm/shmem.c                          |   8 +-
->>  mm/swap.h                           |  35 +++++++-
->>  mm/swapfile.c                       |  39 +++++----
->>  11 files changed, 289 insertions(+), 137 deletions(-)
+I tested this patch with that series and the QEMU support you added, and
+everything seems to work.  And Camellia is not supported in QEMU, so
+that is not an issue either (and really it's time to just delete the
+kernel's Camellia code anyway, as no one uses it).  So feel free to add:
 
+    Tested-by: Eric Biggers <ebiggers@kernel.org>
+
+We should be fine as long as my series is merged too (and I plan to take
+it via libcrypto-next in 7.5).
+
+I think this is the only case where a Linux architecture has
+restrictions on when memcpy() can be called, though.  It would be worth
+finding a way to remove that footgun, e.g. making memcpy() automatically
+fall back to scalar code if the FPU is already in use.  It seems that
+some of the SPARC memcpy() implementations already do that, in fact.
+
+Thanks,
+
+- Eric
