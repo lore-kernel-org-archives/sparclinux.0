@@ -1,64 +1,65 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.142.43.55
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795426648;
-	b=LNIGPM2Lf5qUfNE7JIEJq62G86FSlJuhs4BR8pvLLwGnqam+5cvTkzx7DUjFVfoQ6Tf/
-	 /iBIFXAXn435zKf6YDyjzA6a1b9m53Tv/Moiz9ePjHKPGgg8KIM3kMN/jmx4TqRDHg3yA
-	 r6UfWWSwURkV8ueMsioILtMD1jRHkDd2kvZVs2G1vBi69rzAcgENNo9HoiXvyMCVCCghp
-	 ZLTDHTJq0Z3CoLhWPtqV9JoQC0fiYSf/HcZ/VsvnzOYUgXrskPT9P470XD/CG4jlGcdMU
-	 2OAddrIIkh0iprNZ+WPCjtJsJ/QoBVQyBR7DD8Y2NwWZ/V6xGBcFivp0W20YTSWDRmg==
+	t=1795426649;
+	b=G3FuSJSEn4vM3DyEm/OW8s+jldjypTA78tLkEDUijPoJFrQ4OixhYeDBwaYpell3eJP7
+	 cz+x7WU/gse+dWgLq/CFRdZZuBRH57jHpCZ4OZpPoCfltiiNja3L6XrLZDGm+ODXQMyRa
+	 PDoJf+GyjGqPn89oL9js+kdFh5c2GyzWn9ynnh9w5ow84NkgXwBiaKkCg3YVwJ/6k5vjz
+	 ZofuXWVlW1iH+AODG9nP5UN8y1joIdlbcxvXrW39f7xZOXkkg4W4iNZvkmuZItVplRsPW
+	 Tj+/K4xHne7AC4/zh9HPS467QhCvcAQoXqgn7KHoqTXqUX7tfHDThBGN0lHNCzbBC5A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795426648;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795426649;
 	h=DMARC-Filter:From:DKIM-Signature:DKIM-Signature:Date:Subject:
 	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:
 	 References:In-Reply-To:To:Cc:X-Developer-Signature:X-Developer-Key;
-	bh=E1kpH9qtmZAMmYTBOk6CnIKFezpBGJI84FmVahSpOrc=;
-	b=v7MI2G+WLBer/WgWHaeL0GYzYOB+UNEVEQcx4/bVdfCSOB43XFryPNua06YcQjJH0Dfs
-	 vqxDo+mZPo3GAQWRfvFbWjj1SZsgoxYt+gLf+yLQ5XFwXKm9o5YOGfBqpNmDcUXX/lBfQ
-	 Ipfii489lVd1SUgT8yVgS6SJGt+LRVBrwaXGdbC4VEmx/RwUb6hgkKptc+0JMkoRurP9o
-	 1cZ1N543kTxm0OWt8OA9fwdSnJHuboZwdRqYRxEBaMdVsrxZyU4+QYZzjK1p1ZjrAULaa
-	 i3EPgFrl/6IukpNAcRGRWYg+DnxiYcemoS8cJvRgFatvK1JlX7iFDWXkLX9p1SUUZIw==
+	bh=dDtQZ0VAonHgAXv6V61xlzs7rkDt1P1WSeLVHahPhAk=;
+	b=ZhkkUuo9H1uz8KMD9VJ07vK9z1EgWXChWiFs02/99fYkC6JMWuWfF8WZAOhw5YT9R2Dy
+	 XU13R69No85d7UUfBkQAvhFucYab6S7NR9XS1brkirSzPh2GH7wmqfWT3+h4x3lCKfpxn
+	 EB2VPOo6GgEbysA4DJGB5CJtMb3SiFQ6Uw+1n+7SIIp4tPA1fHHQoBBIw0gOKFemDLtVP
+	 L06lcGnT/RLET9W9d9cfLIqbTgamLNfUPbgLBxT/kvWCStRqWSXUD8RmsC8nTpLHTrglV
+	 jN54BJ7pBUtE5rTBg1BMqsCI1fIIUjjIC+UQyBjRiiMCJhDaCON+8Iig5OJVHRj1U0w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linutronix.de;
 	spf=pass smtp.mailfrom=linutronix.de;
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=rsa-sha256 header.s=2020 header.b=kEyAOZ+f;
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=ed25519-sha256 header.s=2020e header.b="lIn2F/rY";
+	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=rsa-sha256 header.s=2020 header.b=0j5Gmmlj;
+	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=ed25519-sha256 header.s=2020e header.b=xKFKMpGl;
 	arc=none smtp.remote-ip=193.142.43.55
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 318C8606A327;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81E5F606A32C;
 	Mon, 23 Nov 2026 09:37:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 318C8606A327
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 81E5F606A32C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.a=rsa-sha256 header.s=2020 header.b=kEyAOZ+f;
-	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=ed25519-sha256 header.s=2020e header.b=lIn2F/rY
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.a=rsa-sha256 header.s=2020 header.b=0j5Gmmlj;
+	dkim=pass header.d=linutronix.de header.i=@linutronix.de header.a=ed25519-sha256 header.s=2020e header.b=xKFKMpGl
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1795426646;
+	s=2020; t=1795426647;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=E1kpH9qtmZAMmYTBOk6CnIKFezpBGJI84FmVahSpOrc=;
-	b=kEyAOZ+fXfpEFfXli9cKb4jaOvep+YD+wGpQAMUQQojZWoFAqgtWYb70a2ykA+VO1bRedq
-	xJ1z/x/EoR0vCb1RSKcWCP09fC16ImShi/WU9K9AboAh6Pl6VYOpQX7L3Va0rbVF8sRgwZ
-	j1VkZWwgTUUpmxL3P+j222I9Hpz4yBmTIIBjdDdZJBGCITy12dETeke7yfjVz6eOwfrX2T
-	qwIgn0zPKXkYeYkzAhQRrFUZf3oInFDCx1beSUFl6BqCyxq769Dp3hpWe19ngJScL2Wjxr
-	jwMUd1tmM8P3eypY0Zj/ISZvHtFUuVCqtBxqaoGWMGH3MzUX5NwVGjxH9YMJBQ==
+	bh=dDtQZ0VAonHgAXv6V61xlzs7rkDt1P1WSeLVHahPhAk=;
+	b=0j5Gmmljkca/E2gltZCv/iUBQbTWeg/kQBkYf9XVAiAvA+qtjrKckZWXQHPA2f/1TeXecV
+	/zE0P2DNvoi8HzN3ElVxpGGiQAEUlNEcd6UGF8hYrc/wSMLNce0GBczPBbKvIrUO5X19RR
+	R1IdOvKig4vP9CGu5Hhx6vXZPUH55eQ55Cmk36Mb44np+ZIxlZSOLnCp0ymuePoAJEdl+5
+	TwmUudfDzyUogJxAH8+mEPtUHitYqGo8y7Cn1b+rbDaEO5y1tmknjd9BzK8UJv7cfl21hY
+	ru0ooQgiSTna2g0imjxfqNWRrK9ENYE5x9K6ykIbUErgd+RZ7TijW+6DyYVOYg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1795426646;
+	s=2020e; t=1795426647;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=E1kpH9qtmZAMmYTBOk6CnIKFezpBGJI84FmVahSpOrc=;
-	b=lIn2F/rYSSMxABLTJM4B3AbW/3uEZC8vK5/mSmfekSgDDXw9MHlSZZVoCJyH3+Wc1EX+Zc
-	QINruovqqc4qHEBA==
-Date: Mon, 23 Nov 2026 10:37:06 +0100
-Subject: [PATCH v3 01/15] MAINTAINERS: exec: Add more auxvec.h variants
+	bh=dDtQZ0VAonHgAXv6V61xlzs7rkDt1P1WSeLVHahPhAk=;
+	b=xKFKMpGlecHS7QXXG/FYCxByPNPhxibU2GcZwDKmWF1WUgWqaJk6Gin5FmwBxGa5E4PlWb
+	9bnxn8NrLGCuOXAA==
+Date: Mon, 23 Nov 2026 10:37:07 +0100
+Subject: [PATCH v3 02/15] auxvec.h: Move AT_VECTOR_SIZE definitions to
+ linux/auxvec.h
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -70,7 +71,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20261123-at-vector-size-arch-v3-1-d342dae9e843@linutronix.de>
+Message-Id: <20261123-at-vector-size-arch-v3-2-d342dae9e843@linutronix.de>
 References: <20261123-at-vector-size-arch-v3-0-d342dae9e843@linutronix.de>
 In-Reply-To: <20261123-at-vector-size-arch-v3-0-d342dae9e843@linutronix.de>
 To: Kees Cook <kees@kernel.org>, Arnd Bergmann <arnd@arndb.de>
@@ -81,44 +82,56 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  linux-mips@vger.kernel.org, sparclinux@vger.kernel.org, 
  linux-sh@vger.kernel.org, linux-alpha@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795426640; l=979;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795426640; l=1309;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=hyCnjfQwzbLi6OQVQUQL35+BD4s52Bt4na4vvI8iM88=;
- b=Yd3vnnMHSBep+pRQRmyi1AA40DEVjxA2c8/dBeFWV4J0rKudeRDSHvhOeNFfw6AFADdjfzkJf
- OYY7DU1b6DAAWfLpRxBPgKDgCI6NtpX+tyAlSPU38iJqHr9hcKiFypZ
+ bh=vTIIJIwUFOUw6+gUJjUOc4a2N37x7HojOq0oR0BBlzg=;
+ b=GyKn4Bxu+C22SecrgL0rmVE25rtNo0/nZVqR9YcowgOuG6XWN+hFQ7LVwF48ESsfl68yPNaNg
+ 5OD4YumxPGrDTLDcZ/xMG4kmg7ZscPSTHPCE8zZxHWIbEnZdxHW3/L6
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-There are quite a few auxvec.h headers. Mark all of them maintained
-as part of 'EXEC & BINFMT API, ELF'.
+The auxvec.h header is a more fitting place for these definitions.
 
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 Reviewed-by: Kees Cook <kees@kernel.org>
 ---
- MAINTAINERS | 3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/auxvec.h   | 7 +++++++
+ include/linux/mm_types.h | 6 ------
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 93abbb315065..a659c9bfb0f0 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10073,13 +10073,16 @@ L:	linux-mm@kvack.org
- S:	Supported
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git for-next/execve
- F:	Documentation/userspace-api/ELF.rst
-+F:	arch/*/include/uapi/asm/auxvec.h
- F:	fs/*binfmt_*.c
- F:	fs/Kconfig.binfmt
- F:	fs/exec.c
- F:	fs/tests/binfmt_*_kunit.c
- F:	fs/tests/exec_kunit.c
-+F:	include/linux/auxvec.h
- F:	include/linux/binfmts.h
- F:	include/linux/elf.h
-+F:	include/uapi/asm-generic/auxvec.h
- F:	include/uapi/linux/auxvec.h
- F:	include/uapi/linux/binfmts.h
- F:	include/uapi/linux/elf.h
+diff --git a/include/linux/auxvec.h b/include/linux/auxvec.h
+index 8bcb9b726262..4b364e639f08 100644
+--- a/include/linux/auxvec.h
++++ b/include/linux/auxvec.h
+@@ -6,4 +6,11 @@
+ 
+ #define AT_VECTOR_SIZE_BASE 24 /* NEW_AUX_ENT entries in auxiliary table */
+   /* number of "#define AT_.*" above, minus {AT_NULL, AT_IGNORE, AT_NOTELF} */
++
++#ifndef AT_VECTOR_SIZE_ARCH
++#define AT_VECTOR_SIZE_ARCH 0
++#endif
++
++#define AT_VECTOR_SIZE (2*(AT_VECTOR_SIZE_ARCH + AT_VECTOR_SIZE_BASE + 1))
++
+ #endif /* _LINUX_AUXVEC_H */
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 1ed35d258d2e..c75626c5aad4 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -26,12 +26,6 @@
+ 
+ #include <asm/mmu.h>
+ 
+-#ifndef AT_VECTOR_SIZE_ARCH
+-#define AT_VECTOR_SIZE_ARCH 0
+-#endif
+-#define AT_VECTOR_SIZE (2*(AT_VECTOR_SIZE_ARCH + AT_VECTOR_SIZE_BASE + 1))
+-
+-
+ struct address_space;
+ struct futex_private_hash;
+ struct mem_cgroup;
 
 -- 
 2.56.1
