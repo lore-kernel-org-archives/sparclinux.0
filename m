@@ -1,55 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.189.121.228
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795599905;
-	b=Ctl8ZCtj2hqk0b2t+kI/J2cE+SyxKPMo2r1uVBQ5ybRjh9gsrekn/lJ5wzkMCrtJt0Fv
-	 GKqf0gAtGtg2XU9sQVypoaRG7bhlrZqdQnMJyee98lx63ztY+Gy+iKlbaQ6/O593KlxWb
-	 OD/MnFn/+9u5z3Q0zxBkOOjQz+p3veVVI+pUWnvMpTHdZY0arLUumzyL5DEVzZH2NQ6Bi
-	 BwGy88UAr2mBlcBXfW7WYVk3b1oZJrlidXkdAP/psTfaGcJSq+xgxEj3R9I96pvbg3BLx
-	 TAaMz+m4IMr1h+3pt6PkUVLU2OVBJp2g8nEFaD6UfZr/SvKnU97XGBUQgJFpj7Wc1pg==
+	t=1795601236;
+	b=hPxu00HDcWGV5Q18lcw+iLYOpE0RivpA8/kmSu00dyC4Pp165pU6MDTD4H3BgtxRWisM
+	 IvQf42O0TECOabaLWJ0LoMc9OIr3F0Opr0PvM7g7ZLAkXH30OCHLVa7rIOYobgLIYZaY+
+	 pRHgiylS5vy0RCIHZyl4tYwxvDWB5VXPxQMDEcgzFcX5ndKFzNKy/Hz9hFKwWvYo9U2vV
+	 l+ZQ9tysj+AvQ0+0h/89KLCsNv9qiNexB6LAeb/koStRi3xaUdstJIh0VHpgsh3dYLgJA
+	 +nt/9qngDG5u/vBqA3BY6YohXklGh5jqSpJjtupfDRpE256A+M3ePigKuArxFPW5LpQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795599905;
-	h=DMARC-Filter:From:DKIM-Signature:To:Cc:Subject:Date:Message-ID:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=jQf7if7ETsV0Wdj27IdrX22LoOYAHB7sIbcIgGIcj2k=;
-	b=oJ6HwGF30DTg35wddeKJM9JC9C4/sAMAg/U6h6hcnjjDWF/jfxMfDwChei0Iq9rLJXDq
-	 pj+UCp7J3Nrt40Ep4U5L0hcIgUMOMMkSzap5PIEN4iPhfcl5LRf6tjodn9fuFMrCXWWX0
-	 knvxWBDMsNhbcqyiRmamFeVRMacwvH1IprobFagDPWDQmu9GHPkt4B+//5YOcbcviOg/1
-	 ErxsuuQERfjFM5RJAsOuZjeho8wIn54zdP4vZzWZZhA/oYjoVZxHlhtwVpDc5g685iiQ9
-	 ZirBZ1djnmyfFQVY6tjFdnzmC/j57h2Yb2h5T3F6tyXktVrkxMSX0sgp0eHi1n3nIyw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795601236;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=XPUc0KH0viN+tnos8DZKfyq/cn3ZCFpYiBR5vNgasuw=;
+	b=eDjx46rmvNix2NYN1eMIR3/Zbl2PsvDevTqEUlCb2PB2fX8VwkwCC+KU8vaRksAWywZ+
+	 wIwXoFOc5HCgtD+8qeGu13zRckgHja/crEDgmW0qSXVkCIR7nWyN2eaHBWWdbD1WwqBn7
+	 Nq5LDYpQneKw4kU1bPo/RgPeSEMpY25mC+AMTVr5AqXIK64OiAxc2Y95jzzsQHo0/4H2F
+	 0o4OXWt0X5nZ5++dNLTYEQXBW+6SCK3/sS7yKZcOr6G9Y/9bKZ82afR6hwBhF6HSu+guO
+	 +Vq3a04x/KmGDlC5LZyuulwsYCjKXNJ8UOKQrPVlCcRxuzYx4Zv2+dr8bBnOVguv9uQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=itx.no;
-	spf=pass smtp.mailfrom=itx.no;
-	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=RYeuYohQ;
-	arc=none smtp.remote-ip=91.189.121.228
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EIzPZplI;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 094AF606A327;
-	Wed, 25 Nov 2026 09:45:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 094AF606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57889606A31E
+	for <sparclinux@vger.kernel.org>; Wed, 25 Nov 2026 10:07:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=RYeuYohQ
-From: Stian Halseth <stian@itx.no>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1795599897;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=jQf7if7ETsV0Wdj27IdrX22LoOYAHB7sIbcIgGIcj2k=;
-	b=RYeuYohQEvZP4DPUZ8pm32FSeoTMoHKyw3j2gGZId7H8NAfGIHVBiDijK4JqTzxsq9GP57
-	pxlXBWnYhYspMtnuTKM213UwM/NI0zv22F71d1Pvu0PXFv5bTGGUGIBBzlLo3yoaQe1fB7
-	QXljHtLjxwuXei9Vx8qae7QmMy1w1WA=
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Stian Halseth <stian@itx.no>
-Subject: [PATCH] sparc64: Report the fault address when a user window cannot be saved
-Date: Wed, 25 Nov 2026 10:44:46 +0100
-Message-ID: <20261125094446.537502-1-stian@itx.no>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EIzPZplI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 761601F000CF;
+	Wed, 25 Nov 2026 10:07:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795601235;
+	bh=XPUc0KH0viN+tnos8DZKfyq/cn3ZCFpYiBR5vNgasuw=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=EIzPZplIFtPj5CT8FD3rl3x481kYTbkaq6nR85PEXgUc7af4sFoDbnhI0Z6Cevp4g
+	 844PyhsxYAwO9p6EgCsklTzXJdJUzVz0wuoADggv05Or2IKhTMKspY1MdKqQm8FBiO
+	 e1mVGTR42h8MR0MwpUJ0GS3MjeeyD9kmvrz5Duo98ujF9Z+g3zm8jkxgmybk3dsWDR
+	 Gg0zZr3oIgNRvf5FriC8bXgwnh+Ddc6b3amGv26scXynd8xGeYmUBSj1sDxptGfBjP
+	 /NRDDKh9a4chep/KR4RGuaziF0QP8dPpHE04ZkCjacgPxlM2XZDiozqVH+4pt6sXXk
+	 QEXeaUpv+n4Fg==
+Message-ID: <sashiko-outbox-233087@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] sparc64: Report the fault address when a user window
+ cannot be saved
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Stian Halseth" <stian@itx.no>
+Cc: sparclinux@vger.kernel.org
+In-Reply-To: <20261125094446.537502-1-stian@itx.no>
+References: <20261125094446.537502-1-stian@itx.no>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 25 Nov 2026 10:07:15 +0000
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -58,84 +59,121 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-When the kernel spills a user register window and the store faults,
-the window is kept in the thread's window buffer. On the way back to
-user space fault_in_user_windows() writes it to the stack. If that
-write fails as well, it sends SIGSEGV with force_sig(). The handler
-gets SI_KERNEL and si_addr == 0.
+Thank you for your contribution! Sashiko AI review found 4 potential
+issues to consider:
+- [High] sparc64: call to undeclared vma_lookup() in
+  fault_in_user_windows()
+- [High] sparc64: missing trapno argument to force_sig_fault() in
+  process_64.c
+- [Low] sparc64: missing Fixes trailer in commit message for
+  fault_in_user_windows()
+- [Low] sparc64: fault_in_user_windows() uses base sp on page-straddling
+  fault
+--
 
-When a thread overflows its stack, the first store into the guard page
-can be a window spill. If the kernel does that spill, for example
-during a system call, the window goes through this path. Stack
-overflow handlers compare si_addr with the guard page. With
-si_addr == 0 they cannot tell that the stack overflowed. The Rust
-runtime then resets the handler, and the process dies with SIGSEGV
-instead of reporting the overflow. Rust's
-tests/ui/runtime/out-of-stack.rs fails this way:
+commit ee3413b56ca2f61248a64fe34c40cdf99b9dde0c
+Author: Stian Halseth <stian@itx.no>
 
-  ferris[157185]: bad register window fault: SP fff800010f60bf90 (orig_sp fff800010f60b791) TPC fff800010f3a2db0 O7 00000100016039e4
+> sparc64: Report the fault address when a user window cannot be saved
+>
+> When the kernel spills a user register window and the store faults,
+> the window is kept in the thread's window buffer. On the way back to
+> user space fault_in_user_windows() writes it to the stack. If that
+> write fails as well, it sends SIGSEGV with force_sig(). The handler
+> gets SI_KERNEL and si_addr =3D=3D 0.
+>
+> When a thread overflows its stack, the first store into the guard page
+> can be a window spill. If the kernel does that spill, for example
+> during a system call, the window goes through this path. Stack
+> overflow handlers compare si_addr with the guard page. With
+> si_addr =3D=3D 0 they cannot tell that the stack overflowed. The Rust
+> runtime then resets the handler, and the process dies with SIGSEGV
+> instead of reporting the overflow. Rust's
+> tests/ui/runtime/out-of-stack.rs fails this way:
+>
+>   ferris[157185]: bad register window fault: SP fff800010f60bf90 (orig_sp=
+ fff800010f60b791) TPC fff800010f3a2db0 O7 00000100016039e4
+>
+> Pass the address of the window to the signal, as stack_unaligned()
+> does for SIGBUS in the same file. Look up the VMA to choose the
+> si_code, as process_fpemu_return() does on MIPS. A spill into a
+> PROT_NONE guard page then reports SEGV_ACCERR, whether the hardware or
+> the kernel did the spill.
+>
+> Closes: https://github.com/sparclinux/issues/issues/132
+> Signed-off-by: Stian Halseth <stian@itx.no>
 
-Pass the address of the window to the signal, as stack_unaligned()
-does for SIGBUS in the same file. Look up the VMA to choose the
-si_code, as process_fpemu_return() does on MIPS. A spill into a
-PROT_NONE guard page then reports SEGV_ACCERR, whether the hardware or
-the kernel did the spill.
+[Severity: Low]
+Should this include a Fixes tag for the commit that introduced
+force_sig(SIGSEGV) in fault_in_user_windows():
 
-Closes: https://github.com/sparclinux/issues/issues/132
-Signed-off-by: Stian Halseth <stian@itx.no>
----
-Tested on a T4-1 (sun4v) and a V240 (sun4u) with 7.3.6. A thread
-recurses and writes to a pipe at every level, so the kernel spills its
-windows. Before, the handler got si_code 128 and si_addr 0. After, it
-gets the window address and the same si_code as a spill by the
-hardware: SEGV_ACCERR for a PROT_NONE guard, SEGV_MAPERR for an
-unmapped hole. out-of-stack.rs passes 10/10 on the T4. A handler that
-makes the guard writable and returns also works: the thread continues
-and every frame unwinds with the right values.
+  Fixes: 5b4fc3882a64 ("sparc64: Make corrupted user stacks more debuggable=
+.")
 
- arch/sparc/kernel/process_64.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+> diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_6=
+4.c
+> index 7afd0a859a78c..af8d2efc0dd43 100644
+> --- a/arch/sparc/kernel/process_64.c
+> +++ b/arch/sparc/kernel/process_64.c
+> @@ -530,6 +530,8 @@ void fault_in_user_windows(struct pt_regs *regs)
+>  {
+>  	struct thread_info *t =3D current_thread_info();
+>  	unsigned long window;
+> +	unsigned long sp;
+> +	int si_code;
+> =20
+>  	flush_user_windows();
+>  	window =3D get_thread_wsaved();
+> @@ -539,7 +541,7 @@ void fault_in_user_windows(struct pt_regs *regs)
+>  		do {
+>  			struct reg_window *rwin =3D &t->reg_window[window];
+>  			int winsize =3D sizeof(struct reg_window);
+> -			unsigned long sp, orig_sp;
+> +			unsigned long orig_sp;
+> =20
+>  			orig_sp =3D sp =3D t->rwbuf_stkptrs[window];
+> =20
+> @@ -569,7 +571,13 @@ void fault_in_user_windows(struct pt_regs *regs)
+> =20
+>  barf:
+>  	set_thread_wsaved(window + 1);
+> -	force_sig(SIGSEGV);
+> +	mmap_read_lock(current->mm);
+> +	if (vma_lookup(current->mm, sp))
 
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index e889da8..dedce75 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -518,6 +518,8 @@ void fault_in_user_windows(struct pt_regs *regs)
- {
- 	struct thread_info *t = current_thread_info();
- 	unsigned long window;
-+	unsigned long sp;
-+	int si_code;
- 
- 	flush_user_windows();
- 	window = get_thread_wsaved();
-@@ -527,7 +529,7 @@ void fault_in_user_windows(struct pt_regs *regs)
- 		do {
- 			struct reg_window *rwin = &t->reg_window[window];
- 			int winsize = sizeof(struct reg_window);
--			unsigned long sp, orig_sp;
-+			unsigned long orig_sp;
- 
- 			orig_sp = sp = t->rwbuf_stkptrs[window];
- 
-@@ -557,7 +559,13 @@ void fault_in_user_windows(struct pt_regs *regs)
- 
- barf:
- 	set_thread_wsaved(window + 1);
--	force_sig(SIGSEGV);
-+	mmap_read_lock(current->mm);
-+	if (vma_lookup(current->mm, sp))
-+		si_code = SEGV_ACCERR;
-+	else
-+		si_code = SEGV_MAPERR;
-+	mmap_read_unlock(current->mm);
-+	force_sig_fault(SIGSEGV, si_code, (void __user *) sp);
- }
- 
- /* Copy a Sparc thread.  The fork() return value conventions
--- 
-2.43.0
+[Severity: High]
+Does this fail to build because vma_lookup() is not declared in this tree?
+process_fpemu_return() in arch/mips/kernel/traps.c uses find_vma() and
+checks vma && vma->vm_start <=3D addr instead.
 
+> +		si_code =3D SEGV_ACCERR;
+> +	else
+> +		si_code =3D SEGV_MAPERR;
+> +	mmap_read_unlock(current->mm);
+> +	force_sig_fault(SIGSEGV, si_code, (void __user *) sp);
+
+[Severity: High]
+Does force_sig_fault() fail to compile on SPARC without the fourth trapno
+argument?  SPARC defines __ARCH_SI_TRAPNO, so force_sig_fault() requires a
+trapno parameter as in stack_unaligned() just above:
+
+arch/sparc/kernel/process_64.c:stack_unaligned() {
+    ...
+	force_sig_fault(SIGBUS, BUS_ADRALN, (void __user *) sp, 0);
+}
+
+[Severity: Low]
+Can looking up and reporting sp report the wrong fault address and si_code
+when the register window straddles a page boundary?
+
+If sp lies near the top of a writable page and [sp, sp + winsize) crosses
+into an unmapped or non-writable upper page, copy_to_user() faults in the
+upper page and returns the uncopied byte count rem, but the VMA lookup and
+force_sig_fault() use sp in the writable lower page.  Computing the fault
+address from the uncopied byte count (sp + winsize - rem) would report the
+faulting page.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261125094446.5375=
+02-1-stian@itx.no?part=3D1
