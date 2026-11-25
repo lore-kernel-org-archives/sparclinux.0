@@ -1,77 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.189.121.228
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795548833;
-	b=plAdJJHa7MERVe7ZL4CSxG/MwPOTrby9VWX+nNz0GdL/KgnJoPVEctBx154bmfR2P5Eo
-	 0qGVaRVByrlycTq7WLlyjVb+8+9v094M96qE957M0YKhsVehRb45sZPc41eeV4a19aw99
-	 P1T+ORoA5eu2uoAhxsR4DpsKZiu97bi6bvJBmI/9I/L9dzOve6nNyfGlCLVtjSLWNSHpP
-	 XWX3uylmZ8p6VNxBFDeZBZd4ek2RNpYiCZDzEk1CarhuLYEW2W80PZWrvULErtMjrA9Jl
-	 zCO2LyHSlxdFIG+tfZc4GApjmXuY+h3QjiKVFDQCLt3QZBDP9F9sPdeXtAzPAGmY6KQ==
+	t=1795599905;
+	b=Ctl8ZCtj2hqk0b2t+kI/J2cE+SyxKPMo2r1uVBQ5ybRjh9gsrekn/lJ5wzkMCrtJt0Fv
+	 GKqf0gAtGtg2XU9sQVypoaRG7bhlrZqdQnMJyee98lx63ztY+Gy+iKlbaQ6/O593KlxWb
+	 OD/MnFn/+9u5z3Q0zxBkOOjQz+p3veVVI+pUWnvMpTHdZY0arLUumzyL5DEVzZH2NQ6Bi
+	 BwGy88UAr2mBlcBXfW7WYVk3b1oZJrlidXkdAP/psTfaGcJSq+xgxEj3R9I96pvbg3BLx
+	 TAaMz+m4IMr1h+3pt6PkUVLU2OVBJp2g8nEFaD6UfZr/SvKnU97XGBUQgJFpj7Wc1pg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795548833;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Subject:
-	 From:To:Cc:Date:In-Reply-To:References:Content-Type:
-	 Content-Transfer-Encoding:User-Agent:MIME-Version:X-Original-Sender:
-	 X-Originating-IP:X-ZEDAT-Hint;
-	bh=IVtZSHrw/20vsPvenADnoVXON8x/eogtw0OG4c6P4ho=;
-	b=bRv5OMk9mzf6Gm2/J2uIt5m91ub4k9DFxvyeex5PR8Q39o/LUCgtKYH3xfXRFN30IdZN
-	 NrGZKASuy7q1dsTwEcC2Ey2NP4znKKyvXQNNmHX1Nj37z+uBDySPhs2+5N9s/hN6vI2fT
-	 wLMNVxTqQE7yzDPUTdKNxylp0h2eIpR+IKv7ALFPoprFoMiliUVHkLBJ4gy+gL3GY9OJi
-	 KQPyIDMoK69kH0tgmku2aVNPLPR2/g+9YBmLsONK2eqdY1I3H8GgWsC1YWrGd5B7RhGCw
-	 LVv0A4G4cgWpHOnfnVe6OW4UyUwp1NsBrVQzha0otx6mQo4Ft/pAETgwz9Rep63Qvbg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795599905;
+	h=DMARC-Filter:From:DKIM-Signature:To:Cc:Subject:Date:Message-ID:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=jQf7if7ETsV0Wdj27IdrX22LoOYAHB7sIbcIgGIcj2k=;
+	b=oJ6HwGF30DTg35wddeKJM9JC9C4/sAMAg/U6h6hcnjjDWF/jfxMfDwChei0Iq9rLJXDq
+	 pj+UCp7J3Nrt40Ep4U5L0hcIgUMOMMkSzap5PIEN4iPhfcl5LRf6tjodn9fuFMrCXWWX0
+	 knvxWBDMsNhbcqyiRmamFeVRMacwvH1IprobFagDPWDQmu9GHPkt4B+//5YOcbcviOg/1
+	 ErxsuuQERfjFM5RJAsOuZjeho8wIn54zdP4vZzWZZhA/oYjoVZxHlhtwVpDc5g685iiQ9
+	 ZirBZ1djnmyfFQVY6tjFdnzmC/j57h2Yb2h5T3F6tyXktVrkxMSX0sgp0eHi1n3nIyw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=physik.fu-berlin.de;
-	spf=pass smtp.mailfrom=zedat.fu-berlin.de;
-	dkim=pass header.d=fu-berlin.de header.i=@fu-berlin.de header.a=rsa-sha256 header.s=fub01 header.b=eo6iiz5B;
-	arc=none smtp.remote-ip=130.133.4.66
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+	dmarc=pass header.from=itx.no;
+	spf=pass smtp.mailfrom=itx.no;
+	dkim=pass header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=RYeuYohQ;
+	arc=none smtp.remote-ip=91.189.121.228
+Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C903E606A31E
-	for <sparclinux@vger.kernel.org>; Tue, 24 Nov 2026 19:33:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C903E606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 094AF606A327;
+	Wed, 25 Nov 2026 09:45:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 094AF606A327
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.a=rsa-sha256 header.s=fub01 header.b=eo6iiz5B
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=IVtZSHrw/20vsPvenADnoVXON8x/eogtw0OG4c6P4ho=; t=1795548831;
-	x=1796153631; b=eo6iiz5Bz0pYGA5K0NJog01Q2NSxx8s9Df22+peZDYpHmaE9vnchRo9UP+m2T
-	q+yxrCeJBzarE0YlrcNOl0d3XFK4WC52J5+f4mA9KilTnmUg8GpH9CrFcbBzyZKDEkMwjeuE8PjyO
-	0pdQM8kRJKq7jmYmjlZnPqlkTVp4lV19bijhvrjrSsZoRkYO3uHpUr+dGIAsupqqj4QT23sIo34kZ
-	nvwuQ/XSJyMi9D3qj3DC9U5rWKP/8Ug3hjpi3iqNud9IzWmIW9/6k9y3anfM4glZn7rBdypIwXdVm
-	ZYWwOju5HpQoIEoH13wMXcrizpib/FwUH647YN+YfwQ0aKtDtA==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.100)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1xVwGz-00000002qot-3ReI; Tue, 24 Nov 2026 20:33:49 +0100
-Received: from p57bd95b5.dip0.t-ipconnect.de ([87.189.149.181] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.100)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1xVwGz-000000014eE-20lD; Tue, 24 Nov 2026 20:33:49 +0100
-Message-ID: <1173bfb0f35755820ac7d94a3154e90f759a1558.camel@physik.fu-berlin.de>
-Subject: Re: Need help replacing one of Debian's SPARC T4-1
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Kjetil Oftedal <oftedal@gmail.com>
-Cc: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>, 
- sparclinux <sparclinux@vger.kernel.org>
-Date: Tue, 24 Nov 2026 20:33:48 +0100
-In-Reply-To: <CALMQjD9JtaF0V+eVanujrjBiR17V6tSGhUK1+cj9J1JmLPhfHw@mail.gmail.com>
-References: 
-	<14af96f20e7b24734c45f6f71b1800b6ce46b888.camel@physik.fu-berlin.de>
-	 <d7695125c69b38407ab4a11f67b25bf2eb8f8b80.camel@physik.fu-berlin.de>
-	 <CALMQjD9JtaF0V+eVanujrjBiR17V6tSGhUK1+cj9J1JmLPhfHw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.62.1 
+	dkim=pass (1024-bit key, unprotected) header.d=itx.no header.i=@itx.no header.a=rsa-sha256 header.s=mx.itx.no header.b=RYeuYohQ
+From: Stian Halseth <stian@itx.no>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
+	t=1795599897;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=jQf7if7ETsV0Wdj27IdrX22LoOYAHB7sIbcIgGIcj2k=;
+	b=RYeuYohQEvZP4DPUZ8pm32FSeoTMoHKyw3j2gGZId7H8NAfGIHVBiDijK4JqTzxsq9GP57
+	pxlXBWnYhYspMtnuTKM213UwM/NI0zv22F71d1Pvu0PXFv5bTGGUGIBBzlLo3yoaQe1fB7
+	QXljHtLjxwuXei9Vx8qae7QmMy1w1WA=
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>
+Cc: sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Stian Halseth <stian@itx.no>
+Subject: [PATCH] sparc64: Report the fault address when a user window cannot be saved
+Date: Wed, 25 Nov 2026 10:44:46 +0100
+Message-ID: <20261125094446.537502-1-stian@itx.no>
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Post: <mailto:sparclinux@vger.kernel.org>
@@ -81,25 +59,83 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:sparclinux+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Transfer-Encoding: 8bit
 
-Hi Kjetil,
+When the kernel spills a user register window and the store faults,
+the window is kept in the thread's window buffer. On the way back to
+user space fault_in_user_windows() writes it to the stack. If that
+write fails as well, it sends SIGSEGV with force_sig(). The handler
+gets SI_KERNEL and si_addr == 0.
 
-On Tue, 2026-11-24 at 20:25 +0100, Kjetil Oftedal wrote:
-> Just looking at the error. Might it be that you need a new powersupply
-> instead of a motherboard?
+When a thread overflows its stack, the first store into the guard page
+can be a window spill. If the kernel does that spill, for example
+during a system call, the window goes through this path. Stack
+overflow handlers compare si_addr with the guard page. With
+si_addr == 0 they cannot tell that the stack overflowed. The Rust
+runtime then resets the handler, and the process dies with SIGSEGV
+instead of reporting the overflow. Rust's
+tests/ui/runtime/out-of-stack.rs fails this way:
 
-The machine has two power supplies and both failing at the same time is
-unlikely. These voltage errors are not uncommon SPARC T servers and we
-have seen these on our SPARC T5 as well in a different way.
+  ferris[157185]: bad register window fault: SP fff800010f60bf90 (orig_sp fff800010f60b791) TPC fff800010f3a2db0 O7 00000100016039e4
 
-On the T5, we had to replace the CPU modules to fix the issue.
+Pass the address of the window to the signal, as stack_unaligned()
+does for SIGBUS in the same file. Look up the VMA to choose the
+si_code, as process_fpemu_return() does on MIPS. A spill into a
+PROT_NONE guard page then reports SEGV_ACCERR, whether the hardware or
+the kernel did the spill.
 
-Adrian
+Closes: https://github.com/sparclinux/issues/issues/132
+Signed-off-by: Stian Halseth <stian@itx.no>
+---
+Tested on a T4-1 (sun4v) and a V240 (sun4u) with 7.3.6. A thread
+recurses and writes to a pipe at every level, so the kernel spills its
+windows. Before, the handler got si_code 128 and si_addr 0. After, it
+gets the window address and the same si_code as a spill by the
+hardware: SEGV_ACCERR for a PROT_NONE guard, SEGV_MAPERR for an
+unmapped hole. out-of-stack.rs passes 10/10 on the T4. A handler that
+makes the guard writable and returns also works: the thread continues
+and every frame unwinds with the right values.
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+ arch/sparc/kernel/process_64.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index e889da8..dedce75 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -518,6 +518,8 @@ void fault_in_user_windows(struct pt_regs *regs)
+ {
+ 	struct thread_info *t = current_thread_info();
+ 	unsigned long window;
++	unsigned long sp;
++	int si_code;
+ 
+ 	flush_user_windows();
+ 	window = get_thread_wsaved();
+@@ -527,7 +529,7 @@ void fault_in_user_windows(struct pt_regs *regs)
+ 		do {
+ 			struct reg_window *rwin = &t->reg_window[window];
+ 			int winsize = sizeof(struct reg_window);
+-			unsigned long sp, orig_sp;
++			unsigned long orig_sp;
+ 
+ 			orig_sp = sp = t->rwbuf_stkptrs[window];
+ 
+@@ -557,7 +559,13 @@ void fault_in_user_windows(struct pt_regs *regs)
+ 
+ barf:
+ 	set_thread_wsaved(window + 1);
+-	force_sig(SIGSEGV);
++	mmap_read_lock(current->mm);
++	if (vma_lookup(current->mm, sp))
++		si_code = SEGV_ACCERR;
++	else
++		si_code = SEGV_MAPERR;
++	mmap_read_unlock(current->mm);
++	force_sig_fault(SIGSEGV, si_code, (void __user *) sp);
+ }
+ 
+ /* Copy a Sparc thread.  The fork() return value conventions
+-- 
+2.43.0
+
