@@ -1,83 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.41
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795685483;
-	b=P+TkSPEgbZ6K4IkgVbWt6/EplOoXP/+RIapM4Qpkx4B0sTTy0hXd436DAsFPvzoRqgKw
-	 4/zvdMEGO46gtLiJj8OUIa9ykLa9tI07kFTRdQ5yDSjXusYM2jFzzTqPN4Mr5iZZy1RwN
-	 DskGawe4WY3qjVfCNn5BZnO+yJ8wZhWvNRt/nukuwbZsbl0LuHcnQfN2ctU/BfkLGQ3du
-	 TO0H6ScFrJt3k4ZUiYiixV3eKuRg11MoM8wFPKOcZiSZBPugiEStG1Ye7XIBXOi1fb/QV
-	 wPfIdFUp9iQfX3i1o3KV0mDcgYFwMy3eNlwI5lqjmmvnhM1IDujtDAb8bLOiBWOSrfg==
+	t=1795685484;
+	b=VZzf9/Gla0+gSDZ1cXNsk4619HJTUAZBlot4rb6TmoGwLKD0rn+uGK8+8mD5oK27p2xH
+	 RfrrOA3rPVR+WFfE0v7VtV/Ng4ZvtopgB526VwSrVNWGWXUcSB36P471CxksR96cb5ss2
+	 0sGbjWS78XOldC/rT/dRg1F0p4Kw3E4/0rrSS2MJVlSESeHlb8gZmkS9kCFdgesn55GWs
+	 BfrihUpgi0s1x/1TuGRUnymXLDKWYs7Q2OBwzJvm9ChNuA60S1D7XPp24UN+E8CvXOdC9
+	 NYCxYpq2qG+GkLJYN0zt9oCXXiTNj+2chrlNBrBS1evpuahuAJxE+OpeC1woDklZhNw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795685483;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795685484;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=nwfQ/uhT3WPczWnDNwIoPHc9UZao7lfTv4ZO8Ma8hAU=;
-	b=PthUCNYr24GqkDAfmnjYFJuy2DZwCzuVyMGLuZ3UFmU+8781iB57FFixxgs3vM30urWr
-	 TjwU0Dq43HmiGkXHWsmdx73Y+8RdnQqlxZwaMt/B3zB2byGVAkUrv8ZTUxjyAEiLnamKY
-	 B7C6rRPa7mllf+Kz+2CczvfJp+CfFE1uzqLKdZd4B5kNSXWzHeb3ymJ5JDa/d0xhGtHIZ
-	 A3MlijqLEujWyRbwzekiEcQG7VtEda/nSLFPUlITQbrNpGWe64RbE8LGvEpjoZ+uBNayi
-	 yekWWZBaIlIIsDEgL/k8laA7PjwbC1Apx1v9H1R4QdJeYX5Mf1t9QvyswYnm2Tc9I9g==
+	bh=E/ftTHBn544yXnq15epikqQ+4mq3bhKo9jH8irlYVGU=;
+	b=FHbcFbahvYhJMKnYFgwjZNncOWbQAskbiTeV/Y41z/IRVWQoOWgeQMTNjUU3l5b70bXs
+	 gJ7vAo9Au6kxAcZMxTRNOsoUHOPklYTApjTOgsfSVCok16E1ltrYmZ5XJtgUgPUHq8pf5
+	 pGTHcFvp37Ub5gh1VRKhfnW0qxq17VWnnjgRxbZZaotfLZ+Wi+IZ3tbfMeVC/kfIWxY+F
+	 pgGYBU0/DC/udy+ySvn3/YTS+u4KUDB+CGRxN+jCo5osrIJV/UMY5HuQaXMcfETBC2QTh
+	 OosU+JwrOpuJvRsLdLaPIymZbPidAWg5w1bFMciN91yCPGRv2XdBwKz1UHFRmiH3h0Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=w1CSvlZo;
-	arc=none smtp.remote-ip=209.85.218.43
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=IIwECtid;
+	arc=none smtp.remote-ip=209.85.208.41
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D571606A327
-	for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 09:31:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D571606A327
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93336606A337
+	for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 09:31:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 93336606A337
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=w1CSvlZo
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c516a1623d0so728873866b.2
-        for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 01:31:22 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=IIwECtid
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6b87a240de3so8540015a12.1
+        for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 01:31:23 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795685481; x=1796290281; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795685482; x=1796290282; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=nwfQ/uhT3WPczWnDNwIoPHc9UZao7lfTv4ZO8Ma8hAU=;
-        b=w1CSvlZop21uujTolx+tFq0YkK2DVk9f2VwdkVB6t5zvRszi63WyX/iLfgjT3CsqnN
-         uFmosd3dS8/cUK1MbQNWCxMZDLZBGFupA+CcKA2cYzJIR9Y7Z3nxL//MlMXQ7M16RTQJ
-         PZCgWEoswKwUkvYLmnroOZgzmFccl0AyKLRS+VhwbTk64LSVTZTi59oqscc3RkQ+ECgJ
-         FaRTOTdu1Fmjmbarox2lFeKvYOkbt/dIRLttvwaaY2hzPMzi5NvpwnvXz85y/ZMT8DiF
-         tqpNyWJM8kt6w+eUN8iAGbxD6F7jNmSvVFM2OG47K2g4VUqrFsGphZ1e/g2fznjR/niQ
-         Zd9A==
+        bh=E/ftTHBn544yXnq15epikqQ+4mq3bhKo9jH8irlYVGU=;
+        b=IIwECtidaIQK6vrOzQTObRsTceSkyoFgrZwJA8eGaN9/pI/BplL9rjyx9rSxxS95Xn
+         Qc72IRVxBsbsa64bCeB1IU7O4AaGcBYEBjHODI47GXVTJF/EkMzToJfJYmYlylqPdtAo
+         1RCYrX1N95gAeQ1SkC/29ibtj2MfGsEkCbaQrp8bnjDavLIt7ENrfwARo7l7HYITyyqD
+         i6gbTKmSatgMNBgJxlF95WcjBG7335FuQu3nVi7Ywj+o9FMWNq/DIXiPFLWGxGK1uPD9
+         v3WFtyBK+vsAQRcJVQvBKwaTokYmoBHrqwVqD35r2+02TDHFDIlrgdGrWKc18yred/FV
+         SeOQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795685481; x=1796290281;
+        d=1e100.net; s=20260707; t=1795685482; x=1796290282;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=nwfQ/uhT3WPczWnDNwIoPHc9UZao7lfTv4ZO8Ma8hAU=;
-        b=plDvPmUMqNx+8OsIgOnUx071Br6a+6MKlwTPC7nyy3C3ONzfdEqtdDOnBnzo38/snb
-         Z5uFdSjZu5/Q17EDESDt9qNZ0MffasNM5gVbzpRBbBqX3Ahzsm6YDpyOx4CAh5NNtZd6
-         iYpUapnkiAAIhFhgYpHM2QeOSNaJTX9Ya8hP1bEyRLqciVKglKl6OIT/lrUvYDFYzlnQ
-         Bk8G2LhI1KQBK+iyfoPrc+/wbIvnYBUvYzJNNhFyFq3Jeo3Gy0W7+G8Ahh6qnGYnCozB
-         CHuMIs21qF7UJvZJPyMSEGHe5tGxngk5QyApa9V+OqBy9nZJzkouivfiyN1sI5XTDbmq
-         yzSQ==
-X-Forwarded-Encrypted: i=1; AL+hErF8IEywNosrcEb/X3fZuCiCLcs9iqK3fOyH4Eay7fgyqf2kjzwJ3BsBKhgu/6kRyNnYhzWouWmRS/sN@vger.kernel.org
-X-Gm-Message-State: APuU4Z8iF4Tvb1uMmOF8xNUf6HgWtvL4ixrSF0ulVbXiovo2t/Us3Gw0
-	/5MtjwA1Gs4n/gX2K9PP5jrQ1IGzSEYI0Du1zNGFxXGTpanvirPVQpFx
-X-Gm-Gg: AZFdTZe0KjyTnl+ZJcp3sbIT+TJmSuobYYOaYbJlOcFspR/oxBlUEpnMb8iWF6kBfM9
-	0d5o05FC6ELisndXHEuKBcnEDYWHTUgqvCrjC/TdjLpyOmduH1RPoL16OOhtADs/D15br4Sd2ES
-	NRwbweBNr06j6L7OIQYCCB6fB1PGUXLyxYEbukVX5qbBr7bJHgMzoa4q7p2+F4mJKuGzoD5E7Fp
-	46YDpDFqsKoqPS+st8QVM7alFlmX2hCUzS0IYzkR0rtha/1UWyMfQ/skkS6f4q8VUuIGDCfeAKa
-	E+3fX9d7Uxp8H1+ffHnFzoqZ7RCHmDE3Vj+qfdOVYH2ls0wLC+3b9tjgOjqc0wpO9JUbkSC0DqQ
-	wSV4Vf5T4gk91oLUpYXpMPskzwhtyoWY0hwXJseO17bf0SJ/6524rVJNENPFAEctexDlYl8kYlE
-	ikmQVqe6TDo4MsGAegHdlrYWTL40w++xrZBUv/Ya/vM67Ollp3+Hu6sLw9enz6/h7KSRJzYqqFp
-	79FUxMOAJR8O6MTHlrM/aldmi8PD+ADhdCwp76KxKf/iEDKppvRvjWXJ0ukRTfSBIUb6k3++KSX
-	WOy4CfTMo/KHkBGzGsbBr2OCp0J/nDemhKLvrkf1NkNDvyOi9JpNLtjV9qxQENWG9bFr4og=
-X-Received: by 2002:a17:907:6089:b0:c4d:f63:642 with SMTP id a640c23a62f3a-c513a99e69bmr1991282966b.33.1795685480823;
-        Thu, 26 Nov 2026 01:31:20 -0800 (PST)
+        bh=E/ftTHBn544yXnq15epikqQ+4mq3bhKo9jH8irlYVGU=;
+        b=cZJwZZLCC4IuZlTQs9J30Xm5sTcb//F+cmNQ5R7XfgN1J6wwKK9/Z5m9U8hZt3B/3Y
+         +B7nDC3L0ZFTWtgYKuN0cOk9oHXWUimDZaNKX7BcznRq4q6C006UlLGHHx71e7ufdbAh
+         2PSiv6OKMiScyyBECX+XJJvcGT3vVkq+pQ2C3E5x1sIc+jdGmtZ43V9kWUYbnrxf2an+
+         K0IbJ3G0VURQdVbdhHfAiNIOhIx1BP1t7Nf6gD2na37fp0Fpd0UttIzgs0XzThP9Xkqu
+         wPky9WicIpuenEDrOnDJyqTMK4CJgUhk3FOyhIMzQVfZSKCjPiuGRTxEyG/amFBENC2R
+         4+JQ==
+X-Forwarded-Encrypted: i=1; AL+hErGir+k6d423/Bu4P/w6RHROx1xua0zv9qiNBKdQ70gFTulUNyTYuOVUSmXlXjzFemNar+hvcTs2zIZ9@vger.kernel.org
+X-Gm-Message-State: APuU4Z9yN3ROsFJVCj4wO9WOzmbhXvP8QbhqMOWJ6/ol14YNl/Jm1gzQ
+	DQhjZLUJKNC/puNVxLaksCIUmXB41Jkn0AA2caE05aTRq2wCFNnWYS4PNiQSydgY
+X-Gm-Gg: AZFdTZedhcEohePOdKJgrk7yFLe7CEzcXxA+tMVjInnYQ/BdZi18DHc7/ppSVbYkA6s
+	sBnvGkbjdDdbfTlycCzlFfV9QL04fMYCj1jIKinnjchD6/Phk5RmJhnL5Xrl7JbOytX9Bwx/ro0
+	kkjghAMNvcfpG52d5kNxlwpHkWbvr/oHH6uPRXVsYwln6cBjsSBJ0OX/jVwgUnPFcQY1pfoJ7zr
+	L+E5o206jSrvvuvV9BA0OW7rv/v+xI5ncjD1qQsMqLrucPdaF05JrDBtLXIcS6vuHEp7++SUWvA
+	n4j15bf39zoKOaRIlo/xTrVEL2JL8N/V8n90LQiKA5QCD2ktlxI+lcZYilttOpd7b2rc/j9wUX6
+	eJyXWVDZQALG9942h15Y2wD5rI8sJZZY0yPiOXEJL0VC8nhwJkuWJKDdigxspalbRiZjeguQCRT
+	aWMd6C2GP8u3ZN1/lbbtahbzZ6PnYuZMQn7ZJdNu5G4SEObm4CGUlY95K9aCKMwJzxZtEKw/pOB
+	jonnNzAfHj3yJogmCtUYO4WlRgV5MKeGWJaYdoinrwUnIp2MjrsHyu2LlHog/0K+IrlRM4H/cAv
+	LhrEwT4OFk3cxFVE4DJLaZFTw2jw9Kbu0gAQxqY9vzW6gkPpiarB8BgMbVuFPYDz8KhvUUc=
+X-Received: by 2002:a17:906:a11a:b0:c4c:d96e:80de with SMTP id a640c23a62f3a-c513a5dabbdmr1290596466b.8.1795685481732;
+        Thu, 26 Nov 2026 01:31:21 -0800 (PST)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
         by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513afdee82sm597090066b.66.2026.11.26.01.31.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 26 Nov 2026 01:31:20 -0800 (PST)
+        Thu, 26 Nov 2026 01:31:21 -0800 (PST)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -85,9 +85,9 @@ Cc: sam@ravnborg.org,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linmag7@gmail.com
-Subject: [PATCH 01/18] sparc32,leon: give the cross-call IRQ highest priority
-Date: Thu, 26 Nov 2026 10:30:06 +0100
-Message-ID: <20261126093106.1345825-2-linmag7@gmail.com>
+Subject: [PATCH 02/18] sparc32,leon: retain SMP TLB shootdowns
+Date: Thu, 26 Nov 2026 10:30:07 +0100
+Message-ID: <20261126093106.1345825-3-linmag7@gmail.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261126093106.1345825-1-linmag7@gmail.com>
 References: <20261126093106.1345825-1-linmag7@gmail.com>
@@ -102,48 +102,53 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A CPU can spin on cross_call_lock at PIL 15 while the lock holder
-waits for it to acknowledge IRQ15. If firmware gives a lower-numbered
-interrupt higher priority in IRQMP, that interrupt can keep IRQ15 from
-reaching the waiting CPU.
+LEON replaces the synchronous SMP TLB wrappers with local operations,
+leaving remote translations stale after a mapping change. Keep the SMP
+wrappers for LEON. On GR-LEON4-ITX, all 512 remapping reads were stale
+without this change and all 512 were fresh with it.
 
-Put IRQ15 in IRQMP's high-priority group before enabling cross-calls.
-IRQ15 wins within that group. Preserve the priorities of the other
-interrupts.
+leon_switch_mm() passed NULL to flush_tlb_mm(), which the SMP wrapper
+would dereference. A context switch only needs a local flush, so call
+leon_flush_tlb_all() directly.
+
+This is based on "sparc32: retain mm_cpumask across TLB shootdowns" and
+"sparc32: enroll and order CPUs before switching address spaces".
 
 Fixes: 8401707ff645 ("sparc,leon: Sparc-Leon SMP support")
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
- arch/sparc/kernel/leon_smp.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/sparc/mm/leon_mm.c | 3 ++-
+ arch/sparc/mm/srmmu.c   | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
-index 1ee393abc463..649f219e2b69 100644
---- a/arch/sparc/kernel/leon_smp.c
-+++ b/arch/sparc/kernel/leon_smp.c
-@@ -159,6 +159,7 @@ void __init leon_boot_cpus(void)
+diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
+index a43c5ffbbbe5..c19eb23b62e2 100644
+--- a/arch/sparc/mm/leon_mm.c
++++ b/arch/sparc/mm/leon_mm.c
+@@ -264,7 +264,8 @@ int __init leon_flush_needed(void)
+ 
+ void leon_switch_mm(void)
  {
- 	int nrcpu = leon_smp_nrcpus();
- 	int me = smp_processor_id();
-+	u32 level;
+-	flush_tlb_mm((void *)0);
++	/* Context switches are local; mapping changes use the SMP wrappers. */
++	leon_flush_tlb_all();
+ 	if (leon_flush_during_switch)
+ 		leon_flush_cache_all();
+ }
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 145a63a5fda9..fb95865d7ddd 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -1746,7 +1746,8 @@ void __init load_mmu(void)
+ 	/* El switcheroo... */
+ 	local_ops = sparc32_cachetlb_ops;
  
- 	/* Setup IPI */
- 	leon_ipi_init();
-@@ -167,6 +168,14 @@ void __init leon_boot_cpus(void)
- 	       (unsigned int)nrcpu, (unsigned int)NR_CPUS,
- 	       (unsigned int)&(leon3_irqctrl_regs->mpstatus));
- 
-+	/*
-+	 * Cross-calls must reach a CPU even while it spins with PIL 15.
-+	 * A lower-numbered IRQ in IRQMP's high priority group can otherwise
-+	 * keep IRQ15 from reaching the CPU until that IRQ is serviced.
-+	 */
-+	level = LEON3_BYPASS_LOAD_PA(&leon3_irqctrl_regs->ilevel);
-+	LEON3_BYPASS_STORE_PA(&leon3_irqctrl_regs->ilevel,
-+			      level | BIT(LEON3_IRQ_CROSS_CALL));
- 	leon_enable_irq_cpu(LEON3_IRQ_CROSS_CALL, me);
- 	leon_enable_irq_cpu(LEON3_IRQ_TICKER, me);
- 	leon_enable_irq_cpu(leon_ipi_irq, me);
+-	if (sparc_cpu_model == sun4d || sparc_cpu_model == sparc_leon) {
++	/* sun4d supplies its own SMP TLB operations. */
++	if (sparc_cpu_model == sun4d) {
+ 		smp_cachetlb_ops.tlb_all = local_ops->tlb_all;
+ 		smp_cachetlb_ops.tlb_mm = local_ops->tlb_mm;
+ 		smp_cachetlb_ops.tlb_range = local_ops->tlb_range;
 -- 
 2.43.0
 
