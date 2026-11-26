@@ -1,94 +1,93 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.47
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.46
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795685486;
-	b=j+ssurNVbS1b8+4yVVxjOBIzYPb20+ox38zKo4EYkdqUasf2CjJlRgUmR0PCtm4g7lyh
-	 2MW9netdbgDvFeD9M7YP5N/1bljYYIq0lHzaXEKeu1ZsYdhXIYHRUwRJZGHgNWFkrPtEv
-	 9A3YGypLxNmpPKmCS6+G6TNViC6N4kajAVXU3spOZ4y9lmcSEe2kEuBo1sa98wgByo/Nc
-	 m7V94e/QFxFCLAUNNah2iz1hW+bylx2LNso0CYcZaihtCnbv9CbO7IELfkCGud96/HHAi
-	 /lZMcjK1wx6ouxQtDi1uhdzKP8WaehsLExEbyyvoB5qA0VAFCuclGtoryG4zmgUV+1w==
+	t=1795685487;
+	b=JmMIQ11PIHej/7EikjIDPTuCvs5Q+GogIQtV4SMNqvjKo101EUkWauIT0zKcpS8l3e2w
+	 0G1B+clzP7Ej467RzbZ3PJx1ipG9Uwgzaf0vsXLZ5iYClz8a7A4cvv9+0aBNNsJmZ7Ln7
+	 iF0ClppUz+QbRw00C2X+d8bNvnjVOX/RAyeFi0w+AOHsvlIYauWNuedb+T3XygT2Wgty3
+	 XBhvoKJ93wpQypjtf6eLXpUZ4jhjzSOF1VcCtmK8tlUS5UB1fGlQSVzcsSlzfakylE3Su
+	 S66BSavETPm8f3c+cO/Seo7UwbpkvLJdx8DaCbTLlsg/me6Mmv0Eqpgu3fj6TGxCpsg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795685486;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795685487;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=tCB15JnYkDvfVGEXUZ81H+2smLFpK44pjfBFb6tfg1Y=;
-	b=v7DHdLwKlJxigSosgrIZDE3E/5LARrJ7J12IAi3uHWrp8Su/KiCPnYarsW693eFrQQvJ
-	 QxtwVlr4e/F4VRnXaOnbvqwPXk/sN07bJCUQQVPh3ODJgQUBsp9/KxGF9kFlaf1K4qnv2
-	 t2FfzQCUpxIn/GfU71AdOC8OjB8OKZ1wdPI1jf4ZCH4LKEoxe6Hobl5uvhXmR5W4MhqdW
-	 WD+dQCUWL1Z4bzZWhVmIMjhaSK6ks91920c9OrNGmS5AYsQ4CWaK8Iu6hVRtmJQbqXe8C
-	 vHyjfFn74SykGhAsSUrZGSvL1yVB8CgXO9ompDb1zzZEskWxVSZNdzidSDWtp+MB/LA==
+	bh=JI0g72Qz4jcoRZ1TWDvybKstNSgg9xw32wUy5VYIBiU=;
+	b=lac4jdrMYL2dpHDwKH+AyWxUWM1SxSbYggZpJoVCEgMRwvuBBjc3FSuRE95PU9EcMWZg
+	 YQSyPWxGu1EE1aHK1d9aW2rE2InF6hZnvn5hSyP7jtvlqPWVtv/um37Q2nar70hR4ONxS
+	 XdAUqsYYfAviaJB24jzwlK06Hs9U0waLqb9XHnjOhsTxM2O/hJrtPJuPg42B7XIk1amGw
+	 YtEUVLGUrgZE02gUZ3chuZ/GO0oTsNsAfvN43RsHYu9ZXgd+Elmz+tbLwX6vkg/x2DyGM
+	 marEZ0Q1B9wq3n32KmTtLFSPlAIslOPuYoDcniU2LJf6jQnIoxjV8BHDQklKd1hxXpQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=VJqwi00S;
-	arc=none smtp.remote-ip=209.85.218.47
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=NLIEXoAC;
+	arc=none smtp.remote-ip=209.85.218.46
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 935AC606A334
-	for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 09:31:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 935AC606A334
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53295606A31C
+	for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 09:31:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 53295606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=VJqwi00S
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-c511c0e2826so779513766b.0
-        for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 01:31:26 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=NLIEXoAC
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c4cac7a7d3cso1011121266b.3
+        for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 01:31:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795685485; x=1796290285; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795685486; x=1796290286; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=tCB15JnYkDvfVGEXUZ81H+2smLFpK44pjfBFb6tfg1Y=;
-        b=VJqwi00S5Wbo8E/cR2Lcr2fOeC5pr51NXyVjERokSV/kXNOsPUKew2a9XEf9JFgoMk
-         c3+SV+T/13UTVvesYqXWkVTEpcDvm8S0we6zORSJTpJHVWmy+eQNXitRvmAYFDwZz/jp
-         LP5xYQ5dEOLQmQtMEKTRhEb0Ba/3NGuSJY0Q4MrsKSlVTMo50lENu6l/3JSEyoVsSqC9
-         klEeLq7R0FPtOPSLjHDYg7mvBMwKafcc6yqTCLc6eEhSW+LubgJTVR2Ynv2nNiA6Cbo+
-         WTjJfs+LwyXTTgxE7oyG8J7xnPeuBrEppFHtQXhZXcel/Y2Cy92F1RGlr/Ff+RJvt3kp
-         oKVw==
+        bh=JI0g72Qz4jcoRZ1TWDvybKstNSgg9xw32wUy5VYIBiU=;
+        b=NLIEXoACBrLd1qXDnGnO+WaIvVmTHfswa0Z3T5gwTfjTJtLfjaQau8vJ+X3repNeH5
+         eq31x0IaKS/4Kiq6gACXje2COML7Gfes4N7TmYeLwoLsVyrVQhVW2W6G+gU8sPM/W+5Z
+         iLMCy2eAul21eKsG1gTWpqLEUAg0J7wQjAr0oSBPG9gdN1jxMSA77Rol4//Zc8pj+G5L
+         i4K2Z46fkzb9J+fq+sTHMjyDAwj7w/VSVmL+CMIWA40wB/OJxG1Q1sEnshUZ0q6xKHD9
+         twCECEI4Y7d+VvaX00eDHqjEZn4i9SH5mGFGNbPdIHtrUjA4I/pEycvJ5WTsKDXWHc/d
+         /ipA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795685485; x=1796290285;
+        d=1e100.net; s=20260707; t=1795685486; x=1796290286;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=tCB15JnYkDvfVGEXUZ81H+2smLFpK44pjfBFb6tfg1Y=;
-        b=glfG4NuC7Nb5scUsKTCornov0HPj6x22F213yQRG0Eu0iiR/eMJiAygnsxr6/MRfQC
-         E+vzxvkt/W9GF1EpjLXbr8UYV/UaP4x2NW5sArwiJ0PUaihg2rcL3ZJdfGeB3Kd+5ID/
-         1mjnAjbz0AFGqxqgyJjFv9/WChzCt4uVlsVCkiXMYrCiP9iwuikoAc4idEDCfEMkhLuH
-         TQlk2vmeEgW6Lazvufa/vQed0/eoUgzOWoTKJ9uttMJYQ09R7Q4k1xVBlArj50qfkl8k
-         EZNtDEdqOXlGneX6uFNgEtjjoc7EDyIOJCduA1NPufis2poOggJUt0Fc77iNch2+4x13
-         2J3g==
-X-Forwarded-Encrypted: i=1; AL+hErF31rW8VpN0oTkmLhd1Go9OdneUh3T3GnXkoDfiX/BM2zTVC6FkwmYDjDISIsQ1vRK3WcTfDvYbMSdq@vger.kernel.org
-X-Gm-Message-State: APuU4Z8WaZyOBbiy3h6GF5LoBUDyrgyB87wcnSaKgqp6fNUhSqWitFWV
-	DUHf3ZzY7PKASWBN65wvcE0Yp56zLnq2m+R2Epw9YaZYkaBiTVJ48OAV
-X-Gm-Gg: AZFdTZfIiO1LLC1KhNRvpcs4/oAjVpgdbG33aAuontmwaqLIy6PajBuavydru7lLdBi
-	770iQikG3++Ur/GGzAIdi5aOmzB4kfhf3/41g+SMs+QjXx3fj5t1tAtZmdgc7/MX80BO75VwFwp
-	MMwgh3t2u7If1R6XaRPIdZPeOsXu7skddc1TH0HE/JkYpm1deZZUjSgJGSCiS15xakcmBS3L/lk
-	z7L+WKFxVfqGu/mxbIwqjGIXTFute9bOqsinizPnhGZZ5BAGoM58GZxVaR5x7yV7S3vOiN4FhTP
-	k8SL7E703xpnefWNeACWqaYVqT26qHxlkFxwOx4Rj1kalvXgplJd5ayXULCzSVOmAxmMrDJHkJT
-	fKXTZtU3oq6ebXUq0wFl4wcx/R7lo4H4t8dXPoFE/gZ1WpgJXgBuoZIvdeXF7OMRK66lGecSOij
-	nueKwKo7cEZr6VX+3hAIhJyiJwPsb65jhGEZqB2XpUXIhBlgIBHBtE8MPlRUv7aKc/dn8bJwUld
-	3Xn3wFezz4SVPbE4fPN9f4a1Jb5xo2eE9kS+KzP4kMgeWVdu0LR6I9oUxmJGNkEzV9olCekVAsJ
-	IWyC8OeNzbgSjaUJhodpCN4h0TbiWEIlD53KC5SntAMgq2OarbTHZr4Qd0tComCzSJqA33M=
-X-Received: by 2002:a17:906:ad1:b0:c2d:d408:5d9c with SMTP id a640c23a62f3a-c513ac9c0d9mr1173205266b.48.1795685484803;
-        Thu, 26 Nov 2026 01:31:24 -0800 (PST)
+        bh=JI0g72Qz4jcoRZ1TWDvybKstNSgg9xw32wUy5VYIBiU=;
+        b=IpYmY1Xl4DFU+da0Bb7h+AULKpWKVm1w8gqu3DZ21r/CUTRixwl7dtzqrT10BD1yM1
+         RQFCGqeEUhL1nFpUk+lLyVdZs7UOjM4akyG8V5t7hHUbq2ljMHVuoydbq2tUQqbDxq2F
+         chOH83gGG4e8A8h49XMnJYE7SJFbAFgoji3Vq7OAL9u+DRivipxP6xBgCgrTsLfcDzWh
+         yq+Wt0MxNE9RiZREH/xDB6zo+lRl4rcq8OvwrQzNYSXAP1nYkaT9QzRN7xnoM2LKl11A
+         2opiBiVaKeP9p1TULUVKui7k1V8+l7yMVDszrYJmQdj/DuXok4chj8+MJGUBV0XKlhnB
+         T0mw==
+X-Forwarded-Encrypted: i=1; AL+hErHpCAPutIbxsWmwDmKhj0OThvNsx3JSAzgVErL9Af3wuoH3M2xaN9VGFnsYIqxRgfhG4klhV2hE6bjB@vger.kernel.org
+X-Gm-Message-State: APuU4Z9S9lbsbnEO7kh6MXn+XdvZje7GhIyaRdfAhTDXWBqIqtgPim4h
+	Xh1hW0xV+HUv3iCmFkQB5hcAr19+MZHSFiKPmYYsKVV/d6wfVkQG/bvx
+X-Gm-Gg: AZFdTZfJmopGNJY3a9w3RX2JSpMcbd/qwCGBWoq8pXE40ypnjatAyLNTejr/+VqZUX2
+	CF6OzBfM5EBe3jnSjcEiKUvXmBryKLJBOqMkPaPh3ahi8j7XRsOQcRBAfp2qhSmMNYpCX4ejUHs
+	FtDL4ZGT1d/hB84sJ8q3LWuQl5kBRZZKvBXJxGdlIwo067Dy41odoNDx4c7xA5AasbRMXq+MH70
+	gX3P8Lx6qYd/Wwsn23FqvbN0uxc82fd1ANyWAMVbhy2YWSPMtn7yN4WvpWA1f1y7rcvZipV3DKV
+	JFnJKi996//AXBVZQnwHXjA+TJvTEzdRNC6bQoe6J3wbycVG1CRfUkhbGIK+UfzNBSLjUnAbYoH
+	Y/8kwAsZRF8/03ItlIHBtGKG/Ad59VodDx4jVUOsKbDLHRMqiLX9L4rr1+FektmaHd7d7TgRhvG
+	zBxdabr2siy7Cw7M9Zf3BFI7/obXG8NpelH8LKSvijZkO25q2EJRf0VFasXXwOwiozIwn2FH3FC
+	lbzSMzlJvkdoNKhK8NswuM1MOZ9eWtWSgh0fr0v0rYPdq8V59nj9WRfKExAKX7Gl/yVSVz4v2Al
+	DSTmatSwkeF2u6ZuZETsAedPFPphhtR2PsJ/m4UTm0Ds/kAhlsdielb86IALekXRGUm9vPI=
+X-Received: by 2002:a17:906:81da:b0:c51:1d9a:323c with SMTP id a640c23a62f3a-c513a88b0d1mr1322592666b.15.1795685485641;
+        Thu, 26 Nov 2026 01:31:25 -0800 (PST)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513afdee82sm597090066b.66.2026.11.26.01.31.23
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513afdee82sm597090066b.66.2026.11.26.01.31.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 26 Nov 2026 01:31:24 -0800 (PST)
+        Thu, 26 Nov 2026 01:31:25 -0800 (PST)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
 Cc: sam@ravnborg.org,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	linmag7@gmail.com,
-	stable@vger.kernel.org
-Subject: [PATCH 05/18] sparc32: preserve both LEON PROM character-output conventions
-Date: Thu, 26 Nov 2026 10:30:10 +0100
-Message-ID: <20261126093106.1345825-6-linmag7@gmail.com>
+	linmag7@gmail.com
+Subject: [PATCH 06/18] sparc32: tolerate firmware nodes without a name property
+Date: Thu, 26 Nov 2026 10:30:11 +0100
+Message-ID: <20261126093106.1345825-7-linmag7@gmail.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261126093106.1345825-1-linmag7@gmail.com>
 References: <20261126093106.1345825-1-linmag7@gmail.com>
@@ -103,109 +102,41 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Factory GR-LEON4-ITX U-Boot returns zero after character output, while
-modern MKLINUXIMG returns zero when busy and one after transmission.
-Recognize the legacy PROM before printing and adapt only its zero-success
-callback. Match the exact legacy properties and accept its getprop()
-success value of one; preserve other firmware conventions.
+Factory LEON U-Boot omits device-tree name properties, causing
+build_path_component() to dereference NULL. Use an empty root component
+and phandle-based child names when the property is absent.
 
-Fixes: 154337688bfa ("sparc: prom: Sanitize return value from prom_nbputchar()")
-Cc: stable@vger.kernel.org
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
- arch/sparc/include/asm/oplib_32.h |  2 ++
- arch/sparc/prom/console_32.c      |  5 +++--
- arch/sparc/prom/init_32.c         | 23 +++++++++++++++++++++++
- 3 files changed, 28 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/prom_32.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/arch/sparc/include/asm/oplib_32.h b/arch/sparc/include/asm/oplib_32.h
-index d1cf3a27a40d..5f009615cecf 100644
---- a/arch/sparc/include/asm/oplib_32.h
-+++ b/arch/sparc/include/asm/oplib_32.h
-@@ -25,6 +25,8 @@ enum prom_major_version {
- };
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index cd94f1e8d644..804ca0b2a5b5 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -189,11 +189,21 @@ char * __init build_path_component(struct device_node *dp)
+ 	char tmp_buf[64], *n;
+ 	size_t n_sz;
  
- extern enum prom_major_version prom_vers;
-+/* Old LEON U-Boot uses a blocking, zero-success V0 putchar. */
-+extern bool prom_leon_legacy;
- /* Revision, and firmware revision. */
- extern unsigned int prom_rev, prom_prev;
- 
-diff --git a/arch/sparc/prom/console_32.c b/arch/sparc/prom/console_32.c
-index 6404e5bbb7e6..8615005ca67f 100644
---- a/arch/sparc/prom/console_32.c
-+++ b/arch/sparc/prom/console_32.c
-@@ -22,12 +22,13 @@ extern void restore_current(void);
- static int prom_nbputchar(const char *buf)
- {
- 	unsigned long flags;
--	int i = -1;
-+	int i = -1, ret;
- 
- 	spin_lock_irqsave(&prom_lock, flags);
- 	switch(prom_vers) {
- 	case PROM_V0:
--		if ((*(romvec->pv_nbputchar))(*buf))
-+		ret = romvec->pv_nbputchar(*buf);
-+		if (prom_leon_legacy ? ret == 0 : ret)
- 			i = 1;
- 		break;
- 	case PROM_V2:
-diff --git a/arch/sparc/prom/init_32.c b/arch/sparc/prom/init_32.c
-index d20470166cb1..d36fa4e7207a 100644
---- a/arch/sparc/prom/init_32.c
-+++ b/arch/sparc/prom/init_32.c
-@@ -10,6 +10,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/string.h>
- 
- #include <asm/openprom.h>
- #include <asm/oplib.h>
-@@ -19,6 +20,7 @@ EXPORT_SYMBOL(romvec);
- 
- enum prom_major_version prom_vers;
- unsigned int prom_rev, prom_prev;
-+bool prom_leon_legacy __ro_after_init;
- 
- /* The root node of the prom device tree. */
- phandle prom_root_node;
-@@ -27,6 +29,25 @@ EXPORT_SYMBOL(prom_root_node);
- /* Pointer to the device tree operations structure. */
- struct linux_nodeops *prom_nodeops;
- 
-+/* Identify the old U-Boot PROM before any library routine can print. */
-+static void __init prom_check_legacy_leon(void)
-+{
-+	char compat[5] = { };
++	/* Old LEON firmware omits the root name; handle unnamed children too. */
++	if (!name) {
++		if (dp->parent)
++			snprintf(tmp_buf, sizeof(tmp_buf), "node@%x", dp->phandle);
++		else
++			tmp_buf[0] = '\0';
++		goto alloc_name;
++	}
 +
-+	if (!IS_ENABLED(CONFIG_SPARC_LEON) || prom_vers != PROM_V0 ||
-+	    romvec->pv_stdin || romvec->pv_stdout)
-+		return;
-+	if (prom_getproplen(prom_root_node, "compatible") >= 0)
-+		return;
-+	/* Old U-Boot's getprop returns one on success, not the byte count. */
-+	if (prom_getproplen(prom_root_node, "compatability") != sizeof(compat))
-+		return;
-+	if (prom_getproperty(prom_root_node, "compatability", compat,
-+			     sizeof(compat)) > 0 &&
-+	    !memcmp(compat, "leon2", sizeof(compat)))
-+		prom_leon_legacy = true;
-+}
-+
- /* You must call prom_init() before you attempt to use any of the
-  * routines in the prom library.
-  * It gets passed the pointer to the PROM vector.
-@@ -65,6 +86,8 @@ void __init prom_init(struct linux_romvec *rp)
- 	   (((unsigned long) prom_nodeops) == -1))
- 		prom_halt();
+ 	tmp_buf[0] = '\0';
+ 	__build_path_component(dp, tmp_buf);
+ 	if (tmp_buf[0] == '\0')
+ 		strscpy(tmp_buf, name);
  
-+	prom_check_legacy_leon();
-+
- 	prom_meminit();
- 
- 	prom_ranges_init();
++alloc_name:
+ 	n_sz = strlen(tmp_buf) + 1;
+ 	n = prom_early_alloc(n_sz);
+ 	strscpy(n, tmp_buf, n_sz);
 -- 
 2.43.0
 
