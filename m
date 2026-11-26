@@ -1,83 +1,84 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.44
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.53
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795685492;
-	b=v/CRWn4BhKrPKmzqRvWEsvkWT9EqAJqxxeCUKpEG9NaAF5vhuBJUxqmIWVjf8bXH8fhI
-	 DFY6jjs1s2a6tZr9SdADQVOwHuh1v1m8BMHOFygkncYcUs70UjXlqhUjCwNErzOY8kbwC
-	 CCt37qKeAk6/RCYdcwjlrqc1pSeXFWiEcrqM2uPLJMYetk1ZvW3HQMJDnlCuo07ULsesj
-	 wn8vH2V76qB4VsTWst4BVkasuIIqg7Joy4Ad2CIuhgIizSFqHeVaUksmTCQ88gbjZs8e/
-	 6j9LFtUxZp+10knZDPqDjpWgcqhKF6tmFOw0204kJtsshcnQ0QcazY7RSEhIkQ4NMLg==
+	t=1795685493;
+	b=yoCnEIBAv0GzohStOCKgfN+CBZX5t2hjLqvg3PZKFSFbpjrmrnXcSHELNtjuevz8j0MQ
+	 uAp6VJPnPMm1Pa+3l9DmzYnvVAxmJQyLUEsi+dfnlh60Er/f5JvKIat8YO6Lvm29VOsLa
+	 VAUClb5IJH8KkkSfjMvzT3fYF59YI1r5hq6P72Rn+RTtwjMUMlcVyklk76pzPP29ufNGZ
+	 Lck1JC2R+F375cG8kK/fENhAO70llIkTmSwZS5zZ+R9PVTR1qY7ANmIA7wOj5NzgTOzx2
+	 7taOpxxf56CYL2vP0Vbx2T8OLXdeQuujkjPGwEZe0k9grhJizanwtg5cquY7P/Mlc9g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795685492;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795685493;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=1Hsp/nKJQfa6z9fxFEd4d4zCQ7inN3vyv8oVcbS42Bc=;
-	b=UxZ8uh9c1V6pylXftDOeAKz1/uSOXh7vgsa/rHylXZgPf8NTXvefq7xDE4N2uxjLFq+h
-	 HRqo5naW/b8plN5bxUvG4gKZx3sOcqgAlJQT6yfVl0lsUYzIRxQsJ2UqsbipMdD/mcO+7
-	 fMKpFt9oYemEsH37E07WOzruqILAv3vFFdyugpLFKn4w/kgqCVOoWooXC2vr1V92/5MFr
-	 IP3ikilEFcEYJuY4riIdKrFZC3OEUhM93g7hDJYSFZSqfy+BrxfzkMiS/1CePlROItaQq
-	 2iWeuFUtlhlX+Nj8FlcLXTNu+LLxnGVBf3Wr2TIaUgddX1vRFG4WWL+s5pTviYydSOQ==
+	bh=lp89Z2vbQqpmCvnOyVvMZ8E+x8ZLxSlWg8zPGPjYRG0=;
+	b=wSbbJLiQmUEbTkL458wOkqOVHhKKHyzwPC4W0V4Ogho8bJNcidEnY+gQUDVhk/qIV89g
+	 mcODafkfR5w9cwhK9hNVoufZBti0UQavCCfb3ZTfNZs/I7wG7iJjYbVry8S29JZt6Kff7
+	 n7yqB8ma3+UQ6clpD0NvKM900P73sfZiIJvozpLc3UsWtvezZcOgAZurx+KU2ZYdEtISP
+	 cTNkeCeBwjY87QxH2S1e34YFdG88iwcwTXOm84RpjXthG/8r5EJGKMhMHvW1Pn6zLGprO
+	 Dds577UkIXDe5W7xQhDL4/4B1CPJHUunA9OrLCDXPKste6Gp+Vs4gCqwmpI+QGy26rQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=UWiADtOA;
-	arc=none smtp.remote-ip=209.85.208.44
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=JVutTiHb;
+	arc=none smtp.remote-ip=209.85.218.53
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C22F606A33E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0B60606A6A8
 	for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 09:31:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2C22F606A33E
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F0B60606A6A8
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=UWiADtOA
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6bab10844b5so7494226a12.1
-        for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 01:31:31 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=JVutTiHb
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c50d3ac6b51so1384973166b.1
+        for <sparclinux@vger.kernel.org>; Thu, 26 Nov 2026 01:31:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795685490; x=1796290290; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795685491; x=1796290291; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=1Hsp/nKJQfa6z9fxFEd4d4zCQ7inN3vyv8oVcbS42Bc=;
-        b=UWiADtOAPdIfy2Td76h/yXsK6/bP/5BR4o3HCPmj7HIw8jdapX3wPGP7EE4mS5YqJj
-         Iv2ezBrsDwiYaM99rULbCEKIRMFI5VtUV4K2hacDbTJZIjPGQp4uyOJJjg4X+1sMPuG9
-         le+gVTEjQT1sxHEuCCudB9vXXtimZWXAyqfV3ZsSVWXZTcy4Zv/hmy5M1AKmNEW7MOfc
-         BgSxdMfxxPDcAIgyka7+PT9TSnwa6h3nms4SlvDGGULBvqVrz6/Fei6CksVpN+VMLGQJ
-         Yce1vDvmTkbGvncZrsDzdbSGj808/nn26X7W3IekJN1MYx4O7O0FHapg1VWWjx3EZ6UU
-         tw/A==
+        bh=lp89Z2vbQqpmCvnOyVvMZ8E+x8ZLxSlWg8zPGPjYRG0=;
+        b=JVutTiHbNuoLxsHio8HUw628/7LEpJ4ZPHcYYSWeKqStTw4lEfAgVQGSjp7LlNR+Nc
+         dptCZRvR+2EVvHMOu+lmhI/lwbNYGzSFnLGw5k5wGWaGTI/yCmYMF6o59WsJvcJGd3A/
+         wlKSn2kLi0wc3z8gxqepfea4cAXtZcMd2nRr6LRS5Hj/CyGw2F+Gg/uvzswfgEDB2ra4
+         kb00HkgsdB9bBXwm0rfERJY5tYcPGqnl3OkRLGzULTbp529oWnb9wBJhfCCmf6dYIcNv
+         ruywwk31pkUkM8AdQUEu2VfeveFghc8Lio/VDriKQXnqvh5HNIoClXatLauuYAUMDNXt
+         Zcqg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795685490; x=1796290290;
+        d=1e100.net; s=20260707; t=1795685491; x=1796290291;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=1Hsp/nKJQfa6z9fxFEd4d4zCQ7inN3vyv8oVcbS42Bc=;
-        b=XyvcpuaLsku0axe93xLCCgeo9lNEDYiU1UJbVtV8nN7fqjgrJUjemCn81k0boDaOos
-         /rhRQ7/mseAWmbsww2cBzlBi9J/HX0bHLg1WXmoZAmCGWwFYb9fHs9W96F/Sr03C3hnO
-         E+dTtPb+bpd/T0ca2oE/tIxmMURHb49/PUrfRKtNXbdynHWrS7+7q8XtnzcvCQpc4WpL
-         r02NIxa3eRUb1qU8QmsD4D2S4F+JW3Hx3tqJTKbg7RULDyRxIklSVgqcPHEftOjHA4Pk
-         A38Ge7e6g71HHwwmrRWG5RTfLCklh8mX/QiVMBLYS+zwgUDZpx7K+WjCMCfhdH/FC983
-         61PA==
-X-Forwarded-Encrypted: i=1; AL+hErGsAAWJzpq5v8Ez4c++oPBpo6ynJpTo+eKLvKh1o0yTeXIQ5e+BwtmZA3hI1gcTCllgN70RUXHrbsp4@vger.kernel.org
-X-Gm-Message-State: APuU4Z8I1pQhvuLUyMUvE4J+tsWchY93947jTQ5vqc7rLENqbijtk9YF
-	IkBJ96pKjoEvQN80TVpLpvfIkPOwbIkbNP5m925xqtcltHeq2vxyOZvVjBNc8WfC
-X-Gm-Gg: AZFdTZcoeEcWAMPQdOrfs36FZPi/BrtcL/txy8Xh1+2oYJiHInBmckv8kcFJtvW25zx
-	+LVmT2OjPEt3gCPhqALPKhA296S5af8EVmUVXMlde5Gt+0IqXhPeX/EJ/jqorpePADJwEsctGYK
-	m85bvvFcszCeoCmVtjMXhCSuMqQgkKcP5oZPWHRJRgmp8l4yVAYaZppqyMFwQ2c4unXlQZTYoO0
-	9KArB9QfJMmb06Yi9n1XNjbIq/WAAceN6m5vSzz3B8ZjO+K3xiFAafdVUpoNaSULZuXv4lU0c4w
-	+uWaLTinLgpHthYDkuR1cmyC4WLQ4iEGIauvWjt4mVcX/piefe6qeNQS4CshFDnq7rjCeg5uSUC
-	YUV30YVTljOwyOgFHXsFbV37pn+ue3NaAhNK0uW8AhTNT6HVQtGzCwvL8cjPSW7cmxtdDutCwHq
-	tVAEGhauBIyZtVX0P70cLGSsSxturvjvltE5j6u90KsbR42uRIeuMhJ7EOh4px0BG0G0G/zjMuz
-	9V24CPSSNZCVlCDeqbDKfqmOiRXsXTu0mMVR82+8Ra9pXkdPe+jrd2cRRDOv3JQ/HwNlyh9/oUi
-	ppQlR8r7Td0SwV1cud+0FXRingSkdy4vKCOoG5KxqyL3/AzZ2CovRuv6GZH5Nhuib16GKRg=
-X-Received: by 2002:a17:907:ec09:b0:c2d:c6e7:9e9a with SMTP id a640c23a62f3a-c513a816ce5mr1651611766b.11.1795685490519;
-        Thu, 26 Nov 2026 01:31:30 -0800 (PST)
+        bh=lp89Z2vbQqpmCvnOyVvMZ8E+x8ZLxSlWg8zPGPjYRG0=;
+        b=ly/8BJ1yOQAxqWdYLXeyFsHjQy/ua83NFcHOCXBk16RqQ6DLMVmtT9eKvN9thvpSFo
+         pnQOxid1B56y+Xkg95oS28nqZUI00hORE7hmtGgbhgRGkIaMNoO3kgx+OPPeAp9SoXeP
+         KvGogVuwGrWooeCC1b9QbD5A1I4NnCJ1zkauKZrmv5TlCmMoE9kHXuws40j+7Bg45YpV
+         tF8wDRug2igmLsZahWqk78ybg+TdAoLwBECJl079vRE5kHmcolO+asGCYUmDvo/9FmHV
+         zME641bMPnRbYoGRTqKRLdeMw4WRUPWN4uP3T1w8LmBpuc8/kvg/5Y9WS8vRDFXa1PEH
+         8sJg==
+X-Forwarded-Encrypted: i=1; AL+hErGBl6mbxip+XlJShlmloc48lR7B+lCiRnBGIetCFwGmlcsnjB5vMkGaeiW32C6fAQvExTWvLCVUKTqj@vger.kernel.org
+X-Gm-Message-State: APuU4Z/3/hKm+CxzVqz/4joLdr731nD7ZpnNVHZ7eLjeS4eXZnIKum7K
+	2n9J0S46f8J4teOr5hRNGQzxXI8eZR7EwH0S+Np+JrpBPU59RGb5Ghrzp70eOBSm
+X-Gm-Gg: AZFdTZdtgSdEhk13dXbq0Vz/3WhuTMsclRl3blM23qIgCXQyu26KofFS8ryf2jMDB5I
+	1qGlrhPPPpxklc7Bckv+Sfr0gFjAe6hGKLTWz++B01nBXoHD6oPO/yNIjXSQq8IDeAhSLV+sYYn
+	M1ttDWAZkurBOShd/8xrGtBnI0/DgMmQc6ItTcY8qql2M5MWp5gFUWBIAebvbKcsx4Iq9x/RU3h
+	SFbC/FtcFjr4uRXPnrRQs/595RsJvvhkkYV2bhgVviC4rcnu/eEEDTkrURe4Yx90Fv7H2Vic7Nj
+	KQLM56szBqf+UZOTNOmlQECXjixDTTphNfvO64YI5RSjtTZjmBiijmIpjVFeOQvPVHFepN/7w1k
+	MJiBmuhXnk6Ia6N6qD9BJe14g5X761Z0N2SBaUs0VRhQQQE/0WKQt2lFnhEVu6T88W90oUrlGWe
+	lWpNt2jY/IGvBT0VWkVFnakmKesMyJWRGcw4GoMmL3pzCP9BXLGymQbD/BS2GYRpscAOEd+owtx
+	ahgbfwP2BLAgO29x0RRbBGyfHbgVz2keRLd0ZoLS7q0hyigUTF1JxUgy25lZ91CU4BZgYpZ1hYX
+	2fSd05Z8VY+GHi4AzIcF0rikDT5Ctap3SIT6SBLA1vw8pLx1DpZM51DPK1vneAZSnPM14R/6aUt
+	9TfabR/a6jlnOfEAJ
+X-Received: by 2002:a17:907:e106:b0:c51:3382:8ff0 with SMTP id a640c23a62f3a-c5133829107mr1257620766b.12.1795685491348;
+        Thu, 26 Nov 2026 01:31:31 -0800 (PST)
 Received: from buildhost.darklands.se ([2001:9b1:ff:d701:51eb:176f:63d9:53f8])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513afdee82sm597090066b.66.2026.11.26.01.31.29
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513afdee82sm597090066b.66.2026.11.26.01.31.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 26 Nov 2026 01:31:30 -0800 (PST)
+        Thu, 26 Nov 2026 01:31:31 -0800 (PST)
 From: Magnus Lindholm <linmag7@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -85,9 +86,9 @@ Cc: sam@ravnborg.org,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linmag7@gmail.com
-Subject: [PATCH 11/18] sparc32,leon: restore the kernel header offsets used by U-Boot
-Date: Thu, 26 Nov 2026 10:30:16 +0100
-Message-ID: <20261126093106.1345825-12-linmag7@gmail.com>
+Subject: [PATCH 12/18] sparc32: recognize the legacy LEON firmware machine ID
+Date: Thu, 26 Nov 2026 10:30:17 +0100
+Message-ID: <20261126093106.1345825-13-linmag7@gmail.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261126093106.1345825-1-linmag7@gmail.com>
 References: <20261126093106.1345825-1-linmag7@gmail.com>
@@ -102,37 +103,41 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Factory GR-LEON4-ITX U-Boot checks for HdrS at 0x9000, then at 0xc000.
-Reserve eight pages before HdrS in LEON-enabled kernels to restore the
-UP and SMP offsets. This costs 32 KiB in the loaded image.
-
-SILO, TILO and the kernel's piggyback tool can locate HdrS relative to
-the branch to gokernel. The ELF entry point and header ABI stay the same.
+Factory GR-LEON4-ITX firmware reports IDPROM type 0x31. Recognize that
+legacy LEON identifier in the machine-name table. This only corrects
+the diagnostic; CPU identification and IDPROM contents are unchanged.
 
 Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
 ---
- arch/sparc/kernel/head_32.S | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/sparc/include/asm/machines.h | 1 +
+ arch/sparc/kernel/idprom.c        | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
-index 6547717aac20..d36839ca1f03 100644
---- a/arch/sparc/kernel/head_32.S
-+++ b/arch/sparc/kernel/head_32.S
-@@ -64,6 +64,14 @@ sun4e_notsup:
+diff --git a/arch/sparc/include/asm/machines.h b/arch/sparc/include/asm/machines.h
+index 9f78f70c6f11..ee79cc8e929c 100644
+--- a/arch/sparc/include/asm/machines.h
++++ b/arch/sparc/include/asm/machines.h
+@@ -32,6 +32,7 @@ struct Sun_Machine_Models {
+ #define SM_TYP_MASK   0x0f
  
- 	.align PAGE_SIZE
+ /* Leon machines */
++#define M_LEON2_SOC   0x01    /* Legacy LEON firmware ID */
+ #define M_LEON3_SOC   0x02    /* Leon3 SoC */
  
-+#ifdef CONFIG_SPARC_LEON
-+/*
-+ * Factory GR-LEON4-ITX U-Boot checks for HdrS at 0x9000 (UP), then at
-+ * 0xc000 (SMP). Older kernels had eight pages before the header.
-+ */
-+	.skip 8 * PAGE_SIZE
-+#endif
-+
- 	.global root_flags
- 	.global ram_flags
- 	.global root_dev
+ /* Sun4m machines, these predate the OpenBoot.  These values only mean
+diff --git a/arch/sparc/kernel/idprom.c b/arch/sparc/kernel/idprom.c
+index d6c46d512220..8aba9b4d4498 100644
+--- a/arch/sparc/kernel/idprom.c
++++ b/arch/sparc/kernel/idprom.c
+@@ -29,6 +29,8 @@ static struct idprom idprom_buffer;
+  */
+ static struct Sun_Machine_Models Sun_Machines[] = {
+ /* First, Leon */
++{ .name = "LEON system (legacy firmware ID)",
++	.id_machtype = (M_LEON | M_LEON2_SOC) },
+ { .name = "Leon3 System-on-a-Chip",  .id_machtype = (M_LEON | M_LEON3_SOC) },
+ /* Finally, early Sun4m's */
+ { .name = "Sun4m SparcSystem600",    .id_machtype = (SM_SUN4M | SM_4M_SS60) },
 -- 
 2.43.0
 
